@@ -1,0 +1,16 @@
+{
+  "name": "roundroom",
+  "version": "1.0.0",
+  "description": "RoundRoom — NFL Fantasy Draft Assistant. Live Sleeper sync, VORP-based recommendations.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
