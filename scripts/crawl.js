@@ -23,6 +23,13 @@ const MAX_DRAFTS = 500;        // Phase 1 target
 const TIME_BUDGET_MS = 8 * 60 * 1000; // 8 minutes (leaves headroom for final write)
 const RATE_LIMIT_MS = 500;     // 2 req/sec max
 
+// Data-quality window: only keep drafts from the last 14 days. During Aug-Sep
+// draft season the meta shifts fast (injuries, depth charts), so an old draft
+// reflects a stale picture. We still explore the LEAGUE MEMBERS of old drafts —
+// the user graph is the valuable part; a stale draft shouldn't stop the crawl.
+const DATE_WINDOW_DAYS = 14;
+const DATE_WINDOW_MS = DATE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
 const API = 'https://api.sleeper.app/v1';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -63,6 +70,12 @@ async function main() {
   const completedDrafts = new Set();
   const picks = [];
 
+  // Draft-level filter counters (feed data_quality.json downstream).
+  let completedSeen = 0;    // all completed drafts encountered (pre-filter)
+  let skippedTooOld = 0;    // completed but start_time older than the window
+  let skippedAuction = 0;   // completed but non-snake (auction) — corrupts ADP
+  const cutoff = Date.now() - DATE_WINDOW_MS;
+
   console.log(`Starting snowball crawl. Seeds: ${SEED_USERNAMES.join(', ')}`);
   console.log(`Targets: ${MAX_DRAFTS} completed drafts or ${TIME_BUDGET_MS / 60000}min\n`);
 
@@ -76,6 +89,11 @@ async function main() {
       seeds_used: SEED_USERNAMES,
       users_explored: seenUsers.size,
       leagues_seen: seenLeagues.size,
+      // Draft-level filtering applied during the crawl (used by aggregate.js).
+      completed_drafts_seen: completedSeen,
+      skipped_too_old: skippedTooOld,
+      skipped_auction: skippedAuction,
+      date_window_days: DATE_WINDOW_DAYS,
       elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
       stop_reason: reason,
     }, null, 2));
@@ -110,7 +128,26 @@ async function main() {
           if (!draft || !draft.draft_id || seenDrafts.has(draft.draft_id)) continue;
           seenDrafts.add(draft.draft_id);
           if (draft.status !== 'complete') continue;
+          completedSeen++;
           if (completedDrafts.size >= MAX_DRAFTS) break;
+
+          // --- Draft-level quality gates (still explore members below) ---
+          // Skip AUCTION (and any non-ordered) drafts: their pick logic (dollar
+          // values, not pick order) corrupts ADP. Keep both 'snake' and 'linear'
+          // — a linear draft still has meaningful overall pick numbers (pick N =
+          // overall pick N), exactly like snake, so its ADP is valid. Filtering
+          // to snake-only would needlessly discard ~15% of real ordered drafts.
+          if (draft.type !== 'snake' && draft.type !== 'linear') {
+            skippedAuction++;
+            continue;
+          }
+          // Recency window: skip drafts older than 14 days. start_time is unix
+          // ms; fall back to last_picked if start_time is missing.
+          const startTs = draft.start_time || draft.last_picked || 0;
+          if (!startTs || startTs < cutoff) {
+            skippedTooOld++;
+            continue;
+          }
 
           const draftPicks = await throttledFetch(`${API}/draft/${draft.draft_id}/picks`);
           if (!Array.isArray(draftPicks) || draftPicks.length === 0) continue;
@@ -121,12 +158,22 @@ async function main() {
             league.total_rosters ||
             12;
 
+          // Denormalized draft-level fields so aggregate.js can filter without
+          // re-fetching the draft object. end_time proxy = last_picked.
+          const draftEndTs = draft.last_picked || 0;
+          const draftDurationMs =
+            startTs && draftEndTs && draftEndTs > startTs ? draftEndTs - startTs : null;
+
           for (const p of draftPicks) {
             const meta = p.metadata || {};
             const name =
               (meta.first_name && meta.last_name)
                 ? `${meta.first_name} ${meta.last_name}`.trim()
                 : (meta.first_name || meta.last_name || null);
+            // Autopick flag can appear top-level or in metadata depending on the
+            // draft — capture either so aggregate.js can spot autopick-heavy drafts.
+            const isAutopick = p.is_autopick === true || meta.is_autopick === true ||
+              meta.is_autopick === 'true';
             picks.push({
               draft_id: draft.draft_id,
               pick_no: p.pick_no,
@@ -137,6 +184,13 @@ async function main() {
               round: p.round,
               roster_slot: p.draft_slot,
               league_size: teams,
+              // Denormalized draft metadata for downstream filtering.
+              draft_start_time: startTs,
+              draft_type: draft.type,
+              draft_duration_ms: draftDurationMs,
+              // Owner of this pick — used to detect duplicate-owner test leagues.
+              picked_by: p.picked_by || null,
+              is_autopick: isAutopick,
               metadata: meta,
             });
           }
@@ -174,6 +228,10 @@ async function main() {
     seeds_used: SEED_USERNAMES,
     users_explored: seenUsers.size,
     leagues_seen: seenLeagues.size,
+    completed_drafts_seen: completedSeen,
+    skipped_too_old: skippedTooOld,
+    skipped_auction: skippedAuction,
+    date_window_days: DATE_WINDOW_DAYS,
     elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
     stop_reason:
       completedDrafts.size >= MAX_DRAFTS ? 'max_drafts'
@@ -187,6 +245,11 @@ async function main() {
 
   console.log('\n=== Crawl complete ===');
   console.log(JSON.stringify(meta, null, 2));
+  console.log(
+    `Draft filtering: ${completedSeen} completed seen -> ` +
+    `${skippedAuction} auction skipped, ${skippedTooOld} too-old skipped -> ` +
+    `${completedDrafts.size} kept.`
+  );
   console.log(`Wrote ${picks.length} picks from ${completedDrafts.size} drafts.`);
 }
 

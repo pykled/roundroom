@@ -1,12 +1,16 @@
 {
-  "total_drafts": 249,
-  "total_picks": 33178,
-  "crawled_at": "2026-08-11T22:59:16.086Z",
+  "total_drafts": 19,
+  "total_picks": 3068,
+  "crawled_at": "2026-08-11T23:34:56.749Z",
   "seeds_used": [
     "pykle"
   ],
-  "users_explored": 2754,
-  "leagues_seen": 331,
-  "elapsed_seconds": 481,
+  "users_explored": 2594,
+  "leagues_seen": 310,
+  "completed_drafts_seen": 246,
+  "skipped_too_old": 223,
+  "skipped_auction": 2,
+  "date_window_days": 14,
+  "elapsed_seconds": 549,
   "stop_reason": "time_budget"
 }
