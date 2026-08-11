@@ -3660,7 +3660,25 @@ function goHome() {
   STATE.draftComplete = false;
   STATE.draftStatus = null;
   STATE.isSuperflex = false;
+  STATE.scoringType = 'ppr';
+  STATE.mySlot = 1;
+  STATE.totalTeams = 12;
+  STATE.totalRounds = 15;
+  STATE.myPickNumbers = [];
+  STATE.mergedPlayers = [];
+  STATE.adpPlayers = [];
+  STATE.sleeperPlayers = {};
+  STATE.usingOfflineData = false;
   STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
+  // Reset start button so it's clickable again
+  const btn = document.getElementById('start-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Start Draft Assistant'; }
+  // Hide offline banner
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.classList.add('hidden');
+  // Hide AI FAB
+  const fab = document.getElementById('ai-fab');
+  if (fab) fab.style.display = 'none';
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'flex';
   document.getElementById('draft-info-section').classList.add('hidden');
