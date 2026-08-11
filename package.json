@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "crawl": "node scripts/crawl.js",
+    "aggregate": "node scripts/aggregate.js",
+    "vorp": "node scripts/vorp.js",
+    "update-data": "node scripts/crawl.js && node scripts/aggregate.js && node scripts/vorp.js"
   },
   "engines": {
     "node": ">=18"

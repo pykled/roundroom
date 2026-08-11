@@ -1,0 +1,23 @@
+name: Update Draft Data
+on:
+  schedule:
+    - cron: '0 7 * * *'  # 7am UTC = midnight Pacific
+  workflow_dispatch:  # allow manual trigger
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: node scripts/crawl.js
+      - run: node scripts/aggregate.js
+      - run: node scripts/vorp.js
+      - name: Commit data
+        run: |
+          git config user.name "RoundRoom Bot"
+          git config user.email "bot@roundroom.app"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: update draft data $(date -u +%Y-%m-%d)"
+          git push

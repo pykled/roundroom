@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 7890;
@@ -30,6 +31,25 @@ app.get('/api/players', async (req, res) => {
     console.error('Player fetch error:', err.message);
     if (playerCache) return res.json(playerCache); // stale cache on error
     res.status(502).json({ error: 'Failed to fetch player data' });
+  }
+});
+
+// Serve live ADP data (updated nightly by GitHub Actions)
+app.get('/api/adp', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/adp.json'), 'utf8'));
+    res.json(data);
+  } catch (e) {
+    res.status(503).json({ error: 'ADP data not yet generated' });
+  }
+});
+
+app.get('/api/vorp', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/vorp.json'), 'utf8'));
+    res.json(data);
+  } catch (e) {
+    res.status(503).json({ error: 'VORP data not yet generated' });
   }
 });
 
