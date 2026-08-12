@@ -2079,8 +2079,10 @@ function endMockDraft() {
   else if (avgAdp < expectedAvg * 1.15) { grade = 'C'; gradeColor = '#f59e0b'; }
   else { grade = 'D'; gradeColor = '#ef4444'; }
 
-  // Find best value picks
-  const valuePicks = myPicks.map(p => ({ ...p, value: p.adp - p.rank })).sort((a, b) => b.value - a.value).slice(0, 2);
+  // Find best value picks — diff = pickNum - adp: positive means player fell past their ADP
+  const valuePicks = MOCK.picks.filter(p => p.isUser)
+    .map(p => ({ ...p.player, pickNum: p.pickNum, value: p.pickNum - (p.player.adp || p.pickNum) }))
+    .sort((a, b) => b.value - a.value).slice(0, 2);
   const thinPos = Object.entries(filled).filter(([k, v]) => v.length < 2 && ['RB','WR'].includes(k)).map(([k]) => k);
 
   const content = document.getElementById('mock-results-content');
@@ -2098,7 +2100,7 @@ function endMockDraft() {
 
     ${valuePicks.length > 0 ? `
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin:1rem 0 0.5rem;">Key Wins</div>
-      ${valuePicks.map(p => `<div class="mock-insight">✓ <strong>${p.name}</strong> — drafted ${Math.abs(p.adp - p.rank).toFixed(0)} picks before typical ADP</div>`).join('')}
+      ${valuePicks.filter(p => p.value >= 2).map(p => `<div class="mock-insight">✓ <strong>${p.name}</strong> — fell ${p.value.toFixed(0)} picks past ADP (${p.adp ? p.adp.toFixed(0) : '?'}), drafted at ${p.pickNum}</div>`).join('')}
     ` : ''}
 
     ${thinPos.length > 0 ? `
@@ -4097,9 +4099,10 @@ function gradeDraft(myPicks, totalTeams) {
   if (!myPicks.length) return { grade: '—', color: '#666', composite: 0, breakdown: null };
 
   // Component 1: ADP Value (40%) — value gained vs consensus ADP
+  // diff = pick_no - adp: positive means player fell past their ADP (value); negative = reach
   const adpValues = myPicks.map(p => {
     const playerAdp = FP_ADP[p.name] || p.pick_no;
-    return playerAdp - p.pick_no; // positive = value, negative = reach
+    return p.pick_no - playerAdp;
   });
   const avgAdpValue = adpValues.reduce((a, b) => a + b, 0) / adpValues.length;
   const adpScore = Math.max(0, Math.min(100, 50 + avgAdpValue * 4));
@@ -4549,7 +4552,7 @@ function showDraftRecap() {
     const adp = merged ? merged.adp : null;
     let valueTag = '';
     if (adp) {
-      const diff = Math.round(adp - pick.pick_no);
+      const diff = Math.round(pick.pick_no - adp); // positive = player fell = value; negative = reach
       valueSum += diff; valueCount++;
       if (diff >= 4) valueTag = `<span style="color:#4ade80;font-family:'DM Mono',monospace;font-size:0.7rem;">+${diff} value</span>`;
       else if (diff <= -6) valueTag = `<span style="color:#f87171;font-family:'DM Mono',monospace;font-size:0.7rem;">${diff} reach</span>`;
