@@ -1665,6 +1665,28 @@
 
 </div>
 
+<!-- DRAFT REVIEW ROOM -->
+<div id="review-screen" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="exitReviewRoom()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;">← Leagues</button>
+    <span id="review-league-name" style="font-weight:700;font-size:0.9rem;flex:1;"></span>
+    <span style="font-size:0.7rem;color:var(--text-muted);" id="review-meta"></span>
+    <!-- Team selector -->
+    <select id="review-team-select" onchange="selectReviewTeam(this.value)" style="font-size:0.78rem;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.5rem;font-family:inherit;cursor:pointer;">
+      <option value="all">All Teams</option>
+    </select>
+  </div>
+
+  <!-- Body: board + sidebar -->
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <!-- Full draft board -->
+    <div id="review-board" style="flex:1;overflow:auto;padding:1rem;"></div>
+    <!-- Grade sidebar -->
+    <div id="review-sidebar" style="width:260px;border-left:1px solid var(--border);overflow-y:auto;padding:1rem;flex-shrink:0;"></div>
+  </div>
+</div>
+
 <!-- AI Assistant FAB + Panel -->
 <button class="ai-fab" id="ai-fab" onclick="toggleAiPanel()" title="AI Draft Assistant" style="display:none;">✦</button>
 
@@ -1767,6 +1789,13 @@ const STATE = {
   isSuperflex: false,
   scoringType: 'ppr',
   vorpData: {},        // live VORP from /api/vorp, keyed by lowercase name
+  // ===== Draft Review Room state =====
+  reviewDraft: null,
+  reviewPicks: null,
+  reviewUserMap: null,
+  reviewTotalTeams: 12,
+  reviewTotalRounds: 15,
+  reviewLeague: null,
 };
 
 // ===== MOCK DRAFT STATE =====
@@ -2320,6 +2349,20 @@ async function fetchLeagues() {
       throw new Error('No 2026 leagues found for this user');
     }
 
+    // Fetch each league's draft status upfront so cards can show a live badge
+    await Promise.all(STATE.leagues.map(async (league) => {
+      try {
+        const dResp = await fetch(`https://api.sleeper.app/v1/league/${league.league_id}/drafts`);
+        const drafts = await dResp.json();
+        const draft = drafts && drafts.length > 0 ? drafts[0] : null;
+        league._draft = draft || null;
+        league._draftStatus = draft ? draft.status : null;
+      } catch(e) {
+        league._draft = null;
+        league._draftStatus = null;
+      }
+    }));
+
     renderLeagues();
     document.getElementById('leagues-section').classList.remove('hidden');
   } catch(e) {
@@ -2331,6 +2374,23 @@ async function fetchLeagues() {
   }
 }
 
+// Small inline badge showing the draft status on a league card
+function draftStatusBadge(dstatus) {
+  if (dstatus === 'complete') {
+    return `<span style="font-size:0.62rem;background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);border-radius:4px;padding:0.1rem 0.35rem;margin-left:0.4rem;">✓ Complete</span>`;
+  }
+  if (dstatus === 'drafting') {
+    return `<span style="font-size:0.62rem;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);border-radius:4px;padding:0.1rem 0.35rem;margin-left:0.4rem;">● Live</span>`;
+  }
+  if (dstatus === 'pre_draft') {
+    return `<span style="font-size:0.62rem;background:rgba(148,163,184,0.1);color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:0.1rem 0.35rem;margin-left:0.4rem;">Upcoming</span>`;
+  }
+  if (!dstatus) {
+    return `<span style="font-size:0.62rem;background:rgba(148,163,184,0.1);color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:0.1rem 0.35rem;margin-left:0.4rem;">No Draft</span>`;
+  }
+  return '';
+}
+
 function renderLeagues() {
   const container = document.getElementById('leagues-list');
   container.innerHTML = '';
@@ -2340,7 +2400,7 @@ function renderLeagues() {
     div.className = 'league-card';
     div.innerHTML = `
       <div>
-        <div style="font-weight:600;font-size:0.9rem;">${escHtml(league.name || 'Unnamed League')}</div>
+        <div style="font-weight:600;font-size:0.9rem;display:flex;align-items:center;flex-wrap:wrap;">${escHtml(league.name || 'Unnamed League')}${draftStatusBadge(league._draftStatus)}</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem;">${league.total_rosters || 12} teams · ${league.settings?.type === 2 ? 'Dynasty' : league.settings?.type === 1 ? 'Keeper' : 'Redraft'}</div>
       </div>
       <span class="status-badge status-${status}">${status.replace('_', ' ')}</span>
@@ -2369,6 +2429,12 @@ async function selectLeague(league, el) {
     const draft = drafts && drafts.length > 0 ? drafts[0] : null;
     STATE.selectedDraft = draft;
     STATE.draftId = draft ? draft.draft_id : null;
+
+    // Completed draft → skip the assistant flow and open the Review Room
+    if (draft && draft.status === 'complete') {
+      enterReviewRoom(league, draft);
+      return;
+    }
 
     renderDraftInfo(league, draft);
     document.getElementById('draft-info-section').classList.remove('hidden');
@@ -4088,6 +4154,365 @@ function gradeDraft(myPicks, totalTeams) {
       scarcity: { score: Math.round(scarcityScore), label: 'Elite Scarcity' },
     }
   };
+}
+
+// ============================================================
+// DRAFT REVIEW ROOM
+// ============================================================
+async function enterReviewRoom(league, draft) {
+  // Show loading state
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('review-screen').style.display = 'flex';
+  document.getElementById('review-league-name').textContent = league.name || 'League';
+  document.getElementById('review-board').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem;">Loading draft data...</p>';
+  document.getElementById('review-sidebar').innerHTML = '';
+  document.getElementById('review-meta').textContent = '';
+
+  // Load ADP/VORP data if not already loaded (reuse STATE.mergedPlayers if available)
+  if (!STATE.mergedPlayers?.length) {
+    try {
+      const [adpResp, vorpResp] = await Promise.all([
+        fetch('/api/composite-adp'),
+        fetch('/api/vorp')
+      ]);
+      if (adpResp.ok) {
+        const adpJson = await adpResp.json();
+        STATE.adpPlayers = (adpJson.players || []).map(p => ({
+          name: p.name, position: p.position, team: p.team || '',
+          adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
+          stdev: p.stdev || 2.0
+        }));
+        STATE.mergedPlayers = STATE.adpPlayers; // simplified for review mode
+      }
+      if (vorpResp.ok) {
+        const vorpJson = await vorpResp.json();
+        const vorpMap = {};
+        (vorpJson.players || []).forEach(p => { vorpMap[p.name.toLowerCase()] = p; });
+        STATE.vorpData = vorpMap;
+      }
+    } catch(e) {}
+  }
+
+  // Fetch all picks
+  let picks = [];
+  try {
+    const resp = await fetch(`https://api.sleeper.app/v1/draft/${draft.draft_id}/picks`);
+    picks = await resp.json();
+  } catch(e) {
+    document.getElementById('review-board').innerHTML = '<p style="color:#ef4444;">Failed to load picks.</p>';
+    return;
+  }
+
+  // Fetch league users
+  let users = [];
+  try {
+    const resp = await fetch(`https://api.sleeper.app/v1/league/${league.league_id}/users`);
+    users = await resp.json();
+  } catch(e) {}
+
+  // Fetch rosters to map roster_id → user
+  let rosters = [];
+  try {
+    const resp = await fetch(`https://api.sleeper.app/v1/league/${league.league_id}/rosters`);
+    rosters = await resp.json();
+  } catch(e) {}
+
+  // Build user map: roster_id → display name
+  const userMap = {}; // roster_id → { displayName, userId, rosterId }
+  rosters.forEach(r => {
+    const user = users.find(u => u.user_id === r.owner_id);
+    userMap[r.roster_id] = {
+      displayName: user?.display_name || user?.username || `Team ${r.roster_id}`,
+      userId: r.owner_id,
+      rosterId: r.roster_id
+    };
+  });
+
+  // If rosters were unavailable, fall back to building the map from picks
+  if (Object.keys(userMap).length === 0) {
+    picks.forEach(p => {
+      if (p.roster_id != null && !userMap[p.roster_id]) {
+        const user = users.find(u => u.user_id === p.picked_by);
+        userMap[p.roster_id] = {
+          displayName: user?.display_name || user?.username || `Team ${p.roster_id}`,
+          userId: p.picked_by,
+          rosterId: p.roster_id
+        };
+      }
+    });
+  }
+
+  // Determine number of teams and rounds
+  const totalTeams = draft.settings?.teams || league.total_rosters || 12;
+  const totalRounds = draft.settings?.rounds || 15;
+
+  // Populate team selector dropdown
+  const sel = document.getElementById('review-team-select');
+  sel.innerHTML = '<option value="all">All Teams — Leaderboard</option>';
+  Object.entries(userMap).sort((a,b) => Number(a[0]) - Number(b[0])).forEach(([rosterId, u]) => {
+    const opt = document.createElement('option');
+    opt.value = rosterId;
+    opt.textContent = `Slot ${rosterId}: ${u.displayName}`;
+    sel.appendChild(opt);
+  });
+  sel.value = 'all';
+
+  // Store in STATE for selectReviewTeam
+  STATE.reviewDraft = draft;
+  STATE.reviewPicks = picks;
+  STATE.reviewUserMap = userMap;
+  STATE.reviewTotalTeams = totalTeams;
+  STATE.reviewTotalRounds = totalRounds;
+  STATE.reviewLeague = league;
+
+  document.getElementById('review-meta').textContent = `${totalTeams} teams · ${totalRounds} rounds · ${picks.length} picks`;
+
+  // Render initial view (leaderboard)
+  renderReviewBoard('all');
+  renderReviewSidebar('all');
+}
+
+function renderReviewBoard(rosterId) {
+  const { reviewPicks: picks, reviewUserMap: userMap, reviewTotalTeams: totalTeams, reviewTotalRounds: totalRounds } = STATE;
+  if (!picks) return;
+
+  // Build pick lookup: pick_no → pick
+  const pickMap = {};
+  picks.forEach(p => { pickMap[p.pick_no] = p; });
+
+  // Invert draft_order (userId → slot) into slot → userId once
+  const slotToUser = {};
+  const draftOrder = STATE.reviewDraft?.draft_order;
+  if (draftOrder) {
+    Object.entries(draftOrder).forEach(([uid, s]) => { slotToUser[s] = uid; });
+  }
+  function rosterForSlotFn(slot) {
+    const uid = slotToUser[slot];
+    if (uid) {
+      const roster = Object.values(userMap).find(u => u.userId === uid);
+      if (roster) return roster.rosterId;
+    }
+    return slot; // fallback
+  }
+
+  // Helper: get pick value color
+  function pickColor(pick) {
+    const name = pick.metadata?.player_name ||
+      `${pick.metadata?.first_name||''} ${pick.metadata?.last_name||''}`.trim();
+    const player = STATE.mergedPlayers?.find(p =>
+      (pick.player_id && p.sleeper_id === pick.player_id) ||
+      normalizePlayerName(p.name) === normalizePlayerName(name)
+    );
+    const adp = player?.adp;
+    if (!adp || adp >= 999) return 'var(--bg-hover)';
+    const diff = adp - pick.pick_no; // positive = value (picked later than ADP = steal)
+    if (diff >= 8) return 'rgba(34,197,94,0.25)';   // great value
+    if (diff >= 3) return 'rgba(34,197,94,0.12)';   // slight value
+    if (diff >= -3) return 'var(--bg-hover)';         // roughly ADP
+    if (diff >= -8) return 'rgba(251,146,60,0.18)';  // slight reach
+    return 'rgba(239,68,68,0.22)';                    // reach
+  }
+
+  let html = `<div style="overflow-x:auto;">`;
+
+  // Header row: team names
+  html += `<div style="display:grid;grid-template-columns:40px repeat(${totalTeams},minmax(110px,1fr));gap:2px;margin-bottom:2px;">`;
+  html += `<div style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;">Rd</div>`;
+  for (let slot = 1; slot <= totalTeams; slot++) {
+    const rosterForSlot = rosterForSlotFn(slot);
+    const team = userMap[rosterForSlot] || { displayName: `Slot ${slot}` };
+    const isHighlighted = rosterId !== 'all' && String(rosterForSlot) === String(rosterId);
+    html += `<div style="font-size:0.65rem;font-weight:600;text-align:center;padding:0.25rem;background:${isHighlighted ? 'rgba(99,102,241,0.2)' : 'transparent'};border-radius:4px;color:${isHighlighted ? 'var(--accent)' : 'var(--text-muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escAttr(team.displayName)}">${escHtml(team.displayName)}</div>`;
+  }
+  html += `</div>`;
+
+  // Pick rows
+  for (let round = 1; round <= totalRounds; round++) {
+    html += `<div style="display:grid;grid-template-columns:40px repeat(${totalTeams},minmax(110px,1fr));gap:2px;margin-bottom:2px;">`;
+    html += `<div style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-weight:600;">R${round}</div>`;
+
+    for (let slot = 1; slot <= totalTeams; slot++) {
+      // Snake: odd rounds L→R, even rounds R→L
+      const pickInRound = round % 2 === 1 ? slot : (totalTeams - slot + 1);
+      const pickNo = (round - 1) * totalTeams + pickInRound;
+      const pick = pickMap[pickNo];
+
+      if (!pick) {
+        html += `<div style="background:var(--bg-hover);border-radius:4px;padding:0.3rem 0.4rem;min-height:44px;opacity:0.4;"></div>`;
+        continue;
+      }
+
+      const name = pick.metadata?.player_name ||
+        `${pick.metadata?.first_name||''} ${pick.metadata?.last_name||''}`.trim();
+      const pos = (pick.metadata?.position || '').replace('DEF','DST');
+      const bg = pickColor(pick);
+
+      const isHighlighted = rosterId !== 'all' && String(pick.roster_id) === String(rosterId);
+      const borderStyle = isHighlighted ? '2px solid var(--accent)' : '1px solid transparent';
+
+      // ADP diff label
+      const player = STATE.mergedPlayers?.find(p =>
+        (pick.player_id && p.sleeper_id === pick.player_id) ||
+        normalizePlayerName(p.name) === normalizePlayerName(name)
+      );
+      const diff = (player?.adp && player.adp < 999) ? Math.round(player.adp - pick.pick_no) : null;
+      const diffLabel = diff !== null ? (diff >= 4 ? `<span style="font-size:0.58rem;color:#4ade80;font-weight:700;">+${diff}</span>` : diff <= -4 ? `<span style="font-size:0.58rem;color:#f87171;font-weight:700;">${diff}</span>` : '') : '';
+
+      html += `<div onclick="openReviewPickModal(${pick.pick_no})" style="background:${bg};border:${borderStyle};border-radius:4px;padding:0.3rem 0.4rem;min-height:44px;cursor:pointer;transition:filter 0.1s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter=''">
+        <div style="display:flex;align-items:center;gap:0.3rem;margin-bottom:0.1rem;">
+          ${pos ? `<span class="pos-dot pos-dot-${pos}" style="width:6px;height:6px;border-radius:50%;flex-shrink:0;"></span>` : ''}
+          <span style="font-size:0.58rem;color:var(--text-muted);font-family:'DM Mono',monospace;">#${pick.pick_no}</span>
+          ${diffLabel}
+        </div>
+        <div style="font-size:0.7rem;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escAttr(name)}">${escHtml(name)}</div>
+        <div style="font-size:0.62rem;color:var(--text-muted);">${pos}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  document.getElementById('review-board').innerHTML = html;
+}
+
+function renderReviewSidebar(rosterId) {
+  const { reviewPicks: picks, reviewUserMap: userMap, reviewTotalTeams: totalTeams } = STATE;
+  const sidebar = document.getElementById('review-sidebar');
+  if (!picks) return;
+
+  if (rosterId === 'all') {
+    // Leaderboard: grade every team
+    const teams = Object.entries(userMap).map(([rId, u]) => {
+      const teamPicks = picks.filter(p => String(p.roster_id) === String(rId));
+      const gradePicks = teamPicks.map(p => ({
+        name: p.metadata?.player_name || `${p.metadata?.first_name||''} ${p.metadata?.last_name||''}`.trim(),
+        position: (p.metadata?.position||'').replace('DEF','DST'),
+        pick_no: p.pick_no
+      }));
+      const { grade, color, composite } = gradeDraft(gradePicks, totalTeams);
+      return { rosterId: rId, displayName: u.displayName, grade, color, composite, pickCount: teamPicks.length };
+    }).sort((a, b) => b.composite - a.composite);
+
+    sidebar.innerHTML = `
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.75rem;">League Rankings</div>
+      ${teams.map((t, i) => `
+        <div onclick="selectReviewTeamById('${escAttr(t.rosterId)}')" style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem;border-radius:8px;margin-bottom:0.35rem;background:var(--bg-card);cursor:pointer;border:1px solid var(--border);" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-card)'">
+          <span style="font-size:0.75rem;color:var(--text-muted);min-width:18px;font-family:'DM Mono',monospace;">${i+1}.</span>
+          <span style="flex:1;font-size:0.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(t.displayName)}</span>
+          <span style="font-size:0.9rem;font-weight:800;color:${t.color};">${t.grade}</span>
+          <span style="font-size:0.65rem;color:var(--text-muted);font-family:'DM Mono',monospace;">${t.composite}</span>
+        </div>
+      `).join('')}
+    `;
+  } else {
+    // Individual team grade card
+    const u = userMap[rosterId];
+    const teamPicks = picks.filter(p => String(p.roster_id) === String(rosterId))
+      .sort((a, b) => a.pick_no - b.pick_no);
+    const gradePicks = teamPicks.map(p => ({
+      name: p.metadata?.player_name || `${p.metadata?.first_name||''} ${p.metadata?.last_name||''}`.trim(),
+      position: (p.metadata?.position||'').replace('DEF','DST'),
+      pick_no: p.pick_no
+    }));
+    const { grade, color, composite, breakdown } = gradeDraft(gradePicks, totalTeams);
+
+    sidebar.innerHTML = `
+      <div style="text-align:center;margin-bottom:1rem;">
+        <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.25rem;">${escHtml(u?.displayName || 'Team')}</div>
+        <div class="mock-grade" style="color:${color};font-size:2.5rem;">${grade}</div>
+        <div style="font-size:0.72rem;color:var(--text-secondary);">Composite: ${composite}/100</div>
+      </div>
+      ${breakdown ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:1rem;">
+          <div style="background:var(--bg-card);border-radius:6px;padding:0.5rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:1rem;font-weight:700;">${breakdown.adpValue.score}</div>
+            <div style="font-size:0.62rem;color:var(--text-muted);">ADP Value</div>
+          </div>
+          <div style="background:var(--bg-card);border-radius:6px;padding:0.5rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:1rem;font-weight:700;">${breakdown.vorp.score}</div>
+            <div style="font-size:0.62rem;color:var(--text-muted);">VORP</div>
+          </div>
+          <div style="background:var(--bg-card);border-radius:6px;padding:0.5rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:1rem;font-weight:700;">${breakdown.roster.score}</div>
+            <div style="font-size:0.62rem;color:var(--text-muted);">Roster Build</div>
+          </div>
+          <div style="background:var(--bg-card);border-radius:6px;padding:0.5rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:1rem;font-weight:700;">${breakdown.scarcity.score}</div>
+            <div style="font-size:0.62rem;color:var(--text-muted);">Scarcity</div>
+          </div>
+        </div>
+      ` : ''}
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Picks</div>
+      ${teamPicks.map(p => {
+        const name = p.metadata?.player_name || `${p.metadata?.first_name||''} ${p.metadata?.last_name||''}`.trim();
+        const pos = (p.metadata?.position||'').replace('DEF','DST');
+        const player = STATE.mergedPlayers?.find(pl =>
+          (p.player_id && pl.sleeper_id === p.player_id) ||
+          normalizePlayerName(pl.name) === normalizePlayerName(name)
+        );
+        const diff = (player?.adp && player.adp < 999) ? Math.round(player.adp - p.pick_no) : null;
+        const diffTag = diff !== null ? (diff >= 4 ? `<span style="color:#4ade80;font-size:0.65rem;">+${diff}</span>` : diff <= -4 ? `<span style="color:#f87171;font-size:0.65rem;">${diff}</span>` : '') : '';
+        return `<div style="display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text-muted);min-width:36px;">R${p.round}.${p.pick_no - (p.round-1)*totalTeams}</span>
+          ${pos ? `<span class="pos-dot pos-dot-${pos}"></span>` : ''}
+          <span style="flex:1;font-size:0.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(name)}</span>
+          ${diffTag}
+        </div>`;
+      }).join('')}
+    `;
+  }
+}
+
+function selectReviewTeam(rosterId) {
+  renderReviewBoard(rosterId);
+  renderReviewSidebar(rosterId);
+}
+
+function selectReviewTeamById(rosterId) {
+  document.getElementById('review-team-select').value = rosterId;
+  selectReviewTeam(rosterId);
+}
+
+function exitReviewRoom() {
+  document.getElementById('review-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  STATE.reviewDraft = null;
+  STATE.reviewPicks = null;
+  STATE.reviewUserMap = null;
+  document.querySelectorAll('.league-card').forEach(c => c.classList.remove('selected'));
+}
+
+function openReviewPickModal(pickNo) {
+  const pick = STATE.reviewPicks?.find(p => p.pick_no === pickNo);
+  if (!pick) return;
+  const name = pick.metadata?.player_name || `${pick.metadata?.first_name||''} ${pick.metadata?.last_name||''}`.trim();
+  const pos = (pick.metadata?.position||'').replace('DEF','DST');
+  const player = STATE.mergedPlayers?.find(p =>
+    (pick.player_id && p.sleeper_id === pick.player_id) ||
+    normalizePlayerName(p.name) === normalizePlayerName(name)
+  );
+  const adp = (player?.adp && player.adp < 999) ? player.adp : null;
+  const diff = adp ? Math.round(adp - pick.pick_no) : null;
+  const vorp = lookupVorp(name, pos);
+  const verdict = diff === null ? '' : diff >= 8 ? '🟢 Great value steal' : diff >= 3 ? '✅ Slight value' : diff >= -3 ? '⚪ Roughly ADP' : diff >= -8 ? '🟡 Mild reach' : '🔴 Significant reach';
+  const totalTeams = STATE.reviewTotalTeams || 12;
+
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:700;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  el.innerHTML = `<div class="modal" style="max-width:360px;width:100%;position:relative;">
+    <button onclick="this.closest('[style*=fixed]').remove()" style="position:absolute;top:0.75rem;right:0.75rem;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;">✕</button>
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+      ${pos ? `<span class="pos-dot pos-dot-${pos}" style="width:10px;height:10px;border-radius:50%;"></span>` : ''}
+      <span style="font-weight:700;font-size:1rem;">${escHtml(name)}</span>
+    </div>
+    <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.5rem;">${pos} · Pick #${pick.pick_no} (R${pick.round}.${pick.pick_no - (pick.round-1)*totalTeams})</div>
+    ${adp ? `<div style="font-size:0.82rem;margin-bottom:0.4rem;">Consensus ADP: <b>${adp.toFixed(1)}</b></div>` : ''}
+    ${diff !== null ? `<div style="font-size:0.82rem;margin-bottom:0.4rem;">Value vs ADP: <b style="color:${diff>=0?'#4ade80':'#f87171'}">${diff>=0?'+':''}${diff} picks</b></div>` : ''}
+    ${vorp ? `<div style="font-size:0.82rem;margin-bottom:0.75rem;">VORP: <b>${vorp.toFixed(1)}</b></div>` : ''}
+    <div style="font-size:0.85rem;">${verdict}</div>
+  </div>`;
+  el.addEventListener('click', e => { if (e.target === el) el.remove(); });
+  document.body.appendChild(el);
 }
 
 function showDraftRecap() {
