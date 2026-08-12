@@ -2407,6 +2407,21 @@ function selectSlot(slot) {
   if (document.getElementById('app-screen') && document.getElementById('app-screen').style.display !== 'none') {
     STATE.myPickNumbers = calcMyPicks(STATE.mySlot, STATE.totalTeams, STATE.totalRounds);
     MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot, STATE.totalTeams || 12, 14);
+    // Reset roster slots — they belong to the old slot and must be rebuilt for the new one
+    STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
+    // Re-assign picks that belong to the new slot from already-loaded STATE.picks
+    STATE.picks
+      .filter(p => STATE.myPickNumbers.includes(p.pick_no))
+      .sort((a, b) => a.pick_no - b.pick_no)
+      .forEach(pick => {
+        const name = pick.metadata?.player_name ||
+          `${pick.metadata?.first_name || ''} ${pick.metadata?.last_name || ''}`.trim();
+        const matched = STATE.mergedPlayers.find(p =>
+          (pick.player_id && p.sleeper_id === pick.player_id) ||
+          normalizePlayerName(p.name) === normalizePlayerName(name)
+        );
+        if (matched) addToMyRoster(matched);
+      });
     updatePickCounter();
     renderRecommendations();
     renderMyPicksSchedule();
