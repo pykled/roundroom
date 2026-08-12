@@ -18,10 +18,31 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const SEASON = '2026';
-const SEED_USERNAMES = ['pykle'];
-const MAX_DRAFTS = 500;        // Phase 1 target
-const TIME_BUDGET_MS = 8 * 60 * 1000; // 8 minutes (leaves headroom for final write)
+// Seed frontier: pykle plus a hardcoded list of well-known public Sleeper
+// usernames so the snowball reaches many independent league graphs immediately
+// instead of walking outward from a single account.
+const SEED_USERNAMES = [
+  'pykle',
+  'scott_fish',    // Scott Fish Bowl organizer
+  'jasonmoore',    // FantasyPros analyst
+  'fullhousefantasy',
+  'rotounderworld',
+  'dynastydaddy',
+  'fantasyfootballers',
+  'underdog_fantasy',
+  'mattharmon_bri',
+  'papabeargetsw1',
+  'kwikstats',
+  'sickos_committee',
+  'establish_the_run',
+];
+const MAX_DRAFTS = 3000;               // volume target (raised from 500)
+const TIME_BUDGET_MS = 25 * 60 * 1000; // 25 minutes (raised from 8)
 const RATE_LIMIT_MS = 500;     // 2 req/sec max
+
+// --resume: if data/raw_picks.json already exists, load prior picks and skip
+// draft_ids we've already collected, only fetching new drafts. Makes reruns fast.
+const RESUME = process.argv.includes('--resume');
 
 // Data-quality window: only keep drafts from the last 14 days. During Aug-Sep
 // draft season the meta shifts fast (injuries, depth charts), so an old draft
@@ -68,7 +89,35 @@ async function main() {
   const seenLeagues = new Set();
   const seenDrafts = new Set();
   const completedDrafts = new Set();
-  const picks = [];
+  let picks = [];
+
+  // --resume: reload previously collected picks and mark their draft_ids as
+  // already-seen/completed so we skip re-fetching them. New drafts still append.
+  if (RESUME) {
+    const rawPath = path.join(DATA_DIR, 'raw_picks.json');
+    if (fs.existsSync(rawPath)) {
+      try {
+        const prior = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
+        if (Array.isArray(prior) && prior.length) {
+          picks = prior;
+          for (const p of prior) {
+            if (p && p.draft_id) {
+              seenDrafts.add(p.draft_id);
+              completedDrafts.add(p.draft_id);
+            }
+          }
+          console.log(
+            `[resume] Loaded ${picks.length} prior picks from ` +
+            `${completedDrafts.size} drafts — these will be skipped.`
+          );
+        }
+      } catch (err) {
+        console.warn(`[resume] Could not parse existing raw_picks.json: ${err.message}. Starting fresh.`);
+      }
+    } else {
+      console.log('[resume] No existing raw_picks.json — starting fresh.');
+    }
+  }
 
   // Draft-level filter counters (feed data_quality.json downstream).
   let completedSeen = 0;    // all completed drafts encountered (pre-filter)

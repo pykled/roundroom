@@ -1,16 +1,28 @@
 {
-  "total_drafts": 19,
-  "total_picks": 3068,
-  "crawled_at": "2026-08-11T23:34:56.749Z",
+  "total_drafts": 48,
+  "total_picks": 5940,
+  "crawled_at": "2026-08-12T01:51:57.751Z",
   "seeds_used": [
-    "pykle"
+    "pykle",
+    "scott_fish",
+    "jasonmoore",
+    "fullhousefantasy",
+    "rotounderworld",
+    "dynastydaddy",
+    "fantasyfootballers",
+    "underdog_fantasy",
+    "mattharmon_bri",
+    "papabeargetsw1",
+    "kwikstats",
+    "sickos_committee",
+    "establish_the_run"
   ],
-  "users_explored": 2594,
-  "leagues_seen": 310,
-  "completed_drafts_seen": 246,
-  "skipped_too_old": 223,
-  "skipped_auction": 2,
+  "users_explored": 8852,
+  "leagues_seen": 1419,
+  "completed_drafts_seen": 1121,
+  "skipped_too_old": 1063,
+  "skipped_auction": 8,
   "date_window_days": 14,
-  "elapsed_seconds": 549,
+  "elapsed_seconds": 1500,
   "stop_reason": "time_budget"
 }

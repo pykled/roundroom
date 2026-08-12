@@ -53,6 +53,16 @@ app.get('/api/vorp', (req, res) => {
   }
 });
 
+// Composite ADP blended across Sleeper + FantasyPros + Underdog.
+app.get('/api/composite-adp', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/composite_adp.json'), 'utf8'));
+    res.json(data);
+  } catch (e) {
+    res.status(503).json({ error: 'Composite ADP data not yet generated' });
+  }
+});
+
 // Serve the app
 app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {

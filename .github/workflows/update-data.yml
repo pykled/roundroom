@@ -11,9 +11,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm ci
-      - run: node scripts/crawl.js
+      - run: node scripts/crawl.js --resume
       - run: node scripts/aggregate.js
       - run: node scripts/vorp.js
+      - run: node scripts/fetch-fantasypros.js
+      - run: node scripts/fetch-underdog.js
+      - run: node scripts/merge-sources.js
       - name: Commit data
         run: |
           git config user.name "RoundRoom Bot"

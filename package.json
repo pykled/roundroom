@@ -9,7 +9,10 @@
     "crawl": "node scripts/crawl.js",
     "aggregate": "node scripts/aggregate.js",
     "vorp": "node scripts/vorp.js",
-    "update-data": "node scripts/crawl.js && node scripts/aggregate.js && node scripts/vorp.js"
+    "fetch-fantasypros": "node scripts/fetch-fantasypros.js",
+    "fetch-underdog": "node scripts/fetch-underdog.js",
+    "merge-sources": "node scripts/merge-sources.js",
+    "update-data": "node scripts/crawl.js --resume && node scripts/aggregate.js && node scripts/vorp.js && node scripts/fetch-fantasypros.js && node scripts/fetch-underdog.js && node scripts/merge-sources.js"
   },
   "engines": {
     "node": ">=18"
