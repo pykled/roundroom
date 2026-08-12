@@ -1766,6 +1766,7 @@ const STATE = {
   autoJoined: false,
   isSuperflex: false,
   scoringType: 'ppr',
+  vorpData: {},        // live VORP from /api/vorp, keyed by lowercase name
 };
 
 // ===== MOCK DRAFT STATE =====
@@ -2623,6 +2624,8 @@ async function startDraftAssistant() {
           const v = vorpMap[(p.name || '').toLowerCase()];
           if (v) { p.vorp_std = v.vorp_std; p.vorp_sf = v.vorp_sf; }
         });
+        // Build STATE.vorpData for lookupVorp() — live values take priority over hardcoded tables
+        STATE.vorpData = vorpMap;
       }
     } catch(e) {} // VORP fetch failure is non-fatal — app still works with ADP-only
 
@@ -3290,6 +3293,19 @@ function getProjectedPts(player, allPlayers) {
 function lookupVorp(name, pos) {
   if (!name) return null;
   const norm = s => s.toLowerCase().replace(/\./g,'').replace(/['']/g,"'").trim();
+  const nLive = norm(name);
+
+  // 1. Live VORP data (from /api/vorp) takes priority over hardcoded tables
+  if (STATE.vorpData && Object.keys(STATE.vorpData).length > 0) {
+    const liveKey = Object.keys(STATE.vorpData).find(k => norm(k) === nLive);
+    if (liveKey) {
+      const v = STATE.vorpData[liveKey];
+      const val = (STATE.isSuperflex && v.vorp_sf != null) ? v.vorp_sf : v.vorp_std;
+      if (val != null) return val;
+    }
+  }
+
+  // 2. Fall back to hardcoded tables (safety net when API is down)
   // SuperFlex: QBs use elevated replacement baseline (QB24 not QB14)
   if (STATE.isSuperflex && pos === 'QB') {
     if (VORP_TABLE_SF_QB[name] !== undefined) return VORP_TABLE_SF_QB[name];
@@ -3994,6 +4010,71 @@ function handleDraftComplete() {
   showDraftRecap();
 }
 
+// Composite draft grade: ADP value (40%) + VORP (30%) + roster build (20%) + elite scarcity (10%)
+// Expects picks normalized to { name, position, pick_no }.
+function gradeDraft(myPicks, totalTeams) {
+  if (!myPicks.length) return { grade: '—', color: '#666', composite: 0, breakdown: null };
+
+  // Component 1: ADP Value (40%) — value gained vs consensus ADP
+  const adpValues = myPicks.map(p => {
+    const playerAdp = FP_ADP[p.name] || p.pick_no;
+    return playerAdp - p.pick_no; // positive = value, negative = reach
+  });
+  const avgAdpValue = adpValues.reduce((a, b) => a + b, 0) / adpValues.length;
+  const adpScore = Math.max(0, Math.min(100, 50 + avgAdpValue * 4));
+
+  // Component 2: VORP total (30%) — average value accumulated
+  const totalVorp = myPicks.reduce((sum, p) => sum + (lookupVorp(p.name, p.position) || 0), 0);
+  const avgVorp = totalVorp / myPicks.length;
+  const vorpScore = Math.max(0, Math.min(100, 40 + avgVorp * 0.8));
+
+  // Component 3: Roster construction (20%) — completeness of a startable lineup
+  const positions = myPicks.map(p => p.position);
+  const hasQB = positions.includes('QB');
+  const rbCount = positions.filter(p => p === 'RB').length;
+  const wrCount = positions.filter(p => p === 'WR').length;
+  const hasTE = positions.includes('TE');
+  const hasK = positions.includes('K');
+  const hasDST = positions.filter(p => p === 'DST' || p === 'DEF').length > 0;
+  const rosterScore = (
+    (hasQB ? 20 : 0) +
+    (rbCount >= 2 ? 25 : rbCount === 1 ? 12 : 0) +
+    (wrCount >= 3 ? 25 : wrCount === 2 ? 15 : wrCount === 1 ? 7 : 0) +
+    (hasTE ? 15 : 0) +
+    (hasK ? 7 : 0) +
+    (hasDST ? 8 : 0)
+  );
+
+  // Component 4: Positional scarcity (10%) — landed an elite TE or WR1
+  const eliteTE = myPicks.find(p => p.position === 'TE' && (lookupVorp(p.name, 'TE') || 0) > 40);
+  const eliteWR = myPicks.find(p => p.position === 'WR' && (lookupVorp(p.name, 'WR') || 0) > 60);
+  const scarcityScore = (eliteTE ? 50 : 0) + (eliteWR ? 50 : 0);
+
+  const composite = adpScore * 0.40 + vorpScore * 0.30 + rosterScore * 0.20 + scarcityScore * 0.10;
+
+  let grade, color;
+  if (composite >= 85) { grade = 'A+'; color = '#22c55e'; }
+  else if (composite >= 78) { grade = 'A'; color = '#22c55e'; }
+  else if (composite >= 70) { grade = 'B+'; color = '#86efac'; }
+  else if (composite >= 62) { grade = 'B'; color = '#86efac'; }
+  else if (composite >= 54) { grade = 'C+'; color = '#fbbf24'; }
+  else if (composite >= 46) { grade = 'C'; color = '#fbbf24'; }
+  else if (composite >= 38) { grade = 'D'; color = '#f97316'; }
+  else { grade = 'F'; color = '#ef4444'; }
+
+  return {
+    grade,
+    color,
+    composite: Math.round(composite),
+    breakdown: {
+      adpValue: { score: Math.round(adpScore), label: 'ADP Value', avgDelta: avgAdpValue.toFixed(1) },
+      vorp: { score: Math.round(vorpScore), label: 'VORP', totalVorp: Math.round(totalVorp) },
+      roster: { score: Math.round(rosterScore), label: 'Roster Build' },
+      scarcity: { score: Math.round(scarcityScore), label: 'Elite Scarcity' },
+    }
+  };
+}
+
 function showDraftRecap() {
   let overlay = document.getElementById('draft-recap-overlay');
   if (!overlay) {
@@ -4014,11 +4095,13 @@ function showDraftRecap() {
 
   let rowsHtml = '';
   let valueSum = 0, valueCount = 0;
+  const gradePicks = [];  // normalized { name, position, pick_no } for gradeDraft()
   myPicks.forEach(pick => {
     const name = pick.metadata?.first_name
       ? `${pick.metadata.first_name} ${pick.metadata.last_name}`
       : (pick.metadata?.player_name || `Player ${pick.player_id}`);
     const pos = (pick.metadata?.position || '').replace('DEF', 'DST');
+    gradePicks.push({ name, position: pos, pick_no: pick.pick_no });
     const merged = STATE.mergedPlayers.find(p =>
       p.sleeper_id === pick.player_id || normalizePlayerName(p.name) === normalizePlayerName(name));
     const adp = merged ? merged.adp : null;
@@ -4039,11 +4122,7 @@ function showDraftRecap() {
   });
 
   const avgValue = valueCount > 0 ? valueSum / valueCount : 0;
-  let grade, gradeColor;
-  if (avgValue >= 5) { grade = 'A'; gradeColor = '#10b981'; }
-  else if (avgValue >= 0) { grade = 'B'; gradeColor = '#3b82f6'; }
-  else if (avgValue >= -6) { grade = 'C'; gradeColor = '#f59e0b'; }
-  else { grade = 'D'; gradeColor = '#ef4444'; }
+  const { grade, color: gradeColor, composite, breakdown } = gradeDraft(gradePicks, STATE.totalTeams);
 
   const leagueName = STATE.selectedLeague?.name || 'Your league';
   document.getElementById('draft-recap-content').innerHTML = `
@@ -4051,9 +4130,15 @@ function showDraftRecap() {
     <p style="color:var(--text-secondary);font-size:0.82rem;margin-bottom:0.5rem;">${escHtml(leagueName)} · ${STATE.picks.length} picks</p>
     ${myPicks.length > 0 ? `
       <div class="mock-grade" style="color:${gradeColor};">${grade}</div>
-      <p style="text-align:center;color:var(--text-secondary);font-size:0.8rem;margin-bottom:1rem;">
-        Avg value vs ADP: ${avgValue >= 0 ? '+' : ''}${avgValue.toFixed(1)} picks
+      <p style="text-align:center;color:var(--text-secondary);font-size:0.8rem;margin-bottom:0.5rem;">
+        Composite score: ${composite}/100 · Avg value vs ADP: ${avgValue >= 0 ? '+' : ''}${avgValue.toFixed(1)} picks
       </p>
+      ${breakdown ? `<div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;font-size:0.72rem;">
+        <span style="color:var(--text-secondary)">ADP Value <b>${breakdown.adpValue.score}</b></span>
+        <span style="color:var(--text-secondary)">VORP <b>${breakdown.vorp.score}</b></span>
+        <span style="color:var(--text-secondary)">Roster <b>${breakdown.roster.score}</b></span>
+        <span style="color:var(--text-secondary)">Scarcity <b>${breakdown.scarcity.score}</b></span>
+      </div>` : ''}
       <button onclick="shareDraftRecap('${grade}',${avgValue},'${escAttr(leagueName)}',${JSON.stringify(myPicks)})" style="display:block;width:100%;margin-bottom:1.25rem;padding:0.55rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-hover);color:var(--text-primary);font-size:0.8rem;font-family:inherit;cursor:pointer;font-weight:600;">
         ↑ Share My Draft Grade
       </button>
