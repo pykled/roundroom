@@ -4306,12 +4306,14 @@ function renderReviewBoard(rosterId) {
     );
     const adp = player?.adp;
     if (!adp || adp >= 999) return 'var(--bg-hover)';
-    const diff = adp - pick.pick_no; // positive = value (picked later than ADP = steal)
-    if (diff >= 8) return 'rgba(34,197,94,0.25)';   // great value
-    if (diff >= 3) return 'rgba(34,197,94,0.12)';   // slight value
-    if (diff >= -3) return 'var(--bg-hover)';         // roughly ADP
-    if (diff >= -8) return 'rgba(251,146,60,0.18)';  // slight reach
-    return 'rgba(239,68,68,0.22)';                    // reach
+    const diff = pick.pick_no - adp; // positive = player fell = value; negative = reached early
+    if (diff >= 15) return 'rgba(34,197,94,0.55)';   // massive steal — very bright green
+    if (diff >= 8)  return 'rgba(34,197,94,0.35)';   // great value — strong green
+    if (diff >= 3)  return 'rgba(34,197,94,0.18)';   // slight value — soft green
+    if (diff >= -2) return 'var(--bg-hover)';          // roughly ADP — neutral
+    if (diff >= -7) return 'rgba(251,146,60,0.22)';   // mild reach — soft orange
+    if (diff >= -13) return 'rgba(239,68,68,0.32)';   // reach — red
+    return 'rgba(239,68,68,0.55)';                     // big reach — bright red
   }
 
   let html = `<div style="overflow-x:auto;">`;
@@ -4356,7 +4358,7 @@ function renderReviewBoard(rosterId) {
         (pick.player_id && p.sleeper_id === pick.player_id) ||
         normalizePlayerName(p.name) === normalizePlayerName(name)
       );
-      const diff = (player?.adp && player.adp < 999) ? Math.round(player.adp - pick.pick_no) : null;
+      const diff = (player?.adp && player.adp < 999) ? Math.round(pick.pick_no - player.adp) : null;
       const diffLabel = diff !== null ? (diff >= 4 ? `<span style="font-size:0.58rem;color:#4ade80;font-weight:700;">+${diff}</span>` : diff <= -4 ? `<span style="font-size:0.58rem;color:#f87171;font-weight:700;">${diff}</span>` : '') : '';
 
       html += `<div onclick="openReviewPickModal(${pick.pick_no})" style="background:${bg};border:${borderStyle};border-radius:4px;padding:0.3rem 0.4rem;min-height:44px;cursor:pointer;transition:filter 0.1s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter=''">
@@ -4450,7 +4452,7 @@ function renderReviewSidebar(rosterId) {
           (p.player_id && pl.sleeper_id === p.player_id) ||
           normalizePlayerName(pl.name) === normalizePlayerName(name)
         );
-        const diff = (player?.adp && player.adp < 999) ? Math.round(player.adp - p.pick_no) : null;
+        const diff = (player?.adp && player.adp < 999) ? Math.round(p.pick_no - player.adp) : null;
         const diffTag = diff !== null ? (diff >= 4 ? `<span style="color:#4ade80;font-size:0.65rem;">+${diff}</span>` : diff <= -4 ? `<span style="color:#f87171;font-size:0.65rem;">${diff}</span>` : '') : '';
         return `<div style="display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
           <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text-muted);min-width:36px;">R${p.round}.${p.pick_no - (p.round-1)*totalTeams}</span>
@@ -4492,9 +4494,9 @@ function openReviewPickModal(pickNo) {
     normalizePlayerName(p.name) === normalizePlayerName(name)
   );
   const adp = (player?.adp && player.adp < 999) ? player.adp : null;
-  const diff = adp ? Math.round(adp - pick.pick_no) : null;
+  const diff = adp ? Math.round(pick.pick_no - adp) : null;
   const vorp = lookupVorp(name, pos);
-  const verdict = diff === null ? '' : diff >= 8 ? '🟢 Great value steal' : diff >= 3 ? '✅ Slight value' : diff >= -3 ? '⚪ Roughly ADP' : diff >= -8 ? '🟡 Mild reach' : '🔴 Significant reach';
+  const verdict = diff === null ? '' : diff >= 15 ? '🟢 Massive steal — fell way past ADP' : diff >= 8 ? '🟢 Great value' : diff >= 3 ? '✅ Slight value' : diff >= -2 ? '⚪ Roughly ADP' : diff >= -7 ? '🟡 Mild reach' : diff >= -13 ? '🔴 Reach' : '🔴 Big reach — taken well before ADP';
   const totalTeams = STATE.reviewTotalTeams || 12;
 
   const el = document.createElement('div');
@@ -4507,7 +4509,7 @@ function openReviewPickModal(pickNo) {
     </div>
     <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.5rem;">${pos} · Pick #${pick.pick_no} (R${pick.round}.${pick.pick_no - (pick.round-1)*totalTeams})</div>
     ${adp ? `<div style="font-size:0.82rem;margin-bottom:0.4rem;">Consensus ADP: <b>${adp.toFixed(1)}</b></div>` : ''}
-    ${diff !== null ? `<div style="font-size:0.82rem;margin-bottom:0.4rem;">Value vs ADP: <b style="color:${diff>=0?'#4ade80':'#f87171'}">${diff>=0?'+':''}${diff} picks</b></div>` : ''}
+    ${diff !== null ? `<div style="font-size:0.82rem;margin-bottom:0.4rem;">Value vs ADP: <b style="color:${diff>=3?'#4ade80':diff<=-3?'#f87171':'var(--text-secondary)'}">${diff>0?'+':''}${diff} picks</b></div>` : ''}
     ${vorp ? `<div style="font-size:0.82rem;margin-bottom:0.75rem;">VORP: <b>${vorp.toFixed(1)}</b></div>` : ''}
     <div style="font-size:0.85rem;">${verdict}</div>
   </div>`;
