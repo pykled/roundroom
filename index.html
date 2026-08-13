@@ -2298,6 +2298,7 @@ function advanceMockDraft() {
     showToast(`🎯 MOCK — Your pick! (#${MOCK.currentPick})`, true);
     if (window.innerWidth <= 768) showMobileTab('recs');
     renderBoard();
+    broadcastMockState();
   } else {
     MOCK.timer = setTimeout(() => {
       const available = getAvailableMockPlayers();
@@ -2322,6 +2323,8 @@ function advanceMockDraft() {
 
       renderBoard();
       if (document.getElementById('draft-board-overlay').style.display !== 'none') renderDraftBoard();
+      if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
+      broadcastMockState();
       advanceMockDraft();
     }, getMockDelay(MOCK.currentPick, MOCK.myPickNumbers.find(n => n > MOCK.currentPick) || 999));
   }
@@ -2340,8 +2343,31 @@ function mockUserPick(player) {
 
   showToast(`✅ Mock pick: ${player.name}`, true);
   renderBoard();
+  if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
+  broadcastMockState();
 
   setTimeout(() => advanceMockDraft(), 500);
+}
+
+let _MOCK_BC = null;
+function broadcastMockState() {
+  try {
+    if (!_MOCK_BC) _MOCK_BC = new BroadcastChannel('roundroom_mock');
+    _MOCK_BC.postMessage({
+      type: 'mock_state',
+      currentPick: MOCK.currentPick,
+      waitingForUser: !!MOCK.waitingForUser,
+      myPickNumbers: MOCK.myPickNumbers,
+      picks: MOCK.picks.map(p => ({
+        player: { name: p.player.name, position: p.player.position, player_id: p.player.player_id || p.player.name, adp: p.player.adp || 999 },
+        pickNum: p.pickNum, isUser: p.isUser
+      })),
+      draftedIds: [...MOCK.draftedIds],
+      mockCfg: { ...MOCK_CFG },
+      isSuperflex: STATE.isSuperflex,
+      scoringType: STATE.scoringType
+    });
+  } catch(e) {}
 }
 
 function endMockDraft() {
@@ -3649,13 +3675,22 @@ function getProjectedPts(player, allPlayers) {
   for (const [k, v] of Object.entries(PROJ_PTS)) {
     if (norm(k) === nName) return v;
   }
-  // 3. Unique last-name match within position (e.g. "Nacua" → "Puka Nacua")
-  const lastName = name.split(' ').slice(-1)[0].toLowerCase();
+  // 3. Unique last-name match (e.g. "Nacua" → "Puka Nacua"). Guard against
+  // collisions: a full "First Last" that isn't an exact match must NOT collapse
+  // onto a different player who merely shares a surname (e.g. "Mason Taylor" or
+  // "J'Mari Taylor" must not inherit "Jonathan Taylor" projections).
+  const tokens = name.trim().split(/\s+/);
+  const lastName = tokens[tokens.length - 1].toLowerCase();
   const pos = player.position;
   const lnMatches = Object.entries(PROJ_PTS).filter(([k]) =>
     k.split(' ').slice(-1)[0].toLowerCase() === lastName
   );
-  if (lnMatches.length === 1) return lnMatches[0][1];
+  if (lnMatches.length === 1) {
+    const clean = s => s.toLowerCase().replace(/[^a-z]/g, '');
+    const fi = clean(tokens[0]);
+    const mf = clean(lnMatches[0][0].split(' ')[0]);
+    if (tokens.length === 1 || fi === mf) return lnMatches[0][1];
+  }
   // 4. Position-rank fallback
   const table = PROJ_PTS_BY_RANK[pos];
   if (!table) return 100;
@@ -3694,11 +3729,19 @@ function lookupVorp(name, pos) {
   for (const [k, v] of Object.entries(VORP_TABLE)) {
     if (norm(k) === n) return v;
   }
-  const last = name.split(' ').slice(-1)[0].toLowerCase();
+  const tokens = name.trim().split(/\s+/);
+  const last = tokens[tokens.length - 1].toLowerCase();
   const matches = Object.entries(VORP_TABLE).filter(([k]) =>
     k.split(' ').slice(-1)[0].toLowerCase() === last
   );
-  if (matches.length === 1) return matches[0][1];
+  // Same collision guard as getProjectedPts — don't map a full name onto a
+  // surname-sharing different player.
+  if (matches.length === 1) {
+    const clean = s => s.toLowerCase().replace(/[^a-z]/g, '');
+    const fi = clean(tokens[0]);
+    const mf = clean(matches[0][0].split(' ')[0]);
+    if (tokens.length === 1 || fi === mf) return matches[0][1];
+  }
   return null;
 }
 
@@ -3725,155 +3768,359 @@ function getPosRank(player, available) {
   return byPos.findIndex(p => (p.sleeper_id || p.name) === (player.sleeper_id || player.name)) + 1;
 }
 
-function getStrategyWeight(player, available) {
-  const pos = player.position;
-  const strategy = STATE.strategy;
-  const myPicksMade = STATE.myPickNumbers.filter(p => p <= STATE.lastPickCount).length;
-  const roster = STATE.rosterSlots;
-  const rosterList = Object.values(roster).filter(Boolean);
-  const rbCount = rosterList.filter(p => p.position === 'RB').length;
-  const wrCount = rosterList.filter(p => p.position === 'WR').length;
-  const qbCount = rosterList.filter(p => p.position === 'QB').length;
-  const teCount = rosterList.filter(p => p.position === 'TE').length;
+// ===== Recommendation Algorithm v2 =====
+// score = adjustedVORP × W_strategy × M_need × M_urgency × M_target
+// See docs/recommendation-algorithm.md for the full design spec.
 
-  // Universal round-awareness: TE and QB suppressed early in standard — not in SuperFlex.
-  const playerAdp = player.adp || 999;
-  if (pos === 'TE' && myPicksMade < 2 && playerAdp > 25) return 0.08;
-  if (pos === 'QB' && myPicksMade < 2 && playerAdp > 25 && !STATE.isSuperflex) return 0.08;
-  if (pos === 'K' && myPicksMade < 12) return 0.05;
-  if (pos === 'DST' && myPicksMade < 11) return 0.05;
+// F_scoring — VORP tables are 12-team PPR; scale for scoring format.
+const F_SCORING = {
+  ppr:      { RB: 1.00, WR: 1.00, TE: 1.00, QB: 1.00, K: 1.00, DST: 1.00 },
+  half_ppr: { RB: 1.04, WR: 0.90, TE: 0.92, QB: 1.00, K: 1.00, DST: 1.00 },
+  standard: { RB: 1.08, WR: 0.80, TE: 0.84, QB: 1.00, K: 1.00, DST: 1.00 },
+};
 
-  if (strategy === 'bpa') {
-    if (pos === 'QB' && qbCount >= 1 && myPicksMade < 8) return 0.3;
-    if (pos === 'TE' && teCount >= 1 && myPicksMade < 7) return 0.25;
-    return 1.0;
+// F_size — replacement level shifts with league size (12-team baseline).
+const F_SIZE = {
+  QB: { 8: 0.70, 10: 0.85, 12: 1.00, 14: 1.15 },
+  RB: { 8: 0.80, 10: 0.90, 12: 1.00, 14: 1.12 },
+  WR: { 8: 0.82, 10: 0.92, 12: 1.00, 14: 1.10 },
+  TE: { 8: 0.75, 10: 0.88, 12: 1.00, 14: 1.18 },
+};
+
+function sizeFactor(pos, teams) {
+  const row = F_SIZE[pos];
+  if (!row) return 1.0;
+  if (row[teams] != null) return row[teams];
+  if (teams <= 8) return row[8];
+  if (teams >= 14) return row[14];
+  // Linear interpolation between the two nearest known sizes (odd team counts)
+  const keys = [8, 10, 12, 14];
+  for (let i = 0; i < keys.length - 1; i++) {
+    const a = keys[i], b = keys[i + 1];
+    if (teams > a && teams < b) return row[a] + (row[b] - row[a]) * ((teams - a) / (b - a));
   }
-
-  if (strategy === 'zero_rb') {
-    if (pos === 'RB' && myPicksMade < 5) return 0.1;
-    if (pos === 'WR' && myPicksMade < 5) return 1.6;
-    if (pos === 'TE' && teCount === 0 && myPicksMade >= 2 && myPicksMade < 4) return 1.5;
-    if (pos === 'QB' && qbCount === 0 && myPicksMade >= 3 && myPicksMade < 6) return 1.2;
-    return 1.0;
-  }
-
-  if (strategy === 'hero_rb') {
-    const hasHero = rosterList.some(p => p.position === 'RB' && p.rank <= 20);
-    if (!hasHero && pos === 'RB' && player.rank <= 20) return 2.5;
-    if (!hasHero && pos === 'RB' && player.rank > 20) return 0.2;
-    if (hasHero && pos === 'WR' && wrCount < 4) return 1.5;
-    if (hasHero && pos === 'RB' && rbCount < 2) return 0.5;
-    if (hasHero && pos === 'RB' && rbCount >= 2 && myPicksMade < 8) return 0.2;
-    return 1.0;
-  }
-
-  if (strategy === 'robust_rb') {
-    if (pos === 'RB' && rbCount < 4) return 2.0;
-    if (pos === 'WR' && rbCount >= 2 && wrCount < 3) return 1.4;
-    if (pos === 'TE' && teCount === 0 && myPicksMade >= 4) return 1.3;
-    return 1.0;
-  }
-
-  // SuperFlex / 2-QB: QBs are scarce (24 needed across 12 teams).
-  // Must secure QB1 by round 3; QB2 by round 6. Waiting is catastrophic.
-  if (strategy === 'superflex') {
-    if (pos === 'QB' && qbCount === 0 && myPicksMade < 3) return 2.0;
-    if (pos === 'QB' && qbCount === 0) return 1.8;
-    if (pos === 'QB' && qbCount === 1 && myPicksMade < 8) return 2.2;
-    if (pos === 'QB' && qbCount >= 2) return 0.08;
-    if (pos === 'RB' && qbCount === 0 && myPicksMade < 2 && player.rank <= 8) return 1.6;
-    if (pos === 'WR' && qbCount >= 1 && wrCount < 3) return 1.2;
-    if (pos === 'TE' && teCount === 0 && myPicksMade >= 5) return 1.3;
-    return 1.0;
-  }
-
   return 1.0;
 }
 
-function scorePlayer(player, nextPickNum, available) {
-  const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
-  if (draftedSet.has(player.sleeper_id || player.name) || draftedSet.has(player.player_id || player.name)) return -Infinity;
-  if (STATE.avoids.has(player.sleeper_id || player.name)) return -Infinity;
-
-  const vor = calcVOR(player, available);
-  const stratWeight = getStrategyWeight(player, available);
-  const survival = calcSurvivalProbability(player, nextPickNum);
-  const targetBonus = STATE.targets.has(player.sleeper_id || player.name) ? 1.5 : 1.0;
-
-  // Expected VOR: weight by probability the player is actually available at your pick.
-  // survival 0% → 0.3× (steep discount, player likely gone)
-  // survival 50% → 0.65× (coinflip)
-  // survival 100% → 1.0× (definitely there, full VOR value)
-  // Players with < 3% survival are filtered — don't pollute recommendations.
-  if (survival < 0.03) return -Infinity;
-  const expectedValue = 0.3 + 0.7 * survival;
-
-  return vor * stratWeight * expectedValue * targetBonus;
+// Format + league-size adjusted VORP. Shared by in-draft scoring AND gradeDraft
+// so post-draft grades never contradict in-draft advice.
+function adjustVorpValue(rawVorp, pos, scoringType, totalTeams, isSuperflex) {
+  const sc = F_SCORING[scoringType] || F_SCORING.ppr;
+  const fScore = sc[pos] != null ? sc[pos] : 1.0;
+  let fSize = sizeFactor(pos, totalTeams);
+  // SuperFlex: SF VORP table already used; QB scarcity still deepens with size.
+  if (isSuperflex && pos === 'QB' && totalTeams > 12) {
+    fSize *= Math.pow(1.05, (totalTeams - 12) / 2);
+  }
+  return rawVorp * fScore * fSize;
 }
 
-function generateWhyText(player, available) {
-  const strategy = STATE.strategy;
+// Starter requirement per position, including flex share.
+function positionReq(pos, isSuperflex) {
+  const flexShare = { RB: 0.45, WR: 0.45, TE: 0.10 };
+  if (pos === 'QB') return isSuperflex ? 2.0 : 1.0;
+  if (pos === 'RB') return 2 + flexShare.RB;   // 2.45
+  if (pos === 'WR') return 2 + flexShare.WR;   // 2.45
+  if (pos === 'TE') return 1 + flexShare.TE;   // 1.10
+  return 1.0;
+}
+
+function needGap(pos, ctx) {
+  return Math.max(0, positionReq(pos, ctx.isSuperflex) - (ctx.counts[pos] || 0));
+}
+
+// Precompute the per-render context once (O(n log n)), not per player.
+function buildScoringContext(available) {
+  const isMock = MOCK.active;
+  const totalTeams  = STATE.totalTeams  || (isMock ? MOCK_CFG.teams  : 12);
+  const totalRounds = STATE.totalRounds || (isMock ? MOCK_CFG.rounds : 15);
+  const isSuperflex = STATE.isSuperflex || (isMock ? MOCK_CFG.superflex : false);
+  const scoringType = STATE.scoringType || (isMock ? MOCK_CFG.scoring : 'ppr');
+
+  const currentPick = isMock ? MOCK.currentPick : (STATE.lastPickCount + 1);
+  const round = Math.max(1, Math.ceil(currentPick / totalTeams));
+  // 14-team → +1 (scarcity/windows hit a round earlier); 8-team → -2 (later).
+  const roundShift = (totalTeams - 12) / 2;
+
+  const myPickNumbers = isMock ? (MOCK.myPickNumbers || []) : (STATE.myPickNumbers || []);
+  // decisionPick = the pick you're allocating; followingPick = your next shot after it.
+  const decisionPick = myPickNumbers.find(p => p >= currentPick) || null;
+  const onClock = decisionPick !== null && decisionPick === currentPick;
+  const followingPick = decisionPick != null
+    ? (myPickNumbers.filter(p => p > decisionPick)[0] || null)
+    : null;
+  const picksLeft = myPickNumbers.filter(p => p >= currentPick).length;
+
+  // Roster counts across ALL my roster slots (starters + flex + bench).
+  const counts = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0 };
+  const rosterPlayers = isMock
+    ? MOCK.picks.filter(p => p.isUser).map(p => p.player)
+    : Object.values(STATE.rosterSlots).filter(Boolean);
+  rosterPlayers.forEach(p => { if (counts[p.position] !== undefined) counts[p.position]++; });
+  const hasHeroRB = rosterPlayers.some(p => p.position === 'RB' && (p.rank || 999) <= 20);
+
+  // Recent picks (last 5) for position-run detection.
+  const recentPositions = isMock
+    ? MOCK.picks.slice(-5).map(p => p.player.position)
+    : (STATE.picks || []).slice(-5).map(p => (p.metadata?.position || '').replace('DEF', 'DST'));
+  const runCounts = { QB: 0, RB: 0, WR: 0, TE: 0 };
+  recentPositions.forEach(pos => { if (runCounts[pos] !== undefined) runCounts[pos]++; });
+
+  // Per-position available lists sorted by projected pts (for tier detection).
+  const allP = STATE.mergedPlayers || available;
+  const byPos = {};
+  ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
+    byPos[pos] = available
+      .filter(p => p.position === pos)
+      .map(p => ({ p, pts: getProjectedPts(p, allP) }))
+      .sort((a, b) => b.pts - a.pts);
+  });
+
+  return { isMock, totalTeams, totalRounds, isSuperflex, scoringType, currentPick,
+           round, roundShift, myPickNumbers, decisionPick, followingPick, onClock,
+           picksLeft, counts, hasHeroRB, runCounts, byPos, allP };
+}
+
+// §3 — positional need multiplier from roster state. Range clamped to [0.5, 1.6].
+function needMultiplier(pos, ctx) {
+  if (pos === 'K' || pos === 'DST') return 1.0; // handled by strategy round gates
+  const req = positionReq(pos, ctx.isSuperflex);
+  const have = ctx.counts[pos] || 0;
+  const gap = Math.max(0, req - have);
+  let mNeed = 0.6 + 0.5 * Math.min(1, gap / req);
+
+  // Desperation clamp — running out of picks to fill starters.
+  let totalGaps = 0;
+  ['QB', 'RB', 'WR', 'TE'].forEach(p => { totalGaps += Math.ceil(needGap(p, ctx)); });
+  if (gap > 0 && (ctx.picksLeft - totalGaps) <= 1) mNeed = Math.max(mNeed, 1.45);
+
+  // Bench-depth taper — starters full, depth value decays.
+  if ((pos === 'RB' || pos === 'WR') && have >= 4) mNeed = 0.5;   // starters(2)+2
+  if (pos === 'TE' && have >= 2) mNeed = 0.5;                     // TE2 always
+  if (pos === 'QB' && !ctx.isSuperflex && have >= 2) mNeed = 0.5; // QB2 in 1-QB
+
+  return Math.max(0.5, Math.min(1.6, mNeed));
+}
+
+// §4 — urgency: survival × tier break × position run. Returns { mUrgency, tierCount, tierSurvivors }.
+function urgencyMultiplier(player, ctx) {
   const pos = player.position;
-  const myPicksMade = STATE.myPickNumbers.filter(p => p <= STATE.lastPickCount).length;
-  const survival = calcSurvivalProbability(player, getNextMyPick());
-  const survPct = Math.round(survival * 100);
-  const vor = calcVOR(player, available);
-  const posRank = getPosRank(player, available);
-  const rosterList = Object.values(STATE.rosterSlots).filter(Boolean);
-  const rbCount = rosterList.filter(p => p.position === 'RB').length;
-  const wrCount = rosterList.filter(p => p.position === 'WR').length;
+  const runActive = (ctx.runCounts[pos] || 0) >= 3;
+  const shrink = runActive ? 0.7 : 1.0; // §4c — runs accelerate the board
+  const surv = (pl, atPick) => {
+    if (!atPick) return 1.0;
+    const p = shrink !== 1.0 ? { ...pl, stdev: Math.max((pl.stdev || 15) * shrink, 1) } : pl;
+    return calcSurvivalProbability(p, atPick);
+  };
 
-  if (STATE.targets.has(player.sleeper_id || player.name)) {
-    const urgLabel = survPct < 25 ? 'won\'t last — take now' : survPct < 55 ? 'risky to wait' : 'likely available';
-    return `★ Your target — ${pos}${posRank} available · ${urgLabel}`;
+  // 4a — survival with snake awareness. On the clock the player is available
+  // now (survival 1.0); planning ahead, measure at your decision pick.
+  let ownSurv;
+  if (ctx.onClock) {
+    ownSurv = 1.0;
+  } else if (ctx.followingPick && (ctx.followingPick - ctx.decisionPick) <= 3) {
+    // Back-to-back turn — you effectively pick twice; discount deferrals less.
+    ownSurv = Math.max(surv(player, ctx.decisionPick), 0.85 * surv(player, ctx.followingPick));
+  } else {
+    ownSurv = surv(player, ctx.decisionPick);
+  }
+  const expectedValue = 0.3 + 0.7 * ownSurv;
+
+  // 4b — tier-break factor. "Will this player's tier survive to my next shot?"
+  const tierThresh = { QB: 18, RB: 15, WR: 12, TE: 20 }[pos] || 15;
+  const tierMeasure = ctx.followingPick || (ctx.onClock ? null : ctx.decisionPick);
+  let tierFactor = 1.0, tierCount = 1, tierSurvivors = 99;
+  const list = ctx.byPos[pos];
+  if (list && list.length && tierMeasure) {
+    const key = player.sleeper_id || player.name;
+    const idx = list.findIndex(x => (x.p.sleeper_id || x.p.name) === key);
+    if (idx >= 0) {
+      // Contiguous cluster around the player where each step gap < threshold.
+      let start = idx, end = idx;
+      while (start > 0 && (list[start - 1].pts - list[start].pts) < tierThresh) start--;
+      while (end < list.length - 1 && (list[end].pts - list[end + 1].pts) < tierThresh) end++;
+      tierCount = end - start + 1;
+      tierSurvivors = 0;
+      for (let i = start; i <= end; i++) {
+        if (i === idx) continue;
+        tierSurvivors += surv(list[i].p, tierMeasure);
+      }
+      if (tierSurvivors < 0.75) tierFactor = 1.30;      // effectively the tier's last shot
+      else if (tierSurvivors < 1.5) tierFactor = 1.15;
+    }
   }
 
-  const isVorpDirect = lookupVorp(player.name, player.position) !== null;
-  const vorLabel = isVorpDirect
-    ? (vor > 150 ? 'elite' : vor > 80 ? 'strong' : vor > 30 ? 'solid' : 'near repl')
-    : (vor > 180 ? 'elite value' : vor > 80 ? 'strong value' : vor > 20 ? 'solid value' : 'near replacement');
-  const tierBreak = getTierBreak(player, available);
-  const tierTag = tierBreak ? ` · ⚡ ${tierBreak}` : '';
-  const urgLabel = survPct < 20 ? ' · LAST CHANCE' : survPct < 45 ? ' · risky to wait' : tierTag;
+  // 4c — position-run factor (stdev shrink already applied above via `surv`).
+  const runFactor = runActive && needGap(pos, ctx) > 0 ? 1.10 : 1.0;
 
-  if (strategy === 'bpa') {
-    return `BPA: ${pos}${posRank} available · +${vor.toFixed(0)} pts over replacement${urgLabel}`;
-  }
+  const mUrgency = Math.max(0.25, Math.min(1.5, expectedValue * tierFactor * runFactor));
+  return { mUrgency, tierCount, tierSurvivors, tierFactor, runActive };
+}
+
+function getStrategyWeight(player, ctx) {
+  const pos = player.position;
+  const strategy = STATE.strategy;
+  const isSF = ctx.isSuperflex;
+  // Round derived from the board (robust to joining mid-draft), shifted by
+  // league size so scarcity windows move a round earlier in 14-team, later in 8.
+  const effRound = ctx.round + ctx.roundShift;
+  const rbCount = ctx.counts.RB, wrCount = ctx.counts.WR,
+        qbCount = ctx.counts.QB, teCount = ctx.counts.TE;
+  const playerAdp = player.adp || 999;
+  const rank = player.rank || 999;
+
+  // Universal gates.
+  if (pos === 'K')  return effRound < 13 ? 0.05 : 1.0;
+  if (pos === 'DST') return effRound < 12 ? 0.05 : 1.0;
+  if (pos === 'TE' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
+  if (pos === 'QB' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
+
+  let w = 1.0;
 
   if (strategy === 'zero_rb') {
-    if (pos === 'RB' && myPicksMade < 5) return `Zero RB: avoid RBs early — take WRs/TE in picks 1-5`;
-    if (pos === 'WR' && myPicksMade < 5) return `Zero RB: stack WR now, buy cheap RBs rounds 6+ · ${vorLabel}${tierTag}`;
-    if (pos === 'TE' && myPicksMade < 5) return `Zero RB: elite TE is a force multiplier early · ${vorLabel}`;
-    if (pos === 'RB' && myPicksMade >= 5) return `Zero RB pick ${myPicksMade + 1}: workhorse value, ADP ${player.adp ? player.adp.toFixed(0) : player.rank}`;
-    return `${pos}${posRank} · ${vorLabel}${urgLabel}`;
+    if (pos === 'RB')      w = effRound <= 3 ? 0.10 : (effRound <= 6 ? 1.7 : 1.0); // the pivot: attack RB rounds 4–6
+    else if (pos === 'WR') w = effRound <= 4 ? 1.6 : 1.0;
+    else if (pos === 'TE') w = (teCount === 0 && effRound >= 2 && effRound <= 4) ? 1.5 : 1.0;
+    else if (pos === 'QB') w = (qbCount === 0 && effRound >= 4 && effRound <= 6) ? 1.2 : 1.0;
+  } else if (strategy === 'hero_rb') {
+    const hasHero = ctx.hasHeroRB;
+    if (pos === 'RB') {
+      if (effRound <= 3)      w = (!hasHero && rank <= 20) ? 2.5 : 0.2;
+      else if (effRound <= 6) w = (rbCount < 2) ? 0.5 : 0.2;
+      else                    w = 0.2;
+    } else if (pos === 'WR') {
+      w = hasHero ? (effRound <= 4 ? 1.5 : 1.2) : 1.0;
+    }
+    // TE/QB stay at BPA baseline (1.0) for hero_rb.
+  } else if (strategy === 'robust_rb') {
+    if (pos === 'RB')      w = rbCount < 4 ? (effRound <= 3 ? 2.0 : (effRound <= 6 ? 1.4 : 1.2)) : 0.5;
+    else if (pos === 'WR') w = (rbCount >= 2 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
+    else if (pos === 'TE') w = (teCount === 0 && effRound >= 4) ? 1.3 : 1.0;
+  } else if (strategy === 'superflex') {
+    // QBs are scarce (24 needed across 12 teams); QB3 still has trade/bye value.
+    if (pos === 'QB') {
+      if (qbCount === 0)      w = effRound <= 3 ? 2.0 : 1.8;
+      else if (qbCount === 1) w = effRound <= 8 ? 2.2 : 1.2;
+      else                    w = 0.3; // QB3 (was 0.08)
+    } else if (pos === 'RB') w = (qbCount === 0 && effRound <= 3 && rank <= 8) ? 1.6 : 1.0;
+    else if (pos === 'WR')   w = (qbCount >= 1 && wrCount < 3 && effRound <= 4) ? 1.2 : 1.0;
+    else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
+  } else { // bpa (default)
+    if (pos === 'QB' && qbCount >= 1) w = 0.3;
+    else if (pos === 'TE' && teCount >= 1) w = 0.25;
   }
 
-  if (strategy === 'hero_rb') {
-    const allP = STATE.mergedPlayers || available;
-    const hasHero = rosterList.some(p => p.position === 'RB' && getProjectedPts(p, allP) > 280);
-    if (!hasHero && pos === 'RB' && getProjectedPts(player, allP) > 260) return `Hero RB: anchor pick — elite RB, +${vor.toFixed(0)} pts over replacement${tierTag}`;
-    if (!hasHero && pos !== 'RB') return `Wait for hero RB first — but strong value if pivoting`;
-    if (hasHero && pos === 'WR') return `Hero secured · stack WRs now (${wrCount}/4 WRs) · ${vorLabel}${tierTag}`;
-    if (hasHero && pos === 'RB') return `Hero secured · handcuff/upside RB${urgLabel}`;
-    return `${pos}${posRank} · ${vorLabel}${urgLabel}`;
+  return Math.max(0.05, Math.min(2.5, w));
+}
+
+// v2 — full breakdown so generateWhyText can cite the dominant factor.
+// score = adjustedVORP × W_strategy × M_need × M_urgency × M_target
+function computeScoreBreakdown(player, ctx, available) {
+  const key = player.sleeper_id || player.name;
+  const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
+  if (draftedSet.has(key) || draftedSet.has(player.player_id || player.name) ||
+      STATE.avoids.has(key)) {
+    return { score: -Infinity };
   }
 
-  if (strategy === 'robust_rb') {
-    if (pos === 'RB' && rbCount < 4) return `Robust RB: building backfield (${rbCount}/4 RBs) · ${vorLabel}${tierTag}`;
-    if (pos === 'WR' && rbCount >= 2) return `Robust RB: RB base set · fill WR (${wrCount}/3 WRs) · ${vorLabel}${tierTag}`;
-    return `${pos}${posRank} · ${vorLabel}${urgLabel}`;
+  // Hard prune: a player who realistically won't fall to your NEXT pick, when
+  // you're planning ahead. Never prune on the clock — everything on the board
+  // is draftable right now.
+  if (!ctx.onClock && ctx.decisionPick &&
+      calcSurvivalProbability(player, ctx.decisionPick) < 0.03) {
+    return { score: -Infinity };
   }
 
-  if (strategy === 'superflex') {
-    const qbCount = rosterList.filter(p => p.position === 'QB').length;
-    if (pos === 'QB' && qbCount === 0) return `SuperFlex: QB1 is a must — only ${posRank} left, VORP +${vor.toFixed(0)}${urgLabel}`;
-    if (pos === 'QB' && qbCount === 1) return `SuperFlex: lock in QB2 — VORP +${vor.toFixed(0)} · ${posRank} QBs available${urgLabel}`;
-    if (pos === 'QB' && qbCount >= 2) return `SuperFlex: 2 QBs set — overkill`;
-    if (pos === 'RB' && qbCount === 0) return `Elite RB before QB run starts · VORP +${vor.toFixed(0)}${tierTag}`;
-    return `${pos}${posRank} · ${vorLabel}${urgLabel}`;
+  const rawVorp   = calcVOR(player, available);
+  const base      = adjustVorpValue(rawVorp, player.position, ctx.scoringType, ctx.totalTeams, ctx.isSuperflex);
+  const wStrategy = getStrategyWeight(player, ctx);
+  const mNeed     = needMultiplier(player.position, ctx);
+  const urg       = urgencyMultiplier(player, ctx);
+  const mTarget   = STATE.targets.has(key) ? 1.5 : 1.0;
+
+  // Clamp the product of the non-base multipliers to prevent stacking blowups.
+  const combo = Math.max(0.02, Math.min(4.0, wStrategy * mNeed * urg.mUrgency));
+  const score = base * combo * mTarget;
+
+  return { score, rawVorp, base, wStrategy, mNeed, mUrgency: urg.mUrgency,
+           mTarget, tierCount: urg.tierCount, tierSurvivors: urg.tierSurvivors,
+           tierFactor: urg.tierFactor, runActive: urg.runActive };
+}
+
+// Back-compat thin wrapper. `ctxOrPick` is a scoring context (preferred);
+// a bare pick number is tolerated by building a context on the fly.
+function scorePlayer(player, ctxOrPick, available) {
+  const ctx = (ctxOrPick && typeof ctxOrPick === 'object')
+    ? ctxOrPick
+    : buildScoringContext(available);
+  return computeScoreBreakdown(player, ctx, available).score;
+}
+
+// v2 — cite the actual dominant factor behind the recommendation, using the
+// scoring breakdown (parts) and context computed in renderRecommendations.
+function generateWhyText(player, available, parts, ctx) {
+  const pos = player.position;
+  const posRank = getPosRank(player, available);
+  const vor = (parts && isFinite(parts.rawVorp)) ? parts.rawVorp : calcVOR(player, available);
+  ctx = ctx || buildScoringContext(available);
+  const survPct = Math.round(calcSurvivalProbability(player, ctx.decisionPick || ctx.currentPick) * 100);
+
+  if (STATE.targets.has(player.sleeper_id || player.name)) {
+    const urg = survPct < 25 ? 'won\'t last — take now' : survPct < 55 ? 'risky to wait' : 'likely available';
+    return `★ Your target — ${pos}${posRank} available · ${urg}`;
   }
 
-  return `${pos}${posRank} available · +${vor.toFixed(0)} pts · ADP ${player.adp ? player.adp.toFixed(0) : player.rank}`;
+  // Situational override copy always wins — it fired because it was decisive.
+  if (parts && parts.override) return parts.override;
+
+  // Fallback for stray callers without a breakdown.
+  if (!parts || !isFinite(parts.score)) {
+    return `${pos}${posRank} available · +${vor.toFixed(0)} pts over replacement`;
+  }
+
+  const strategyNames = { zero_rb: 'Zero-RB', hero_rb: 'Hero-RB', robust_rb: 'Robust-RB', superflex: 'SuperFlex', bpa: 'BPA' };
+  const stratName = strategyNames[STATE.strategy] || 'BPA';
+
+  // Which multiplier moved the score most (furthest above 1.0)?
+  const factors = [
+    { k: 'urgency',  v: parts.mUrgency },
+    { k: 'need',     v: parts.mNeed },
+    { k: 'strategy', v: parts.wStrategy },
+  ];
+  factors.sort((a, b) => b.v - a.v);
+  const dom = factors[0];
+
+  const have = ctx.counts[pos] || 0;
+  const vorLabel = vor > 120 ? 'elite value' : vor > 60 ? 'strong value' : vor > 20 ? 'solid value' : 'depth';
+
+  // Strategy dominates within its defined windows — name the plan.
+  if (dom.k === 'strategy' && parts.wStrategy > 1.15) {
+    if (STATE.strategy === 'zero_rb' && pos === 'RB') return `Zero-RB pivot — attack RB value now · +${vor.toFixed(0)} VORP`;
+    if (STATE.strategy === 'zero_rb' && pos === 'WR') return `Zero-RB — stack WR early · ${vorLabel}`;
+    if (STATE.strategy === 'hero_rb' && pos === 'RB') return `Hero-RB anchor — grab your elite back · +${vor.toFixed(0)} VORP`;
+    if (STATE.strategy === 'robust_rb' && pos === 'RB') return `Robust-RB — building the backfield · +${vor.toFixed(0)} VORP`;
+    if (STATE.strategy === 'superflex' && pos === 'QB') return `SuperFlex — QB is scarce, lock one in · +${vor.toFixed(0)} VORP`;
+    return `${stratName} fit — ${pos}${posRank} · ${vorLabel}`;
+  }
+
+  // Urgency dominates — positional scarcity / tier is about to break.
+  if (dom.k === 'urgency' && parts.mUrgency > 1.02) {
+    if (parts.tierFactor > 1.0) {
+      return `Positional scarcity — only ${parts.tierCount} ${pos}${parts.tierCount === 1 ? '' : 's'} left in striking distance`;
+    }
+    if (parts.runActive) return `${pos} run underway — the board is thinning fast at ${pos}`;
+    if (survPct < 30) return `Won't make it back — ${pos}${posRank}, ${survPct}% to survive your next pick`;
+    return `Timing edge — ${pos}${posRank} likely gone soon · ${vorLabel}`;
+  }
+
+  // Need dominates — roster hole.
+  if (dom.k === 'need' && parts.mNeed > 1.0) {
+    if (have === 0) return `Roster need — no ${pos} yet, ${vorLabel} (+${vor.toFixed(0)} VORP)`;
+    return `Roster need — only ${have} ${pos} so far · +${vor.toFixed(0)} VORP`;
+  }
+
+  // Otherwise it's simply the best value on the board.
+  return `${stratName}: ${pos}${posRank} available · +${vor.toFixed(0)} pts over replacement`;
 }
 
 function getTierBreak(player, available) {
@@ -3887,7 +4134,8 @@ function getTierBreak(player, available) {
   const playerPts = getProjectedPts(player, allP);
   const nextPts = idx + 1 < byPos.length ? getProjectedPts(byPos[idx + 1], allP) : 0;
   const drop = playerPts - nextPts;
-  if (drop >= 22) return `tier break — next ${pos} is ${drop.toFixed(0)} pts worse`;
+  const thresh = { QB: 18, RB: 15, WR: 12, TE: 20 }[pos] || 15;
+  if (drop >= thresh) return `tier break — next ${pos} is ${drop.toFixed(0)} pts worse`;
   return null;
 }
 
@@ -3955,15 +4203,41 @@ function renderRecommendations() {
     return;
   }
 
-  const nextMyPick = MOCK.active
-    ? (MOCK.myPickNumbers.find(p => p >= MOCK.currentPick) || null)
-    : getNextMyPick();
+  const ctx = buildScoringContext(available);
+  const nextMyPick = ctx.decisionPick;
 
-  // Score all available players using VOR
-  const scored = available.map(p => ({
-    player: p,
-    score: scorePlayer(p, nextMyPick, available)
-  })).sort((a, b) => b.score - a.score);
+  // Score all available players with the v2 breakdown.
+  const scored = available.map(p => {
+    const parts = computeScoreBreakdown(p, ctx, available);
+    return { player: p, score: parts.score, parts };
+  }).sort((a, b) => b.score - a.score);
+
+  // §6 — situational overrides (post-score re-rank nudges, max 2 per player).
+  const teAvailAboveRepl = available.filter(p =>
+    p.position === 'TE' && (lookupVorp(p.name, 'TE') || 0) > 0).length;
+  scored.forEach(item => {
+    if (!isFinite(item.score)) return;
+    const p = item.player;
+    let fired = 0;
+    // 14-team TE cliff
+    if (fired < 2 && ctx.totalTeams >= 14 && ctx.round >= 4 && ctx.counts.TE === 0 &&
+        p.position === 'TE' && teAvailAboveRepl <= 3) {
+      item.score *= 1.25;
+      item.override = `TE cliff — only ${teAvailAboveRepl} startable TEs left in a ${ctx.totalTeams}-team`;
+      fired++;
+    }
+    // SuperFlex QB emergency
+    if (fired < 2 && ctx.isSuperflex && ctx.counts.QB === 0 && ctx.round >= 3 && p.position === 'QB') {
+      item.score *= 1.4;
+      if (!item.override) item.override = 'SuperFlex QB emergency — roster a QB now';
+      fired++;
+    }
+    // Standard-scoring RB lean (value already in F_scoring; copy only)
+    if (fired < 2 && ctx.scoringType === 'standard' && ctx.round <= 3 && p.position === 'RB') {
+      if (!item.override) item.override = 'RBs gain value in standard scoring';
+    }
+  });
+  scored.sort((a, b) => b.score - a.score);
 
   const top5 = scored.slice(0, 5);
 
@@ -3980,7 +4254,7 @@ function renderRecommendations() {
     const survival = calcSurvivalProbability(p, nextMyPick);
     const survPct = Math.round(survival * 100);
     const survClass = survPct < 25 ? 'survival-low' : survPct < 60 ? 'survival-mid' : 'survival-high';
-    const why = generateWhyText(p, available);
+    const why = generateWhyText(p, available, item.parts, ctx);
     const vor = calcVOR(p, available);
 
     html += `<div class="rec-card" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
@@ -4099,6 +4373,8 @@ const SYNC = {
 
 const POLL_FAST = 5000;    // drafting, polling only
 const POLL_SLOW = 20000;   // drafting, WS connected (reconciliation)
+const POLL_COMPANION = 1500; // companion popup: WS is unreliable for mock CPU
+                             // auto-picks, so always poll aggressively
 const POLL_PAUSED = 12000; // draft paused
 const POLL_PRE = 15000;    // pre-draft, waiting for start
 
@@ -4262,9 +4538,11 @@ async function pollPicks() {
     }
     processNewPicks(picks);
     if (STATE.draftComplete) return;
+    const companion = document.body.classList.contains('companion-mode');
     const interval =
       STATE.draftStatus === 'paused' ? POLL_PAUSED :
-      STATE.draftStatus === 'pre_draft' ? POLL_PRE :
+      STATE.draftStatus === 'pre_draft' ? (companion ? POLL_FAST : POLL_PRE) :
+      companion ? POLL_COMPANION :
       SYNC.wsConnected ? POLL_SLOW : POLL_FAST;
     schedulePoll(interval);
   } catch(e) {
@@ -4407,30 +4685,41 @@ function handleDraftComplete() {
 function gradeDraft(myPicks, totalTeams) {
   if (!myPicks.length) return { grade: '—', color: '#666', composite: 0, breakdown: null };
 
+  // Format + league-size adjustments — MUST mirror in-draft scoring (adjustVorpValue)
+  // so post-draft grades never contradict the advice given during the draft.
+  const teams = totalTeams || STATE.totalTeams || 12;
+  const scoringType = STATE.scoringType || 'ppr';
+  const isSF = STATE.isSuperflex || false;
+  const adjVorp = p => adjustVorpValue(lookupVorp(p.name, p.position) || 0, p.position, scoringType, teams, isSF);
+
   // Component 1: ADP Value (40%) — value gained vs consensus ADP
   // diff = pick_no - adp: positive means player fell past their ADP (value); negative = reach
   const adpValues = myPicks.map(p => {
-    const playerAdp = FP_ADP[p.name] || p.pick_no;
+    let playerAdp = FP_ADP[p.name] || p.pick_no;
+    // FP_ADP is standard-league; QBs go ~2 rounds earlier in SF/2QB, so shift
+    // QB ADP up so early QB picks aren't graded as reaches.
+    if (isSF && p.position === 'QB' && FP_ADP[p.name]) playerAdp = Math.max(1, playerAdp - teams * 2);
     return p.pick_no - playerAdp;
   });
   const avgAdpValue = adpValues.reduce((a, b) => a + b, 0) / adpValues.length;
   const adpScore = Math.max(0, Math.min(100, 50 + avgAdpValue * 4));
 
-  // Component 2: VORP total (30%) — average value accumulated
-  const totalVorp = myPicks.reduce((sum, p) => sum + (lookupVorp(p.name, p.position) || 0), 0);
+  // Component 2: VORP total (30%) — format/size-adjusted value accumulated
+  const totalVorp = myPicks.reduce((sum, p) => sum + adjVorp(p), 0);
   const avgVorp = totalVorp / myPicks.length;
   const vorpScore = Math.max(0, Math.min(100, 40 + avgVorp * 0.8));
 
   // Component 3: Roster construction (20%) — completeness of a startable lineup
   const positions = myPicks.map(p => p.position);
-  const hasQB = positions.includes('QB');
+  const qbCount = positions.filter(p => p === 'QB').length;
+  const hasQB = qbCount > 0;
   const rbCount = positions.filter(p => p === 'RB').length;
   const wrCount = positions.filter(p => p === 'WR').length;
   const hasTE = positions.includes('TE');
   const hasK = positions.includes('K');
   const hasDST = positions.filter(p => p === 'DST' || p === 'DEF').length > 0;
   const rosterScore = (
-    (hasQB ? 20 : 0) +
+    (isSF ? (qbCount >= 2 ? 20 : qbCount === 1 ? 10 : 0) : (hasQB ? 20 : 0)) +
     (rbCount >= 2 ? 25 : rbCount === 1 ? 12 : 0) +
     (wrCount >= 3 ? 25 : wrCount === 2 ? 15 : wrCount === 1 ? 7 : 0) +
     (hasTE ? 15 : 0) +
@@ -4438,9 +4727,11 @@ function gradeDraft(myPicks, totalTeams) {
     (hasDST ? 8 : 0)
   );
 
-  // Component 4: Positional scarcity (10%) — landed an elite TE or WR1
-  const eliteTE = myPicks.find(p => p.position === 'TE' && (lookupVorp(p.name, 'TE') || 0) > 40);
-  const eliteWR = myPicks.find(p => p.position === 'WR' && (lookupVorp(p.name, 'WR') || 0) > 60);
+  // Component 4: Positional scarcity (10%) — landed an elite TE or WR1.
+  // Thresholds compare against format/size-adjusted VORP so a 14-team elite TE
+  // (scarcer, worth more) clears the bar as it should.
+  const eliteTE = myPicks.find(p => p.position === 'TE' && adjVorp(p) > 40);
+  const eliteWR = myPicks.find(p => p.position === 'WR' && adjVorp(p) > 60);
   const scarcityScore = (eliteTE ? 50 : 0) + (eliteWR ? 50 : 0);
 
   const composite = adpScore * 0.40 + vorpScore * 0.30 + rosterScore * 0.20 + scarcityScore * 0.10;
@@ -4925,60 +5216,84 @@ function processNewPicks(picks, silent = false) {
   if (newPicks.length === 0) return;
 
   newPicks.forEach(pick => {
-    STATE.picks.push(pick);
+    // Process each pick defensively — one malformed pick (missing metadata,
+    // etc.) must never abort the whole sync loop and freeze the popup.
+    try {
+      STATE.picks.push(pick);
 
-    // Mark player as drafted
-    const name = pick.metadata?.player_name ||
-      `${pick.metadata?.first_name || ''} ${pick.metadata?.last_name || ''}`.trim();
+      // Mark player as drafted
+      const name = pick.metadata?.player_name ||
+        `${pick.metadata?.first_name || ''} ${pick.metadata?.last_name || ''}`.trim();
 
-    // Mark by sleeper player_id
-    if (pick.player_id) STATE.draftedIds.add(pick.player_id);
+      // Mark by sleeper player_id
+      if (pick.player_id) STATE.draftedIds.add(pick.player_id);
 
-    // Also match against our rankings (id first, then normalized name).
-    // Players outside our rankings (deep sleepers, IDPs) simply won't be
-    // on the board — the pick still counts toward the draft position.
-    const matched = STATE.mergedPlayers.find(p =>
-      (pick.player_id && p.sleeper_id === pick.player_id) ||
-      normalizePlayerName(p.name) === normalizePlayerName(name)
-    );
-    if (matched) {
-      STATE.draftedIds.add(matched.sleeper_id || matched.name);
-    }
-
-    // My pick? picked_by is authoritative; slot math is the fallback
-    // (picked_by can be empty for autopicked/commissioner picks)
-    const isMyPick = (STATE.userId && pick.picked_by === STATE.userId) ||
-      STATE.myPickNumbers.includes(pick.pick_no);
-    if (isMyPick && matched) {
-      addToMyRoster(matched);
-    }
-
-    if (!silent) {
-      const pos = pick.metadata?.position || '';
-      const round = pick.round;
-      const pickInRound = pick.pick_no - (round - 1) * STATE.totalTeams;
-      showToast(
-        `Pick ${pick.pick_no} (R${round}.${pickInRound}) — ${pos} ${name}`,
-        isMyPick
+      // Also match against our rankings (id first, then normalized name).
+      // Players outside our rankings (deep sleepers, IDPs) simply won't be
+      // on the board — the pick still counts toward the draft position.
+      const matched = STATE.mergedPlayers.find(p =>
+        (pick.player_id && p.sleeper_id === pick.player_id) ||
+        normalizePlayerName(p.name) === normalizePlayerName(name)
       );
+      if (matched) {
+        STATE.draftedIds.add(matched.sleeper_id || matched.name);
+      }
+
+      // My pick? picked_by is authoritative; slot math is the fallback
+      // (picked_by can be empty for autopicked/commissioner picks)
+      const isMyPick = (STATE.userId && pick.picked_by === STATE.userId) ||
+        STATE.myPickNumbers.includes(pick.pick_no);
+      if (isMyPick && matched) {
+        addToMyRoster(matched);
+      }
+
+      if (!silent) {
+        const pos = pick.metadata?.position || '';
+        const round = pick.round;
+        const pickInRound = pick.pick_no - (round - 1) * STATE.totalTeams;
+        showToast(
+          `Pick ${pick.pick_no} (R${round}.${pickInRound}) — ${pos} ${name}`,
+          isMyPick
+        );
+      }
+    } catch (e) {
+      console.error('processNewPicks: failed to process pick', pick?.pick_no, e);
     }
   });
 
   STATE.lastPickCount = picks.reduce((m, p) => Math.max(m, p.pick_no || 0), STATE.lastPickCount);
 
-  // Update UI
-  renderBoard();
-  renderScarcityBars();
-  renderRecommendations();
-  renderPickLog();
-  renderRosterSlots();
-  renderMyPicksSchedule();
-  updatePickCounter();
-  updateMyList();
+  // ── Update UI ──────────────────────────────────────────────────────────
+  // Companion popup mode has its own compact render path and never shows the
+  // full app-screen. Running (and possibly throwing inside) the heavy
+  // main-view renders there is both wasteful and — critically — was blocking
+  // the companion re-render when any of them errored, so picks never synced
+  // in the popup. Render the companion view directly instead, and guard the
+  // main-view renders so a single failure can't stall the live sync loop.
+  const inCompanion = document.body.classList.contains('companion-mode');
 
-  // Companion mode has its own compact render path
+  if (!inCompanion) {
+    try {
+      renderBoard();
+      renderScarcityBars();
+      renderRecommendations();
+      renderPickLog();
+      renderRosterSlots();
+      renderMyPicksSchedule();
+      updatePickCounter();
+      updateMyList();
+    } catch (e) {
+      console.error('processNewPicks: main-view render error', e);
+    }
+  }
+
+  // Companion compact view (popup mode, or any time it is on screen)
   if (document.getElementById('companion-view')?.style.display !== 'none') {
-    renderCompanionView();
+    try {
+      renderCompanionView();
+    } catch (e) {
+      console.error('processNewPicks: companion render error', e);
+    }
   }
 
   // All picks in? Draft is done even if the status endpoint lags.
@@ -5137,6 +5452,66 @@ function escAttr(str) {
 }
 
 // ===== COMPANION MODE (bookmarklet popup) =====
+// Listen for mock draft state broadcast from the main app window (cross-window sync)
+function startMockCompanionListener() {
+  let bc;
+  try { bc = new BroadcastChannel('roundroom_mock'); } catch(e) { return; }
+  let playersLoaded = false;
+
+  bc.onmessage = async (e) => {
+    if (e.data?.type !== 'mock_state') return;
+    const d = e.data;
+
+    // Load player data once on first message
+    if (!playersLoaded && !STATE.mergedPlayers?.length) {
+      playersLoaded = true;
+      try {
+        const r = await fetch('/api/composite-adp');
+        if (r.ok) {
+          const json = await r.json();
+          STATE.adpPlayers = (json.players || []).map(p => ({
+            name: p.name, position: p.position, team: p.team || '',
+            adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
+            stdev: p.stdev || 2, player_id: p.player_id || null
+          })).filter(p => p.position && ['QB','RB','WR','TE','K','DST'].includes(p.position));
+          STATE.mergedPlayers = STATE.adpPlayers.map(p => ({ ...p, sleeper_id: p.player_id }));
+        }
+      } catch(_) {}
+      // Fallback
+      if (!STATE.mergedPlayers?.length) {
+        try {
+          const r = await fetch('/api/adp');
+          if (r.ok) { const j = await r.json(); STATE.mergedPlayers = (j.players||[]).map(p=>({...p,sleeper_id:p.player_id})); }
+        } catch(_) {}
+      }
+      // VORP (non-fatal)
+      try {
+        const vr = await fetch('/api/vorp');
+        if (vr.ok) {
+          const vd = await vr.json();
+          const vm = {};
+          (vd.players||[]).forEach(p => { if (p?.name) vm[p.name.toLowerCase()] = {vorp_std:p.vorp_std,vorp_sf:p.vorp_sf}; });
+          (STATE.mergedPlayers||[]).forEach(p => { const v=vm[(p.name||'').toLowerCase()]; if(v){p.vorp_std=v.vorp_std;p.vorp_sf=v.vorp_sf;} });
+          STATE.vorpData = vm;
+        }
+      } catch(_) {}
+    }
+
+    // Apply broadcast state to local MOCK + STATE
+    MOCK.active = true;
+    MOCK.currentPick = d.currentPick;
+    MOCK.waitingForUser = d.waitingForUser;
+    MOCK.myPickNumbers = d.myPickNumbers || [];
+    MOCK.draftedIds = new Set(d.draftedIds || []);
+    MOCK.picks = d.picks || [];
+    if (d.mockCfg) Object.assign(MOCK_CFG, d.mockCfg);
+    STATE.isSuperflex = d.isSuperflex;
+    STATE.scoringType = d.scoringType;
+
+    renderCompanionView();
+  };
+}
+
 function showCompanionSetup() {
   document.getElementById('setup-screen').innerHTML = `
     <div style="padding:1.25rem;max-width:340px;margin:0 auto;">
@@ -5144,12 +5519,21 @@ function showCompanionSetup() {
         <span style="font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RoundRoom</span>
         <span style="font-size:0.62rem;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.3rem;font-weight:600;">COMPANION</span>
       </div>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Enter your Sleeper draft ID or full draft URL to connect.</p>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Connect to a Sleeper draft, or open alongside RoundRoom mock draft mode.</p>
       <input id="companion-draft-input" type="text" placeholder="Draft ID or sleeper.com/draft/… URL"
         style="width:100%;padding:0.6rem 0.75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:0.85rem;font-family:inherit;margin-bottom:0.75rem;box-sizing:border-box;">
       <button onclick="connectCompanionFromInput()" style="width:100%;padding:0.65rem;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
-        Connect to Draft
+        Connect to Sleeper Draft
       </button>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin:0.75rem 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">OR</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);">
+        <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite;flex-shrink:0;"></div>
+        <span style="font-size:0.76rem;color:var(--text-secondary);">Waiting for mock draft from RoundRoom…</span>
+      </div>
       <div id="companion-error" style="display:none;color:#ef4444;font-size:0.78rem;margin-top:0.6rem;"></div>
     </div>
   `;
@@ -5240,7 +5624,9 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   try {
     const dResp = await fetch(`https://api.sleeper.app/v1/draft/${draftId}`);
     const d = await dResp.json();
-    STATE.isSuperflex = (d.settings?.slots_super_flex || 0) > 0;
+    STATE.isSuperflex = (d.settings?.slots_super_flex || 0) > 0 ||
+      (d.settings?.slots_qb || 0) >= 2 ||
+      (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
     STATE.selectedDraft = d;
     draftName = d.metadata?.name || 'Sleeper Draft';
   } catch(e) {}
@@ -5366,6 +5752,7 @@ try {
       bootCompanionMode(companionDraftId);
     } else {
       showCompanionSetup();
+      startMockCompanionListener(); // auto-connect to any running mock draft in same origin
     }
   }
 } catch(e) {}
@@ -5430,53 +5817,155 @@ function shareDraftRecap(grade, avgValue, leagueName, picks) {
 }
 
 // ===== Companion View (compact popup layout) =====
+// ─── Comprehensive recommendation scoring ─────────────────────────────────
+// Returns a composite 0-100 score for a player given current draft context.
+// Weights: VORP 30%, Positional need 35%, ADP value 25%, Tier timing 10%
+function scoreRecommendation(player, myPositions, myPickNumbers, currentPick) {
+  const pos = player.position;
+  const totalTeams = STATE.totalTeams || (MOCK.active ? MOCK_CFG.teams : 12);
+  const isSuperflex = STATE.isSuperflex || (MOCK.active ? MOCK_CFG.superflex : false);
+
+  const counts = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0 };
+  (myPositions || []).forEach(p => { if (counts[p] !== undefined) counts[p]++; });
+
+  const round = Math.ceil(currentPick / totalTeams);
+  const picksRemaining = (myPickNumbers || []).filter(n => n >= currentPick).length;
+
+  // 1. VORP — raw projection above replacement baseline (QB14/RB36/WR48/TE12; QB24 in SF)
+  const vorp = lookupVorp(player.name, pos) || 0;
+  // Normalize: 60 VORP ≈ elite; scale to 0-100
+  const vorpScore = Math.min(100, Math.max(0, vorp / 60 * 100));
+
+  // 2. ADP value — player falling past consensus = value
+  // Composite ADP is standard-league; in 2QB/SF leagues QBs go ~2 rounds earlier,
+  // so shift QB ADP up to avoid tagging every early QB as a "reach".
+  let adp = player.adp || currentPick;
+  if (isSuperflex && pos === 'QB' && player.adp) adp = Math.max(1, adp - totalTeams * 2);
+  const diff = currentPick - adp; // positive = fell, negative = reach
+  // +10 picks of fall → ~+40 pts. Reaching by 10 → ~-30 pts.
+  const adpScore = Math.min(100, Math.max(0, 50 + diff * 3.5));
+
+  // 3. Positional need — league-format aware
+  let needScore;
+  if (pos === 'QB') {
+    if (counts.QB === 0) needScore = isSuperflex ? 92 : 65;
+    else if (counts.QB === 1 && isSuperflex) needScore = 78; // you START two QBs in SF — QB2 is a need, not a luxury
+    else if (counts.QB === 2 && isSuperflex) needScore = 30; // QB3 bench depth, then back off
+    else needScore = 8;
+  } else if (pos === 'RB') {
+    // RBs are scarce; need 3 solid starters + handcuff room
+    if (counts.RB === 0) needScore = 95;
+    else if (counts.RB === 1) needScore = 82;
+    else if (counts.RB === 2) needScore = 58;
+    else if (counts.RB === 3) needScore = 35;
+    else needScore = 15;
+  } else if (pos === 'WR') {
+    if (counts.WR === 0) needScore = 90;
+    else if (counts.WR === 1) needScore = 80;
+    else if (counts.WR === 2) needScore = 60;
+    else if (counts.WR === 3) needScore = 38;
+    else if (counts.WR === 4) needScore = 22;
+    else needScore = 12;
+  } else if (pos === 'TE') {
+    // TE positional scarcity spikes after the top 2-3
+    if (counts.TE === 0 && adp < 50) needScore = 90; // elite TE is a huge advantage
+    else if (counts.TE === 0 && adp < 100) needScore = 75;
+    else if (counts.TE === 0) needScore = 60;
+    else if (counts.TE === 1) needScore = 20;
+    else needScore = 5;
+  } else if (pos === 'K') {
+    needScore = round >= 14 && counts.K === 0 ? 55 : 5;
+  } else if (pos === 'DST') {
+    needScore = round >= 13 && counts.DST === 0 ? 55 : 5;
+  } else {
+    needScore = 30;
+  }
+
+  // Urgency modifier: if few picks left and position still empty, boost need
+  if (picksRemaining <= 3 && counts[pos] === 0 && ['RB','WR'].includes(pos)) {
+    needScore = Math.min(100, needScore + 25);
+  }
+
+  // 4. Draft timing / tier value
+  // Reward grabbing players earlier than when their position tier collapses
+  let tierScore = 50;
+  // Early rounds (1-3): prioritize RB/WR/elite TE
+  if (round <= 3 && ['RB', 'WR'].includes(pos)) tierScore = 70;
+  if (round <= 3 && pos === 'QB' && !isSuperflex) tierScore = 20; // wait on QB in standard
+  if (round <= 3 && pos === 'QB' && isSuperflex) tierScore = 75; // SF QBs go early
+  // Mid rounds (4-8): WR/RB depth, TE2, late QB in standard
+  if (round >= 4 && round <= 8 && pos === 'QB' && !isSuperflex && counts.QB === 0) tierScore = 65;
+  // Late rounds (9+): stream K/DST, handcuffs, depth
+  if (round >= 9 && ['K','DST'].includes(pos)) tierScore = 45;
+
+  // SuperFlex: QBs in rounds 1-6 are equivalent to RB/WR (QB run extends deep in 2QB)
+  if (isSuperflex && pos === 'QB' && round <= 6) tierScore = Math.max(tierScore, 75);
+
+  return vorpScore * 0.30 + needScore * 0.35 + adpScore * 0.25 + tierScore * 0.10;
+}
+
 function renderCompanionView() {
-  // Switch to companion view instead of app-screen
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('companion-view').style.display = 'flex';
 
   const posColors = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)' };
+  const isMock = MOCK.active;
 
-  // --- Pick status header ---
-  const currentOverallPick = (STATE.picks?.length || 0) + 1;
-  const isMyTurn = (STATE.myPickNumbers || []).includes(currentOverallPick);
+  // ── Data source: mock vs live ──────────────────────────────────────────
+  const currentPick = isMock ? MOCK.currentPick : (STATE.picks?.length || 0) + 1;
+  const myPickNumbers = isMock ? (MOCK.myPickNumbers || []) : (STATE.myPickNumbers || []);
+  const isMyTurn = isMock ? !!MOCK.waitingForUser : myPickNumbers.includes(currentPick);
 
+  // Roster: list of { name, position, team }
+  const myRosterPlayers = isMock
+    ? MOCK.picks.filter(p => p.isUser).map(p => ({ name: p.player.name, position: p.player.position, team: p.player.team }))
+    : (STATE.picks || []).filter(p => myPickNumbers.includes(p.pick_no)).map(p => {
+        const m = p.metadata || {};
+        return {
+          name: m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim(),
+          position: (m.position || '').replace('DEF', 'DST'),
+          team: m.team
+        };
+      });
+
+  const myPositions = myRosterPlayers.map(p => p.position);
+
+  // ── Pick status header ─────────────────────────────────────────────────
   const pickStatusEl = document.getElementById('cv-pick-status');
   const slotEl = document.getElementById('cv-slot-badge');
-  slotEl.textContent = `Slot ${STATE.mySlot}`;
+  slotEl.textContent = isMock ? `Slot ${MOCK_CFG.slot + 1}` : `Slot ${STATE.mySlot}`;
 
   if (isMyTurn) {
-    pickStatusEl.textContent = `⚡ Pick #${currentOverallPick} — YOUR TURN`;
+    pickStatusEl.textContent = `⚡ Pick #${currentPick} — YOUR TURN`;
     pickStatusEl.style.color = 'var(--accent)';
   } else {
-    const nextMine = (STATE.myPickNumbers || []).find(n => n >= currentOverallPick);
-    const picksUntil = (nextMine || 0) - currentOverallPick;
-    pickStatusEl.textContent = !nextMine ? 'Draft complete' : `Pick #${currentOverallPick} · ${picksUntil} until yours`;
+    const nextMine = myPickNumbers.find(n => n >= currentPick);
+    const picksUntil = (nextMine || 0) - currentPick;
+    pickStatusEl.textContent = !nextMine ? 'Draft complete' : `Pick #${currentPick} · ${picksUntil} until yours`;
     pickStatusEl.style.color = 'var(--text-muted)';
   }
 
-  // --- Available players (not yet drafted) ---
-  const draftedIds = new Set((STATE.picks || []).map(p => p.player_id).filter(Boolean));
-  const draftedNames = new Set((STATE.picks || []).map(p => {
-    const m = p.metadata;
-    return normalizePlayerName(m?.player_name || `${m?.first_name || ''} ${m?.last_name || ''}`.trim());
-  }));
-
+  // ── Available players ──────────────────────────────────────────────────
   const available = (STATE.mergedPlayers || []).filter(p => {
+    if (isMock) {
+      return !MOCK.draftedIds.has(p.player_id || p.name) && !MOCK.draftedIds.has(p.name) && p.adp < 250;
+    }
+    const draftedIds = new Set((STATE.picks || []).map(x => x.player_id).filter(Boolean));
+    const draftedNames = new Set((STATE.picks || []).map(x => {
+      const m = x.metadata || {};
+      return normalizePlayerName(m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim());
+    }));
     if (p.sleeper_id && draftedIds.has(p.sleeper_id)) return false;
     if (draftedNames.has(normalizePlayerName(p.name))) return false;
     return p.adp < 250;
-  }).sort((a, b) => a.adp - b.adp).slice(0, 30); // top 30 by ADP
+  }).sort((a, b) => a.adp - b.adp).slice(0, 40);
 
-  // Score and sort by recommendation score (VORP + ADP + positional need)
-  const scored = available.map(p => {
-    const vorp = lookupVorp(p.name, p.position) || 0;
-    const adpScore = Math.max(0, 200 - p.adp);
-    const posNeed = getPositionNeedScore(p.position);
-    return { ...p, score: vorp * 0.4 + adpScore * 0.3 + posNeed * 0.3 };
-  }).sort((a, b) => b.score - a.score);
+  const scored = available.map(p => ({
+    ...p,
+    score: scoreRecommendation(p, myPositions, myPickNumbers, currentPick)
+  })).sort((a, b) => b.score - a.score);
 
-  // --- Top recommendation card ---
+  // ── Top recommendation card ────────────────────────────────────────────
   const top = scored[0];
   if (top) {
     document.getElementById('cv-rec-name').textContent = top.name;
@@ -5484,16 +5973,15 @@ function renderCompanionView() {
     const adpStr = top.adp < 999 ? `ADP ${top.adp.toFixed(0)}` : '';
     const vorpStr = vorp ? ` · VORP ${vorp.toFixed(0)}` : '';
     document.getElementById('cv-rec-meta').textContent = `${top.position}${top.team ? ' · ' + top.team : ''} · ${adpStr}${vorpStr}`;
-    document.getElementById('cv-rec-reason').textContent = buildCompanionReason(top);
+    document.getElementById('cv-rec-reason').textContent = buildCompanionReason(top, myRosterPlayers, currentPick);
   } else {
     document.getElementById('cv-rec-name').textContent = '—';
     document.getElementById('cv-rec-meta').textContent = 'No data';
     document.getElementById('cv-rec-reason').textContent = '';
   }
 
-  // --- Best available list (top 8, excluding #1 rec) ---
-  const listPlayers = scored.slice(1, 9);
-  document.getElementById('cv-available').innerHTML = listPlayers.map(p => {
+  // ── Best available list (top 8 after #1) ──────────────────────────────
+  document.getElementById('cv-available').innerHTML = scored.slice(1, 9).map(p => {
     const col = posColors[p.position] || '#888';
     return `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.5rem;background:var(--bg-card);border-radius:6px;border:1px solid var(--border);">
       <span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>
@@ -5503,56 +5991,39 @@ function renderCompanionView() {
     </div>`;
   }).join('');
 
-  // --- My roster ---
-  const myPickNos = new Set(STATE.myPickNumbers || []);
-  const myPicks = (STATE.picks || []).filter(p => myPickNos.has(p.pick_no));
-  document.getElementById('cv-roster').innerHTML = myPicks.length === 0
+  // ── My roster chips ───────────────────────────────────────────────────
+  document.getElementById('cv-roster').innerHTML = myRosterPlayers.length === 0
     ? `<span style="font-size:0.72rem;color:var(--text-muted);">No picks yet</span>`
-    : myPicks.map(p => {
-        const name = p.metadata?.player_name || `${p.metadata?.first_name || ''} ${p.metadata?.last_name || ''}`.trim();
-        const pos = (p.metadata?.position || '').replace('DEF', 'DST');
-        const col = posColors[pos] || '#888';
+    : myRosterPlayers.map(p => {
+        const col = posColors[p.position] || '#888';
         return `<div style="display:flex;align-items:center;gap:0.3rem;padding:0.2rem 0.4rem;background:var(--bg-card);border-radius:5px;border:1px solid var(--border);">
           <span style="width:5px;height:5px;border-radius:50%;background:${col};"></span>
-          <span style="font-size:0.68rem;font-weight:600;white-space:nowrap;">${escHtml(name.split(' ').pop())}</span>
-          <span style="font-size:0.6rem;color:${col};font-weight:700;">${pos}</span>
+          <span style="font-size:0.68rem;font-weight:600;white-space:nowrap;">${escHtml(p.name.split(' ').pop())}</span>
+          <span style="font-size:0.6rem;color:${col};font-weight:700;">${p.position}</span>
         </div>`;
       }).join('');
 }
 
-function buildCompanionReason(player) {
+function buildCompanionReason(player, myRosterPlayers, currentPick) {
   const pos = player.position;
-  const myPicks = (STATE.picks || []).filter(p => (STATE.myPickNumbers || []).includes(p.pick_no));
-  const myPositions = myPicks.map(p => (p.metadata?.position || '').replace('DEF', 'DST'));
-  const rbCount = myPositions.filter(p => p === 'RB').length;
-  const wrCount = myPositions.filter(p => p === 'WR').length;
-  const hasQB = myPositions.includes('QB');
-  const hasTE = myPositions.includes('TE');
+  const positions = (myRosterPlayers || []).map(p => p.position);
+  const rbCount = positions.filter(p => p === 'RB').length;
+  const wrCount = positions.filter(p => p === 'WR').length;
+  const hasQB = positions.includes('QB');
+  const hasTE = positions.includes('TE');
   const vorp = lookupVorp(player.name, pos);
+  const isSuperflex = STATE.isSuperflex || (MOCK.active && MOCK_CFG.superflex);
+  const diff = currentPick - (player.adp || currentPick);
 
-  if (pos === 'TE' && !hasTE && player.adp < 60) return 'Elite TE — scarce position, grab early.';
-  if (pos === 'QB' && !hasQB && STATE.isSuperflex) return 'SuperFlex league — QB value is elevated.';
+  if (pos === 'TE' && !hasTE && player.adp < 50) return 'Elite TE — top-tier at a scarce position.';
+  if (pos === 'QB' && !hasQB && isSuperflex) return '2QB league — QB is critical, grab one now.';
+  if (pos === 'QB' && isSuperflex && positions.filter(p => p === 'QB').length === 1) return 'SuperFlex — you start two QBs; lock in your QB2.';
   if (pos === 'RB' && rbCount < 2) return `Only ${rbCount} RB so far — backfield depth is critical.`;
   if (pos === 'WR' && wrCount < 2) return 'Need WR depth — strong option here.';
-  if (vorp && vorp > 30) return `High VORP (${vorp.toFixed(0)}) — projects well above replacement.`;
-  if (player.adp < (STATE.picks?.length || 0) + 1 - 3) return 'Fell past ADP — good value window.';
-  return 'Best available at this position.';
-}
-
-function getPositionNeedScore(pos) {
-  const myPickNos = new Set(STATE.myPickNumbers || []);
-  const myPicks = (STATE.picks || []).filter(p => myPickNos.has(p.pick_no));
-  const myPositions = myPicks.map(p => (p.metadata?.position || '').replace('DEF', 'DST'));
-  const counts = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0 };
-  myPositions.forEach(p => { if (counts[p] !== undefined) counts[p]++; });
-
-  if (pos === 'RB' && counts.RB < 2) return 80;
-  if (pos === 'WR' && counts.WR < 2) return 75;
-  if (pos === 'TE' && counts.TE < 1) return 70;
-  if (pos === 'QB' && counts.QB < 1) return (STATE.isSuperflex ? 85 : 60);
-  if (pos === 'RB' && counts.RB < 4) return 50;
-  if (pos === 'WR' && counts.WR < 4) return 50;
-  return 30;
+  if (vorp && vorp > 40) return `High VORP (${vorp.toFixed(0)}) — elite projection above replacement.`;
+  if (diff >= 5) return `Fell ${diff} spots past ADP — clear value window.`;
+  if (pos === 'TE' && !hasTE) return 'TE tiers drop off fast — secure yours now.';
+  return 'Best available option by composite score.';
 }
 </script>
 
