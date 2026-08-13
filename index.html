@@ -164,6 +164,7 @@
   body.companion-mode #setup-screen { min-height: 100vh; }
   /* Trim header padding so the app fits a narrow popup */
   body.companion-mode .app-header { padding: 0.4rem 0.75rem; }
+  body.companion-mode #ai-fab { display: none !important; }
 
   label {
     display: block;
@@ -4975,6 +4976,11 @@ function processNewPicks(picks, silent = false) {
   updatePickCounter();
   updateMyList();
 
+  // Companion mode has its own compact render path
+  if (document.getElementById('companion-view')?.style.display !== 'none') {
+    renderCompanionView();
+  }
+
   // All picks in? Draft is done even if the status endpoint lags.
   if (!silent && STATE.lastPickCount >= STATE.totalTeams * STATE.totalRounds) {
     handleDraftComplete();
@@ -5290,13 +5296,13 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
     if (picks) processNewPicks(picks, true);
   } catch(e) {}
 
-  // Switch to app screen
+  // Switch to compact companion view (not the full app-screen)
   document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'flex';
-  document.getElementById('ai-fab').style.display = 'flex';
+  document.getElementById('ai-fab').style.display = 'none'; // hide FAB in companion
+  STATE.isMockMode = false;
 
-  initMainView();
   startDraftSync(); // real sync, not mock
+  renderCompanionView();
 }
 
 // Restore saved username
@@ -5422,6 +5428,164 @@ function shareDraftRecap(grade, avgValue, leagueName, picks) {
     navigator.clipboard.writeText(text).then(() => showToast('Draft summary copied to clipboard!')).catch(() => showToast('Share: ' + text));
   }
 }
+
+// ===== Companion View (compact popup layout) =====
+function renderCompanionView() {
+  // Switch to companion view instead of app-screen
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('companion-view').style.display = 'flex';
+
+  const posColors = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)' };
+
+  // --- Pick status header ---
+  const currentOverallPick = (STATE.picks?.length || 0) + 1;
+  const isMyTurn = (STATE.myPickNumbers || []).includes(currentOverallPick);
+
+  const pickStatusEl = document.getElementById('cv-pick-status');
+  const slotEl = document.getElementById('cv-slot-badge');
+  slotEl.textContent = `Slot ${STATE.mySlot}`;
+
+  if (isMyTurn) {
+    pickStatusEl.textContent = `⚡ Pick #${currentOverallPick} — YOUR TURN`;
+    pickStatusEl.style.color = 'var(--accent)';
+  } else {
+    const nextMine = (STATE.myPickNumbers || []).find(n => n >= currentOverallPick);
+    const picksUntil = (nextMine || 0) - currentOverallPick;
+    pickStatusEl.textContent = !nextMine ? 'Draft complete' : `Pick #${currentOverallPick} · ${picksUntil} until yours`;
+    pickStatusEl.style.color = 'var(--text-muted)';
+  }
+
+  // --- Available players (not yet drafted) ---
+  const draftedIds = new Set((STATE.picks || []).map(p => p.player_id).filter(Boolean));
+  const draftedNames = new Set((STATE.picks || []).map(p => {
+    const m = p.metadata;
+    return normalizePlayerName(m?.player_name || `${m?.first_name || ''} ${m?.last_name || ''}`.trim());
+  }));
+
+  const available = (STATE.mergedPlayers || []).filter(p => {
+    if (p.sleeper_id && draftedIds.has(p.sleeper_id)) return false;
+    if (draftedNames.has(normalizePlayerName(p.name))) return false;
+    return p.adp < 250;
+  }).sort((a, b) => a.adp - b.adp).slice(0, 30); // top 30 by ADP
+
+  // Score and sort by recommendation score (VORP + ADP + positional need)
+  const scored = available.map(p => {
+    const vorp = lookupVorp(p.name, p.position) || 0;
+    const adpScore = Math.max(0, 200 - p.adp);
+    const posNeed = getPositionNeedScore(p.position);
+    return { ...p, score: vorp * 0.4 + adpScore * 0.3 + posNeed * 0.3 };
+  }).sort((a, b) => b.score - a.score);
+
+  // --- Top recommendation card ---
+  const top = scored[0];
+  if (top) {
+    document.getElementById('cv-rec-name').textContent = top.name;
+    const vorp = lookupVorp(top.name, top.position);
+    const adpStr = top.adp < 999 ? `ADP ${top.adp.toFixed(0)}` : '';
+    const vorpStr = vorp ? ` · VORP ${vorp.toFixed(0)}` : '';
+    document.getElementById('cv-rec-meta').textContent = `${top.position}${top.team ? ' · ' + top.team : ''} · ${adpStr}${vorpStr}`;
+    document.getElementById('cv-rec-reason').textContent = buildCompanionReason(top);
+  } else {
+    document.getElementById('cv-rec-name').textContent = '—';
+    document.getElementById('cv-rec-meta').textContent = 'No data';
+    document.getElementById('cv-rec-reason').textContent = '';
+  }
+
+  // --- Best available list (top 8, excluding #1 rec) ---
+  const listPlayers = scored.slice(1, 9);
+  document.getElementById('cv-available').innerHTML = listPlayers.map(p => {
+    const col = posColors[p.position] || '#888';
+    return `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.5rem;background:var(--bg-card);border-radius:6px;border:1px solid var(--border);">
+      <span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>
+      <span style="flex:1;font-size:0.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
+      <span style="font-size:0.65rem;color:${col};font-weight:700;flex-shrink:0;">${p.position}</span>
+      ${p.adp < 999 ? `<span style="font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">${p.adp.toFixed(0)}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // --- My roster ---
+  const myPickNos = new Set(STATE.myPickNumbers || []);
+  const myPicks = (STATE.picks || []).filter(p => myPickNos.has(p.pick_no));
+  document.getElementById('cv-roster').innerHTML = myPicks.length === 0
+    ? `<span style="font-size:0.72rem;color:var(--text-muted);">No picks yet</span>`
+    : myPicks.map(p => {
+        const name = p.metadata?.player_name || `${p.metadata?.first_name || ''} ${p.metadata?.last_name || ''}`.trim();
+        const pos = (p.metadata?.position || '').replace('DEF', 'DST');
+        const col = posColors[pos] || '#888';
+        return `<div style="display:flex;align-items:center;gap:0.3rem;padding:0.2rem 0.4rem;background:var(--bg-card);border-radius:5px;border:1px solid var(--border);">
+          <span style="width:5px;height:5px;border-radius:50%;background:${col};"></span>
+          <span style="font-size:0.68rem;font-weight:600;white-space:nowrap;">${escHtml(name.split(' ').pop())}</span>
+          <span style="font-size:0.6rem;color:${col};font-weight:700;">${pos}</span>
+        </div>`;
+      }).join('');
+}
+
+function buildCompanionReason(player) {
+  const pos = player.position;
+  const myPicks = (STATE.picks || []).filter(p => (STATE.myPickNumbers || []).includes(p.pick_no));
+  const myPositions = myPicks.map(p => (p.metadata?.position || '').replace('DEF', 'DST'));
+  const rbCount = myPositions.filter(p => p === 'RB').length;
+  const wrCount = myPositions.filter(p => p === 'WR').length;
+  const hasQB = myPositions.includes('QB');
+  const hasTE = myPositions.includes('TE');
+  const vorp = lookupVorp(player.name, pos);
+
+  if (pos === 'TE' && !hasTE && player.adp < 60) return 'Elite TE — scarce position, grab early.';
+  if (pos === 'QB' && !hasQB && STATE.isSuperflex) return 'SuperFlex league — QB value is elevated.';
+  if (pos === 'RB' && rbCount < 2) return `Only ${rbCount} RB so far — backfield depth is critical.`;
+  if (pos === 'WR' && wrCount < 2) return 'Need WR depth — strong option here.';
+  if (vorp && vorp > 30) return `High VORP (${vorp.toFixed(0)}) — projects well above replacement.`;
+  if (player.adp < (STATE.picks?.length || 0) + 1 - 3) return 'Fell past ADP — good value window.';
+  return 'Best available at this position.';
+}
+
+function getPositionNeedScore(pos) {
+  const myPickNos = new Set(STATE.myPickNumbers || []);
+  const myPicks = (STATE.picks || []).filter(p => myPickNos.has(p.pick_no));
+  const myPositions = myPicks.map(p => (p.metadata?.position || '').replace('DEF', 'DST'));
+  const counts = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0 };
+  myPositions.forEach(p => { if (counts[p] !== undefined) counts[p]++; });
+
+  if (pos === 'RB' && counts.RB < 2) return 80;
+  if (pos === 'WR' && counts.WR < 2) return 75;
+  if (pos === 'TE' && counts.TE < 1) return 70;
+  if (pos === 'QB' && counts.QB < 1) return (STATE.isSuperflex ? 85 : 60);
+  if (pos === 'RB' && counts.RB < 4) return 50;
+  if (pos === 'WR' && counts.WR < 4) return 50;
+  return 30;
+}
 </script>
+
+<div id="companion-view" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);font-size:13px;">
+
+  <!-- Header bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-card);">
+    <span style="font-size:0.8rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RoundRoom</span>
+    <span id="cv-pick-status" style="font-size:0.7rem;font-weight:600;color:var(--text-muted);">Waiting for draft...</span>
+    <span id="cv-slot-badge" style="font-size:0.65rem;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.35rem;font-weight:600;"></span>
+  </div>
+
+  <!-- Scrollable body -->
+  <div style="flex:1;overflow-y:auto;padding:0.75rem;">
+
+    <!-- Top recommendation card -->
+    <div id="cv-rec-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.75rem;margin-bottom:0.75rem;">
+      <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Top Pick</div>
+      <div id="cv-rec-name" style="font-size:1rem;font-weight:800;margin-bottom:0.15rem;">—</div>
+      <div id="cv-rec-meta" style="font-size:0.72rem;color:var(--text-muted);">Loading...</div>
+      <div id="cv-rec-reason" style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.35rem;line-height:1.4;"></div>
+    </div>
+
+    <!-- Available players list -->
+    <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Best Available</div>
+    <div id="cv-available" style="display:flex;flex-direction:column;gap:3px;margin-bottom:0.75rem;"></div>
+
+    <!-- My roster -->
+    <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">My Roster</div>
+    <div id="cv-roster" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+
+  </div>
+
+</div>
 </body>
 </html>
