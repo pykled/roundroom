@@ -204,6 +204,24 @@
   .btn-primary:active { transform: scale(0.97); }
   .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
+  .mock-cfg-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.1s;
+  }
+  .mock-cfg-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+  }
+
   .btn-sm {
     padding: 0.4rem 0.9rem;
     font-size: 0.8rem;
@@ -1516,6 +1534,16 @@
         Start Draft Assistant →
       </button>
     </div>
+
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0 1rem;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">or practice without an account</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <button id="mock-solo-btn" onclick="openMockConfig()" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+      ⚡ Start a Mock Draft
+      <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">No account needed</span>
+    </button>
   </div>
 </div>
 
@@ -1574,6 +1602,7 @@
   <!-- Mock draft banner -->
   <div id="mock-banner" class="mock-banner hidden">
     ⚡ MOCK DRAFT IN PROGRESS — <span id="mock-banner-round">Round 1</span>
+    <button onclick="MOCK.fastForward = !MOCK.fastForward; this.textContent = MOCK.fastForward ? '⏩ FF On' : '⏩ Fast-forward'; this.style.opacity = MOCK.fastForward ? '1' : '0.6';" style="padding:0.25rem 0.6rem;font-size:0.7rem;border:1px solid var(--border);background:none;color:var(--text-muted);border-radius:5px;cursor:pointer;font-family:inherit;opacity:0.6;">⏩ Fast-forward</button>
     <button class="btn btn-ghost btn-sm" onclick="toggleDraftBoard()" style="font-size:0.7rem;">View Board</button>
     <button class="btn btn-ghost btn-sm" onclick="resetMockDraft()" style="font-size:0.7rem;">Reset</button>
   </div>
@@ -1738,6 +1767,69 @@
   <div class="draft-board-table" id="draft-board-table"></div>
 </div>
 
+<!-- Standalone Mock Config Modal -->
+<div id="mock-config-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:1.5rem;">
+  <div class="modal" style="max-width:360px;width:100%;position:relative;">
+    <button onclick="closeMockConfig()" style="position:absolute;top:0.75rem;right:0.75rem;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;">✕</button>
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.2rem;">Mock Draft Setup</h2>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1.25rem;">Customize your practice draft</p>
+
+    <!-- Teams -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Teams</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button class="mock-cfg-btn" data-group="teams" data-val="8" onclick="setMockCfg('teams',8,this)">8</button>
+        <button class="mock-cfg-btn" data-group="teams" data-val="10" onclick="setMockCfg('teams',10,this)">10</button>
+        <button class="mock-cfg-btn active" data-group="teams" data-val="12" onclick="setMockCfg('teams',12,this)">12</button>
+        <button class="mock-cfg-btn" data-group="teams" data-val="14" onclick="setMockCfg('teams',14,this)">14</button>
+      </div>
+    </div>
+
+    <!-- Your Slot -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Your Draft Slot</div>
+      <div id="mock-cfg-slots" style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+        <button class="mock-cfg-btn active" data-group="slot" data-val="0" onclick="setMockCfg('slot',0,this)">Random</button>
+      </div>
+    </div>
+
+    <!-- Rounds -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Rounds</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button class="mock-cfg-btn" data-group="rounds" data-val="14" onclick="setMockCfg('rounds',14,this)">14</button>
+        <button class="mock-cfg-btn active" data-group="rounds" data-val="15" onclick="setMockCfg('rounds',15,this)">15</button>
+        <button class="mock-cfg-btn" data-group="rounds" data-val="16" onclick="setMockCfg('rounds',16,this)">16</button>
+      </div>
+    </div>
+
+    <!-- Scoring -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Scoring</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button class="mock-cfg-btn active" data-group="scoring" data-val="ppr" onclick="setMockCfg('scoring','ppr',this)">PPR</button>
+        <button class="mock-cfg-btn" data-group="scoring" data-val="half_ppr" onclick="setMockCfg('scoring','half_ppr',this)">Half</button>
+        <button class="mock-cfg-btn" data-group="scoring" data-val="std" onclick="setMockCfg('scoring','std',this)">Standard</button>
+      </div>
+    </div>
+
+    <!-- SuperFlex toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding:0.6rem 0.75rem;background:var(--bg-hover);border-radius:8px;">
+      <div>
+        <div style="font-size:0.82rem;font-weight:600;">SuperFlex</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);">QB+2 flex, QB ADP weight</div>
+      </div>
+      <button id="mock-cfg-sf-toggle" onclick="toggleMockSF()" style="width:42px;height:24px;border-radius:12px;background:var(--border);border:none;cursor:pointer;position:relative;transition:background 0.2s;">
+        <span id="mock-cfg-sf-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s,background 0.2s;"></span>
+      </button>
+    </div>
+
+    <button id="mock-cfg-start" onclick="launchStandaloneMock()" style="width:100%;padding:0.75rem;border-radius:10px;border:none;background:var(--accent);color:#000;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">
+      Start Draft
+    </button>
+  </div>
+</div>
+
 <!-- Toast container -->
 <div id="toast-container"></div>
 
@@ -1788,6 +1880,7 @@ const STATE = {
   autoJoined: false,
   isSuperflex: false,
   scoringType: 'ppr',
+  isMockMode: false,   // standalone mock draft (no Sleeper sync)
   vorpData: {},        // live VORP from /api/vorp, keyed by lowercase name
   // ===== Draft Review Room state =====
   reviewDraft: null,
@@ -1808,7 +1901,46 @@ const MOCK = {
   totalPicks: 168, // 14 rounds * 12 teams
   timer: null,
   waitingForUser: false,
+  fastForward: false,
 };
+
+// ===== STANDALONE MOCK CONFIG =====
+const MOCK_CFG = { teams: 12, slot: 0, rounds: 15, scoring: 'ppr', superflex: false };
+
+function openMockConfig() {
+  rebuildSlotButtons();
+  document.getElementById('mock-config-overlay').style.display = 'flex';
+}
+
+function closeMockConfig() {
+  document.getElementById('mock-config-overlay').style.display = 'none';
+}
+
+function setMockCfg(group, val, btn) {
+  MOCK_CFG[group] = val;
+  document.querySelectorAll(`.mock-cfg-btn[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (group === 'teams') rebuildSlotButtons();
+}
+
+function toggleMockSF() {
+  MOCK_CFG.superflex = !MOCK_CFG.superflex;
+  const tog = document.getElementById('mock-cfg-sf-toggle');
+  const knob = document.getElementById('mock-cfg-sf-knob');
+  tog.style.background = MOCK_CFG.superflex ? 'var(--accent)' : 'var(--border)';
+  knob.style.left = MOCK_CFG.superflex ? '21px' : '3px';
+  // On accent (white) track a white knob is invisible — flip knob dark when on
+  knob.style.background = MOCK_CFG.superflex ? '#000' : '#fff';
+}
+
+function rebuildSlotButtons() {
+  const container = document.getElementById('mock-cfg-slots');
+  if (MOCK_CFG.slot > MOCK_CFG.teams) MOCK_CFG.slot = 0; // reset if slot no longer valid for team count
+  container.innerHTML = `<button class="mock-cfg-btn ${MOCK_CFG.slot === 0 ? 'active' : ''}" data-group="slot" data-val="0" onclick="setMockCfg('slot',0,this)">Random</button>`;
+  for (let i = 1; i <= MOCK_CFG.teams; i++) {
+    container.innerHTML += `<button class="mock-cfg-btn ${MOCK_CFG.slot === i ? 'active' : ''}" data-group="slot" data-val="${i}" onclick="setMockCfg('slot',${i},this)">${i}</button>`;
+  }
+}
 
 function getMockPickNumbers(slot, teams, rounds) {
   const picks = [];
@@ -1837,7 +1969,7 @@ function toggleDraftBoard() {
 
 function renderDraftBoard() {
   const teams = STATE.totalTeams || 12;
-  const rounds = 14;
+  const rounds = STATE.totalRounds || 15;
   const mySlot = STATE.mySlot || 5;
 
   // board[team][round] = player
@@ -1875,6 +2007,8 @@ function renderDraftBoard() {
   }
 
   document.getElementById('draft-board-table').innerHTML = html;
+  const titleEl = document.querySelector('.draft-board-title');
+  if (titleEl) titleEl.textContent = `Draft Board — All ${teams} Teams`;
 }
 
 function openMockModal() {
@@ -1890,6 +2024,124 @@ function closeMockModalOnOverlay(e) {
   if (e.target === document.getElementById('mock-modal-overlay')) closeMockModal();
 }
 
+function _ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+async function launchStandaloneMock() {
+  const btn = document.getElementById('mock-cfg-start');
+  btn.disabled = true;
+  btn.textContent = 'Loading data...';
+
+  // Determine slot
+  const slot = MOCK_CFG.slot === 0
+    ? Math.floor(Math.random() * MOCK_CFG.teams) + 1
+    : MOCK_CFG.slot;
+
+  // Apply config to STATE
+  STATE.selectedLeague = { name: 'Mock Draft' }; // stand-in so initMainView has a league name
+  STATE.draftId = null; // no live draft — keeps startDraftSync a no-op if ever reached
+  STATE.totalTeams = MOCK_CFG.teams;
+  STATE.totalRounds = MOCK_CFG.rounds;
+  STATE.mySlot = slot;
+  STATE.isSuperflex = MOCK_CFG.superflex;
+  STATE.scoringType = MOCK_CFG.scoring;
+  STATE.myPickNumbers = calcMyPicks(slot, MOCK_CFG.teams, MOCK_CFG.rounds);
+  STATE.isMockMode = true; // flag to suppress sync
+  MOCK.fastForward = false;
+
+  try {
+    // Load ADP data (same fallback chain as startDraftAssistant)
+    let adpData = null;
+    try {
+      const resp = await fetch('/api/composite-adp');
+      if (resp.ok) {
+        const json = await resp.json();
+        adpData = {
+          players: (json.players || []).map(p => ({
+            name: p.name, position: p.position, team: p.team || '',
+            adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
+            stdev: p.stdev || 2.0,
+            high: p.high || Math.max(1, Math.round((p.composite_adp || 999) - 3)),
+            low: p.low || Math.round((p.composite_adp || 999) + 3),
+            times_drafted: p.times_drafted || 0,
+            player_id: p.player_id || null,
+            bye: p.bye || null,
+          }))
+        };
+      }
+    } catch(e) {}
+
+    if (!adpData?.players?.length) {
+      try {
+        const resp = await fetch('/api/adp');
+        if (resp.ok) adpData = await resp.json();
+      } catch(e) {}
+    }
+
+    if (!adpData?.players?.length) {
+      btn.disabled = false;
+      btn.textContent = 'Start Draft';
+      showToast('⚠ Failed to load player data. Please try again.', false);
+      return;
+    }
+
+    // Load VORP (non-fatal)
+    try {
+      const vorpResp = await fetch('/api/vorp');
+      if (vorpResp.ok) {
+        const vorpData = await vorpResp.json();
+        const vorpMap = {};
+        (vorpData.players || []).forEach(p => {
+          if (p && p.name) vorpMap[p.name.toLowerCase()] = { vorp_std: p.vorp_std, vorp_sf: p.vorp_sf };
+        });
+        (adpData.players || []).forEach(p => {
+          const v = vorpMap[(p.name || '').toLowerCase()];
+          if (v) { p.vorp_std = v.vorp_std; p.vorp_sf = v.vorp_sf; }
+        });
+        STATE.vorpData = vorpMap;
+      }
+    } catch(e) {}
+
+    STATE.adpPlayers = (adpData.players || []).filter(p =>
+      p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+    STATE.mergedPlayers = STATE.adpPlayers.map(p => ({ ...p, sleeper_id: p.player_id }));
+
+    // Sync header slot badge + superflex UI
+    const badge = document.getElementById('slot-badge');
+    if (badge) badge.textContent = slot;
+    const sfBadge = document.getElementById('sf-badge');
+    const sfBtn = document.getElementById('btn-superflex');
+    if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? '' : 'none';
+    if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
+
+    // Close config overlay, show app screen
+    closeMockConfig();
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
+    document.getElementById('ai-fab').style.display = 'flex';
+
+    initMainView();
+    if (STATE.isSuperflex) setStrategy('superflex');
+    // NO startDraftSync() call — this is mock mode
+    setLiveStatus(false, 'Mock');
+
+    // Show slot toast
+    showToast(`You have the ${_ordinal(slot)} pick`, true);
+
+    // Start mock draft
+    startMockDraft();
+
+    btn.disabled = false;
+    btn.textContent = 'Start Draft';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Start Draft';
+    showToast('⚠ Something went wrong. Please try again.', false);
+  }
+}
+
 function startMockDraft() {
   closeMockModal();
 
@@ -1897,8 +2149,8 @@ function startMockDraft() {
   MOCK.picks = [];
   MOCK.draftedIds = new Set();
   MOCK.currentPick = 0;
-  MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot || 5, STATE.totalTeams || 12, 14);
-  MOCK.totalPicks = (STATE.totalTeams || 12) * 14;
+  MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot || 5, STATE.totalTeams || 12, STATE.totalRounds || 15);
+  MOCK.totalPicks = (STATE.totalTeams || 12) * (STATE.totalRounds || 15);
   MOCK.waitingForUser = false;
 
   // Assign each team a draft strategy + track their roster
@@ -1987,6 +2239,14 @@ function weightedSampleMock(players, weights) {
   return players[players.length - 1];
 }
 
+function getMockDelay(currentPick, nextUserPick) {
+  if (MOCK.fastForward) return 60;
+  const picksUntilMine = nextUserPick - currentPick;
+  if (picksUntilMine <= 1) return 400 + Math.random() * 600; // anticipation before user pick
+  if (picksUntilMine <= 3) return 300 + Math.random() * 400;
+  return 150 + Math.random() * 200; // fast when user isn't picking soon
+}
+
 function advanceMockDraft() {
   if (!MOCK.active) return;
 
@@ -2034,7 +2294,7 @@ function advanceMockDraft() {
       renderBoard();
       if (document.getElementById('draft-board-overlay').style.display !== 'none') renderDraftBoard();
       advanceMockDraft();
-    }, 800);
+    }, getMockDelay(MOCK.currentPick, MOCK.myPickNumbers.find(n => n > MOCK.currentPick) || 999));
   }
 }
 
@@ -2070,8 +2330,11 @@ function endMockDraft() {
     if (filled[pos]) filled[pos].push(p);
   });
 
-  const avgAdp = myPicks.slice(0, 9).reduce((s, p) => s + (p.adp || 99), 0) / Math.min(9, myPicks.length);
-  const expectedAvg = 45; // rough expected for slot 5
+  const avgAdp = myPicks.slice(0, 9).reduce((s, p) => s + (p.adp || 99), 0) / Math.max(1, Math.min(9, myPicks.length));
+  // Expected baseline = average of your own first 9 snake pick numbers (adapts to slot + team count).
+  // If you draft to ADP perfectly, your avg starter ADP ≈ your avg pick number.
+  const nStart = Math.max(1, Math.min(9, STATE.myPickNumbers.length));
+  const expectedAvg = STATE.myPickNumbers.slice(0, nStart).reduce((s, n) => s + n, 0) / nStart;
 
   let grade, gradeColor;
   if (avgAdp < expectedAvg * 0.85) { grade = 'A'; gradeColor = '#10b981'; }
@@ -2089,7 +2352,7 @@ function endMockDraft() {
   content.innerHTML = `
     <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:0.25rem;">Mock Draft Complete</h2>
     <div class="mock-grade" style="color:${gradeColor};">${grade}</div>
-    <p style="text-align:center;color:var(--text-secondary);font-size:0.82rem;margin-bottom:1.25rem;">Avg starter ADP: ${avgAdp.toFixed(1)} · Expected for slot 5: ~${expectedAvg}</p>
+    <p style="text-align:center;color:var(--text-secondary);font-size:0.82rem;margin-bottom:1.25rem;">Avg starter ADP: ${avgAdp.toFixed(1)} · Expected for slot ${STATE.mySlot}: ~${expectedAvg.toFixed(0)}</p>
 
     <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Your Roster</div>
     ${myPicks.map(p => `
@@ -2474,7 +2737,7 @@ function selectSlot(slot) {
   // If already in draft, recalculate pick numbers and re-render
   if (document.getElementById('app-screen') && document.getElementById('app-screen').style.display !== 'none') {
     STATE.myPickNumbers = calcMyPicks(STATE.mySlot, STATE.totalTeams, STATE.totalRounds);
-    MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot, STATE.totalTeams || 12, 14);
+    MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot, STATE.totalTeams || 12, STATE.totalRounds || 15);
     // Reset roster slots — they belong to the old slot and must be rebuilt for the new one
     STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
     // Re-assign picks that belong to the new slot from already-loaded STATE.picks
@@ -3830,6 +4093,23 @@ function stopDraftSync() {
 
 function goHome() {
   stopDraftSync();
+  // Tear down any in-progress standalone mock draft
+  if (MOCK.timer) clearTimeout(MOCK.timer);
+  MOCK.active = false;
+  MOCK.fastForward = false;
+  MOCK.picks = [];
+  MOCK.draftedIds = new Set();
+  MOCK.currentPick = 0;
+  MOCK.waitingForUser = false;
+  STATE.isMockMode = false;
+  const mockBanner = document.getElementById('mock-banner');
+  if (mockBanner) mockBanner.classList.add('hidden');
+  const mockResults = document.getElementById('mock-results-overlay');
+  if (mockResults) mockResults.style.display = 'none';
+  const draftBoardOv = document.getElementById('draft-board-overlay');
+  if (draftBoardOv) draftBoardOv.style.display = 'none';
+  const yourPickBanner = document.getElementById('your-pick-banner');
+  if (yourPickBanner) yourPickBanner.style.display = 'none';
   STATE.selectedLeague = null;
   STATE.selectedDraft = null;
   STATE.draftId = null;
@@ -4826,6 +5106,13 @@ function escAttr(str) {
 try {
   const saved = localStorage.getItem('rr_username');
   if (saved) document.getElementById('username-input').value = saved;
+} catch(e) {}
+
+// URL shortcut: ?mock=1 opens the standalone mock config immediately
+try {
+  if (new URLSearchParams(window.location.search).get('mock') === '1') {
+    openMockConfig();
+  }
 } catch(e) {}
 
 // Allow pressing Enter in username field
