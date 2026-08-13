@@ -149,6 +149,22 @@
   .slot-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
   .slot-btn.active { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; }
 
+  /* ===== Loading spinner (used by companion mode) ===== */
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Companion mode (bookmarklet popup, ~380x660) ===== */
+  body.companion-mode { font-size: 12px; }
+  body.companion-mode #setup-screen { min-height: 100vh; }
+  /* Trim header padding so the app fits a narrow popup */
+  body.companion-mode .app-header { padding: 0.4rem 0.75rem; }
+
   label {
     display: block;
     font-size: 0.8rem;
@@ -1544,6 +1560,18 @@
       ⚡ Start a Mock Draft
       <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">No account needed</span>
     </button>
+
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Use on Sleeper.com</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;">Drag this button to your bookmarks bar. Then click it on any Sleeper draft page to open RoundRoom alongside your draft.</p>
+      <a id="rr-bookmarklet" href="#"
+        style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 0.9rem;border-radius:8px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;cursor:grab;"
+        onclick="return false;"
+        title="Drag to bookmarks bar">
+        ⚡ RoundRoom Companion
+      </a>
+      <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.5rem;">Drag the button above to your browser's bookmarks bar, then click it when you're on a Sleeper draft page.</p>
+    </div>
   </div>
 </div>
 
@@ -5102,6 +5130,175 @@ function escAttr(str) {
   return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+// ===== COMPANION MODE (bookmarklet popup) =====
+function showCompanionSetup() {
+  document.getElementById('setup-screen').innerHTML = `
+    <div style="padding:1.25rem;max-width:340px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+        <span style="font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RoundRoom</span>
+        <span style="font-size:0.62rem;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.3rem;font-weight:600;">COMPANION</span>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">Enter your Sleeper draft ID or full draft URL to connect.</p>
+      <input id="companion-draft-input" type="text" placeholder="Draft ID or sleeper.com/draft/… URL"
+        style="width:100%;padding:0.6rem 0.75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:0.85rem;font-family:inherit;margin-bottom:0.75rem;box-sizing:border-box;">
+      <button onclick="connectCompanionFromInput()" style="width:100%;padding:0.65rem;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
+        Connect to Draft
+      </button>
+      <div id="companion-error" style="display:none;color:#ef4444;font-size:0.78rem;margin-top:0.6rem;"></div>
+    </div>
+  `;
+  document.getElementById('setup-screen').style.display = 'flex';
+  const inp = document.getElementById('companion-draft-input');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') connectCompanionFromInput(); });
+}
+
+function companionError(msg) {
+  const el = document.getElementById('companion-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+  else { showError(msg); }
+}
+
+function connectCompanionFromInput() {
+  const val = document.getElementById('companion-draft-input').value.trim();
+  // Extract draft ID from a full Sleeper URL or a raw numeric ID
+  const match = val.match(/\/draft\/[a-z]+\/(\d+)/i) || val.match(/^(\d{15,})$/);
+  if (!match) { companionError('Paste a full Sleeper draft URL or draft ID'); return; }
+  bootCompanionMode(match[1]);
+}
+
+async function bootCompanionMode(draftId) {
+  document.getElementById('setup-screen').innerHTML = `
+    <div style="padding:2rem;text-align:center;">
+      <div class="spinner" style="margin:0 auto 1rem;"></div>
+      <p style="color:var(--text-muted);font-size:0.85rem;">Connecting to draft…</p>
+    </div>
+  `;
+  document.getElementById('setup-screen').style.display = 'flex';
+
+  try {
+    // Fetch draft metadata from Sleeper
+    const draftResp = await fetch(`https://api.sleeper.app/v1/draft/${draftId}`);
+    if (!draftResp.ok) throw new Error('Draft not found');
+    const draft = await draftResp.json();
+
+    const totalTeams = draft.settings?.teams || 12;
+    const totalRounds = draft.settings?.rounds || 15;
+
+    // Slot picker — "Which team are you?"
+    const slotBtns = Array.from({length: totalTeams}, (_, i) => i+1)
+      .map(s => `<button class="slot-btn" onclick="companionSelectSlot(${s}, '${draftId}', ${totalTeams}, ${totalRounds})" style="min-width:36px;">${s}</button>`)
+      .join('');
+
+    document.getElementById('setup-screen').innerHTML = `
+      <div style="padding:1.25rem;max-width:340px;margin:0 auto;width:100%;">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+          <span style="font-size:1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RoundRoom</span>
+          <span style="font-size:0.6rem;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.3rem;font-weight:600;">COMPANION</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.25rem;">Draft: <span style="color:var(--text-primary);font-weight:600;">${escHtml(draft.metadata?.name || draftId)}</span></div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:1rem;">${totalTeams} teams · ${totalRounds} rounds · ${escHtml(draft.type || 'snake')}</div>
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Which slot are you?</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;">${slotBtns}</div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('setup-screen').innerHTML = `
+      <div style="padding:1.5rem;text-align:center;">
+        <p style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;">Could not connect to draft.</p>
+        <p style="color:var(--text-muted);font-size:0.75rem;">Make sure the draft has started on Sleeper.</p>
+        <button onclick="showCompanionSetup()" style="margin-top:1rem;padding:0.5rem 1rem;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-primary);cursor:pointer;font-family:inherit;">Try again</button>
+      </div>
+    `;
+  }
+}
+
+async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
+  // Loading state while player data loads
+  document.getElementById('setup-screen').innerHTML = `
+    <div style="padding:2rem;text-align:center;">
+      <div class="spinner" style="margin:0 auto 1rem;"></div>
+      <p style="color:var(--text-muted);font-size:0.85rem;">Loading player data…</p>
+    </div>
+  `;
+
+  // Core STATE
+  STATE.mySlot = slot;
+  STATE.totalTeams = totalTeams;
+  STATE.totalRounds = totalRounds;
+  STATE.draftId = draftId;
+  STATE.myPickNumbers = calcMyPicks(slot, totalTeams, totalRounds);
+  STATE.isMockMode = false;
+
+  // Refetch draft for superflex detection + league name (initMainView needs selectedLeague)
+  let draftName = 'Sleeper Draft';
+  try {
+    const dResp = await fetch(`https://api.sleeper.app/v1/draft/${draftId}`);
+    const d = await dResp.json();
+    STATE.isSuperflex = (d.settings?.slots_super_flex || 0) > 0;
+    STATE.selectedDraft = d;
+    draftName = d.metadata?.name || 'Sleeper Draft';
+  } catch(e) {}
+  STATE.selectedLeague = { name: draftName };
+
+  // Superflex header badge
+  const sfBadge = document.getElementById('sf-badge');
+  if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? 'inline-block' : 'none';
+
+  // Load ADP (composite first, then Sleeper-only fallback)
+  let adpData = null;
+  try {
+    const r = await fetch('/api/composite-adp');
+    if (r.ok) {
+      const json = await r.json();
+      adpData = { players: (json.players||[]).map(p => ({
+        name: p.name, position: p.position, team: p.team||'',
+        adp: p.composite_adp||p.sleeper_adp||p.fantasypros_adp||999,
+        stdev: p.stdev||2.0, high: p.high||Math.max(1,Math.round((p.composite_adp||999)-3)),
+        low: p.low||Math.round((p.composite_adp||999)+3), times_drafted: p.times_drafted||0,
+        player_id: p.player_id||null, bye: p.bye||null
+      })) };
+    }
+  } catch(e) {}
+
+  if (!adpData?.players?.length) {
+    try { const r = await fetch('/api/adp'); if (r.ok) adpData = await r.json(); } catch(e) {}
+  }
+
+  if (!adpData?.players?.length) {
+    showError('Failed to load player data'); return;
+  }
+
+  // Load VORP (non-fatal)
+  try {
+    const vr = await fetch('/api/vorp');
+    if (vr.ok) {
+      const vd = await vr.json();
+      const vm = {};
+      (vd.players||[]).forEach(p => { if (p?.name) vm[p.name.toLowerCase()] = {vorp_std:p.vorp_std,vorp_sf:p.vorp_sf}; });
+      (adpData.players||[]).forEach(p => { const v=vm[(p.name||'').toLowerCase()]; if(v){p.vorp_std=v.vorp_std;p.vorp_sf=v.vorp_sf;} });
+      STATE.vorpData = vm;
+    }
+  } catch(e) {}
+
+  STATE.adpPlayers = (adpData.players||[]).filter(p => p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+  STATE.mergedPlayers = mergePlayers(STATE.adpPlayers, {});
+
+  // Load existing picks
+  try {
+    const pr = await fetch(`https://api.sleeper.app/v1/draft/${draftId}/picks`);
+    const picks = await pr.json();
+    if (picks) processNewPicks(picks, true);
+  } catch(e) {}
+
+  // Switch to app screen
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('ai-fab').style.display = 'flex';
+
+  initMainView();
+  startDraftSync(); // real sync, not mock
+}
+
 // Restore saved username
 try {
   const saved = localStorage.getItem('rr_username');
@@ -5141,6 +5338,31 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', () => {
   if (!SYNC.stopped && !STATE.draftComplete) setLiveStatus(false, 'Offline');
 });
+
+// Set the bookmarklet href — opens RoundRoom companion popup for the current Sleeper draft
+try {
+  const bookmarkletCode = `javascript:(function(){var m=window.location.href.match(/\\/draft\\/[a-z]+\\/(\\d+)/i);if(!m){alert('Navigate to a Sleeper draft page first');return;}window.open('https://roundroom.pykled.com/?companion=1&draft_id='+m[1],'RoundRoom','width=400,height=680,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes');})();`;
+  const bmEl = document.getElementById('rr-bookmarklet');
+  if (bmEl) bmEl.href = bookmarkletCode;
+} catch(e) {}
+
+// Companion mode — launched from bookmarklet, draft_id in URL.
+// Runs last so all normal-mode DOM wiring (username-input listener, etc.)
+// completes before companion takes over the setup screen.
+try {
+  const urlParams = new URLSearchParams(window.location.search);
+  const companionDraftId = urlParams.get('draft_id');
+  const isCompanion = urlParams.get('companion') === '1';
+
+  if (isCompanion) {
+    document.body.classList.add('companion-mode');
+    if (companionDraftId) {
+      bootCompanionMode(companionDraftId);
+    } else {
+      showCompanionSetup();
+    }
+  }
+} catch(e) {}
 
 // ===== HELP MODAL =====
 function openHelp() {
