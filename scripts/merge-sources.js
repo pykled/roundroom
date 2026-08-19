@@ -7,8 +7,10 @@
  *   data/fantasypros_adp.json  — FantasyPros consensus ECR/ADP
  *   data/underdog_adp.json     — Underdog best-ball ADP (K/DST already dropped)
  *
- * Weights (raw empirical Sleeper trusted most for redraft):
- *   Sleeper 0.55, FantasyPros 0.35, Underdog 0.10.
+ * Weights adapt to Sleeper sample health:
+ *   Sleeper >= 20 quality drafts: Sleeper 0.50, FantasyPros 0.35, Underdog 0.15
+ *   Sleeper <  20 quality drafts: Sleeper 0.20, FantasyPros 0.55, Underdog 0.25
+ *   (thin crawl sample => empirical ADP is noisy, lean on consensus sources)
  * When a player is missing from a source, its weight is dropped and the
  * remaining weights are renormalized to sum to 1.0.
  *
@@ -27,7 +29,11 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
-const WEIGHTS = { sleeper: 0.55, fantasypros: 0.35, underdog: 0.10 };
+// Sleeper sample size below which its empirical ADP is too noisy to lead the
+// composite — lean on FantasyPros/Underdog consensus instead.
+const HEALTHY_SLEEPER_DRAFTS = 20;
+const WEIGHTS_HEALTHY = { sleeper: 0.50, fantasypros: 0.35, underdog: 0.15 };
+const WEIGHTS_THIN = { sleeper: 0.20, fantasypros: 0.55, underdog: 0.25 };
 
 function loadJson(file) {
   const p = path.join(DATA_DIR, file);
@@ -60,6 +66,14 @@ function main() {
     console.error('data/adp.json missing or malformed — run aggregate.js first. Aborting.');
     process.exit(1);
   }
+
+  const sleeperDrafts = Number(sleeper.total_drafts || 0);
+  const WEIGHTS = sleeperDrafts >= HEALTHY_SLEEPER_DRAFTS ? WEIGHTS_HEALTHY : WEIGHTS_THIN;
+  console.log(
+    `Sleeper sample: ${sleeperDrafts} quality drafts (` +
+    `${sleeperDrafts >= HEALTHY_SLEEPER_DRAFTS ? 'healthy' : 'thin'}) — ` +
+    `weights sl=${WEIGHTS.sleeper} fp=${WEIGHTS.fantasypros} ud=${WEIGHTS.underdog}`
+  );
 
   // Build a merged map keyed by normalized name. Value collects each source's adp.
   const map = new Map();

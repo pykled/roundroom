@@ -15,7 +15,8 @@
  *      draft age: weight = exp(-daysSinceDraft / 7).
  *   4. Per player, drop pick positions >2.5 stdev from the median (single
  *      outlier reaches/steals) before computing ADP.
- *   5. Keep players drafted in >= 10 qualifying drafts.
+ *   5. Keep players drafted in >= MIN_DRAFTS qualifying drafts (5 during
+ *      Aug 1 – Sep 15 draft season, 10 otherwise).
  *
  * Output:
  *   data/adp.json            — players with adp + weighted_adp
@@ -26,7 +27,17 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const MIN_DRAFTS = 10;                       // raised from 5 for confidence
+// During draft season (Aug 1 – Sep 15) the crawl sample is thin relative to
+// player pool churn — requiring 10 drafts per player dropped 200+ real players
+// when only ~16 quality drafts passed filters. 5 keeps coverage while the
+// recency weighting + outlier clamp still protect ADP quality. Off-season we
+// go back to 10 for confidence.
+function inDraftSeason(d = new Date()) {
+  const m = d.getUTCMonth() + 1; // 1-12
+  const day = d.getUTCDate();
+  return (m === 8) || (m === 9 && day <= 15);
+}
+const MIN_DRAFTS = inDraftSeason() ? 5 : 10;
 const DATE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 const AUTOPICK_MAX_FRAC = 0.40;              // >40% autopick => suspect
 const MIN_DURATION_MS = 8 * 60 * 1000;       // < 8 min => too fast

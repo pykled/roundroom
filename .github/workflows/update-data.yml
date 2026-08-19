@@ -1,7 +1,8 @@
 name: Update Draft Data
 on:
   schedule:
-    - cron: '0 7 * * *'  # 7am UTC = midnight Pacific
+    - cron: '0 7 * * *'   # 7am UTC = midnight Pacific
+    - cron: '0 19 * * *'  # 7pm UTC = noon Pacific — extra draft-season run to catch afternoon drafts
   workflow_dispatch:  # allow manual trigger
 jobs:
   crawl:
@@ -11,8 +12,23 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm ci
-      - run: node scripts/crawl.js --resume
+      # Full fresh crawl (no --resume): raw_picks.json is rebuilt each run with
+      # only recent drafts, so stale picks never accumulate.
+      - run: node scripts/crawl.js
       - run: node scripts/aggregate.js
+      - name: Verify crawl quality
+        # Fail the run rather than committing empty/thin data — a red run is
+        # visible; a silent commit of bad data is not.
+        run: |
+          node -e '
+            const q = require("./data/data_quality.json");
+            const n = q.drafts_after_quality_filter || 0;
+            console.log(`Quality drafts this run: ${n}`);
+            if (n < 5) {
+              console.error(`FAIL: only ${n} quality drafts (<5). Refusing to publish stale/thin data.`);
+              process.exit(1);
+            }
+          '
       - run: node scripts/vorp.js
       - run: node scripts/fetch-fantasypros.js
       - run: node scripts/fetch-underdog.js

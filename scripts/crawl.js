@@ -35,6 +35,12 @@ const SEED_USERNAMES = [
   'kwikstats',
   'sickos_committee',
   'establish_the_run',
+  'ralphweetamoe',
+  'thefantasyfootballers',
+  'theringer',
+  'rotoballer',
+  'pfref',
+  'dynastyleaguefootball',
 ];
 const MAX_DRAFTS = 3000;               // volume target (raised from 500)
 const TIME_BUDGET_MS = 25 * 60 * 1000; // 25 minutes (raised from 8)
@@ -91,24 +97,31 @@ async function main() {
   const completedDrafts = new Set();
   let picks = [];
 
+  const cutoff = Date.now() - DATE_WINDOW_MS;
+
   // --resume: reload previously collected picks and mark their draft_ids as
   // already-seen/completed so we skip re-fetching them. New drafts still append.
+  // Picks older than the date window are dropped on load — otherwise stale
+  // drafts accumulate in raw_picks.json forever, aggregate.js filters them
+  // out anyway, and resume runs end up with too few usable drafts.
   if (RESUME) {
     const rawPath = path.join(DATA_DIR, 'raw_picks.json');
     if (fs.existsSync(rawPath)) {
       try {
         const prior = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
         if (Array.isArray(prior) && prior.length) {
-          picks = prior;
-          for (const p of prior) {
-            if (p && p.draft_id) {
-              seenDrafts.add(p.draft_id);
-              completedDrafts.add(p.draft_id);
-            }
+          const fresh = prior.filter(
+            (p) => p && p.draft_id && p.draft_start_time && p.draft_start_time >= cutoff
+          );
+          picks = fresh;
+          for (const p of fresh) {
+            seenDrafts.add(p.draft_id);
+            completedDrafts.add(p.draft_id);
           }
           console.log(
-            `[resume] Loaded ${picks.length} prior picks from ` +
-            `${completedDrafts.size} drafts — these will be skipped.`
+            `[resume] Loaded ${prior.length} prior picks; kept ${fresh.length} ` +
+            `within the ${DATE_WINDOW_DAYS}-day window from ${completedDrafts.size} drafts ` +
+            `(dropped ${prior.length - fresh.length} stale picks) — kept drafts will be skipped.`
           );
         }
       } catch (err) {
@@ -123,7 +136,6 @@ async function main() {
   let completedSeen = 0;    // all completed drafts encountered (pre-filter)
   let skippedTooOld = 0;    // completed but start_time older than the window
   let skippedAuction = 0;   // completed but non-snake (auction) — corrupts ADP
-  const cutoff = Date.now() - DATE_WINDOW_MS;
 
   console.log(`Starting snowball crawl. Seeds: ${SEED_USERNAMES.join(', ')}`);
   console.log(`Targets: ${MAX_DRAFTS} completed drafts or ${TIME_BUDGET_MS / 60000}min\n`);
