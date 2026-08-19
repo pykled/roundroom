@@ -238,10 +238,18 @@
   .home-bookmarklet summary::-webkit-details-marker { display: none; }
   .home-bookmarklet summary:hover { color: var(--text-secondary); }
 
-  .home-right { min-width: 0; }
+  .home-right {
+    min-width: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    align-self: start;
+  }
   .home-right-header {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 0.75rem; margin-bottom: 0.6rem; flex-wrap: wrap;
+    gap: 0.75rem; padding: 0.85rem 1rem 0.6rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
   }
   .home-right-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
   .home-pos-filters { display: flex; gap: 0.3rem; }
@@ -257,14 +265,14 @@
   #home-player-list { display: flex; flex-direction: column; }
   .home-player-row {
     display: flex; align-items: center; gap: 0.6rem;
-    width: 100%; min-height: 44px; padding: 0.35rem 0.6rem;
+    width: 100%; min-height: 46px; padding: 0.35rem 1rem;
     background: none; border: none; border-bottom: 1px solid var(--border);
     color: var(--text-primary); font-family: inherit; font-size: 0.82rem;
     cursor: pointer; text-align: left;
     transition: background 0.1s ease;
   }
   .home-player-row:last-child { border-bottom: none; }
-  .home-player-row:hover { background: var(--bg-card); }
+  .home-player-row:hover { background: var(--bg-hover); }
   .home-pos-badge {
     font-size: 0.62rem; font-weight: 700; font-family: 'DM Mono', monospace;
     border: 1px solid; border-radius: 5px; padding: 0.15rem 0;
@@ -278,9 +286,45 @@
   .home-player-empty { padding: 2rem 0; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
 
   @media (max-width: 768px) {
-    .home-layout { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.25rem; }
-    .home-action-cards { grid-template-columns: 1fr; }
-    .home-left .home-wordmark { font-size: 2.8rem; }
+    /* Layout */
+    .home-layout {
+      grid-template-columns: 1fr;
+      gap: 0;
+      padding: 0.75rem 0 2rem;
+      width: 100%;
+    }
+    #setup-screen { padding: 0; justify-content: flex-start; }
+    .home-freshness-bar { position: relative; top: auto; left: auto; right: auto; }
+
+    /* Left column */
+    .home-left {
+      padding: 1.25rem 1rem 0;
+    }
+    .home-left .home-wordmark { font-size: 2.4rem; }
+    .home-feature-chips { margin: 0.75rem 0 1.1rem; gap: 0.3rem; }
+    .home-feature-chips span { font-size: 0.64rem; padding: 0.2rem 0.5rem; }
+    .home-action-cards { grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0; }
+    .home-card-connect, .home-card-mock { padding: 0.9rem; }
+    .home-home-pill { margin-bottom: 0.5rem; }
+    .home-secondary-links { gap: 1rem; margin-top: 0.85rem; }
+
+    /* Right column — player list */
+    .home-right {
+      margin: 1.25rem 0.75rem 0;
+      border-radius: 14px;
+    }
+    .home-right-header { padding: 0.85rem 1rem 0.5rem; }
+
+    /* Slim down player rows on mobile — hide less important columns */
+    .home-player-team { display: none; }
+    .home-player-rank { display: none; }
+    .home-player-adp { width: 36px; font-size: 0.75rem; }
+    .home-value { width: 44px; font-size: 0.72rem; }
+    .home-player-row { padding: 0 0.75rem; min-height: 48px; }
+    .home-player-name { font-size: 0.85rem; }
+
+    /* Bookmarklet — hide on mobile (not useful) */
+    .home-bookmarklet { display: none; }
   }
 
   /* ===== Loading spinner (used by companion mode) ===== */
