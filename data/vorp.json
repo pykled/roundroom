@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T08:02:16.551Z",
+  "generated_at": "2026-08-19T19:43:14.739Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -549,9 +549,9 @@
       "vorp_sf": 45
     },
     {
-      "name": "Tucker Kraft",
+      "name": "Harold Fannin",
       "position": "TE",
-      "team": "GB",
+      "team": "CLE",
       "vorp_std": 45,
       "vorp_sf": 45
     },
@@ -577,9 +577,9 @@
       "vorp_sf": 104
     },
     {
-      "name": "Harold Fannin",
+      "name": "Tucker Kraft",
       "position": "TE",
-      "team": "CLE",
+      "team": "GB",
       "vorp_std": 37.5,
       "vorp_sf": 37.5
     },
@@ -724,9 +724,9 @@
       "vorp_sf": 7.5
     },
     {
-      "name": "Brock Purdy",
+      "name": "Bo Nix",
       "position": "QB",
-      "team": "SF",
+      "team": "DEN",
       "vorp_std": 6.5,
       "vorp_sf": 71.5
     },
@@ -745,9 +745,9 @@
       "vorp_sf": 4.5
     },
     {
-      "name": "Bo Nix",
+      "name": "Brock Purdy",
       "position": "QB",
-      "team": "DEN",
+      "team": "SF",
       "vorp_std": 0,
       "vorp_sf": 65
     },
@@ -794,9 +794,9 @@
       "vorp_sf": 58.5
     },
     {
-      "name": "Isaiah Likely",
+      "name": "Oronde Gadsden",
       "position": "TE",
-      "team": "NYG",
+      "team": "LAC",
       "vorp_std": -7.5,
       "vorp_sf": -7.5
     },
@@ -829,9 +829,9 @@
       "vorp_sf": -13.5
     },
     {
-      "name": "Oronde Gadsden",
+      "name": "Isaiah Likely",
       "position": "TE",
-      "team": "LAC",
+      "team": "NYG",
       "vorp_std": -15,
       "vorp_sf": -15
     },
@@ -997,9 +997,9 @@
       "vorp_sf": -49.5
     },
     {
-      "name": "Kyler Murray",
+      "name": "Cam Ward",
       "position": "QB",
-      "team": "MIN",
+      "team": "TEN",
       "vorp_std": -52,
       "vorp_sf": 13
     },
@@ -1025,9 +1025,9 @@
       "vorp_sf": -54
     },
     {
-      "name": "Cam Ward",
+      "name": "Kyler Murray",
       "position": "QB",
-      "team": "TEN",
+      "team": "MIN",
       "vorp_std": -58.5,
       "vorp_sf": 6.5
     },
@@ -1081,9 +1081,9 @@
       "vorp_sf": -67.5
     },
     {
-      "name": "T.J. Hockenson",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "MIN",
+      "team": "WAS",
       "vorp_std": -67.5,
       "vorp_sf": -67.5
     },
@@ -1109,9 +1109,9 @@
       "vorp_sf": -72
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "T.J. Hockenson",
       "position": "TE",
-      "team": "WAS",
+      "team": "MIN",
       "vorp_std": -75,
       "vorp_sf": -75
     },
@@ -1277,13 +1277,6 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Kayshon Boutte",
-      "position": "WR",
-      "team": "NE",
-      "vorp_std": -88.5,
-      "vorp_sf": -88.5
-    },
-    {
       "name": "Cooper Kupp",
       "position": "WR",
       "team": "SEA",
@@ -1301,6 +1294,13 @@
       "name": "Brandon Aiyuk",
       "position": "WR",
       "team": "SF",
+      "vorp_std": -88.5,
+      "vorp_sf": -88.5
+    },
+    {
+      "name": "Kayshon Boutte",
+      "position": "WR",
+      "team": "NE",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
