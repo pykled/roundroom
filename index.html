@@ -62,7 +62,8 @@
     padding: 2rem;
     background: var(--bg-primary);
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   #setup-screen::before {
@@ -153,6 +154,134 @@
   }
   .slot-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
   .slot-btn.active { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; }
+
+  /* ── Home page rebuild: freshness bar, two-column layout, live player list ── */
+  .home-freshness-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    z-index: 2;
+  }
+  .home-freshness-bar.stale { color: var(--amber); }
+
+  .home-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 3rem;
+    width: 100%;
+    max-width: 1080px;
+    margin: auto;
+    padding-top: 2.5rem;
+    position: relative;
+    align-items: start;
+  }
+
+  .home-left .home-wordmark { font-size: 3.5rem; letter-spacing: -0.05em; }
+
+  .home-feature-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 1.5rem; }
+  .home-feature-chips span {
+    font-size: 0.68rem; font-weight: 600; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 0.25rem 0.65rem; background: var(--bg-secondary); white-space: nowrap;
+  }
+
+  .home-action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .home-action-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .home-card-connect:hover { border-color: rgba(124,111,247,0.5); box-shadow: 0 0 18px rgba(124,111,247,0.12); }
+  .home-card-connect.expanded { grid-column: 1 / -1; }
+  .home-card-mock { cursor: pointer; }
+  .home-card-mock:hover { border-color: var(--border-bright); }
+  .home-card-icon { font-size: 1.2rem; margin-bottom: 0.35rem; }
+  .home-card-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+  .home-card-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
+  .home-connect-btn {
+    width: 100%; padding: 0.6rem 0.75rem; border-radius: 9px;
+    border: 1px solid rgba(124,111,247,0.35);
+    background: rgba(124,111,247,0.12); color: var(--text-primary);
+    font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    text-align: left;
+  }
+  .home-connect-btn:hover { background: rgba(124,111,247,0.2); }
+  .home-connect-cancel {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 0.75rem; cursor: pointer; font-family: inherit;
+    padding: 0; margin-top: 0.9rem;
+  }
+  .home-connect-cancel:hover { color: var(--text-primary); }
+
+  .home-secondary-links { display: flex; gap: 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
+  .home-secondary-links button {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 0.78rem; cursor: pointer; font-family: inherit; padding: 0;
+  }
+  .home-secondary-links button:hover { color: var(--text-primary); }
+
+  .home-bookmarklet { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  .home-bookmarklet summary {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); cursor: pointer;
+    list-style: none; user-select: none;
+  }
+  .home-bookmarklet summary::-webkit-details-marker { display: none; }
+  .home-bookmarklet summary:hover { color: var(--text-secondary); }
+
+  .home-right { min-width: 0; }
+  .home-right-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.75rem; margin-bottom: 0.6rem; flex-wrap: wrap;
+  }
+  .home-right-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
+  .home-pos-filters { display: flex; gap: 0.3rem; }
+  .home-pos-filter {
+    padding: 0.25rem 0.55rem; border-radius: 6px;
+    border: 1px solid var(--border); background: none;
+    color: var(--text-muted); font-size: 0.68rem; font-weight: 700;
+    cursor: pointer; font-family: 'DM Mono', monospace;
+  }
+  .home-pos-filter:hover { color: var(--text-primary); border-color: var(--border-bright); }
+  .home-pos-filter.active { color: var(--text-primary); border-color: var(--border-bright); background: var(--bg-card); }
+
+  #home-player-list { display: flex; flex-direction: column; }
+  .home-player-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    width: 100%; min-height: 44px; padding: 0.35rem 0.6rem;
+    background: none; border: none; border-bottom: 1px solid var(--border);
+    color: var(--text-primary); font-family: inherit; font-size: 0.82rem;
+    cursor: pointer; text-align: left;
+    transition: background 0.1s ease;
+  }
+  .home-player-row:last-child { border-bottom: none; }
+  .home-player-row:hover { background: var(--bg-card); }
+  .home-pos-badge {
+    font-size: 0.62rem; font-weight: 700; font-family: 'DM Mono', monospace;
+    border: 1px solid; border-radius: 5px; padding: 0.15rem 0;
+    width: 32px; text-align: center; flex-shrink: 0;
+  }
+  .home-player-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .home-player-team { width: 34px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; font-family: 'DM Mono', monospace; }
+  .home-player-adp { width: 40px; flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+  .home-player-rank { width: 42px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; font-family: 'DM Mono', monospace; }
+  .home-value { width: 48px; flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.75rem; text-align: right; }
+  .home-player-empty { padding: 2rem 0; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+
+  @media (max-width: 768px) {
+    .home-layout { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.25rem; }
+    .home-action-cards { grid-template-columns: 1fr; }
+    .home-left .home-wordmark { font-size: 2.8rem; }
+  }
 
   /* ===== Loading spinner (used by companion mode) ===== */
   .spinner {
@@ -1711,79 +1840,109 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
 
-  <div class="home-hero">
-    <div class="home-pill">NFL Fantasy 2026</div>
-    <div class="home-wordmark">RoundRoom</div>
-    <div class="home-tagline">Real-time draft assistant. Powered by VORP.</div>
-  </div>
+  <div class="home-freshness-bar" id="home-freshness-bar"><span id="home-freshness-text">Loading data...</span></div>
 
-  <div class="setup-card">
-    <h1>Connect Your League</h1>
-    <p class="subtitle">Enter your Sleeper username to load your leagues.</p>
+  <div class="home-layout">
 
-    <div id="setup-error" class="error-msg hidden"></div>
+    <div class="home-left">
+      <div class="home-pill">NFL Fantasy 2026</div>
+      <div class="home-wordmark">RoundRoom</div>
+      <div class="home-tagline">VORP-powered NFL draft assistant. Live Sleeper sync.</div>
 
-    <div class="form-group">
-      <label>Sleeper Username</label>
-      <input type="text" id="username-input" placeholder="Enter your Sleeper username">
-    </div>
-
-    <button class="btn btn-primary" id="fetch-leagues-btn" onclick="fetchLeagues()">
-      <span id="fetch-btn-text">Load Leagues</span>
-    </button>
-
-    <div id="leagues-section" class="hidden" style="margin-top:1.5rem;">
-      <div class="panel-title" style="margin-bottom:0.75rem;">Select League</div>
-      <div id="leagues-list"></div>
-    </div>
-
-    <div id="draft-info-section" class="hidden">
-      <div class="draft-info" id="draft-info-grid"></div>
-
-      <div class="form-group" style="margin-top:1rem;">
-        <label>Your Draft Slot</label>
-        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="slot-picker"></div>
-        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;" id="slot-auto-note"></div>
+      <div class="home-feature-chips">
+        <span>⚡ Real-time picks</span>
+        <span>📊 VORP recommendations</span>
+        <span>🔍 Player research</span>
       </div>
 
-      <div id="countdown-section" class="hidden">
-        <div class="countdown-box">
-          <div class="countdown-label">Draft starts in</div>
-          <div class="countdown-time" id="countdown-display">--:--:--</div>
+      <div class="home-action-cards">
+        <div class="home-action-card home-card-connect" id="home-card-connect">
+          <div id="connect-collapsed">
+            <button class="home-connect-btn" onclick="toggleConnectCard(true)">Connect My Sleeper League →</button>
+            <div class="home-card-sub">Live sync with your real draft</div>
+          </div>
+
+          <div id="connect-form" style="display:none;">
+            <div id="setup-error" class="error-msg hidden"></div>
+
+            <div class="form-group">
+              <label>Sleeper Username</label>
+              <input type="text" id="username-input" placeholder="Enter your Sleeper username">
+            </div>
+
+            <button class="btn btn-primary" id="fetch-leagues-btn" onclick="fetchLeagues()">
+              <span id="fetch-btn-text">Load Leagues</span>
+            </button>
+
+            <div id="leagues-section" class="hidden" style="margin-top:1.5rem;">
+              <div class="panel-title" style="margin-bottom:0.75rem;">Select League</div>
+              <div id="leagues-list"></div>
+            </div>
+
+            <div id="draft-info-section" class="hidden">
+              <div class="draft-info" id="draft-info-grid"></div>
+
+              <div class="form-group" style="margin-top:1rem;">
+                <label>Your Draft Slot</label>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="slot-picker"></div>
+                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;" id="slot-auto-note"></div>
+              </div>
+
+              <div id="countdown-section" class="hidden">
+                <div class="countdown-box">
+                  <div class="countdown-label">Draft starts in</div>
+                  <div class="countdown-time" id="countdown-display">--:--:--</div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="start-btn" onclick="startDraftAssistant()">
+                Start Draft Assistant →
+              </button>
+            </div>
+
+            <button class="home-connect-cancel" onclick="toggleConnectCard(false)">← Cancel</button>
+          </div>
+        </div>
+
+        <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()">
+          <div class="home-card-icon">⚡</div>
+          <div class="home-card-title">Mock Draft</div>
+          <div class="home-card-sub">Practice without an account</div>
         </div>
       </div>
 
-      <button class="btn btn-primary" id="start-btn" onclick="startDraftAssistant()">
-        Start Draft Assistant →
-      </button>
+      <div class="home-secondary-links">
+        <button onclick="openResearchStandalone()">🔍 Browse Players</button>
+        <button onclick="openListsOverlay()">⭐ My Lists</button>
+      </div>
+
+      <details class="home-bookmarklet">
+        <summary>Use on Sleeper.com ▾</summary>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin:0.75rem 0;">Drag this button to your bookmarks bar. Then click it on any Sleeper draft page to open RoundRoom alongside your draft.</p>
+        <a id="rr-bookmarklet" href="#"
+          style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 0.9rem;border-radius:8px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;cursor:grab;"
+          onclick="return false;"
+          title="Drag to bookmarks bar">
+          ⚡ RoundRoom Companion
+        </a>
+        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.5rem;">Drag the button above to your browser's bookmarks bar, then click it when you're on a Sleeper draft page.</p>
+      </details>
     </div>
 
-    <div style="display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0 1rem;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">or practice without an account</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
+    <div class="home-right">
+      <div class="home-right-header">
+        <span class="home-right-title">Top Players by ADP</span>
+        <div class="home-pos-filters">
+          <button class="home-pos-filter active" data-hpos="ALL" onclick="setHomePos('ALL')">ALL</button>
+          <button class="home-pos-filter" data-hpos="QB" onclick="setHomePos('QB')">QB</button>
+          <button class="home-pos-filter" data-hpos="RB" onclick="setHomePos('RB')">RB</button>
+          <button class="home-pos-filter" data-hpos="WR" onclick="setHomePos('WR')">WR</button>
+          <button class="home-pos-filter" data-hpos="TE" onclick="setHomePos('TE')">TE</button>
+        </div>
+      </div>
+      <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
     </div>
-    <button id="mock-solo-btn" onclick="openMockConfig()" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
-      ⚡ Start a Mock Draft
-      <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">No account needed</span>
-    </button>
 
-    <div style="text-align:center;margin-top:0.9rem;display:flex;justify-content:center;gap:1.25rem;flex-wrap:wrap;">
-      <button onclick="openListsOverlay()" style="background:none;border:none;color:var(--accent);font-size:0.8rem;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">⭐ Manage My Lists (Targets &amp; DND)</button>
-      <button onclick="openResearchStandalone()" style="background:none;border:none;color:var(--accent);font-size:0.8rem;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">🔍 Browse Players</button>
-    </div>
-
-    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Use on Sleeper.com</div>
-      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;">Drag this button to your bookmarks bar. Then click it on any Sleeper draft page to open RoundRoom alongside your draft.</p>
-      <a id="rr-bookmarklet" href="#"
-        style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 0.9rem;border-radius:8px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;cursor:grab;"
-        onclick="return false;"
-        title="Drag to bookmarks bar">
-        ⚡ RoundRoom Companion
-      </a>
-      <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.5rem;">Drag the button above to your browser's bookmarks bar, then click it when you're on a Sleeper draft page.</p>
-    </div>
   </div>
 </div>
 
@@ -7427,6 +7586,115 @@ function closeResearchStandalone() {
   panel.classList.remove('as-overlay');
   const layout = document.querySelector('.main-layout');
   if (layout && panel.parentElement !== layout) layout.appendChild(panel);
+}
+
+// ===== HOME PAGE (setup screen) =====
+const HOME = { pos: 'ALL', lastList: [] };
+
+function toggleConnectCard(open) {
+  const collapsed = document.getElementById('connect-collapsed');
+  const form = document.getElementById('connect-form');
+  const card = document.getElementById('home-card-connect');
+  if (!collapsed || !form) return;
+  collapsed.style.display = open ? 'none' : '';
+  form.style.display = open ? 'block' : 'none';
+  if (card) card.classList.toggle('expanded', open);
+  if (open) document.getElementById('username-input')?.focus();
+}
+
+function setHomePos(pos) {
+  HOME.pos = pos;
+  document.querySelectorAll('.home-pos-filter').forEach(b => b.classList.toggle('active', b.dataset.hpos === pos));
+  renderHomePlayers();
+}
+
+function renderHomePlayers() {
+  const container = document.getElementById('home-player-list');
+  if (!container) return;
+  if (!STATE.mergedPlayers?.length) {
+    container.innerHTML = '<div class="home-player-empty">Loading player data…</div>';
+    return;
+  }
+
+  // Position rank by composite ADP
+  const posRank = {};
+  const byPos = {};
+  STATE.mergedPlayers.forEach(p => { (byPos[p.position] = byPos[p.position] || []).push(p); });
+  Object.values(byPos).forEach(list => {
+    list.slice().sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999))
+      .forEach((p, i) => { posRank[p.name] = i + 1; });
+  });
+
+  let players = STATE.mergedPlayers.slice();
+  if (HOME.pos !== 'ALL') players = players.filter(p => p.position === HOME.pos);
+  players.sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999));
+  players = players.slice(0, 15);
+  HOME.lastList = players;
+
+  if (!players.length) {
+    container.innerHTML = '<div class="home-player-empty">No player data available</div>';
+    return;
+  }
+
+  container.innerHTML = players.map((p, i) => {
+    const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
+    const adp = researchAdp(p);
+    const val = researchValue(p);
+    const valHtml = val == null
+      ? '<span class="home-value" style="color:var(--text-muted);">—</span>'
+      : `<span class="home-value" style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+    return `<button class="home-player-row" onclick="homeOpenProfile(${i})">
+      <span class="home-pos-badge" style="color:${posCol};border-color:${posCol};">${escHtml(p.position)}</span>
+      <span class="home-player-name">${escHtml(p.name)}</span>
+      <span class="home-player-team">${escHtml(p.team || 'FA')}</span>
+      <span class="home-player-adp">${adp != null ? adp.toFixed(1) : '—'}</span>
+      <span class="home-player-rank">${escHtml(p.position)}${posRank[p.name] || ''}</span>
+      ${valHtml}
+    </button>`;
+  }).join('');
+}
+
+function homeOpenProfile(i) {
+  const p = HOME.lastList[i];
+  if (p) openResearchProfile(p.name);
+}
+
+function loadHomeData() {
+  // Data freshness strip
+  (async () => {
+    const el = document.getElementById('home-freshness-text');
+    if (!el) return;
+    try {
+      const r = await fetch('/api/data-freshness');
+      if (!r.ok) throw new Error('unavailable');
+      const d = await r.json();
+      const h = d.adp_age_hours;
+      const ageTxt = h == null ? 'recently'
+        : h < 1 ? `${Math.max(1, Math.round(h * 60))}m ago`
+        : h >= 48 ? `${Math.round(h / 24)}d ago`
+        : `${Math.round(h)}h ago`;
+      el.textContent = `⚡ ADP data updated ${ageTxt} · ${d.drafts_used || 0} drafts analyzed`;
+      if (h != null && h > 24) document.getElementById('home-freshness-bar')?.classList.add('stale');
+    } catch (e) {
+      el.textContent = '⚡ ADP data status unavailable';
+    }
+  })();
+
+  // Top players list — reuses the research loader (composite-adp + vorp → STATE.mergedPlayers)
+  (async () => {
+    try {
+      await ensureResearchData();
+      renderHomePlayers();
+    } catch (e) {
+      const container = document.getElementById('home-player-list');
+      if (container) container.innerHTML = '<div class="home-player-empty">No player data available</div>';
+    }
+  })();
+}
+
+// Companion mode replaces the setup screen entirely — skip home data there.
+if (!document.body.classList.contains('companion-mode')) {
+  try { loadHomeData(); } catch (e) {}
 }
 </script>
 
