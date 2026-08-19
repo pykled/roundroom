@@ -1,7 +1,7 @@
 {
-  "total_drafts": 48,
-  "total_picks": 5940,
-  "crawled_at": "2026-08-12T01:51:57.751Z",
+  "total_drafts": 304,
+  "total_picks": 60351,
+  "crawled_at": "2026-08-19T08:02:15.316Z",
   "seeds_used": [
     "pykle",
     "scott_fish",
@@ -15,14 +15,20 @@
     "papabeargetsw1",
     "kwikstats",
     "sickos_committee",
-    "establish_the_run"
+    "establish_the_run",
+    "ralphweetamoe",
+    "thefantasyfootballers",
+    "theringer",
+    "rotoballer",
+    "pfref",
+    "dynastyleaguefootball"
   ],
-  "users_explored": 8852,
-  "leagues_seen": 1419,
-  "completed_drafts_seen": 1121,
-  "skipped_too_old": 1063,
-  "skipped_auction": 8,
+  "users_explored": 10572,
+  "leagues_seen": 1239,
+  "completed_drafts_seen": 891,
+  "skipped_too_old": 558,
+  "skipped_auction": 23,
   "date_window_days": 14,
-  "elapsed_seconds": 1500,
+  "elapsed_seconds": 1501,
   "stop_reason": "time_budget"
 }
