@@ -54,9 +54,24 @@ app.get('/api/vorp', (req, res) => {
 });
 
 // Composite ADP blended across Sleeper + FantasyPros + Underdog.
+// Enriched with per-player draft-behavior stats from adp.json (stdev, high/low
+// range, weighted ADP, sample size) — composite_adp.json only carries the
+// blended values, but the research UI needs both.
 app.get('/api/composite-adp', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/composite_adp.json'), 'utf8'));
+    try {
+      const adp = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/adp.json'), 'utf8'));
+      const byName = {};
+      (adp.players || []).forEach(p => { if (p && p.name) byName[p.name.toLowerCase()] = p; });
+      (data.players || []).forEach(p => {
+        const src = byName[(p.name || '').toLowerCase()];
+        if (!src) return;
+        ['weighted_adp', 'stdev', 'weighted_stdev', 'high', 'low', 'times_drafted', 'outliers_removed'].forEach(k => {
+          if (p[k] == null && src[k] != null) p[k] = src[k];
+        });
+      });
+    } catch (e) {} // enrichment is best-effort — raw composite data still ships
     res.json(data);
   } catch (e) {
     res.status(503).json({ error: 'Composite ADP data not yet generated' });

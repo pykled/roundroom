@@ -1441,6 +1441,156 @@
     flex-shrink: 0;
   }
 
+  /* ===== RESEARCH TAB ===== */
+  #panel-research { display: none; }
+  #panel-research.mobile-active,
+  #panel-research.as-overlay { display: flex; flex-direction: column; }
+  #panel-research.as-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 550;
+    background: var(--bg-primary);
+    padding: 1rem;
+  }
+  #research-standalone-close { display: none; }
+  #panel-research.as-overlay #research-standalone-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
+
+  .rsch-pos-btn {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .rsch-pos-btn.active {
+    background: var(--bg-hover);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
+  }
+
+  #research-player-list { flex: 1; overflow-y: auto; }
+
+  .research-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .research-row:hover { background: var(--bg-hover); }
+  .research-row.rsch-dnd { opacity: 0.45; }
+
+  .rsch-pos-pill {
+    border-radius: 999px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .rsch-col { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-align: right; flex-shrink: 0; }
+
+  /* Player profile sheet */
+  #research-profile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 860;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  #research-profile-overlay.open { display: flex; }
+
+  .research-sheet {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .research-sheet-body { overflow-y: auto; padding: 1.25rem 1.25rem 0.75rem; -webkit-overflow-scrolling: touch; }
+
+  .research-decision-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+  }
+  .rsch-decision-btn {
+    flex: 1;
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); }
+  .rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+  .rsch-decision-btn.active-neutral { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text-primary); }
+
+  .rsch-section-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 1.1rem 0 0.5rem;
+  }
+  .rsch-stat-box {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem;
+    text-align: center;
+  }
+
+  @keyframes rsch-sheet-up {
+    from { transform: translateY(40px); opacity: 0.4; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @media (max-width: 768px) {
+    #research-header-btn { display: none; }
+    #research-profile-overlay { padding: 0; align-items: flex-end; }
+    .research-sheet {
+      max-width: none;
+      max-height: 92vh;
+      border-radius: 16px 16px 0 0;
+      border-bottom: none;
+      animation: rsch-sheet-up 0.22s ease;
+    }
+  }
+
   /* ===== MOBILE TAB BAR ===== */
   .mobile-tab-bar {
     display: none;
@@ -1618,8 +1768,9 @@
       <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">No account needed</span>
     </button>
 
-    <div style="text-align:center;margin-top:0.9rem;">
+    <div style="text-align:center;margin-top:0.9rem;display:flex;justify-content:center;gap:1.25rem;flex-wrap:wrap;">
       <button onclick="openListsOverlay()" style="background:none;border:none;color:var(--accent);font-size:0.8rem;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">⭐ Manage My Lists (Targets &amp; DND)</button>
+      <button onclick="openResearchStandalone()" style="background:none;border:none;color:var(--accent);font-size:0.8rem;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">🔍 Browse Players</button>
     </div>
 
     <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
@@ -1659,7 +1810,8 @@
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Change Draft Slot</div>
       <div style="display:flex;gap:0.3rem;flex-wrap:wrap;max-width:220px;" id="slot-edit-picker"></div>
     </div>
-    <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()" style="margin-left:auto;">⚡ Mock Draft</button>
+    <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()" style="margin-left:auto;">🔍 Research</button>
+    <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()">⚡ Mock Draft</button>
     <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
     <div class="live-indicator" style="margin-left:0.5rem;">
       <div class="live-dot" id="live-dot"></div>
@@ -1746,6 +1898,33 @@
       <div id="my-picks-schedule" style="font-size:0.75rem; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
     </div>
 
+    <!-- RESEARCH: player research panel (mobile tab / standalone overlay) -->
+    <div class="panel" id="panel-research">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;flex-shrink:0;">
+        <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
+        <button onclick="openListsOverlay()" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">⭐ View My Lists</button>
+        <button id="research-standalone-close" onclick="closeResearchStandalone()" title="Close" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-primary);font-size:0.85rem;cursor:pointer;font-family:inherit;">✕</button>
+      </div>
+      <div class="research-controls">
+        <input type="text" class="board-search" id="research-search" placeholder="Search players…" oninput="RESEARCH.search=this.value;renderResearchList()" style="margin-bottom:0.5rem;">
+        <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+          <button class="rsch-pos-btn active" data-rpos="ALL" onclick="setResearchPos('ALL')">ALL</button>
+          <button class="rsch-pos-btn" data-rpos="QB" onclick="setResearchPos('QB')">QB</button>
+          <button class="rsch-pos-btn" data-rpos="RB" onclick="setResearchPos('RB')">RB</button>
+          <button class="rsch-pos-btn" data-rpos="WR" onclick="setResearchPos('WR')">WR</button>
+          <button class="rsch-pos-btn" data-rpos="TE" onclick="setResearchPos('TE')">TE</button>
+          <button class="rsch-pos-btn" data-rpos="K" onclick="setResearchPos('K')">K</button>
+          <select id="research-sort" onchange="RESEARCH.sort=this.value;renderResearchList()" style="margin-left:auto;font-size:0.7rem;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.4rem;font-family:inherit;cursor:pointer;">
+            <option value="adp">ADP</option>
+            <option value="vorp">VORP</option>
+            <option value="value">Value</option>
+            <option value="volatility">Volatility</option>
+          </select>
+        </div>
+      </div>
+      <div id="research-player-list"></div>
+    </div>
+
   </div>
 
   <!-- Pick Log (desktop only) -->
@@ -1768,8 +1947,8 @@
       <button class="mobile-tab" id="tab-recs" onclick="showMobileTab('recs')">
         <span class="tab-icon">⭐</span>Recs
       </button>
-      <button class="mobile-tab" id="tab-lists" onclick="showMobileTab('lists')">
-        <span class="tab-icon">📋</span>Lists
+      <button class="mobile-tab" id="tab-research" onclick="showMobileTab('research')">
+        <span class="tab-icon">🔍</span>Research
       </button>
       <button class="mobile-tab" id="tab-mock" onclick="openMockModal()">
         <span class="tab-icon">⚡</span>Mock
@@ -1935,6 +2114,15 @@
   <div class="modal" id="player-modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- Research: player profile sheet -->
+<div id="research-profile-overlay" onclick="if(event.target===this)closeResearchProfile()">
+  <div class="research-sheet">
+    <button class="modal-close" onclick="closeResearchProfile()" style="z-index:2;">✕</button>
+    <div class="research-sheet-body" id="research-profile-body"></div>
+    <div class="research-decision-bar" id="research-decision-bar"></div>
   </div>
 </div>
 
@@ -2206,6 +2394,13 @@ async function launchStandaloneMock() {
             times_drafted: p.times_drafted || 0,
             player_id: p.player_id || null,
             bye: p.bye || null,
+            composite_adp: p.composite_adp ?? null,
+            sleeper_adp: p.sleeper_adp ?? null,
+            fantasypros_adp: p.fantasypros_adp ?? null,
+            underdog_adp: p.underdog_adp ?? null,
+            weighted_adp: p.weighted_adp ?? null,
+            weighted_stdev: p.weighted_stdev ?? null,
+            sources_count: p.sources_count ?? null,
           }))
         };
       }
@@ -3099,6 +3294,13 @@ async function startDraftAssistant() {
             times_drafted: p.times_drafted || 0,
             player_id: p.player_id || null,
             bye: p.bye || null,
+            composite_adp: p.composite_adp ?? null,
+            sleeper_adp: p.sleeper_adp ?? null,
+            fantasypros_adp: p.fantasypros_adp ?? null,
+            underdog_adp: p.underdog_adp ?? null,
+            weighted_adp: p.weighted_adp ?? null,
+            weighted_stdev: p.weighted_stdev ?? null,
+            sources_count: p.sources_count ?? null,
           }))
         };
         // Update the data-source line in the setup/app footer
@@ -3429,8 +3631,8 @@ function showMobileTab(tab) {
     openListsOverlay();
     return;
   }
-  const map = { roster: 'panel-roster', players: 'panel-players', recs: 'panel-recs' };
-  const tabMap = { roster: 'tab-roster', players: 'tab-players', recs: 'tab-recs' };
+  const map = { roster: 'panel-roster', players: 'panel-players', recs: 'panel-recs', research: 'panel-research' };
+  const tabMap = { roster: 'tab-roster', players: 'tab-players', recs: 'tab-recs', research: 'tab-research' };
   Object.values(map).forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('mobile-active');
@@ -3445,6 +3647,7 @@ function showMobileTab(tab) {
   if (tabBtn) tabBtn.classList.add('active');
   // Switch to players tab automatically when draft is live
   if (tab === 'recs') renderRecommendations();
+  if (tab === 'research') ensureResearchData().then(() => renderResearchList());
 }
 
 function setPosFilter(pos) {
@@ -6554,7 +6757,7 @@ function toggleDND(name) {
   if (_DND.has(k)) _DND.delete(k);
   else { _DND.set(k, name); _TARGET.delete(k); } // a player can't be both
   saveCustomLists();
-  renderCompanionView();
+  if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   if (document.getElementById('cv-lists-overlay')?.style.display === 'flex') renderListsOverlay();
 }
 
@@ -6564,7 +6767,7 @@ function toggleTarget(name) {
   if (_TARGET.has(k)) _TARGET.delete(k);
   else { _TARGET.set(k, name); _DND.delete(k); }
   saveCustomLists();
-  renderCompanionView();
+  if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   if (document.getElementById('cv-lists-overlay')?.style.display === 'flex') renderListsOverlay();
 }
 
@@ -6883,6 +7086,347 @@ function buildCompanionReason(player, myRosterPlayers, currentPick) {
   if (diff >= 5) return `Fell ${diff} spots past ADP — clear value window.`;
   if (pos === 'TE' && have === 0) return 'TE tiers drop off fast — secure yours now.';
   return 'Best available option by composite score.';
+}
+
+// ===== RESEARCH TAB =====
+// Deep-dive player browser: works pre-draft (standalone overlay from the setup
+// screen) and mid-draft (mobile tab / header button). Reads STATE.mergedPlayers.
+const RESEARCH = {
+  search: '',
+  pos: 'ALL',
+  sort: 'adp',
+  profileName: null,
+  lastList: [],       // last rendered list — row onclick indexes into this
+  loading: false,
+};
+
+// Pre-draft there's no merged data yet — load the same composite-adp + vorp
+// chain the draft/mock loaders use, into STATE.mergedPlayers.
+async function ensureResearchData() {
+  if (STATE.mergedPlayers?.length) return true;
+  if (RESEARCH.loading) return false;
+  RESEARCH.loading = true;
+  try {
+    let adpData = null;
+    try {
+      const resp = await fetch('/api/composite-adp');
+      if (resp.ok) {
+        const json = await resp.json();
+        adpData = {
+          players: (json.players || []).map(p => ({
+            name: p.name, position: p.position, team: p.team || '',
+            adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
+            stdev: p.stdev || 2.0,
+            high: p.high || Math.max(1, Math.round((p.composite_adp || 999) - 3)),
+            low: p.low || Math.round((p.composite_adp || 999) + 3),
+            times_drafted: p.times_drafted || 0,
+            player_id: p.player_id || null,
+            bye: p.bye || null,
+            composite_adp: p.composite_adp ?? null,
+            sleeper_adp: p.sleeper_adp ?? null,
+            fantasypros_adp: p.fantasypros_adp ?? null,
+            underdog_adp: p.underdog_adp ?? null,
+            weighted_adp: p.weighted_adp ?? null,
+            weighted_stdev: p.weighted_stdev ?? null,
+            sources_count: p.sources_count ?? null,
+          }))
+        };
+      }
+    } catch(e) {}
+
+    if (!adpData?.players?.length) {
+      try {
+        const resp = await fetch('/api/adp');
+        if (resp.ok) adpData = await resp.json();
+      } catch(e) {}
+    }
+    if (!adpData?.players?.length) return false;
+
+    try {
+      const vorpResp = await fetch('/api/vorp');
+      if (vorpResp.ok) {
+        const vorpData = await vorpResp.json();
+        const vorpMap = {};
+        (vorpData.players || []).forEach(p => {
+          if (p && p.name) vorpMap[p.name.toLowerCase()] = { vorp_std: p.vorp_std, vorp_sf: p.vorp_sf };
+        });
+        (adpData.players || []).forEach(p => {
+          const v = vorpMap[(p.name || '').toLowerCase()];
+          if (v) { p.vorp_std = v.vorp_std; p.vorp_sf = v.vorp_sf; }
+        });
+        STATE.vorpData = vorpMap;
+      }
+    } catch(e) {}
+
+    STATE.adpPlayers = (adpData.players || []).filter(p =>
+      p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+    STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
+    return true;
+  } finally {
+    RESEARCH.loading = false;
+  }
+}
+
+function researchAdp(p) {
+  const v = p.composite_adp ?? p.adp;
+  return (v == null || v >= 999) ? null : v;
+}
+
+// Value vs FantasyPros consensus: positive = market drafts them later than FP
+// ranks them (opportunity), negative = earlier (you'd have to reach).
+function researchValue(p) {
+  if (p.composite_adp == null || p.fantasypros_adp == null) return null;
+  return p.composite_adp - p.fantasypros_adp;
+}
+
+function researchVorp(p) {
+  return (STATE.isSuperflex && p.vorp_sf != null) ? p.vorp_sf : (p.vorp_std ?? null);
+}
+
+function setResearchPos(pos) {
+  RESEARCH.pos = pos;
+  document.querySelectorAll('.rsch-pos-btn').forEach(b => b.classList.toggle('active', b.dataset.rpos === pos));
+  renderResearchList();
+}
+
+const RSCH_POS_COLORS = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)', DEF: 'var(--dst)', PK: 'var(--k)' };
+
+function renderResearchList() {
+  const container = document.getElementById('research-player-list');
+  if (!container) return;
+
+  if (!STATE.mergedPlayers?.length) {
+    container.innerHTML = `<div class="empty-state">${RESEARCH.loading ? 'Loading player data…' : 'No player data available'}</div>`;
+    return;
+  }
+
+  // Position rank by composite ADP, computed once per render
+  const posRank = {};
+  const byPos = {};
+  STATE.mergedPlayers.forEach(p => { (byPos[p.position] = byPos[p.position] || []).push(p); });
+  Object.values(byPos).forEach(list => {
+    list.slice().sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999))
+      .forEach((p, i) => { posRank[p.name] = i + 1; });
+  });
+
+  let players = STATE.mergedPlayers.slice();
+  if (RESEARCH.pos !== 'ALL') players = players.filter(p => p.position === RESEARCH.pos);
+  const q = RESEARCH.search.toLowerCase().trim();
+  if (q) players = players.filter(p => p.name.toLowerCase().includes(q) || (p.team || '').toLowerCase().includes(q));
+
+  const sorters = {
+    adp: (a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999),
+    vorp: (a, b) => (researchVorp(b) ?? -999) - (researchVorp(a) ?? -999),
+    value: (a, b) => (researchValue(b) ?? -999) - (researchValue(a) ?? -999),
+    volatility: (a, b) => (b.stdev ?? -1) - (a.stdev ?? -1),
+  };
+  players.sort(sorters[RESEARCH.sort] || sorters.adp);
+
+  RESEARCH.lastList = players;
+
+  if (!players.length) {
+    container.innerHTML = '<div class="empty-state">No players found</div>';
+    return;
+  }
+
+  container.innerHTML = players.map((p, i) => {
+    const adp = researchAdp(p);
+    const vorp = researchVorp(p);
+    const val = researchValue(p);
+    const valHtml = val == null ? '<span style="color:var(--text-muted);">—</span>'
+      : `<span style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+    const status = isTarget(p.name) ? '⭐' : (isDND(p.name) ? '🚫' : '');
+    const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
+    return `<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
+      <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
+      <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
+      <span class="rsch-col" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
+      <span class="rsch-col" style="width:42px;color:var(--text-primary);">${adp != null ? adp.toFixed(1) : '—'}</span>
+      <span class="rsch-col" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
+      <span class="rsch-col" style="width:34px;color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</span>
+      <span class="rsch-col" style="width:40px;">${valHtml}</span>
+      <span style="width:18px;text-align:center;font-size:0.75rem;flex-shrink:0;">${status}</span>
+    </div>`;
+  }).join('');
+}
+
+function openResearchProfileByIdx(i) {
+  const p = RESEARCH.lastList[i];
+  if (p) openResearchProfile(p.name);
+}
+
+function openResearchProfile(name) {
+  RESEARCH.profileName = name;
+  renderResearchProfile();
+  document.getElementById('research-profile-overlay').classList.add('open');
+}
+
+function closeResearchProfile() {
+  document.getElementById('research-profile-overlay').classList.remove('open');
+  RESEARCH.profileName = null;
+}
+
+function renderResearchProfile() {
+  const name = RESEARCH.profileName;
+  const p = STATE.mergedPlayers.find(x => x.name === name);
+  const body = document.getElementById('research-profile-body');
+  const bar = document.getElementById('research-decision-bar');
+  if (!p || !body) return;
+
+  const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
+  const adp = researchAdp(p);
+  const vorp = p.vorp_std;
+
+  // Position rank by composite ADP
+  const posList = STATE.mergedPlayers.filter(x => x.position === p.position)
+    .sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999));
+  const posRank = posList.findIndex(x => x.name === p.name) + 1;
+
+  // VORP rank within position
+  const vorpList = STATE.mergedPlayers.filter(x => x.position === p.position && x.vorp_std != null)
+    .sort((a, b) => b.vorp_std - a.vorp_std);
+  const vorpRank = vorpList.findIndex(x => x.name === p.name) + 1;
+
+  // ── Header ──
+  const injury = p.injury_status && p.injury_status !== 'Active'
+    ? `<span style="font-size:0.65rem;font-weight:700;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.4);border-radius:5px;padding:0.15rem 0.4rem;">⚠ ${escHtml(p.injury_status)}</span>` : '';
+  let html = `
+    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;padding-right:2rem;">
+      <span style="font-size:1.25rem;font-weight:800;">${escHtml(p.name)}</span>
+      <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
+      <span style="font-size:0.78rem;color:var(--text-muted);font-family:'DM Mono',monospace;">${escHtml(p.team || 'FA')}</span>
+      ${p.bye ? `<span style="font-size:0.7rem;color:var(--text-muted);">Bye ${escHtml(p.bye)}</span>` : ''}
+      ${injury}
+    </div>`;
+
+  // ── ADP section ──
+  const maxLow = Math.max(...STATE.mergedPlayers.map(x => x.low || 0), 24);
+  const maxPick = Math.min(216, maxLow + 12);
+  const pct = v => Math.max(0, Math.min(100, (v - 1) / (maxPick - 1) * 100));
+  const dotAdp = p.weighted_adp ?? adp;
+
+  html += `<div class="rsch-section-title">Average Draft Position</div>
+    <div style="display:flex;align-items:baseline;gap:0.6rem;">
+      <span style="font-size:1.8rem;font-weight:800;font-family:'DM Mono',monospace;">${adp != null ? adp.toFixed(2) : '—'}</span>
+      <span style="font-size:0.78rem;color:var(--text-secondary);font-weight:700;">${escHtml(p.position)}${posRank}</span>
+    </div>`;
+
+  if (p.high && p.low && adp != null) {
+    html += `<div style="margin-top:0.6rem;">
+      <div style="position:relative;height:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;">
+        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:rgba(99,102,241,0.35);border-radius:999px;"></div>
+        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:10px;height:10px;transform:translate(-50%,-50%);background:var(--accent);border-radius:50%;box-shadow:0 0 6px var(--accent);"></div>` : ''}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.25rem;">
+        <span>Pick 1</span><span>Pick ${maxPick}</span>
+      </div>
+    </div>`;
+  }
+
+  if (p.weighted_adp != null && adp != null && Math.abs(p.weighted_adp - adp) > 0.5) {
+    const earlier = p.weighted_adp < adp;
+    html += `<div style="font-size:0.72rem;margin-top:0.4rem;color:${earlier ? 'var(--amber)' : 'var(--success)'};font-weight:600;">
+      ${earlier ? '↑ Trending earlier' : '↓ Trending later'} — recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} overall
+    </div>`;
+  }
+
+  // ── Source breakdown ──
+  const sources = [
+    ['Sleeper', p.sleeper_adp],
+    ['FantasyPros', p.fantasypros_adp],
+    ['Underdog', p.underdog_adp],
+  ];
+  const maxSrc = Math.max(...sources.map(([, v]) => v || 0), 1);
+  html += `<div class="rsch-section-title">Source Breakdown</div>`;
+  html += sources.map(([label, v]) => `
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.35rem;">
+      <span style="width:82px;font-size:0.72rem;color:${v == null ? 'var(--text-muted)' : 'var(--text-secondary)'};flex-shrink:0;">${label}</span>
+      <span style="width:38px;font-size:0.72rem;font-family:'DM Mono',monospace;text-align:right;color:${v == null ? 'var(--text-muted)' : 'var(--text-primary)'};flex-shrink:0;">${v != null ? v.toFixed(1) : '—'}</span>
+      <div style="flex:1;height:6px;background:var(--bg-card);border-radius:999px;overflow:hidden;">
+        ${v != null ? `<div style="height:100%;width:${Math.max(3, v / maxSrc * 100)}%;background:${posCol};border-radius:999px;opacity:0.8;"></div>` : ''}
+      </div>
+    </div>`).join('');
+
+  const val = researchValue(p);
+  if (val != null && Math.abs(val) >= 0.05) {
+    const later = val > 0;
+    html += `<div style="font-size:0.72rem;margin-top:0.45rem;padding:0.45rem 0.6rem;border-radius:8px;background:${later ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};border:1px solid ${later ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};color:${later ? 'var(--success)' : 'var(--danger)'};">
+      Going ${Math.abs(val).toFixed(1)} picks ${later ? 'later' : 'earlier'} than FantasyPros consensus — ${later ? 'potential value' : 'market reach'}
+    </div>`;
+  }
+
+  // ── Draft behavior ──
+  const td = p.times_drafted || 0;
+  const conf = td >= 20 ? 'High confidence' : td >= 10 ? 'Moderate sample' : td >= 5 ? 'Low sample' : 'Very small sample';
+  const sd = p.stdev;
+  const sdLabel = sd == null ? '' : sd < 0.8 ? 'Very consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
+  const sdColor = sd == null ? 'var(--text-muted)' : sd < 0.8 ? 'var(--success)' : sd <= 2.0 ? 'var(--amber)' : 'var(--danger)';
+  html += `<div class="rsch-section-title">Draft Behavior</div>
+    <div style="font-size:0.76rem;color:var(--text-secondary);line-height:1.7;">
+      <div>Drafted in <strong style="color:var(--text-primary);">${td}</strong> tracked drafts <span style="color:var(--text-muted);">(${conf})</span></div>
+      <div>Spread: <strong style="color:${sdColor};">±${sd != null ? sd.toFixed(1) : '?'}</strong> <span style="color:${sdColor};">${sdLabel}</span></div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-muted);">Earliest: ${p.high ?? '—'} · Latest: ${p.low ?? '—'}</div>
+    </div>`;
+
+  // ── VORP ──
+  html += `<div class="rsch-section-title">Value Over Replacement</div>
+    <div style="display:flex;gap:0.5rem;">
+      <div class="rsch-stat-box">
+        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${vorp != null ? Math.round(vorp) : '—'}</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">VORP Std</div>
+      </div>
+      <div class="rsch-stat-box">
+        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${p.vorp_sf != null ? Math.round(p.vorp_sf) : '—'}</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">VORP SF</div>
+      </div>
+      <div class="rsch-stat-box">
+        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${vorpRank > 0 ? escHtml(p.position) + vorpRank : '—'}</div>
+        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">Pos VORP Rank</div>
+      </div>
+    </div>`;
+
+  body.innerHTML = html;
+
+  // ── Decision bar (sticky) ──
+  const t = isTarget(p.name), d = isDND(p.name);
+  bar.innerHTML = `
+    <button class="rsch-decision-btn${t ? ' active-target' : ''}" onclick="setResearchDecision('target')">⭐ Target</button>
+    <button class="rsch-decision-btn${!t && !d ? ' active-neutral' : ''}" onclick="setResearchDecision('neutral')">— Neutral</button>
+    <button class="rsch-decision-btn${d ? ' active-dnd' : ''}" onclick="setResearchDecision('dnd')">🚫 Do Not Draft</button>`;
+}
+
+function setResearchDecision(kind) {
+  const name = RESEARCH.profileName;
+  if (!name) return;
+  if (kind === 'target') { if (!isTarget(name)) toggleTarget(name); }
+  else if (kind === 'dnd') { if (!isDND(name)) toggleDND(name); }
+  else { if (isTarget(name)) toggleTarget(name); if (isDND(name)) toggleDND(name); }
+  renderResearchProfile();
+  renderResearchList();
+  // Keep the main board/recs in sync when the draft view is up
+  if (document.getElementById('app-screen')?.style.display !== 'none') {
+    try { renderBoard(); renderRecommendations(); } catch(e) {}
+  }
+}
+
+// Standalone overlay mode: the setup screen (and desktop header) open the
+// research panel over everything. app-screen is display:none pre-draft, so the
+// panel is reparented to <body> while in overlay mode.
+function openResearchStandalone() {
+  const panel = document.getElementById('panel-research');
+  if (!panel) return;
+  if (panel.parentElement !== document.body) document.body.appendChild(panel);
+  panel.classList.add('as-overlay');
+  renderResearchList();
+  ensureResearchData().then(() => renderResearchList());
+}
+
+function closeResearchStandalone() {
+  const panel = document.getElementById('panel-research');
+  if (!panel) return;
+  panel.classList.remove('as-overlay');
+  const layout = document.querySelector('.main-layout');
+  if (layout && panel.parentElement !== layout) layout.appendChild(panel);
 }
 </script>
 
