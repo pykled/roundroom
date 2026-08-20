@@ -7,6 +7,7 @@ on:
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    timeout-minutes: 120   # 75min crawl + post-processing headroom
     permissions:
       contents: write
     steps:
@@ -14,9 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm install
-      # Full fresh crawl (no --resume): raw_picks.json is rebuilt each run with
-      # only recent drafts, so stale picks never accumulate.
-      - run: node scripts/crawl.js
+      # Restore persisted frontier + known leagues from the previous run so we
+      # skip re-exploring users/leagues already traversed. The crawl saves these
+      # back to data/ at completion and they're committed alongside the picks.
+      - run: node scripts/crawl.js --resume
       - run: node scripts/aggregate.js
       - name: Verify crawl quality
         # Fail the run rather than committing empty/thin data — a red run is

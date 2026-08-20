@@ -6,11 +6,19 @@
  * from a seed username: user -> leagues -> drafts -> picks, and league users
  * feed the frontier for more users to explore.
  *
- * Output:
- *   data/raw_picks.json  — array of pick objects
- *   data/crawl_meta.json — { total_drafts, total_picks, crawled_at, seeds_used }
+ * Efficiency features:
+ *   - Persistent frontier: seenUsers, seenLeagues, userFrontier saved between
+ *     runs so we don't re-walk 10k+ users every time.
+ *   - Known leagues: leagues that produced snake/linear drafts are saved and
+ *     checked directly at the start of each run (Phase 1) before the snowball.
+ *   - Time budget is 75 minutes — more headroom for the frontier to explore
+ *     genuinely new territory instead of re-walking known ground.
  *
- * Node built-ins + native fetch only.
+ * Output:
+ *   data/raw_picks.json        — array of pick objects
+ *   data/crawl_meta.json       — run stats
+ *   data/crawl_frontier.json   — persisted user graph state (seenUsers etc.)
+ *   data/known_leagues.json    — leagues confirmed to have snake/linear drafts
  */
 
 const fs = require('fs');
@@ -18,13 +26,11 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const SEASON = '2026';
-// Seed frontier: pykle plus a hardcoded list of well-known public Sleeper
-// usernames so the snowball reaches many independent league graphs immediately
-// instead of walking outward from a single account.
+
 const SEED_USERNAMES = [
   'pykle',
-  'scott_fish',    // Scott Fish Bowl organizer
-  'jasonmoore',    // FantasyPros analyst
+  'scott_fish',           // Scott Fish Bowl organizer
+  'jasonmoore',           // FantasyPros analyst
   'fullhousefantasy',
   'rotounderworld',
   'dynastydaddy',
@@ -42,18 +48,22 @@ const SEED_USERNAMES = [
   'pfref',
   'dynastyleaguefootball',
 ];
-const MAX_DRAFTS = 3000;               // volume target (raised from 500)
-const TIME_BUDGET_MS = 25 * 60 * 1000; // 25 minutes (raised from 8)
-const RATE_LIMIT_MS = 500;     // 2 req/sec max
 
-// --resume: if data/raw_picks.json already exists, load prior picks and skip
-// draft_ids we've already collected, only fetching new drafts. Makes reruns fast.
+const MAX_DRAFTS = 3000;
+const TIME_BUDGET_MS = 75 * 60 * 1000; // 75 minutes
+const RATE_LIMIT_MS = 500;              // 2 req/sec
+
+// Frontier persistence: saved user-graph state reused across runs.
+// Cleared automatically if older than this threshold (user graphs shift).
+const FRONTIER_PATH = path.join(DATA_DIR, 'crawl_frontier.json');
+const KNOWN_LEAGUES_PATH = path.join(DATA_DIR, 'known_leagues.json');
+const FRONTIER_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+// --resume: reload prior picks from raw_picks.json and skip those draft_ids.
 const RESUME = process.argv.includes('--resume');
 
-// Data-quality window: only keep drafts from the last 14 days. During Aug-Sep
-// draft season the meta shifts fast (injuries, depth charts), so an old draft
-// reflects a stale picture. We still explore the LEAGUE MEMBERS of old drafts —
-// the user graph is the valuable part; a stale draft shouldn't stop the crawl.
+// Only keep drafts from the last 14 days. Draft meta shifts fast in Aug–Sep.
+// We still explore LEAGUE MEMBERS of old drafts — graph is the valuable part.
 const DATE_WINDOW_DAYS = 14;
 const DATE_WINDOW_MS = DATE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
@@ -84,64 +94,140 @@ async function throttledFetch(url) {
   }
 }
 
+// Fetch and process all picks from a single draft. Returns the number of picks
+// added, or 0 if the draft was skipped. Mutates picks[], completedDrafts, and
+// the filter counters passed in.
+async function processDraft(draft, { picks, completedDrafts, league, cutoff, counters }) {
+  if (!draft || !draft.draft_id) return 0;
+  if (draft.status !== 'complete') return 0;
+  counters.completedSeen++;
+
+  if (draft.type !== 'snake' && draft.type !== 'linear') {
+    counters.skippedAuction++;
+    return 0;
+  }
+  const startTs = draft.start_time || draft.last_picked || 0;
+  if (!startTs || startTs < cutoff) {
+    counters.skippedTooOld++;
+    return 0;
+  }
+
+  const draftPicks = await throttledFetch(`${API}/draft/${draft.draft_id}/picks`);
+  if (!Array.isArray(draftPicks) || draftPicks.length === 0) return 0;
+
+  const teams = (draft.settings && draft.settings.teams) || (league && league.total_rosters) || 12;
+  const draftEndTs = draft.last_picked || 0;
+  const draftDurationMs = startTs && draftEndTs && draftEndTs > startTs ? draftEndTs - startTs : null;
+
+  for (const p of draftPicks) {
+    const meta = p.metadata || {};
+    const name = (meta.first_name && meta.last_name)
+      ? `${meta.first_name} ${meta.last_name}`.trim()
+      : (meta.first_name || meta.last_name || null);
+    const isAutopick = p.is_autopick === true || meta.is_autopick === true || meta.is_autopick === 'true';
+    picks.push({
+      draft_id: draft.draft_id,
+      pick_no: p.pick_no,
+      player_id: p.player_id,
+      player_name: name,
+      position: meta.position || null,
+      team: meta.team || null,
+      round: p.round,
+      roster_slot: p.draft_slot,
+      league_size: teams,
+      draft_start_time: startTs,
+      draft_type: draft.type,
+      draft_duration_ms: draftDurationMs,
+      picked_by: p.picked_by || null,
+      is_autopick: isAutopick,
+      metadata: meta,
+    });
+  }
+  completedDrafts.add(draft.draft_id);
+  return draftPicks.length;
+}
+
 async function main() {
   const startTime = Date.now();
   const timeLeft = () => TIME_BUDGET_MS - (Date.now() - startTime);
 
-  const userFrontier = [...SEED_USERNAMES];   // usernames or user_ids to explore
-  const seenUsers = new Set();                // usernames + user_ids we've queued/visited
-  SEED_USERNAMES.forEach((u) => seenUsers.add(String(u).toLowerCase()));
-
-  const seenLeagues = new Set();
-  const seenDrafts = new Set();
+  // ── Initialize graph state ──────────────────────────────────────────────
+  const seenUsers = new Set();
+  SEED_USERNAMES.forEach(u => seenUsers.add(String(u).toLowerCase()));
+  const userFrontier = [...SEED_USERNAMES];
+  const seenLeagues = new Set();    // leagues we've already expanded members for
+  const seenDrafts = new Set();     // draft_ids already processed this or prior runs
   const completedDrafts = new Set();
+  const knownLeagues = new Set();   // leagues confirmed to have snake/linear drafts
   let picks = [];
 
   const cutoff = Date.now() - DATE_WINDOW_MS;
 
-  // --resume: reload previously collected picks and mark their draft_ids as
-  // already-seen/completed so we skip re-fetching them. New drafts still append.
-  // Picks older than the date window are dropped on load — otherwise stale
-  // drafts accumulate in raw_picks.json forever, aggregate.js filters them
-  // out anyway, and resume runs end up with too few usable drafts.
+  // ── Load persistent frontier ────────────────────────────────────────────
+  if (fs.existsSync(FRONTIER_PATH)) {
+    try {
+      const saved = JSON.parse(fs.readFileSync(FRONTIER_PATH, 'utf8'));
+      const age = Date.now() - new Date(saved.saved_at).getTime();
+      if (age < FRONTIER_MAX_AGE_MS) {
+        let restoredUsers = 0, restoredLeagues = 0, restoredDrafts = 0, restoredFrontier = 0;
+        (saved.seenUsers || []).forEach(u => { seenUsers.add(u); restoredUsers++; });
+        (saved.seenLeagues || []).forEach(l => { seenLeagues.add(l); restoredLeagues++; });
+        (saved.seenDrafts || []).forEach(d => { seenDrafts.add(d); restoredDrafts++; });
+        // Prepend saved frontier (unexplored users from last run) but skip any now-seen
+        const pending = (saved.userFrontier || []).filter(u => !seenUsers.has(String(u).toLowerCase()));
+        userFrontier.unshift(...pending);
+        restoredFrontier = pending.length;
+        console.log(`[frontier] Restored: ${restoredUsers} seen users, ${restoredLeagues} seen leagues, ${restoredDrafts} seen drafts, +${restoredFrontier} pending users`);
+      } else {
+        console.log(`[frontier] ${Math.round(age / 86400000 * 10) / 10}d old — starting fresh`);
+        try { fs.unlinkSync(FRONTIER_PATH); } catch (_) {}
+      }
+    } catch (e) {
+      console.warn(`[frontier] Load failed: ${e.message} — starting fresh`);
+    }
+  } else {
+    console.log('[frontier] No saved frontier — starting fresh snowball');
+  }
+
+  // ── Load known leagues ──────────────────────────────────────────────────
+  let knownLeaguesList = [];
+  if (fs.existsSync(KNOWN_LEAGUES_PATH)) {
+    try {
+      const saved = JSON.parse(fs.readFileSync(KNOWN_LEAGUES_PATH, 'utf8'));
+      knownLeaguesList = saved.leagues || [];
+      knownLeaguesList.forEach(l => knownLeagues.add(l));
+      console.log(`[known-leagues] Loaded ${knownLeaguesList.length} leagues — checking these first`);
+    } catch (e) {
+      console.warn(`[known-leagues] Load failed: ${e.message}`);
+    }
+  }
+
+  // ── Resume: reload prior picks ──────────────────────────────────────────
   if (RESUME) {
     const rawPath = path.join(DATA_DIR, 'raw_picks.json');
     if (fs.existsSync(rawPath)) {
       try {
         const prior = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
         if (Array.isArray(prior) && prior.length) {
-          const fresh = prior.filter(
-            (p) => p && p.draft_id && p.draft_start_time && p.draft_start_time >= cutoff
-          );
+          const fresh = prior.filter(p => p && p.draft_id && p.draft_start_time && p.draft_start_time >= cutoff);
           picks = fresh;
-          for (const p of fresh) {
-            seenDrafts.add(p.draft_id);
-            completedDrafts.add(p.draft_id);
-          }
-          console.log(
-            `[resume] Loaded ${prior.length} prior picks; kept ${fresh.length} ` +
-            `within the ${DATE_WINDOW_DAYS}-day window from ${completedDrafts.size} drafts ` +
-            `(dropped ${prior.length - fresh.length} stale picks) — kept drafts will be skipped.`
-          );
+          for (const p of fresh) { seenDrafts.add(p.draft_id); completedDrafts.add(p.draft_id); }
+          console.log(`[resume] Loaded ${prior.length} prior picks; kept ${fresh.length} within ${DATE_WINDOW_DAYS}d from ${completedDrafts.size} drafts`);
         }
-      } catch (err) {
-        console.warn(`[resume] Could not parse existing raw_picks.json: ${err.message}. Starting fresh.`);
+      } catch (e) {
+        console.warn(`[resume] Could not parse raw_picks.json: ${e.message} — starting fresh`);
       }
     } else {
-      console.log('[resume] No existing raw_picks.json — starting fresh.');
+      console.log('[resume] No existing raw_picks.json — starting fresh');
     }
   }
 
-  // Draft-level filter counters (feed data_quality.json downstream).
-  let completedSeen = 0;    // all completed drafts encountered (pre-filter)
-  let skippedTooOld = 0;    // completed but start_time older than the window
-  let skippedAuction = 0;   // completed but non-snake (auction) — corrupts ADP
+  // Filter counters
+  const counters = { completedSeen: 0, skippedTooOld: 0, skippedAuction: 0 };
 
-  console.log(`Starting snowball crawl. Seeds: ${SEED_USERNAMES.join(', ')}`);
-  console.log(`Targets: ${MAX_DRAFTS} completed drafts or ${TIME_BUDGET_MS / 60000}min\n`);
-
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  // Checkpoint: save picks + meta + frontier to disk
   const checkpoint = (reason) => {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(path.join(DATA_DIR, 'raw_picks.json'), JSON.stringify(picks));
     fs.writeFileSync(path.join(DATA_DIR, 'crawl_meta.json'), JSON.stringify({
       total_drafts: completedDrafts.size,
@@ -150,23 +236,68 @@ async function main() {
       seeds_used: SEED_USERNAMES,
       users_explored: seenUsers.size,
       leagues_seen: seenLeagues.size,
-      // Draft-level filtering applied during the crawl (used by aggregate.js).
-      completed_drafts_seen: completedSeen,
-      skipped_too_old: skippedTooOld,
-      skipped_auction: skippedAuction,
+      known_leagues: knownLeagues.size,
+      completed_drafts_seen: counters.completedSeen,
+      skipped_too_old: counters.skippedTooOld,
+      skipped_auction: counters.skippedAuction,
       date_window_days: DATE_WINDOW_DAYS,
       elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
       stop_reason: reason,
     }, null, 2));
+    // Save frontier state for the next run
+    fs.writeFileSync(FRONTIER_PATH, JSON.stringify({
+      saved_at: new Date().toISOString(),
+      seenUsers: [...seenUsers],
+      seenLeagues: [...seenLeagues],
+      seenDrafts: [...seenDrafts],
+      userFrontier: [...userFrontier],
+    }));
+    // Save known leagues
+    fs.writeFileSync(KNOWN_LEAGUES_PATH, JSON.stringify({
+      saved_at: new Date().toISOString(),
+      leagues: [...knownLeagues],
+    }, null, 2));
   };
 
+  console.log(`\nStarting crawl. Seeds: ${SEED_USERNAMES.length} usernames`);
+  console.log(`Targets: ${MAX_DRAFTS} drafts or ${TIME_BUDGET_MS / 60000}min\n`);
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+  // ── Phase 1: Check known productive leagues directly ────────────────────
+  // Skip the user graph entirely for leagues we already know are active.
+  // This catches new drafts that completed since the last run without any
+  // user traversal overhead.
+  if (knownLeaguesList.length > 0 && timeLeft() > 0) {
+    console.log(`[phase 1] Checking ${knownLeaguesList.length} known leagues for new drafts...`);
+    let phase1New = 0;
+    for (const leagueId of knownLeaguesList) {
+      if (completedDrafts.size >= MAX_DRAFTS || timeLeft() <= 0) break;
+
+      const drafts = await throttledFetch(`${API}/league/${leagueId}/drafts`);
+      if (!Array.isArray(drafts)) continue;
+
+      // Mark as seen so Phase 2 skips member expansion (already in seenUsers from prior runs)
+      seenLeagues.add(leagueId);
+
+      for (const draft of drafts) {
+        if (!draft || !draft.draft_id || seenDrafts.has(draft.draft_id)) continue;
+        seenDrafts.add(draft.draft_id);
+        if (completedDrafts.size >= MAX_DRAFTS) break;
+        const added = await processDraft(draft, { picks, completedDrafts, league: null, cutoff, counters });
+        if (added > 0) phase1New++;
+      }
+    }
+    console.log(`[phase 1] ${phase1New} new drafts from known leagues. Starting snowball...\n`);
+  }
+
+  // ── Phase 2: Snowball crawl ─────────────────────────────────────────────
+  // Walk the user frontier. Thanks to the persisted frontier, we skip users
+  // and leagues already explored in prior runs and only traverse new territory.
   while (userFrontier.length > 0 && completedDrafts.size < MAX_DRAFTS && timeLeft() > 0) {
     const userRef = userFrontier.shift();
 
-    // Resolve to a user object. userRef may be a username or a numeric user_id.
     let user;
     if (/^\d+$/.test(String(userRef))) {
-      // numeric user_id — we can query leagues directly, no need to re-resolve
       user = { user_id: String(userRef), username: null };
     } else {
       const u = await throttledFetch(`${API}/user/${encodeURIComponent(userRef)}`);
@@ -182,91 +313,30 @@ async function main() {
       if (!league || !league.league_id || seenLeagues.has(league.league_id)) continue;
       seenLeagues.add(league.league_id);
 
-      // Drafts for this league
       const drafts = await throttledFetch(`${API}/league/${league.league_id}/drafts`);
       if (Array.isArray(drafts)) {
         for (const draft of drafts) {
           if (!draft || !draft.draft_id || seenDrafts.has(draft.draft_id)) continue;
           seenDrafts.add(draft.draft_id);
-          if (draft.status !== 'complete') continue;
-          completedSeen++;
+
+          // Track any league with a snake/linear draft (even old ones) for Phase 1 next run
+          if (draft.type === 'snake' || draft.type === 'linear') {
+            knownLeagues.add(league.league_id);
+          }
+
           if (completedDrafts.size >= MAX_DRAFTS) break;
-
-          // --- Draft-level quality gates (still explore members below) ---
-          // Skip AUCTION (and any non-ordered) drafts: their pick logic (dollar
-          // values, not pick order) corrupts ADP. Keep both 'snake' and 'linear'
-          // — a linear draft still has meaningful overall pick numbers (pick N =
-          // overall pick N), exactly like snake, so its ADP is valid. Filtering
-          // to snake-only would needlessly discard ~15% of real ordered drafts.
-          if (draft.type !== 'snake' && draft.type !== 'linear') {
-            skippedAuction++;
-            continue;
-          }
-          // Recency window: skip drafts older than 14 days. start_time is unix
-          // ms; fall back to last_picked if start_time is missing.
-          const startTs = draft.start_time || draft.last_picked || 0;
-          if (!startTs || startTs < cutoff) {
-            skippedTooOld++;
-            continue;
-          }
-
-          const draftPicks = await throttledFetch(`${API}/draft/${draft.draft_id}/picks`);
-          if (!Array.isArray(draftPicks) || draftPicks.length === 0) continue;
-
-          // league size for bucketing — teams count from draft settings or league
-          const teams =
-            (draft.settings && draft.settings.teams) ||
-            league.total_rosters ||
-            12;
-
-          // Denormalized draft-level fields so aggregate.js can filter without
-          // re-fetching the draft object. end_time proxy = last_picked.
-          const draftEndTs = draft.last_picked || 0;
-          const draftDurationMs =
-            startTs && draftEndTs && draftEndTs > startTs ? draftEndTs - startTs : null;
-
-          for (const p of draftPicks) {
-            const meta = p.metadata || {};
-            const name =
-              (meta.first_name && meta.last_name)
-                ? `${meta.first_name} ${meta.last_name}`.trim()
-                : (meta.first_name || meta.last_name || null);
-            // Autopick flag can appear top-level or in metadata depending on the
-            // draft — capture either so aggregate.js can spot autopick-heavy drafts.
-            const isAutopick = p.is_autopick === true || meta.is_autopick === true ||
-              meta.is_autopick === 'true';
-            picks.push({
-              draft_id: draft.draft_id,
-              pick_no: p.pick_no,
-              player_id: p.player_id,
-              player_name: name,
-              position: meta.position || null,
-              team: meta.team || null,
-              round: p.round,
-              roster_slot: p.draft_slot,
-              league_size: teams,
-              // Denormalized draft metadata for downstream filtering.
-              draft_start_time: startTs,
-              draft_type: draft.type,
-              draft_duration_ms: draftDurationMs,
-              // Owner of this pick — used to detect duplicate-owner test leagues.
-              picked_by: p.picked_by || null,
-              is_autopick: isAutopick,
-              metadata: meta,
-            });
-          }
-          completedDrafts.add(draft.draft_id);
-          if (completedDrafts.size % 10 === 0 || completedDrafts.size <= 5) {
-            console.log(
-              `[${completedDrafts.size} drafts / ${picks.length} picks] ` +
-              `frontier=${userFrontier.length} leagues=${seenLeagues.size} ` +
-              `t=${Math.round((Date.now() - startTime) / 1000)}s`
-            );
-          }
-          // Periodic checkpoint so partial progress survives interruption.
-          if (completedDrafts.size % 25 === 0) checkpoint('in_progress');
+          await processDraft(draft, { picks, completedDrafts, league, cutoff, counters });
         }
       }
+
+      if (completedDrafts.size % 10 === 0 && completedDrafts.size > 0) {
+        console.log(
+          `[${completedDrafts.size} drafts / ${picks.length} picks] ` +
+          `frontier=${userFrontier.length} leagues=${seenLeagues.size} known=${knownLeagues.size} ` +
+          `t=${Math.round((Date.now() - startTime) / 1000)}s`
+        );
+      }
+      if (completedDrafts.size % 25 === 0 && completedDrafts.size > 0) checkpoint('in_progress');
 
       // Expand frontier with league members
       const members = await throttledFetch(`${API}/league/${league.league_id}/users`);
@@ -282,36 +352,21 @@ async function main() {
     }
   }
 
-  const meta = {
-    total_drafts: completedDrafts.size,
-    total_picks: picks.length,
-    crawled_at: new Date().toISOString(),
-    seeds_used: SEED_USERNAMES,
-    users_explored: seenUsers.size,
-    leagues_seen: seenLeagues.size,
-    completed_drafts_seen: completedSeen,
-    skipped_too_old: skippedTooOld,
-    skipped_auction: skippedAuction,
-    date_window_days: DATE_WINDOW_DAYS,
-    elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
-    stop_reason:
-      completedDrafts.size >= MAX_DRAFTS ? 'max_drafts'
-      : timeLeft() <= 0 ? 'time_budget'
-      : 'frontier_exhausted',
-  };
+  const stopReason =
+    completedDrafts.size >= MAX_DRAFTS ? 'max_drafts'
+    : timeLeft() <= 0 ? 'time_budget'
+    : 'frontier_exhausted';
 
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(path.join(DATA_DIR, 'raw_picks.json'), JSON.stringify(picks));
-  fs.writeFileSync(path.join(DATA_DIR, 'crawl_meta.json'), JSON.stringify(meta, null, 2));
+  checkpoint(stopReason);
 
   console.log('\n=== Crawl complete ===');
-  console.log(JSON.stringify(meta, null, 2));
+  console.log(`Stop reason: ${stopReason}`);
+  console.log(`Drafts: ${completedDrafts.size} | Picks: ${picks.length} | Known leagues saved: ${knownLeagues.size}`);
   console.log(
-    `Draft filtering: ${completedSeen} completed seen -> ` +
-    `${skippedAuction} auction skipped, ${skippedTooOld} too-old skipped -> ` +
-    `${completedDrafts.size} kept.`
+    `Filter: ${counters.completedSeen} completed → ${counters.skippedAuction} auction + ` +
+    `${counters.skippedTooOld} too-old skipped → ${completedDrafts.size} kept`
   );
-  console.log(`Wrote ${picks.length} picks from ${completedDrafts.size} drafts.`);
+  console.log(`Time: ${Math.round((Date.now() - startTime) / 1000)}s | Users seen: ${seenUsers.size} | Leagues seen: ${seenLeagues.size}`);
 }
 
 main().catch((err) => {
