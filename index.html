@@ -1996,7 +1996,7 @@
   <!-- Header -->
   <div class="app-header">
     <div style="display:flex;align-items:center;gap:0.5rem;">
-      <button onclick="goHome()" title="Back to league select" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;border-radius:4px;display:flex;align-items:center;gap:0.25rem;font-family:inherit;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">← Leagues</button>
+      <button onclick="goHome()" title="Back to home" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;border-radius:4px;display:flex;align-items:center;gap:0.25rem;font-family:inherit;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">← Home</button>
       <div class="header-league" id="header-league-name">—</div>
       <span id="sf-badge" style="display:none;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;background:rgba(124,111,247,0.2);color:#a78bfa;border:1px solid rgba(124,111,247,0.4);border-radius:4px;padding:0.1rem 0.35rem;">SUPERFLEX</span>
     </div>
@@ -2165,7 +2165,7 @@
 <div id="review-screen" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);">
   <!-- Header -->
   <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;">
-    <button onclick="exitReviewRoom()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;">← Leagues</button>
+    <button onclick="exitReviewRoom()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;">← Home</button>
     <span id="review-league-name" style="font-weight:700;font-size:0.9rem;flex:1;"></span>
     <span style="font-size:0.7rem;color:var(--text-muted);" id="review-meta"></span>
     <!-- Team selector -->
@@ -2642,7 +2642,7 @@ async function launchStandaloneMock() {
 
     STATE.adpPlayers = (adpData.players || []).filter(p =>
       p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
-    STATE.mergedPlayers = STATE.adpPlayers.map(p => ({ ...p, sleeper_id: p.player_id }));
+    STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
 
     // Sync header slot badge + superflex UI
     const badge = document.getElementById('slot-badge');
@@ -2688,6 +2688,7 @@ function startMockDraft() {
   MOCK.myPickNumbers = getMockPickNumbers(STATE.mySlot || 5, STATE.totalTeams || 12, STATE.totalRounds || 15);
   MOCK.totalPicks = (STATE.totalTeams || 12) * (STATE.totalRounds || 15);
   MOCK.waitingForUser = false;
+  STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
 
   // Assign each team a draft strategy + track their roster
   const strats = STATE.isSuperflex
@@ -2708,6 +2709,7 @@ function startMockDraft() {
   initMockBroadcastChannel(); // listen for companion request_state from moment mock begins
   startMockHeartbeat(); // keep companion popup in sync
   renderBoard();
+  renderRosterSlots();
   advanceMockDraft();
 }
 
@@ -2849,9 +2851,11 @@ function mockUserPick(player) {
   const _mt = STATE.totalTeams || 12;
   MOCK.picks.push({ player, pickNum: MOCK.currentPick, isUser: true, teamNum: getTeamForMockPick(MOCK.currentPick, _mt), round: Math.ceil(MOCK.currentPick / _mt) });
   MOCK.draftedIds.add(player.player_id || player.name);
+  addToMyRoster(player);
 
   showToast(`✅ Mock pick: ${player.name}`, true);
   renderBoard();
+  renderRosterSlots();
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   broadcastMockState();
 
@@ -2978,11 +2982,13 @@ function resetMockDraft() {
   MOCK.draftedIds = new Set();
   MOCK.currentPick = 0;
   MOCK.waitingForUser = false;
+  STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
   document.getElementById('mock-banner').classList.add('hidden');
   document.getElementById('mock-results-overlay').style.display = 'none';
   document.getElementById('draft-board-overlay').style.display = 'none';
   document.getElementById('your-pick-banner').style.display = 'none';
   renderBoard();
+  renderRosterSlots();
   showToast('Mock draft reset', false);
 }
 
@@ -6166,7 +6172,7 @@ function startMockCompanionListener() {
             adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
             stdev: p.stdev || 2, player_id: p.player_id || null
           })).filter(p => p.position && ['QB','RB','WR','TE','K','DST'].includes(p.position));
-          STATE.mergedPlayers = STATE.adpPlayers.map(p => ({ ...p, sleeper_id: p.player_id }));
+          STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
         }
       } catch(_) {}
       // Fallback
