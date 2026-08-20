@@ -15,6 +15,6 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
       - name: Deploy
-        run: railway up --service roundroom --detach
+        run: railway up --project 2fc17845-5773-42c6-8298-956a81460780 --service roundroom --environment production --detach
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
