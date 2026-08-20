@@ -102,6 +102,67 @@ app.get('/api/data-freshness', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// AI Assistant proxy — keeps the Anthropic API key server-side.
+// Simple in-memory rate limit: max 20 requests per IP per minute.
+// ---------------------------------------------------------------------------
+const chatRateLimits = new Map(); // ip → { count, windowStart }
+const CHAT_RATE_LIMIT = 20;
+const CHAT_RATE_WINDOW = 60 * 1000;
+
+function chatRateLimited(ip) {
+  const now = Date.now();
+  const entry = chatRateLimits.get(ip);
+  if (!entry || now - entry.windowStart >= CHAT_RATE_WINDOW) {
+    chatRateLimits.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  entry.count++;
+  return entry.count > CHAT_RATE_LIMIT;
+}
+
+// Periodically drop expired rate-limit entries so the map doesn't grow forever
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of chatRateLimits) {
+    if (now - entry.windowStart >= CHAT_RATE_WINDOW) chatRateLimits.delete(ip);
+  }
+}, 5 * 60 * 1000).unref();
+
+app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(503).json({ error: 'AI assistant is not configured' });
+  }
+  if (chatRateLimited(req.ip)) {
+    return res.status(429).json({ error: 'Too many requests — slow down a bit' });
+  }
+
+  const { messages, system } = req.body || {};
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'messages array required' });
+  }
+
+  try {
+    const Anthropic = require('@anthropic-ai/sdk');
+    const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      system: typeof system === 'string' ? system : undefined,
+      messages: messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: String(m.content || ''),
+      })),
+    });
+    const reply = response.content?.find(b => b.type === 'text')?.text || '';
+    res.json({ reply });
+  } catch (err) {
+    console.error('AI chat error:', err.message);
+    const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 502;
+    res.status(status).json({ error: 'AI request failed' });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Server-Side SSE Relay
 // One Sleeper connection per active draft, fanned out to all connected clients.
 // A Sleeper WebSocket (Phoenix Channel) provides the event-driven fast path:

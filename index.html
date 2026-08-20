@@ -3320,34 +3320,6 @@ function toggleAiPanel() {
 function initAiWelcome() {
   const leagueName = STATE.selectedLeague?.name || 'your league';
   addAiMessage('assistant', `Hey! I'm your draft assistant for ${leagueName}. You're picking at slot #${STATE.mySlot || 5} in a 12-team full PPR. Ask me anything — strategy, player analysis, who to target, who to avoid, or just "what should I do right now?"`);
-
-  const key = localStorage.getItem('draft_anthropic_key');
-  if (!key) showAiKeySetup();
-}
-
-function showAiKeySetup() {
-  const msgs = document.getElementById('ai-messages');
-  const div = document.createElement('div');
-  div.className = 'ai-key-setup';
-  div.id = 'ai-key-setup';
-  div.innerHTML = `
-    <p>To use the AI assistant, paste your Anthropic API key:</p>
-    <input type="password" id="ai-key-input" placeholder="sk-ant-..." />
-    <button onclick="saveAiKey()">Save Key</button>
-  `;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function saveAiKey() {
-  const key = document.getElementById('ai-key-input')?.value?.trim();
-  if (!key || !key.startsWith('sk-')) {
-    alert('Please enter a valid Anthropic API key (starts with sk-)');
-    return;
-  }
-  localStorage.setItem('draft_anthropic_key', key);
-  document.getElementById('ai-key-setup')?.remove();
-  addAiMessage('assistant', 'API key saved! You can now ask me anything.');
 }
 
 function addAiMessage(role, text) {
@@ -3410,12 +3382,6 @@ async function sendAiMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  const key = localStorage.getItem('draft_anthropic_key');
-  if (!key) {
-    showAiKeySetup();
-    return;
-  }
-
   input.value = '';
   addAiMessage('user', text);
 
@@ -3425,33 +3391,27 @@ async function sendAiMessage() {
   const typingEl = addAiMessage('assistant typing', '...');
 
   try {
-    const messages = AI_MESSAGES
-      .filter(m => m.role !== 'assistant' || m.text !== '...')
-      .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
-
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
         system: getAiSystemPrompt(),
-        messages,
+        messages: AI_MESSAGES
+          .filter(m => m.role !== 'assistant' || m.text !== '...')
+          .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })),
       }),
     });
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `API error ${resp.status}`);
+    if (resp.status === 503) {
+      throw new Error('AI assistant is temporarily unavailable.');
     }
 
-    const data = await resp.json();
-    const reply = data.content?.[0]?.text || 'No response';
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw new Error(data.error || `Request failed (${resp.status})`);
+    }
+
+    const reply = data.reply || 'No response';
 
     typingEl.classList.remove('typing');
     typingEl.textContent = reply;
@@ -3459,7 +3419,9 @@ async function sendAiMessage() {
 
   } catch(e) {
     typingEl.classList.remove('typing');
-    typingEl.textContent = `Error: ${e.message}. Check your API key or CORS settings.`;
+    typingEl.textContent = e.message === 'AI assistant is temporarily unavailable.'
+      ? e.message
+      : `Error: ${e.message}`;
     typingEl.style.color = 'var(--danger)';
   }
 
