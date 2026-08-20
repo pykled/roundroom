@@ -2231,6 +2231,7 @@
       <div class="home-secondary-links">
         <button onclick="openResearchStandalone()">🔍 Browse Players</button>
         <button onclick="openListsOverlay()">⭐ My Lists</button>
+        <button onclick="openHelp()" style="color:var(--text-muted);">❓ How it works</button>
       </div>
 
       <div class="home-bookmarklet">
@@ -2316,11 +2317,11 @@
   <!-- Strategy bar -->
   <div class="strategy-bar">
     <span class="strategy-label">Strategy:</span>
-    <button class="strategy-btn active" data-strategy="bpa" onclick="setStrategy('bpa')">BPA</button>
-    <button class="strategy-btn" data-strategy="zero_rb" onclick="setStrategy('zero_rb')">Zero RB</button>
-    <button class="strategy-btn" data-strategy="hero_rb" onclick="setStrategy('hero_rb')">Hero RB</button>
-    <button class="strategy-btn" data-strategy="robust_rb" onclick="setStrategy('robust_rb')">Robust RB</button>
-    <button class="strategy-btn" data-strategy="superflex" id="btn-superflex" onclick="setStrategy('superflex')" style="display:none;border-color:rgba(124,111,247,0.5);color:#a78bfa;">2-QB</button>
+    <button class="strategy-btn active" data-strategy="bpa" onclick="setStrategy('bpa')" title="Best Player Available — pure VORP, take the highest-value player regardless of position">BPA</button>
+    <button class="strategy-btn" data-strategy="zero_rb" onclick="setStrategy('zero_rb')" title="Avoid RBs in rounds 1–5, stack WRs and TE, pick cheap RBs in rounds 6+">Zero RB</button>
+    <button class="strategy-btn" data-strategy="hero_rb" onclick="setStrategy('hero_rb')" title="Land one elite RB anchor in round 1, then fill WR in rounds 2–4">Hero RB</button>
+    <button class="strategy-btn" data-strategy="robust_rb" onclick="setStrategy('robust_rb')" title="Secure 4 RBs in the first 6 rounds before filling other positions">Robust RB</button>
+    <button class="strategy-btn" data-strategy="superflex" id="btn-superflex" onclick="setStrategy('superflex')" style="display:none;border-color:rgba(124,111,247,0.5);color:#a78bfa;" title="SuperFlex leagues: prioritizes getting two QBs before the positional run">2-QB</button>
   </div>
 
   <!-- Offline data banner -->
@@ -2410,6 +2411,16 @@
             <option value="volatility">Volatility</option>
           </select>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
+        <span style="width:32px;flex-shrink:0;"></span>
+        <span style="flex:1;">Player</span>
+        <span style="width:30px;flex-shrink:0;">Team</span>
+        <span style="width:42px;flex-shrink:0;">ADP</span>
+        <span style="width:36px;flex-shrink:0;">Rank</span>
+        <span style="width:34px;flex-shrink:0;" title="Points above replacement-level player">VORP</span>
+        <span style="width:40px;flex-shrink:0;" title="Rounds vs FantasyPros consensus. + = value, - = reach">vs FP</span>
+        <span style="width:18px;flex-shrink:0;"></span>
       </div>
       <div id="research-player-list"></div>
     </div>
