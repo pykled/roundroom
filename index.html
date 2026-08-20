@@ -229,14 +229,52 @@
   }
   .home-secondary-links button:hover { color: var(--text-primary); }
 
-  .home-bookmarklet { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-  .home-bookmarklet summary {
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--text-muted); cursor: pointer;
-    list-style: none; user-select: none;
+  .home-bookmarklet {
+    margin-top: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
   }
-  .home-bookmarklet summary::-webkit-details-marker { display: none; }
-  .home-bookmarklet summary:hover { color: var(--text-secondary); }
+  .home-bookmarklet-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .home-bookmarklet-text {
+    flex: 1;
+  }
+  .home-bookmarklet-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+  }
+  .home-bookmarklet-sub {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .home-bookmarklet-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 8px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: grab;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .home-bookmarklet-btn:hover { background: rgba(99,102,241,0.25); }
 
   .home-right {
     min-width: 0;
@@ -2180,17 +2218,19 @@
         <button onclick="openListsOverlay()">⭐ My Lists</button>
       </div>
 
-      <details class="home-bookmarklet">
-        <summary>Use on Sleeper.com ▾</summary>
-        <p style="font-size:0.75rem;color:var(--text-muted);margin:0.75rem 0;">Drag this button to your bookmarks bar. Then click it on any Sleeper draft page to open RoundRoom alongside your draft.</p>
+      <div class="home-bookmarklet">
+        <div class="home-bookmarklet-icon">🔖</div>
+        <div class="home-bookmarklet-text">
+          <div class="home-bookmarklet-label">Use on Sleeper.com</div>
+          <div class="home-bookmarklet-sub">Drag the button to your bookmarks bar, then click it on any Sleeper draft page.</div>
+        </div>
         <a id="rr-bookmarklet" href="#"
-          style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 0.9rem;border-radius:8px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;cursor:grab;"
+          class="home-bookmarklet-btn"
           onclick="return false;"
-          title="Drag to bookmarks bar">
-          ⚡ RoundRoom Companion
+          title="Drag to your bookmarks bar">
+          ⚡ RoundRoom
         </a>
-        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.5rem;">Drag the button above to your browser's bookmarks bar, then click it when you're on a Sleeper draft page.</p>
-      </details>
+      </div>
     </div>
 
     <div class="home-right">
