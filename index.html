@@ -7716,102 +7716,111 @@ function renderResearchProfile() {
     .sort((a, b) => b.vorp_std - a.vorp_std);
   const vorpRank = vorpList.findIndex(x => x.name === p.name) + 1;
 
-  // ── Header ──
+  // ── Header: position-tinted band with name + context line ──
   const injury = p.injury_status && p.injury_status !== 'Active'
-    ? `<span style="font-size:0.65rem;font-weight:700;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.4);border-radius:5px;padding:0.15rem 0.45rem;">⚠ ${escHtml(p.injury_status)}</span>` : '';
+    ? `<span class="rsch-injury">⚠ ${escHtml(p.injury_status)}</span>` : '';
   let html = `
-    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;padding-right:2rem;">
-      <span style="font-size:1.2rem;font-weight:800;">${escHtml(p.name)}</span>
-      <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
-      <span style="font-size:0.75rem;color:var(--text-muted);">${escHtml(p.team || 'FA')}${p.bye ? ` · Bye ${escHtml(p.bye)}` : ''}${p.age ? ` · Age ${p.age}` : ''}</span>
-      ${injury}
+    <div class="rsch-head" style="--pos-col:${posCol};">
+      <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+        <span class="rsch-head-name">${escHtml(p.name)}</span>
+        ${injury}
+      </div>
+      <div class="rsch-head-meta">
+        <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};background:color-mix(in srgb, ${posCol} 12%, transparent);">${escHtml(p.position)}</span>
+        <span style="font-weight:600;">${escHtml(p.team || 'FA')}</span>
+        ${p.bye ? `<span style="color:var(--text-muted);">·</span><span>Bye ${escHtml(p.bye)}</span>` : ''}
+        ${p.age ? `<span style="color:var(--text-muted);">·</span><span>Age ${p.age}</span>` : ''}
+      </div>
     </div>`;
 
-  // ── ADP section ──
   const maxLow = Math.max(...STATE.mergedPlayers.map(x => x.low || 0), 24);
   const maxPick = Math.min(216, maxLow + 12);
   const pct = v => Math.max(0, Math.min(100, (v - 1) / (maxPick - 1) * 100));
   const dotAdp = p.weighted_adp ?? adp;
 
-  // ── Main stats: ADP big on left, VORP rank accent on right ──
-  html += `<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:1.1rem;gap:1rem;">
-    <div>
-      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">Avg Draft Position</div>
-      <div style="display:flex;align-items:baseline;gap:0.45rem;">
-        <span style="font-size:2.6rem;font-weight:800;font-family:'DM Mono',monospace;line-height:1;">${adp != null ? adp.toFixed(1) : '—'}</span>
-        ${posRank > 0 ? `<span style="font-size:1rem;font-weight:700;color:var(--text-secondary);">${escHtml(p.position)}${posRank}</span>` : ''}
-      </div>
+  // ── Hero: the two facts a drafter needs first ──
+  html += `<div class="rsch-hero-grid">
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
+      <div class="rsch-hero-label">Avg Draft Position</div>
     </div>
-    ${vorpRank > 0 ? `<div style="text-align:right;padding-bottom:0.2rem;">
-      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">VORP Rank</div>
-      <div style="font-size:1.9rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);line-height:1;">${escHtml(p.position)}${vorpRank}</div>
-    </div>` : ''}
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:${posCol};">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
+      <div class="rsch-hero-label">Position Rank</div>
+    </div>
   </div>`;
 
-  // ── ADP range bar ──
-  if (p.high && p.low && adp != null) {
-    html += `<div style="margin-top:0.75rem;">
-      <div style="position:relative;height:4px;background:rgba(255,255,255,0.07);border-radius:999px;">
-        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};opacity:0.28;border-radius:999px;"></div>
-        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:10px;height:10px;transform:translate(-50%,-50%);background:${posCol};border-radius:50%;box-shadow:0 0 0 2px var(--bg-secondary);"></div>` : ''}
+  // ── VORP band: the signature stat ──
+  if (vorp != null || p.vorp_sf != null) {
+    html += `<div class="rsch-vorp-card">
+      <div class="rsch-vorp-top">
+        <span class="rsch-vorp-title">Value Over Replacement</span>
+        ${vorpRank > 0 ? `<span class="rsch-vorp-rank">${escHtml(p.position)}${vorpRank} by VORP</span>` : ''}
       </div>
-      <div style="font-size:0.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.3rem;">Draft range ${p.high}–${p.low}</div>
+      <div class="rsch-vorp-nums">
+        <span class="rsch-vorp-main">${vorp != null ? Math.round(vorp) : '—'}</span>
+        <span class="rsch-vorp-sub">Std</span>
+        ${p.vorp_sf != null ? `<span class="rsch-vorp-sf">${Math.round(p.vorp_sf)}</span><span class="rsch-vorp-sub">SF</span>` : ''}
+      </div>
     </div>`;
   }
 
-  // ── Insight callouts (left-border style) ──
+  // ── Draft range: labeled track with live-ADP dot ──
+  if (p.high && p.low && adp != null) {
+    html += `<div class="rsch-range">
+      <div class="rsch-range-head">
+        <span class="rsch-range-title">Draft Range</span>
+        <span class="rsch-range-spread">Picks ${p.high}–${p.low}</span>
+      </div>
+      <div class="rsch-range-track">
+        <div class="rsch-range-fill" style="left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};"></div>
+        ${dotAdp != null ? `<div class="rsch-range-dot" style="left:${pct(dotAdp)}%;background:${posCol};"></div>` : ''}
+      </div>
+      <div class="rsch-range-ends"><span>Pick 1</span><span>Pick ${maxPick}</span></div>
+    </div>`;
+  }
+
+  // ── Insight callouts: trend + consensus ──
   const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
   const val = researchValue(p);
   const insights = [];
   if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
     const earlier = trendDiff < 0;
-    insights.push({ col: earlier ? 'var(--amber)' : 'var(--success)', bg: earlier ? 'rgba(245,158,11,0.07)' : 'rgba(16,185,129,0.07)',
-      text: `${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} &mdash; recent ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg` });
+    insights.push({ col: earlier ? 'var(--amber)' : 'var(--success)', icon: earlier ? '↑' : '↓',
+      text: `Trending ${earlier ? 'earlier' : 'later'} &mdash; recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} average` });
   }
   if (val != null && Math.abs(val) >= 0.05) {
     const later = val > 0;
-    insights.push({ col: later ? 'var(--success)' : 'var(--danger)', bg: later ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)',
-      text: `${Math.abs(val).toFixed(1)} picks ${later ? 'later' : 'earlier'} than FP &mdash; ${later ? 'potential value' : 'market reach'}` });
+    insights.push({ col: later ? 'var(--success)' : 'var(--danger)', icon: later ? '↓' : '↑',
+      text: `Goes ${Math.abs(val).toFixed(1)} picks ${later ? 'after' : 'before'} FantasyPros consensus &mdash; ${later ? 'potential value' : 'market reach'}` });
   }
   if (insights.length) {
-    html += `<div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.85rem;">`;
-    insights.forEach(({ col, bg, text }) => {
-      html += `<div style="padding:0.5rem 0.75rem;border-radius:0 8px 8px 0;background:${bg};border-left:3px solid ${col};font-size:0.74rem;font-weight:600;color:${col};">${text}</div>`;
+    html += `<div class="rsch-insights">`;
+    insights.forEach(({ col, icon, text }) => {
+      html += `<div class="rsch-insight" style="background:color-mix(in srgb, ${col} 8%, transparent);border-color:color-mix(in srgb, ${col} 30%, transparent);color:${col};">
+        <span class="rsch-insight-icon">${icon}</span><span>${text}</span>
+      </div>`;
     });
     html += `</div>`;
   }
 
-  // ── Divider ──
-  html += `<div style="height:1px;background:var(--border);margin:1rem 0 0.9rem;opacity:0.6;"></div>`;
-
-  // ── VORP + meta footer ──
+  // ── Sources footer: de-emphasized fine print ──
   const td = p.times_drafted || 0;
   const sd = p.stdev;
   const sdLabel = sd == null ? '' : sd < 0.8 ? 'Consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
   const sdColor = sd == null ? 'var(--text-muted)' : sd < 0.8 ? 'var(--success)' : sd <= 2.0 ? 'var(--amber)' : 'var(--danger)';
-  const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['UD', p.underdog_adp]]
-    .filter(([, v]) => v != null).map(([l, v]) => `${l} ${v.toFixed(1)}`);
+  const srcCells = [['Sleeper', p.sleeper_adp], ['FantasyPros', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
+    .filter(([, v]) => v != null)
+    .map(([l, v]) => `<div class="rsch-src-cell"><div class="l">${l}</div><div class="v">${v.toFixed(1)}</div></div>`);
 
-  html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">`;
-
-  if (vorp != null || p.vorp_sf != null) {
-    html += `<div>
-      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">VORP</div>
-      <div style="display:flex;align-items:baseline;gap:0.45rem;">
-        ${vorp != null ? `<span style="font-size:2rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);line-height:1;">${Math.round(vorp)}</span><span style="font-size:0.62rem;color:var(--text-muted);">std</span>` : ''}
-        ${p.vorp_sf != null ? `<span style="font-size:1.3rem;font-weight:700;font-family:'DM Mono',monospace;line-height:1;">${Math.round(p.vorp_sf)}</span><span style="font-size:0.62rem;color:var(--text-muted);">sf</span>` : ''}
-      </div>
-    </div>`;
+  if (srcCells.length || td) {
+    html += `<div class="rsch-src">`;
+    if (srcCells.length) {
+      html += `<div class="rsch-src-grid" style="grid-template-columns:repeat(${srcCells.length},1fr);">${srcCells.join('')}</div>`;
+    }
+    html += `<div class="rsch-src-note">${td} drafts &middot; ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:700;">${sdLabel}</span></div>`;
+    html += `</div>`;
   }
-
-  html += `<div style="text-align:right;padding-top:0.05rem;">
-    <div style="font-size:0.7rem;color:var(--text-secondary);line-height:2;">
-      <div>${td} drafts &middot; ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:600;">${sdLabel}</span></div>
-      ${srcParts.length ? `<div style="color:var(--text-muted);">${srcParts.join(' · ')}</div>` : ''}
-    </div>
-  </div>`;
-
-  html += `</div>`;
 
   body.innerHTML = html;
 
