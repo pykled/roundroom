@@ -322,6 +322,18 @@
   .home-player-rank { width: 42px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; font-family: 'DM Mono', monospace; }
   .home-value { width: 48px; flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 0.75rem; text-align: right; }
   .home-player-empty { padding: 2rem 0; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+  .home-col-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.25rem 1rem; border-bottom: 1px solid var(--border);
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-muted); font-family: 'DM Mono', monospace;
+  }
+  .home-col-header .h-pos { width: 32px; flex-shrink: 0; }
+  .home-col-header .h-name { flex: 1; }
+  .home-col-header .h-team { width: 34px; flex-shrink: 0; }
+  .home-col-header .h-adp { width: 40px; flex-shrink: 0; }
+  .home-col-header .h-rank { width: 42px; flex-shrink: 0; }
+  .home-col-header .h-val { width: 48px; flex-shrink: 0; text-align: right; cursor: help; }
 
   @media (max-width: 768px) {
     /* Layout */
@@ -360,6 +372,9 @@
     .home-value { width: 44px; font-size: 0.72rem; }
     .home-player-row { padding: 0 0.75rem; min-height: 48px; }
     .home-player-name { font-size: 0.85rem; }
+    .home-col-header .h-team { display: none; }
+    .home-col-header .h-rank { display: none; }
+    .home-col-header { padding: 0.25rem 0.75rem; }
 
     /* Bookmarklet — hide on mobile (not useful) */
     .home-bookmarklet { display: none; }
@@ -2228,14 +2243,17 @@
           class="home-bookmarklet-btn"
           onclick="return false;"
           title="Drag to your bookmarks bar">
-          ⚡ RoundRoom
+          <span style="opacity:0.5;letter-spacing:-1px;font-size:0.7rem;">⠿</span> ⚡ RoundRoom
         </a>
       </div>
     </div>
 
     <div class="home-right">
       <div class="home-right-header">
-        <span class="home-right-title">Top Players by ADP</span>
+        <div>
+          <span class="home-right-title">Player Rankings</span>
+          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">sorted by ADP · +/- vs expert consensus</div>
+        </div>
         <div class="home-pos-filters">
           <button class="home-pos-filter active" data-hpos="ALL" onclick="setHomePos('ALL')">ALL</button>
           <button class="home-pos-filter" data-hpos="QB" onclick="setHomePos('QB')">QB</button>
@@ -2243,6 +2261,14 @@
           <button class="home-pos-filter" data-hpos="WR" onclick="setHomePos('WR')">WR</button>
           <button class="home-pos-filter" data-hpos="TE" onclick="setHomePos('TE')">TE</button>
         </div>
+      </div>
+      <div class="home-col-header">
+        <span class="h-pos"></span>
+        <span class="h-name">Player</span>
+        <span class="h-team">Team</span>
+        <span class="h-adp">ADP</span>
+        <span class="h-rank">Rank</span>
+        <span class="h-val" title="Rounds vs FantasyPros consensus. Positive = falling (value pick). Negative = rising (high demand).">vs FP ↕</span>
       </div>
       <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
     </div>
@@ -7792,15 +7818,15 @@ function renderResearchProfile() {
 
   // ── VORP band: the signature stat ──
   if (vorp != null || p.vorp_sf != null) {
-    html += `<div class="rsch-vorp-card">
+    html += `<div class="rsch-vorp-card" title="VORP = projected fantasy points above a replacement-level player at this position">
       <div class="rsch-vorp-top">
         <span class="rsch-vorp-title">Value Over Replacement</span>
         ${vorpRank > 0 ? `<span class="rsch-vorp-rank">${escHtml(p.position)}${vorpRank} by VORP</span>` : ''}
       </div>
       <div class="rsch-vorp-nums">
         <span class="rsch-vorp-main">${vorp != null ? Math.round(vorp) : '—'}</span>
-        <span class="rsch-vorp-sub">Std</span>
-        ${p.vorp_sf != null ? `<span class="rsch-vorp-sf">${Math.round(p.vorp_sf)}</span><span class="rsch-vorp-sub">SF</span>` : ''}
+        <span class="rsch-vorp-sub">pts · Std</span>
+        ${p.vorp_sf != null ? `<span class="rsch-vorp-sf">${Math.round(p.vorp_sf)}</span><span class="rsch-vorp-sub">pts · SF</span>` : ''}
       </div>
     </div>`;
   }
