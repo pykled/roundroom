@@ -379,6 +379,8 @@
     .home-col-header .h-team { display: none; }
     .home-col-header .h-rank { display: none; }
     .home-col-header { padding: 0.25rem 0.75rem; }
+    .home-col-header .h-adp { width: 36px; }
+    .home-col-header .h-val { width: 44px; }
 
     /* Bookmarklet — hide on mobile (not useful) */
     .home-bookmarklet { display: none; }
@@ -2110,7 +2112,7 @@
     /* Strategy bar: wrap, no label */
     .strategy-bar { padding: 0.35rem 0.75rem; gap: 0.3rem; }
     .strategy-label { display: none; }
-    .strategy-btn { padding: 0.25rem 0.55rem; font-size: 0.72rem; }
+    .strategy-btn { padding: 0.25rem 0.55rem; font-size: 0.72rem; min-height: 36px; }
 
     /* 3-column → stacked, tab-driven */
     .main-layout {
@@ -2161,6 +2163,22 @@
     /* Setup screen */
     #setup-screen { padding: 1rem; }
     .setup-card { padding: 1.5rem 1.25rem; }
+
+    /* Touch targets: icon buttons (★ / ✕ on player cards) */
+    .icon-btn { padding: 0.5rem 0.4rem; min-height: 36px; }
+
+    /* Touch targets: home secondary links and cancel */
+    .home-secondary-links button { min-height: 36px; padding: 0.3rem 0; }
+    .home-connect-cancel { min-height: 36px; padding: 0.5rem 0; }
+
+    /* AI panel: full width on mobile so it doesn't bleed off the left edge */
+    .ai-panel { width: 100%; right: -100%; }
+
+    /* AI FAB: lift above the ~52px mobile tab bar */
+    .ai-fab { bottom: calc(1rem + 52px); }
+
+    /* Research rows: hide Team and Rank columns on narrow screens */
+    .rsch-col-team, .rsch-col-rank { display: none; }
   }
 </style>
 </head>
@@ -2427,9 +2445,9 @@
       <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
         <span style="width:32px;flex-shrink:0;"></span>
         <span style="flex:1;">Player</span>
-        <span style="width:30px;flex-shrink:0;">Team</span>
+        <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
         <span style="width:42px;flex-shrink:0;">ADP</span>
-        <span style="width:36px;flex-shrink:0;">Rank</span>
+        <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
         <span style="width:34px;flex-shrink:0;" title="Points above replacement-level player">VORP</span>
         <span style="width:40px;flex-shrink:0;" title="Rounds vs FantasyPros consensus. + = value, - = reach">vs FP</span>
         <span style="width:18px;flex-shrink:0;"></span>
@@ -7728,9 +7746,9 @@ function renderResearchList() {
     return `<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
       <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
-      <span class="rsch-col" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
+      <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
       <span class="rsch-col" style="width:42px;color:var(--text-primary);">${adp != null ? adp.toFixed(1) : '—'}</span>
-      <span class="rsch-col" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
+      <span class="rsch-col rsch-col-rank" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
       <span class="rsch-col" style="width:34px;color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</span>
       <span class="rsch-col" style="width:40px;">${valHtml}</span>
       <span style="width:18px;text-align:center;font-size:0.75rem;flex-shrink:0;">${status}</span>
