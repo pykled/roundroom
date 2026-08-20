@@ -1747,6 +1747,52 @@
     text-align: center;
   }
 
+  .rsch-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .rsch-hero-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.65rem 0.5rem;
+    text-align: center;
+  }
+  .rsch-hero-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+  }
+  .rsch-hero-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.3rem;
+  }
+  .rsch-insight {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .rsch-meta-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+  }
+  .rsch-vorp-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    margin-top: 0.5rem;
+  }
+
   @keyframes rsch-sheet-up {
     from { transform: translateY(40px); opacity: 0.4; }
     to { transform: translateY(0); opacity: 1; }
@@ -7503,8 +7549,7 @@ function renderResearchProfile() {
     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;padding-right:2rem;">
       <span style="font-size:1.25rem;font-weight:800;">${escHtml(p.name)}</span>
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
-      <span style="font-size:0.78rem;color:var(--text-muted);font-family:'DM Mono',monospace;">${escHtml(p.team || 'FA')}</span>
-      ${p.bye ? `<span style="font-size:0.7rem;color:var(--text-muted);">Bye ${escHtml(p.bye)}</span>` : ''}
+      <span style="font-size:0.78rem;color:var(--text-muted);">${escHtml(p.team || 'FA')}${p.bye ? ` · Bye ${escHtml(p.bye)}` : ''}${p.age ? ` · Age ${p.age}` : ''}</span>
       ${injury}
     </div>`;
 
@@ -7514,85 +7559,82 @@ function renderResearchProfile() {
   const pct = v => Math.max(0, Math.min(100, (v - 1) / (maxPick - 1) * 100));
   const dotAdp = p.weighted_adp ?? adp;
 
-  html += `<div class="rsch-section-title">Average Draft Position</div>
-    <div style="display:flex;align-items:baseline;gap:0.6rem;">
-      <span style="font-size:1.8rem;font-weight:800;font-family:'DM Mono',monospace;">${adp != null ? adp.toFixed(2) : '—'}</span>
-      <span style="font-size:0.78rem;color:var(--text-secondary);font-weight:700;">${escHtml(p.position)}${posRank}</span>
-    </div>`;
+  // ── Hero stats: 3 key numbers at a glance ──
+  html += `<div class="rsch-hero-grid">
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
+      <div class="rsch-hero-label">ADP</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
+      <div class="rsch-hero-label">Pos Rank</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val">${vorpRank > 0 ? escHtml(p.position) + vorpRank : '—'}</div>
+      <div class="rsch-hero-label">VORP Rank</div>
+    </div>
+  </div>`;
 
+  // ── ADP range bar ──
   if (p.high && p.low && adp != null) {
-    html += `<div style="margin-top:0.6rem;">
-      <div style="position:relative;height:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;">
-        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:rgba(99,102,241,0.35);border-radius:999px;"></div>
-        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:10px;height:10px;transform:translate(-50%,-50%);background:var(--accent);border-radius:50%;box-shadow:0 0 6px var(--accent);"></div>` : ''}
+    html += `<div style="margin-top:0.85rem;">
+      <div style="position:relative;height:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;">
+        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};opacity:0.3;border-radius:999px;"></div>
+        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:9px;height:9px;transform:translate(-50%,-50%);background:${posCol};border-radius:50%;"></div>` : ''}
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.25rem;">
-        <span>Pick 1</span><span>Pick ${maxPick}</span>
-      </div>
+      <div style="font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.3rem;">Draft range ${p.high}–${p.low}</div>
     </div>`;
   }
 
-  if (p.weighted_adp != null && adp != null && Math.abs(p.weighted_adp - adp) > 0.5) {
-    const earlier = p.weighted_adp < adp;
-    html += `<div style="font-size:0.72rem;margin-top:0.4rem;color:${earlier ? 'var(--amber)' : 'var(--success)'};font-weight:600;">
-      ${earlier ? '↑ Trending earlier' : '↓ Trending later'} — recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} overall
-    </div>`;
-  }
-
-  // ── Source breakdown ──
-  const sources = [
-    ['Sleeper', p.sleeper_adp],
-    ['FantasyPros', p.fantasypros_adp],
-    ['Underdog', p.underdog_adp],
-  ];
-  const maxSrc = Math.max(...sources.map(([, v]) => v || 0), 1);
-  html += `<div class="rsch-section-title">Source Breakdown</div>`;
-  html += sources.map(([label, v]) => `
-    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.35rem;">
-      <span style="width:82px;font-size:0.72rem;color:${v == null ? 'var(--text-muted)' : 'var(--text-secondary)'};flex-shrink:0;">${label}</span>
-      <span style="width:38px;font-size:0.72rem;font-family:'DM Mono',monospace;text-align:right;color:${v == null ? 'var(--text-muted)' : 'var(--text-primary)'};flex-shrink:0;">${v != null ? v.toFixed(1) : '—'}</span>
-      <div style="flex:1;height:6px;background:var(--bg-card);border-radius:999px;overflow:hidden;">
-        ${v != null ? `<div style="height:100%;width:${Math.max(3, v / maxSrc * 100)}%;background:${posCol};border-radius:999px;opacity:0.8;"></div>` : ''}
-      </div>
-    </div>`).join('');
-
+  // ── Insight pills: trend + consensus ──
+  const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
   const val = researchValue(p);
-  if (val != null && Math.abs(val) >= 0.05) {
-    const later = val > 0;
-    html += `<div style="font-size:0.72rem;margin-top:0.45rem;padding:0.45rem 0.6rem;border-radius:8px;background:${later ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};border:1px solid ${later ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};color:${later ? 'var(--success)' : 'var(--danger)'};">
-      Going ${Math.abs(val).toFixed(1)} picks ${later ? 'later' : 'earlier'} than FantasyPros consensus — ${later ? 'potential value' : 'market reach'}
-    </div>`;
+  const hasInsights = (trendDiff != null && Math.abs(trendDiff) > 0.5) || (val != null && Math.abs(val) >= 0.05);
+  if (hasInsights) {
+    html += `<div style="display:flex;flex-direction:column;gap:0.35rem;margin-top:0.75rem;">`;
+    if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
+      const earlier = trendDiff < 0;
+      html += `<div class="rsch-insight" style="background:${earlier ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.08)'};color:${earlier ? 'var(--amber)' : 'var(--success)'};">
+        ${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} — recent ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg
+      </div>`;
+    }
+    if (val != null && Math.abs(val) >= 0.05) {
+      const later = val > 0;
+      html += `<div class="rsch-insight" style="background:${later ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};color:${later ? 'var(--success)' : 'var(--danger)'};">
+        ${later ? '↓' : '↑'} ${Math.abs(val).toFixed(1)} picks ${later ? 'after' : 'before'} FP consensus — ${later ? 'potential value' : 'market reach'}
+      </div>`;
+    }
+    html += `</div>`;
   }
 
-  // ── Draft behavior ──
+  // ── Meta card: sources + draft behavior in one compact block ──
   const td = p.times_drafted || 0;
-  const conf = td >= 20 ? 'High confidence' : td >= 10 ? 'Moderate sample' : td >= 5 ? 'Low sample' : 'Very small sample';
   const sd = p.stdev;
-  const sdLabel = sd == null ? '' : sd < 0.8 ? 'Very consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
+  const sdLabel = sd == null ? '' : sd < 0.8 ? 'Consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
   const sdColor = sd == null ? 'var(--text-muted)' : sd < 0.8 ? 'var(--success)' : sd <= 2.0 ? 'var(--amber)' : 'var(--danger)';
-  html += `<div class="rsch-section-title">Draft Behavior</div>
-    <div style="font-size:0.76rem;color:var(--text-secondary);line-height:1.7;">
-      <div>Drafted in <strong style="color:var(--text-primary);">${td}</strong> tracked drafts <span style="color:var(--text-muted);">(${conf})</span></div>
-      <div>Spread: <strong style="color:${sdColor};">±${sd != null ? sd.toFixed(1) : '?'}</strong> <span style="color:${sdColor};">${sdLabel}</span></div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-muted);">Earliest: ${p.high ?? '—'} · Latest: ${p.low ?? '—'}</div>
-    </div>`;
+  const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['UD', p.underdog_adp]]
+    .filter(([, v]) => v != null).map(([l, v]) => `${l} ${v.toFixed(1)}`);
+
+  html += `<div class="rsch-meta-card" style="margin-top:${hasInsights ? '0.5rem' : '0.85rem'};">`;
+  if (srcParts.length) {
+    html += `<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem;">${srcParts.join(' · ')}</div>`;
+  }
+  html += `<div style="font-size:0.72rem;color:var(--text-secondary);">
+    <span style="font-weight:600;color:var(--text-primary);">${td}</span> drafts
+    · ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:600;">${sdLabel}</span>
+    ${(p.high && p.low) ? `<span style="color:var(--text-muted);"> · range ${p.high}–${p.low}</span>` : ''}
+  </div>`;
+  html += `</div>`;
 
   // ── VORP ──
-  html += `<div class="rsch-section-title">Value Over Replacement</div>
-    <div style="display:flex;gap:0.5rem;">
-      <div class="rsch-stat-box">
-        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${vorp != null ? Math.round(vorp) : '—'}</div>
-        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">VORP Std</div>
-      </div>
-      <div class="rsch-stat-box">
-        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${p.vorp_sf != null ? Math.round(p.vorp_sf) : '—'}</div>
-        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">VORP SF</div>
-      </div>
-      <div class="rsch-stat-box">
-        <div style="font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;">${vorpRank > 0 ? escHtml(p.position) + vorpRank : '—'}</div>
-        <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:0.15rem;">Pos VORP Rank</div>
-      </div>
-    </div>`;
+  html += `<div class="rsch-vorp-card">
+    <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.45rem;">Value Over Replacement</div>
+    <div style="display:flex;align-items:baseline;gap:0.75rem;flex-wrap:wrap;">
+      <span style="font-size:1.5rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);">${vorp != null ? Math.round(vorp) : '—'}</span>
+      <span style="font-size:0.7rem;color:var(--text-muted);">Std</span>
+      ${p.vorp_sf != null ? `<span style="font-size:1.1rem;font-weight:700;font-family:'DM Mono',monospace;">${Math.round(p.vorp_sf)}</span><span style="font-size:0.7rem;color:var(--text-muted);">SF</span>` : ''}
+    </div>
+  </div>`;
 
   body.innerHTML = html;
 
