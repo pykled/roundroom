@@ -1715,82 +1715,256 @@
   }
   .rsch-decision-btn {
     flex: 1;
-    min-height: 44px;
-    border-radius: 999px;
+    min-height: 48px;
+    border-radius: 12px;
     border: 1px solid var(--border);
     background: var(--bg-card);
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s;
   }
-  .rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); }
-  .rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+  .rsch-decision-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+  .rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
+  .rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
   .rsch-decision-btn.active-neutral { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text-primary); }
 
-  .rsch-section-title {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin: 1.1rem 0 0.5rem;
+  /* ── Profile sheet: header ── */
+  .rsch-head {
+    position: relative;
+    margin: -1.25rem -1.25rem 0;
+    padding: 1.4rem 3.25rem 1.1rem 1.4rem;
+    background:
+      radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--pos-col) 15%, transparent), transparent 55%);
+    border-bottom: 1px solid var(--border);
   }
-  .rsch-stat-box {
-    flex: 1;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.6rem;
-    text-align: center;
+  .rsch-head::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--pos-col), transparent 75%);
+  }
+  .rsch-head-name {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .rsch-head-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+  }
+  .rsch-injury {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(239,68,68,0.12);
+    color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
   }
 
+  /* ── Profile sheet: hero stats ── */
   .rsch-hero-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-top: 1rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-top: 1.15rem;
   }
   .rsch-hero-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.65rem 0.5rem;
+    border-radius: 14px;
+    padding: 0.95rem 0.5rem 0.85rem;
     text-align: center;
   }
   .rsch-hero-val {
-    font-size: 1.15rem;
+    font-size: 1.8rem;
     font-weight: 800;
     font-family: 'DM Mono', monospace;
     line-height: 1;
+    letter-spacing: -0.02em;
   }
   .rsch-hero-label {
     font-size: 0.6rem;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 0.3rem;
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Profile sheet: VORP band ── */
+  .rsch-vorp-card {
+    margin-top: 0.6rem;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 13%, var(--bg-card)), var(--bg-card) 70%);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: 14px;
+    padding: 0.9rem 1rem 0.95rem;
+  }
+  .rsch-vorp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .rsch-vorp-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .rsch-vorp-rank {
+    font-size: 0.62rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-radius: 999px;
+    padding: 0.16rem 0.55rem;
+    white-space: nowrap;
+  }
+  .rsch-vorp-nums {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin-top: 0.55rem;
+  }
+  .rsch-vorp-main {
+    font-size: 2.15rem;
+    font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .rsch-vorp-sub {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rsch-vorp-sf {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-primary);
+    margin-left: 0.9rem;
+  }
+
+  /* ── Profile sheet: draft range ── */
+  .rsch-range { margin-top: 1.35rem; }
+  .rsch-range-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.55rem;
+  }
+  .rsch-range-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .rsch-range-spread {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--text-secondary);
+  }
+  .rsch-range-track {
+    position: relative;
+    height: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .rsch-range-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    border-radius: 999px;
+    opacity: 0.35;
+  }
+  .rsch-range-dot {
+    position: absolute;
+    top: 50%;
+    width: 11px; height: 11px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid var(--bg-secondary);
+    box-shadow: 0 0 0 1px var(--border-bright);
+  }
+  .rsch-range-ends {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Profile sheet: insight callouts ── */
+  .rsch-insights {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
   }
   .rsch-insight {
-    font-size: 0.72rem;
-    padding: 0.35rem 0.65rem;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.74rem;
     font-weight: 600;
-  }
-  .rsch-meta-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    line-height: 1.4;
+    padding: 0.6rem 0.8rem;
     border-radius: 10px;
-    padding: 0.6rem 0.75rem;
+    border: 1px solid;
   }
-  .rsch-vorp-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.6rem 0.75rem;
-    margin-top: 0.5rem;
+  .rsch-insight-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+  /* ── Profile sheet: sources footer ── */
+  .rsch-src {
+    margin-top: 1.2rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+  .rsch-src-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+  .rsch-src-cell { text-align: center; }
+  .rsch-src-cell .l {
+    font-size: 0.56rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rsch-src-cell .v {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+  .rsch-src-note {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.64rem;
+    color: var(--text-muted);
+    margin-top: 0.6rem;
   }
 
   @keyframes rsch-sheet-up {
@@ -7544,12 +7718,12 @@ function renderResearchProfile() {
 
   // ── Header ──
   const injury = p.injury_status && p.injury_status !== 'Active'
-    ? `<span style="font-size:0.65rem;font-weight:700;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.4);border-radius:5px;padding:0.15rem 0.4rem;">⚠ ${escHtml(p.injury_status)}</span>` : '';
+    ? `<span style="font-size:0.65rem;font-weight:700;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.4);border-radius:5px;padding:0.15rem 0.45rem;">⚠ ${escHtml(p.injury_status)}</span>` : '';
   let html = `
     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;padding-right:2rem;">
-      <span style="font-size:1.25rem;font-weight:800;">${escHtml(p.name)}</span>
+      <span style="font-size:1.2rem;font-weight:800;">${escHtml(p.name)}</span>
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
-      <span style="font-size:0.78rem;color:var(--text-muted);">${escHtml(p.team || 'FA')}${p.bye ? ` · Bye ${escHtml(p.bye)}` : ''}${p.age ? ` · Age ${p.age}` : ''}</span>
+      <span style="font-size:0.75rem;color:var(--text-muted);">${escHtml(p.team || 'FA')}${p.bye ? ` · Bye ${escHtml(p.bye)}` : ''}${p.age ? ` · Age ${p.age}` : ''}</span>
       ${injury}
     </div>`;
 
@@ -7559,55 +7733,58 @@ function renderResearchProfile() {
   const pct = v => Math.max(0, Math.min(100, (v - 1) / (maxPick - 1) * 100));
   const dotAdp = p.weighted_adp ?? adp;
 
-  // ── Hero stats: 3 key numbers at a glance ──
-  html += `<div class="rsch-hero-grid">
-    <div class="rsch-hero-card">
-      <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
-      <div class="rsch-hero-label">ADP</div>
+  // ── Main stats: ADP big on left, VORP rank accent on right ──
+  html += `<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:1.1rem;gap:1rem;">
+    <div>
+      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">Avg Draft Position</div>
+      <div style="display:flex;align-items:baseline;gap:0.45rem;">
+        <span style="font-size:2.6rem;font-weight:800;font-family:'DM Mono',monospace;line-height:1;">${adp != null ? adp.toFixed(1) : '—'}</span>
+        ${posRank > 0 ? `<span style="font-size:1rem;font-weight:700;color:var(--text-secondary);">${escHtml(p.position)}${posRank}</span>` : ''}
+      </div>
     </div>
-    <div class="rsch-hero-card">
-      <div class="rsch-hero-val">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
-      <div class="rsch-hero-label">Pos Rank</div>
-    </div>
-    <div class="rsch-hero-card">
-      <div class="rsch-hero-val">${vorpRank > 0 ? escHtml(p.position) + vorpRank : '—'}</div>
-      <div class="rsch-hero-label">VORP Rank</div>
-    </div>
+    ${vorpRank > 0 ? `<div style="text-align:right;padding-bottom:0.2rem;">
+      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">VORP Rank</div>
+      <div style="font-size:1.9rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);line-height:1;">${escHtml(p.position)}${vorpRank}</div>
+    </div>` : ''}
   </div>`;
 
   // ── ADP range bar ──
   if (p.high && p.low && adp != null) {
-    html += `<div style="margin-top:0.85rem;">
-      <div style="position:relative;height:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;">
-        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};opacity:0.3;border-radius:999px;"></div>
-        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:9px;height:9px;transform:translate(-50%,-50%);background:${posCol};border-radius:50%;"></div>` : ''}
+    html += `<div style="margin-top:0.75rem;">
+      <div style="position:relative;height:4px;background:rgba(255,255,255,0.07);border-radius:999px;">
+        <div style="position:absolute;top:0;bottom:0;left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};opacity:0.28;border-radius:999px;"></div>
+        ${dotAdp != null ? `<div style="position:absolute;top:50%;left:${pct(dotAdp)}%;width:10px;height:10px;transform:translate(-50%,-50%);background:${posCol};border-radius:50%;box-shadow:0 0 0 2px var(--bg-secondary);"></div>` : ''}
       </div>
-      <div style="font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.3rem;">Draft range ${p.high}–${p.low}</div>
+      <div style="font-size:0.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:0.3rem;">Draft range ${p.high}–${p.low}</div>
     </div>`;
   }
 
-  // ── Insight pills: trend + consensus ──
+  // ── Insight callouts (left-border style) ──
   const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
   const val = researchValue(p);
-  const hasInsights = (trendDiff != null && Math.abs(trendDiff) > 0.5) || (val != null && Math.abs(val) >= 0.05);
-  if (hasInsights) {
-    html += `<div style="display:flex;flex-direction:column;gap:0.35rem;margin-top:0.75rem;">`;
-    if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
-      const earlier = trendDiff < 0;
-      html += `<div class="rsch-insight" style="background:${earlier ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.08)'};color:${earlier ? 'var(--amber)' : 'var(--success)'};">
-        ${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} — recent ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg
-      </div>`;
-    }
-    if (val != null && Math.abs(val) >= 0.05) {
-      const later = val > 0;
-      html += `<div class="rsch-insight" style="background:${later ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};color:${later ? 'var(--success)' : 'var(--danger)'};">
-        ${later ? '↓' : '↑'} ${Math.abs(val).toFixed(1)} picks ${later ? 'after' : 'before'} FP consensus — ${later ? 'potential value' : 'market reach'}
-      </div>`;
-    }
+  const insights = [];
+  if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
+    const earlier = trendDiff < 0;
+    insights.push({ col: earlier ? 'var(--amber)' : 'var(--success)', bg: earlier ? 'rgba(245,158,11,0.07)' : 'rgba(16,185,129,0.07)',
+      text: `${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} &mdash; recent ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg` });
+  }
+  if (val != null && Math.abs(val) >= 0.05) {
+    const later = val > 0;
+    insights.push({ col: later ? 'var(--success)' : 'var(--danger)', bg: later ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)',
+      text: `${Math.abs(val).toFixed(1)} picks ${later ? 'later' : 'earlier'} than FP &mdash; ${later ? 'potential value' : 'market reach'}` });
+  }
+  if (insights.length) {
+    html += `<div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.85rem;">`;
+    insights.forEach(({ col, bg, text }) => {
+      html += `<div style="padding:0.5rem 0.75rem;border-radius:0 8px 8px 0;background:${bg};border-left:3px solid ${col};font-size:0.74rem;font-weight:600;color:${col};">${text}</div>`;
+    });
     html += `</div>`;
   }
 
-  // ── Meta card: sources + draft behavior in one compact block ──
+  // ── Divider ──
+  html += `<div style="height:1px;background:var(--border);margin:1rem 0 0.9rem;opacity:0.6;"></div>`;
+
+  // ── VORP + meta footer ──
   const td = p.times_drafted || 0;
   const sd = p.stdev;
   const sdLabel = sd == null ? '' : sd < 0.8 ? 'Consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
@@ -7615,26 +7792,26 @@ function renderResearchProfile() {
   const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['UD', p.underdog_adp]]
     .filter(([, v]) => v != null).map(([l, v]) => `${l} ${v.toFixed(1)}`);
 
-  html += `<div class="rsch-meta-card" style="margin-top:${hasInsights ? '0.5rem' : '0.85rem'};">`;
-  if (srcParts.length) {
-    html += `<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem;">${srcParts.join(' · ')}</div>`;
-  }
-  html += `<div style="font-size:0.72rem;color:var(--text-secondary);">
-    <span style="font-weight:600;color:var(--text-primary);">${td}</span> drafts
-    · ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:600;">${sdLabel}</span>
-    ${(p.high && p.low) ? `<span style="color:var(--text-muted);"> · range ${p.high}–${p.low}</span>` : ''}
-  </div>`;
-  html += `</div>`;
+  html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">`;
 
-  // ── VORP ──
-  html += `<div class="rsch-vorp-card">
-    <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.45rem;">Value Over Replacement</div>
-    <div style="display:flex;align-items:baseline;gap:0.75rem;flex-wrap:wrap;">
-      <span style="font-size:1.5rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);">${vorp != null ? Math.round(vorp) : '—'}</span>
-      <span style="font-size:0.7rem;color:var(--text-muted);">Std</span>
-      ${p.vorp_sf != null ? `<span style="font-size:1.1rem;font-weight:700;font-family:'DM Mono',monospace;">${Math.round(p.vorp_sf)}</span><span style="font-size:0.7rem;color:var(--text-muted);">SF</span>` : ''}
+  if (vorp != null || p.vorp_sf != null) {
+    html += `<div>
+      <div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.2rem;">VORP</div>
+      <div style="display:flex;align-items:baseline;gap:0.45rem;">
+        ${vorp != null ? `<span style="font-size:2rem;font-weight:800;font-family:'DM Mono',monospace;color:var(--accent);line-height:1;">${Math.round(vorp)}</span><span style="font-size:0.62rem;color:var(--text-muted);">std</span>` : ''}
+        ${p.vorp_sf != null ? `<span style="font-size:1.3rem;font-weight:700;font-family:'DM Mono',monospace;line-height:1;">${Math.round(p.vorp_sf)}</span><span style="font-size:0.62rem;color:var(--text-muted);">sf</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  html += `<div style="text-align:right;padding-top:0.05rem;">
+    <div style="font-size:0.7rem;color:var(--text-secondary);line-height:2;">
+      <div>${td} drafts &middot; ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:600;">${sdLabel}</span></div>
+      ${srcParts.length ? `<div style="color:var(--text-muted);">${srcParts.join(' · ')}</div>` : ''}
     </div>
   </div>`;
+
+  html += `</div>`;
 
   body.innerHTML = html;
 
