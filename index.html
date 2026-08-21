@@ -1770,7 +1770,7 @@
     position: relative;
     overflow: hidden;
   }
-  .research-sheet-body { overflow-y: auto; padding: 1.25rem 1.25rem 0.75rem; -webkit-overflow-scrolling: touch; }
+  .research-sheet-body { overflow-y: auto; padding: 1.25rem 1.25rem 1rem; -webkit-overflow-scrolling: touch; }
 
   .research-decision-bar {
     display: flex;
@@ -1851,7 +1851,7 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 0.95rem 0.5rem 0.85rem;
+    padding: 0.8rem 0.5rem 0.7rem;
     text-align: center;
   }
   .rsch-hero-val {
@@ -1870,20 +1870,8 @@
     margin-top: 0.5rem;
   }
 
-  /* ── Profile sheet: VORP band ── */
-  .rsch-vorp-card {
-    margin-top: 0.6rem;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 13%, var(--bg-card)), var(--bg-card) 70%);
-    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
-    border-radius: 14px;
-    padding: 0.9rem 1rem 0.95rem;
-  }
-  .rsch-vorp-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
+  /* ── Profile sheet: VORP section ── */
+  .rsch-vorp-card { margin-top: 1rem; }
   .rsch-vorp-title {
     font-size: 0.6rem;
     font-weight: 700;
@@ -1891,24 +1879,14 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
-  .rsch-vorp-rank {
-    font-size: 0.62rem;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    border-radius: 999px;
-    padding: 0.16rem 0.55rem;
-    white-space: nowrap;
-  }
   .rsch-vorp-nums {
     display: flex;
     align-items: baseline;
     gap: 0.45rem;
-    margin-top: 0.55rem;
+    margin-top: 0.4rem;
   }
   .rsch-vorp-main {
-    font-size: 2.15rem;
+    font-size: 1.9rem;
     font-weight: 800;
     font-family: 'DM Mono', monospace;
     color: var(--accent);
@@ -1923,115 +1901,70 @@
     letter-spacing: 0.08em;
   }
   .rsch-vorp-sf {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: var(--text-primary);
-    margin-left: 0.9rem;
+    margin-left: 0.75rem;
   }
-
-  /* ── Profile sheet: draft range ── */
-  .rsch-range { margin-top: 1.35rem; }
-  .rsch-range-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.55rem;
-  }
-  .rsch-range-title {
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .rsch-range-spread {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.66rem;
+  .rsch-vorp-context {
+    font-size: 0.72rem;
     color: var(--text-secondary);
-  }
-  .rsch-range-track {
-    position: relative;
-    height: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-  }
-  .rsch-range-fill {
-    position: absolute;
-    top: 0; bottom: 0;
-    border-radius: 999px;
-    opacity: 0.35;
-  }
-  .rsch-range-dot {
-    position: absolute;
-    top: 50%;
-    width: 11px; height: 11px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    border: 2px solid var(--bg-secondary);
-    box-shadow: 0 0 0 1px var(--border-bright);
-  }
-  .rsch-range-ends {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.4rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--text-muted);
+    margin-top: 0.35rem;
   }
 
-  /* ── Profile sheet: insight callouts ── */
-  .rsch-insights {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-  .rsch-insight {
+  /* ── Profile sheet: demand signal ── */
+  .rsch-demand { margin-top: 1.1rem; }
+  .rsch-demand-row {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    font-size: 0.74rem;
-    font-weight: 600;
-    line-height: 1.4;
-    padding: 0.6rem 0.8rem;
-    border-radius: 10px;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .rsch-demand-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.22rem 0.6rem;
+    white-space: nowrap;
     border: 1px solid;
   }
-  .rsch-insight-icon { font-size: 0.9rem; flex-shrink: 0; }
+  .rsch-demand-text {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .rsch-demand-sub {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    line-height: 1.4;
+  }
 
-  /* ── Profile sheet: sources footer ── */
-  .rsch-src {
-    margin-top: 1.2rem;
+  /* ── Profile sheet: typical draft slot ── */
+  .rsch-drafted {
+    margin-top: 1.1rem;
     padding-top: 0.85rem;
     border-top: 1px solid var(--border);
   }
-  .rsch-src-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.4rem;
-  }
-  .rsch-src-cell { text-align: center; }
-  .rsch-src-cell .l {
-    font-size: 0.56rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .rsch-src-cell .v {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.74rem;
+  .rsch-drafted-main {
+    font-size: 0.78rem;
     color: var(--text-secondary);
-    margin-top: 0.2rem;
   }
-  .rsch-src-note {
-    text-align: center;
+  .rsch-drafted-main b { color: var(--text-primary); font-weight: 700; }
+  .rsch-drafted-sub {
     font-family: 'DM Mono', monospace;
     font-size: 0.64rem;
     color: var(--text-muted);
-    margin-top: 0.6rem;
+    margin-top: 0.3rem;
+  }
+
+  /* ── Profile sheet: sources footer ── */
+  .rsch-src-note {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.7rem;
   }
 
   @keyframes rsch-sheet-up {
@@ -7781,16 +7714,16 @@ function renderResearchProfile() {
 
   const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
   const adp = researchAdp(p);
-  const vorp = p.vorp_std;
+  const vorp = researchVorp(p);
 
   // Position rank by composite ADP
   const posList = STATE.mergedPlayers.filter(x => x.position === p.position)
     .sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999));
   const posRank = posList.findIndex(x => x.name === p.name) + 1;
 
-  // VORP rank within position
-  const vorpList = STATE.mergedPlayers.filter(x => x.position === p.position && x.vorp_std != null)
-    .sort((a, b) => b.vorp_std - a.vorp_std);
+  // VORP rank within position (using the scoring-appropriate VORP)
+  const vorpList = STATE.mergedPlayers.filter(x => x.position === p.position && researchVorp(x) != null)
+    .sort((a, b) => researchVorp(b) - researchVorp(a));
   const vorpRank = vorpList.findIndex(x => x.name === p.name) + 1;
 
   // ── Header: position-tinted band with name + context line ──
@@ -7810,11 +7743,6 @@ function renderResearchProfile() {
       </div>
     </div>`;
 
-  const maxLow = Math.max(...STATE.mergedPlayers.map(x => x.low || 0), 24);
-  const maxPick = Math.min(216, maxLow + 12);
-  const pct = v => Math.max(0, Math.min(100, (v - 1) / (maxPick - 1) * 100));
-  const dotAdp = p.weighted_adp ?? adp;
-
   // ── Hero: the two facts a drafter needs first ──
   html += `<div class="rsch-hero-grid">
     <div class="rsch-hero-card">
@@ -7827,76 +7755,79 @@ function renderResearchProfile() {
     </div>
   </div>`;
 
-  // ── VORP band: the signature stat ──
+  // ── VORP: projected value with position context ──
   if (vorp != null || p.vorp_sf != null) {
+    // Show both scoring formats only when they meaningfully differ (>5 pts)
+    const isSF = STATE.isSuperflex && p.vorp_sf != null;
+    const altVorp = isSF ? p.vorp_std : p.vorp_sf;
+    const showBoth = vorp != null && altVorp != null && Math.abs(vorp - altVorp) > 5;
+    const mainUnit = showBoth ? `pts · ${isSF ? 'Superflex' : 'Standard'}` : 'pts above replacement';
+    const altUnit = isSF ? 'Standard' : 'Superflex';
+    const vorpContext = vorpRank > 0
+      ? (vorpRank === 1
+        ? `Top ${escHtml(p.position)} by projected value`
+        : `#${vorpRank} ${escHtml(p.position)} of ${vorpList.length} by projected value`)
+      : '';
     html += `<div class="rsch-vorp-card" title="VORP = projected fantasy points above a replacement-level player at this position">
-      <div class="rsch-vorp-top">
-        <span class="rsch-vorp-title">Value Over Replacement</span>
-        ${vorpRank > 0 ? `<span class="rsch-vorp-rank">${escHtml(p.position)}${vorpRank} by VORP</span>` : ''}
-      </div>
+      <div class="rsch-vorp-title">Value Over Replacement</div>
       <div class="rsch-vorp-nums">
         <span class="rsch-vorp-main">${vorp != null ? Math.round(vorp) : '—'}</span>
-        <span class="rsch-vorp-sub">pts · Std</span>
-        ${p.vorp_sf != null ? `<span class="rsch-vorp-sf">${Math.round(p.vorp_sf)}</span><span class="rsch-vorp-sub">pts · SF</span>` : ''}
+        <span class="rsch-vorp-sub">${mainUnit}</span>
+        ${showBoth ? `<span class="rsch-vorp-sf">${Math.round(altVorp)}</span><span class="rsch-vorp-sub">${altUnit}</span>` : ''}
       </div>
+      ${vorpContext ? `<div class="rsch-vorp-context">${vorpContext}</div>` : ''}
     </div>`;
   }
 
-  // ── Draft range: labeled track with live-ADP dot ──
-  if (p.high && p.low && adp != null) {
-    html += `<div class="rsch-range">
-      <div class="rsch-range-head">
-        <span class="rsch-range-title">Draft Range</span>
-        <span class="rsch-range-spread">Picks ${p.high}–${p.low}</span>
-      </div>
-      <div class="rsch-range-track">
-        <div class="rsch-range-fill" style="left:${pct(p.high)}%;width:${Math.max(1, pct(p.low) - pct(p.high))}%;background:${posCol};"></div>
-        ${dotAdp != null ? `<div class="rsch-range-dot" style="left:${pct(dotAdp)}%;background:${posCol};"></div>` : ''}
-      </div>
-      <div class="rsch-range-ends"><span>Pick 1</span><span>Pick ${maxPick}</span></div>
-    </div>`;
-  }
-
-  // ── Insight callouts: trend + consensus ──
-  const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
+  // ── Demand signal: one row combining consensus gap + trend ──
   const val = researchValue(p);
-  const insights = [];
-  if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
-    const earlier = trendDiff < 0;
-    insights.push({ col: earlier ? 'var(--amber)' : 'var(--success)', icon: earlier ? '↑' : '↓',
-      text: `Trending ${earlier ? 'earlier' : 'later'} &mdash; recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} average` });
-  }
-  if (val != null && Math.abs(val) >= 0.05) {
-    const later = val > 0;
-    insights.push({ col: later ? 'var(--success)' : 'var(--danger)', icon: later ? '↓' : '↑',
-      text: `Goes ${Math.abs(val).toFixed(1)} picks ${later ? 'after' : 'before'} FantasyPros consensus &mdash; ${later ? 'potential value' : 'market reach'}` });
-  }
-  if (insights.length) {
-    html += `<div class="rsch-insights">`;
-    insights.forEach(({ col, icon, text }) => {
-      html += `<div class="rsch-insight" style="background:color-mix(in srgb, ${col} 8%, transparent);border-color:color-mix(in srgb, ${col} 30%, transparent);color:${col};">
-        <span class="rsch-insight-icon">${icon}</span><span>${text}</span>
-      </div>`;
-    });
-    html += `</div>`;
+  const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
+  if (val != null) {
+    let badge, col, text;
+    if (val <= -1) {
+      badge = '🔴 High Demand'; col = 'var(--danger)';
+      text = `Drafted ${Math.abs(val).toFixed(1)} picks earlier than experts rank this player &mdash; expect to reach`;
+    } else if (val >= 1) {
+      badge = '🟢 Value Pick'; col = 'var(--success)';
+      text = `Falls ${val.toFixed(1)} picks past where experts rank this player &mdash; potential discount`;
+    } else {
+      badge = '⚪ Fair Value'; col = 'var(--text-muted)';
+      text = 'Drafted right about where experts rank this player';
+    }
+    let trendSub = '';
+    if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
+      const earlier = trendDiff < 0;
+      trendSub = `<div class="rsch-demand-sub">${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} &mdash; recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} season average</div>`;
+    }
+    html += `<div class="rsch-demand">
+      <div class="rsch-demand-row">
+        <span class="rsch-demand-badge" style="color:${col};border-color:color-mix(in srgb, ${col} 40%, transparent);background:color-mix(in srgb, ${col} 10%, transparent);">${badge}</span>
+        <span class="rsch-demand-text">${text}</span>
+      </div>
+      ${trendSub}
+    </div>`;
   }
 
-  // ── Sources footer: de-emphasized fine print ──
+  // ── Typical draft slot: plain-English range + source comparison ──
+  const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
+    .filter(([, v]) => v != null)
+    .map(([l, v]) => `${l} ${v.toFixed(1)}`);
+  if ((p.high && p.low) || srcParts.length) {
+    html += `<div class="rsch-drafted">
+      ${p.high && p.low ? `<div class="rsch-drafted-main">Typically drafted: <b>Pick ${p.high}&ndash;${p.low}</b></div>` : ''}
+      ${srcParts.length ? `<div class="rsch-drafted-sub">${srcParts.join(' · ')}</div>` : ''}
+    </div>`;
+  }
+
+  // ── Footer: sample size + plain-English consistency ──
   const td = p.times_drafted || 0;
   const sd = p.stdev;
-  const sdLabel = sd == null ? '' : sd < 0.8 ? 'Consistent' : sd <= 2.0 ? 'Moderate' : 'Volatile';
-  const sdColor = sd == null ? 'var(--text-muted)' : sd < 0.8 ? 'var(--success)' : sd <= 2.0 ? 'var(--amber)' : 'var(--danger)';
-  const srcCells = [['Sleeper', p.sleeper_adp], ['FantasyPros', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
-    .filter(([, v]) => v != null)
-    .map(([l, v]) => `<div class="rsch-src-cell"><div class="l">${l}</div><div class="v">${v.toFixed(1)}</div></div>`);
-
-  if (srcCells.length || td) {
-    html += `<div class="rsch-src">`;
-    if (srcCells.length) {
-      html += `<div class="rsch-src-grid" style="grid-template-columns:repeat(${srcCells.length},1fr);">${srcCells.join('')}</div>`;
-    }
-    html += `<div class="rsch-src-note">${td} drafts &middot; ±${sd != null ? sd.toFixed(1) : '?'} <span style="color:${sdColor};font-weight:700;">${sdLabel}</span></div>`;
-    html += `</div>`;
+  const sdLabel = sd == null ? null : sd < 0.8 ? 'High consistency' : sd <= 2.0 ? 'Some variance' : 'Volatile pick range';
+  if (td || sdLabel) {
+    const parts = [];
+    if (td) parts.push(`Based on ${td} drafts`);
+    if (sdLabel) parts.push(sdLabel);
+    html += `<div class="rsch-src-note">${parts.join(' · ')}</div>`;
   }
 
   body.innerHTML = html;
