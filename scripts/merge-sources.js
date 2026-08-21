@@ -152,6 +152,34 @@ function main() {
 
   players.sort((a, b) => a.composite_adp - b.composite_adp);
 
+  // Injury overlay — match by normalized name + team (data/injuries.json from
+  // fetch-injuries.js). Falls back to name-only when the injury record has no
+  // team and the name is unambiguous.
+  const injuries = loadJson('injuries.json');
+  let injuryTagged = 0;
+  if (injuries && Array.isArray(injuries.players)) {
+    const byNameTeam = new Map();
+    const byName = new Map();
+    for (const inj of injuries.players) {
+      const key = normName(inj.name);
+      if (!key) continue;
+      if (inj.team) byNameTeam.set(`${key}|${inj.team}`, inj);
+      byName.set(key, byName.has(key) ? null : inj); // null => ambiguous
+    }
+    for (const p of players) {
+      const key = normName(p.name);
+      const inj = (p.team && byNameTeam.get(`${key}|${p.team}`)) || byName.get(key) || null;
+      if (inj && (!inj.team || !p.team || inj.team === p.team)) {
+        p.injury_status = inj.status;
+        if (inj.note) p.injury_note = inj.note;
+        injuryTagged++;
+      }
+    }
+    console.log(`Injury overlay: tagged ${injuryTagged} players from injuries.json.`);
+  } else {
+    console.log('Injury overlay: data/injuries.json missing — skipping.');
+  }
+
   const out = {
     generated_at: new Date().toISOString(),
     weights: WEIGHTS,

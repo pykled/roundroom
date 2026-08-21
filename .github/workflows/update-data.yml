@@ -36,6 +36,7 @@ jobs:
       - run: node scripts/vorp.js
       - run: node scripts/fetch-fantasypros.js
       - run: node scripts/fetch-underdog.js
+      - run: node scripts/fetch-injuries.js
       - run: node scripts/merge-sources.js
       - name: Commit data
         run: |

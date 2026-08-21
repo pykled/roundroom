@@ -1721,6 +1721,25 @@
 
   #research-player-list { flex: 1; overflow-y: auto; }
 
+  /* Roster needs summary bar */
+  #roster-needs {
+    margin-top: 0.4rem; padding: 0.3rem 0.5rem;
+    font-size: 0.7rem; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    line-height: 1.4;
+  }
+  #roster-needs:empty { display: none; }
+  #roster-needs .rn-pos { font-weight: 700; }
+  .rn-QB { color: #f87171; }
+  .rn-RB { color: #4ade80; }
+  .rn-WR { color: #60a5fa; }
+  .rn-TE { color: #fb923c; }
+  .rn-FLEX { color: var(--text-secondary); }
+  .rn-K, .rn-DST { color: var(--text-muted); }
+
+  /* Trend arrow in player lists */
+  .trend-arrow { font-size: 0.7rem; cursor: help; margin-right: 2px; display: inline-block; }
+
   .research-row {
     display: flex;
     align-items: center;
@@ -1838,6 +1857,36 @@
     border-radius: 999px;
     padding: 0.18rem 0.5rem;
     white-space: nowrap;
+  }
+  /* Injury status dot (list rows) */
+  .inj-dot {
+    font-size: 0.55rem;
+    margin-left: 3px;
+    vertical-align: middle;
+    cursor: help;
+  }
+  /* Injury pill (research profile header) */
+  .rsch-inj-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(234,179,8,0.12);
+    color: #eab308;
+    border: 1px solid rgba(234,179,8,0.35);
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* ── Prep Mode: full draft UI without a live draft ── */
+  #exit-prep-btn { display: none; }
+  #app-screen.prep-mode #exit-prep-btn { display: inline-flex; }
+  #app-screen.prep-mode .header-pick,
+  #app-screen.prep-mode .live-indicator,
+  #app-screen.prep-mode #mock-banner,
+  #app-screen.prep-mode #panel-roster,
+  #app-screen.prep-mode #tab-roster { display: none !important; }
+  @media (min-width: 769px) {
+    #app-screen.prep-mode .main-layout { grid-template-columns: 1fr 290px; }
   }
 
   /* ── Profile sheet: hero stats ── */
@@ -2193,6 +2242,7 @@
 
       <div class="home-secondary-links">
         <button onclick="openResearchStandalone()">🔍 Browse Players</button>
+        <button onclick="enterPrepMode()">🎯 Prep Mode</button>
         <button onclick="openListsOverlay()">⭐ My Lists</button>
         <button onclick="openHelp()" style="color:var(--text-muted);">❓ How it works</button>
       </div>
@@ -2263,6 +2313,7 @@
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Change Draft Slot</div>
       <div style="display:flex;gap:0.3rem;flex-wrap:wrap;max-width:220px;" id="slot-edit-picker"></div>
     </div>
+    <button id="exit-prep-btn" class="btn btn-ghost btn-sm" onclick="exitPrepMode()" style="margin-left:auto;">← Exit Prep</button>
     <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()" style="margin-left:auto;">🔍 Research</button>
     <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()">⚡ Mock Draft</button>
     <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
@@ -2317,6 +2368,7 @@
       <div class="panel-title">Your Roster</div>
 
       <div class="roster-section" id="roster-slots"></div>
+      <div id="roster-needs"></div>
 
       <hr class="section-divider">
 
@@ -2628,6 +2680,7 @@ const STATE = {
   scoringType: 'ppr',
   rosterConfig: null,  // derived roster needs (deriveRosterConfig) — null until settings known
   isMockMode: false,   // standalone mock draft (no Sleeper sync)
+  isPrepMode: false,   // pre-draft prep: full draft UI, no Sleeper, no draft
   vorpData: {},        // live VORP from /api/vorp, keyed by lowercase name
   // ===== Draft Review Room state =====
   reviewDraft: null,
@@ -2864,6 +2917,8 @@ async function launchStandaloneMock() {
             weighted_adp: p.weighted_adp ?? null,
             weighted_stdev: p.weighted_stdev ?? null,
             sources_count: p.sources_count ?? null,
+            injury_status: p.injury_status ?? null,
+            injury_note: p.injury_note ?? null,
           }))
         };
       }
@@ -2940,6 +2995,10 @@ async function launchStandaloneMock() {
 
 function startMockDraft() {
   closeMockModal();
+
+  // A mock started from inside Prep Mode takes over the full draft UI
+  STATE.isPrepMode = false;
+  document.getElementById('app-screen').classList.remove('prep-mode');
 
   MOCK.active = true;
   MOCK.picks = [];
@@ -3732,6 +3791,8 @@ async function startDraftAssistant() {
             weighted_adp: p.weighted_adp ?? null,
             weighted_stdev: p.weighted_stdev ?? null,
             sources_count: p.sources_count ?? null,
+            injury_status: p.injury_status ?? null,
+            injury_note: p.injury_note ?? null,
           }))
         };
         // Update the data-source line in the setup/app footer
@@ -3918,7 +3979,7 @@ function mergePlayers(adpPlayers, sleeperDB) {
       ...p,
       rank: idx + 1,
       sleeper_id: sleeperP ? sleeperP.player_id : null,
-      injury_status: sleeperP ? sleeperP.injury_status : null,
+      injury_status: (sleeperP && sleeperP.injury_status) || p.injury_status || null,
       age: sleeperP ? sleeperP.age : null,
       full_name: sleeperP ? sleeperP.full_name : p.name,
     };
@@ -3977,6 +4038,35 @@ function renderRosterSlots() {
       </div>`;
     }
   }).join('');
+
+  renderRosterNeeds();
+}
+
+function renderRosterNeeds() {
+  const container = document.getElementById('roster-needs');
+  if (!container) return;
+  const filledCount = Object.values(STATE.rosterSlots).filter(Boolean).length;
+  if (filledCount === 0) { container.innerHTML = ''; return; }
+
+  const starterKeys = ['QB','RB1','RB2','WR1','WR2','TE','FLEX','K','DST'];
+  const needCounts = {};
+  starterKeys.forEach(k => {
+    if (!STATE.rosterSlots[k]) {
+      const pos = k.replace(/[0-9]/g, '');
+      needCounts[pos] = (needCounts[pos] || 0) + 1;
+    }
+  });
+
+  const order = ['QB','RB','WR','TE','FLEX','K','DST'];
+  const parts = order.filter(pos => needCounts[pos])
+    .map(pos => `<span class="rn-pos rn-${pos}">${needCounts[pos]} ${pos}</span>`);
+
+  if (!parts.length) {
+    const benchLeft = ['BN1','BN2','BN3','BN4','BN5'].filter(k => !STATE.rosterSlots[k]).length;
+    container.innerHTML = `<span style="color:var(--success);font-weight:600;">Starters set ✓</span> · ${benchLeft} bench spot${benchLeft === 1 ? '' : 's'} left`;
+  } else {
+    container.innerHTML = `Still need: ${parts.join(' · ')}`;
+  }
 }
 
 function posColorVar(pos) {
@@ -5249,6 +5339,8 @@ function goHome() {
   MOCK.currentPick = 0;
   MOCK.waitingForUser = false;
   STATE.isMockMode = false;
+  STATE.isPrepMode = false;
+  document.getElementById('app-screen').classList.remove('prep-mode');
   const mockBanner = document.getElementById('mock-banner');
   if (mockBanner) mockBanner.classList.add('hidden');
   const mockResults = document.getElementById('mock-results-overlay');
@@ -7568,6 +7660,8 @@ async function ensureResearchData() {
             weighted_adp: p.weighted_adp ?? null,
             weighted_stdev: p.weighted_stdev ?? null,
             sources_count: p.sources_count ?? null,
+            injury_status: p.injury_status ?? null,
+            injury_note: p.injury_note ?? null,
           }))
         };
       }
@@ -7622,6 +7716,29 @@ function researchVorp(p) {
   return (STATE.isSuperflex && p.vorp_sf != null) ? p.vorp_sf : (p.vorp_std ?? null);
 }
 
+// Trend momentum: recent draft avg (weighted_adp) vs season avg (adp).
+// diff > 0.5 → being drafted earlier lately (rising demand); diff < -0.5 → later (falling).
+function trendArrowHtml(p) {
+  if (p.weighted_adp == null || p.adp == null) return '';
+  const diff = p.adp - p.weighted_adp;
+  if (diff > 0.5) return `<span class="trend-arrow" style="color:var(--danger);" title="Trending earlier — recent avg pick ${p.weighted_adp.toFixed(1)} vs season avg ${p.adp.toFixed(1)}">↑</span>`;
+  if (diff < -0.5) return `<span class="trend-arrow" style="color:var(--success);" title="Trending later — recent avg pick ${p.weighted_adp.toFixed(1)} vs season avg ${p.adp.toFixed(1)}">↓</span>`;
+  return '';
+}
+
+// Tiny colored injury-status dot for list rows. Red = out-ish, orange =
+// doubtful, yellow = questionable, gray = anything else (e.g. "NA").
+function injuryDotHtml(p) {
+  if (!p.injury_status) return '';
+  const s = String(p.injury_status).toLowerCase();
+  let col = 'var(--text-muted)';
+  if (['out', 'ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) col = 'var(--danger)';
+  else if (s.startsWith('doubtful')) col = '#f97316';
+  else if (s.startsWith('questionable')) col = '#eab308';
+  const full = p.injury_status + (p.injury_note ? ` — ${p.injury_note}` : '');
+  return `<span class="inj-dot" style="color:${col};" title="${escHtml(full)}">●</span>`;
+}
+
 function setResearchPos(pos) {
   RESEARCH.pos = pos;
   document.querySelectorAll('.rsch-pos-btn').forEach(b => b.classList.toggle('active', b.dataset.rpos === pos));
@@ -7672,13 +7789,14 @@ function renderResearchList() {
     const adp = researchAdp(p);
     const vorp = researchVorp(p);
     const val = researchValue(p);
-    const valHtml = val == null ? '<span style="color:var(--text-muted);">—</span>'
-      : `<span style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+    const trend = trendArrowHtml(p);
+    const valHtml = val == null ? `<span style="color:var(--text-muted);">${trend}—</span>`
+      : `<span style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${trend}${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
     const status = isTarget(p.name) ? '⭐' : (isDND(p.name) ? '🚫' : '');
     const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
     return `<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
-      <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
+      <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
       <span class="rsch-col" style="width:42px;color:var(--text-primary);">${adp != null ? adp.toFixed(1) : '—'}</span>
       <span class="rsch-col rsch-col-rank" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
@@ -7728,7 +7846,7 @@ function renderResearchProfile() {
 
   // ── Header: position-tinted band with name + context line ──
   const injury = p.injury_status && p.injury_status !== 'Active'
-    ? `<span class="rsch-injury">⚠ ${escHtml(p.injury_status)}</span>` : '';
+    ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
   let html = `
     <div class="rsch-head" style="--pos-col:${posCol};">
       <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
@@ -7874,6 +7992,40 @@ function closeResearchStandalone() {
   if (layout && panel.parentElement !== layout) layout.appendChild(panel);
 }
 
+// ===== PREP MODE (full draft UI without connecting to Sleeper) =====
+async function enterPrepMode() {
+  STATE.isMockMode = false;
+  STATE.isPrepMode = true;
+  STATE.draftStatus = 'prep';
+
+  const app = document.getElementById('app-screen');
+  document.getElementById('setup-screen').style.display = 'none';
+  app.classList.add('prep-mode'); // hides pick counter, live indicator, mock banner, roster panel
+  app.style.display = 'flex';
+  document.getElementById('ai-fab').style.display = 'flex';
+  document.getElementById('header-league-name').textContent = 'Prep Mode';
+  setLiveStatus(false, 'Prep');
+
+  // Default to the players panel (matters on mobile where roster is the default tab)
+  showMobileTab('players');
+
+  // No Sleeper connection, no roster init, no pick counter — just load the
+  // player data and render the panels that make sense pre-draft.
+  await ensureResearchData();
+  if (STATE.mergedPlayers?.length) {
+    renderBoard();
+    renderScarcityBars();
+    renderRecommendations();
+    renderResearchList();
+  }
+}
+
+function exitPrepMode() {
+  STATE.isPrepMode = false;
+  document.getElementById('app-screen').classList.remove('prep-mode');
+  goHome();
+}
+
 // ===== HOME PAGE (setup screen) =====
 const HOME = { pos: 'ALL', lastList: [] };
 
@@ -7926,12 +8078,13 @@ function renderHomePlayers() {
     const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
     const adp = researchAdp(p);
     const val = researchValue(p);
+    const trend = trendArrowHtml(p);
     const valHtml = val == null
-      ? '<span class="home-value" style="color:var(--text-muted);">—</span>'
-      : `<span class="home-value" style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+      ? `<span class="home-value" style="color:var(--text-muted);">${trend}—</span>`
+      : `<span class="home-value" style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${trend}${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
     return `<button class="home-player-row" onclick="homeOpenProfile(${i})">
       <span class="home-pos-badge" style="color:${posCol};border-color:${posCol};">${escHtml(p.position)}</span>
-      <span class="home-player-name">${escHtml(p.name)}</span>
+      <span class="home-player-name">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="home-player-team">${escHtml(p.team || 'FA')}</span>
       <span class="home-player-adp">${adp != null ? adp.toFixed(1) : '—'}</span>
       <span class="home-player-rank">${escHtml(p.position)}${posRank[p.name] || ''}</span>
