@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T19:54:12.836Z",
+  "generated_at": "2026-08-21T08:11:07.030Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -591,9 +591,9 @@
       "vorp_sf": 36
     },
     {
-      "name": "Alec Pierce",
+      "name": "Jordan Addison",
       "position": "WR",
-      "team": "IND",
+      "team": "MIN",
       "vorp_std": 36,
       "vorp_sf": 36
     },
@@ -605,9 +605,9 @@
       "vorp_sf": 97.5
     },
     {
-      "name": "Jordan Addison",
+      "name": "Alec Pierce",
       "position": "WR",
-      "team": "MIN",
+      "team": "IND",
       "vorp_std": 31.5,
       "vorp_sf": 31.5
     },
@@ -682,9 +682,9 @@
       "vorp_sf": 18
     },
     {
-      "name": "George Kittle",
+      "name": "Travis Kelce",
       "position": "TE",
-      "team": "SF",
+      "team": "KC",
       "vorp_std": 15,
       "vorp_sf": 15
     },
@@ -717,9 +717,9 @@
       "vorp_sf": 9
     },
     {
-      "name": "Travis Kelce",
+      "name": "George Kittle",
       "position": "TE",
-      "team": "KC",
+      "team": "SF",
       "vorp_std": 7.5,
       "vorp_sf": 7.5
     },
@@ -934,9 +934,9 @@
       "vorp_sf": -36
     },
     {
-      "name": "Hunter Henry",
+      "name": "Kenyon Sadiq",
       "position": "TE",
-      "team": "NE",
+      "team": "NYJ",
       "vorp_std": -37.5,
       "vorp_sf": -37.5
     },
@@ -969,9 +969,9 @@
       "vorp_sf": -45
     },
     {
-      "name": "Kenyon Sadiq",
+      "name": "Hunter Henry",
       "position": "TE",
-      "team": "NYJ",
+      "team": "NE",
       "vorp_std": -45,
       "vorp_sf": -45
     },
@@ -1039,9 +1039,9 @@
       "vorp_sf": -58.5
     },
     {
-      "name": "Brian Robinson",
+      "name": "Chris Rodriguez",
       "position": "RB",
-      "team": "ATL",
+      "team": "JAX",
       "vorp_std": -60,
       "vorp_sf": -60
     },
@@ -1067,9 +1067,9 @@
       "vorp_sf": 0
     },
     {
-      "name": "Chris Rodriguez",
+      "name": "Brian Robinson",
       "position": "RB",
-      "team": "JAX",
+      "team": "ATL",
       "vorp_std": -66,
       "vorp_sf": -66
     },
@@ -1081,9 +1081,9 @@
       "vorp_sf": -67.5
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "AJ Barner",
       "position": "TE",
-      "team": "WAS",
+      "team": "SEA",
       "vorp_std": -67.5,
       "vorp_sf": -67.5
     },
@@ -1109,9 +1109,9 @@
       "vorp_sf": -72
     },
     {
-      "name": "AJ Barner",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "SEA",
+      "team": "WAS",
       "vorp_std": -75,
       "vorp_sf": -75
     },
@@ -1123,9 +1123,9 @@
       "vorp_sf": -76.5
     },
     {
-      "name": "Malik Willis",
+      "name": "Daniel Jones",
       "position": "QB",
-      "team": "MIA",
+      "team": "IND",
       "vorp_std": -78,
       "vorp_sf": -13
     },
@@ -1158,9 +1158,9 @@
       "vorp_sf": -84
     },
     {
-      "name": "Daniel Jones",
+      "name": "Malik Willis",
       "position": "QB",
-      "team": "IND",
+      "team": "MIA",
       "vorp_std": -84.5,
       "vorp_sf": -19.5
     },
@@ -1249,16 +1249,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Ted Hurst",
+      "name": "Ricky Pearsall",
       "position": "WR",
-      "team": "TB",
+      "team": "SF",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Ricky Pearsall",
+      "name": "Ted Hurst",
       "position": "WR",
-      "team": "SF",
+      "team": "TB",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1676,16 +1676,16 @@
       "vorp_sf": -105
     },
     {
-      "name": "Dylan Sampson",
+      "name": "Tank Bigsby",
       "position": "RB",
-      "team": "CLE",
+      "team": "PHI",
       "vorp_std": -108,
       "vorp_sf": -108
     },
     {
-      "name": "Tank Bigsby",
+      "name": "Dylan Sampson",
       "position": "RB",
-      "team": "PHI",
+      "team": "CLE",
       "vorp_std": -110,
       "vorp_sf": -110
     },
@@ -1774,16 +1774,16 @@
       "vorp_sf": -110
     },
     {
-      "name": "Najee Harris",
+      "name": "Joe Mixon",
       "position": "RB",
-      "team": "NYG",
+      "team": null,
       "vorp_std": -110,
       "vorp_sf": -110
     },
     {
-      "name": "Joe Mixon",
+      "name": "Najee Harris",
       "position": "RB",
-      "team": null,
+      "team": "NYG",
       "vorp_std": -110,
       "vorp_sf": -110
     },
