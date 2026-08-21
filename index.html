@@ -5190,7 +5190,7 @@ function renderRecommendations() {
         <span style="font-family:'DM Mono',monospace;">ADP #${p.rank} · ${escHtml(p.team||'FA')} · Bye ${p.bye||'?'}</span>
         <div style="display:flex;align-items:center;gap:0.4rem;">
           ${(()=>{const fpA=FP_ADP[p.name];const gap=fpA&&p.adp?Math.round(p.adp-fpA):0;return gap>3?`<span style="font-size:0.65rem;color:#4ade80;font-family:'DM Mono',monospace;font-weight:600;">+${gap} val</span>`:gap<-3?`<span style="font-size:0.65rem;color:#f87171;font-family:'DM Mono',monospace;">reach</span>`:'';})()}
-          <span class="survival-pct ${survClass}" title="Probability this player is still available when your next pick comes">${survPct}% survive</span>
+          ${STATE.isPrepMode ? '' : `<span class="survival-pct ${survClass}" title="Probability this player is still available when your next pick comes">${survPct}% survive</span>`}
         </div>
       </div>
     </div>`;
@@ -6405,7 +6405,7 @@ function openPlayerModal(player) {
       </div>
     </div>
 
-    <div style="background:var(--bg-primary);border-radius:8px;padding:0.75rem;margin-bottom:1rem;">
+    ${STATE.isPrepMode ? '' : `<div style="background:var(--bg-primary);border-radius:8px;padding:0.75rem;margin-bottom:1rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:0.8rem;color:var(--text-muted);">Survival to your next pick</span>
         <span class="survival-pct ${survClass}">${survPct}%</span>
@@ -6414,7 +6414,7 @@ function openPlayerModal(player) {
         <div style="height:100%;width:${survPct}%;background:${survPct < 25 ? 'var(--danger)' : survPct < 60 ? 'var(--amber)' : 'var(--success)'};border-radius:3px;transition:width 0.3s;"></div>
       </div>
       <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.35rem;">Drafted ${player.times_drafted || '?'} times — range: ${player.low || '?'}–${player.high || '?'}</div>
-    </div>
+    </div>`}
 
     <div class="modal-actions">
       <button class="btn btn-star${isTargeted ? ' active' : ''}" onclick="handleCardTarget(event,'${escAttr(player.name)}');rerenderModal(${escAttr(JSON.stringify(player))})">
