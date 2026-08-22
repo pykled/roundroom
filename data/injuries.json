@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-22T07:58:38.789Z",
+  "fetched_at": "2026-08-22T19:46:08.035Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -142,6 +142,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Brenen Thompson",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Brevin Jordan",
       "position": "TE",
       "team": "HOU",
@@ -224,6 +231,13 @@
       "team": "CLE",
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cedrick Wilson",
+      "position": "WR",
+      "team": "DET",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Chase Curtis",
@@ -438,7 +452,7 @@
     {
       "name": "DT Sheffield",
       "position": "WR",
-      "team": "NYJ",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -625,6 +639,13 @@
       "body_part": "Pectoral"
     },
     {
+      "name": "Isaiah Bond",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Questionable",
+      "body_part": "Head"
+    },
+    {
       "name": "Isaiah Crowell",
       "position": "RB",
       "team": null,
@@ -674,11 +695,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Jacob Saylors",
+      "name": "Jacory Croskey-Merritt",
       "position": "RB",
-      "team": "DET",
+      "team": "WAS",
       "status": "Questionable",
-      "body_part": "Ankle"
+      "body_part": "Undisclosed"
     },
     {
       "name": "Jake Bentley",
@@ -691,8 +712,8 @@
       "name": "Jake Bobo",
       "position": "WR",
       "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Leg"
+      "status": "IR",
+      "body_part": "Knee"
     },
     {
       "name": "Jakobi Meyers",
@@ -886,7 +907,7 @@
     {
       "name": "Johnny Wilson",
       "position": "WR",
-      "team": "PHI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Knee"
     },
@@ -1007,7 +1028,7 @@
       "position": "WR",
       "team": "BUF",
       "status": "Questionable",
-      "body_part": "Lower Body"
+      "body_part": "Foot"
     },
     {
       "name": "Kevin Coleman",
@@ -1444,6 +1465,13 @@
       "body_part": null
     },
     {
+      "name": "Sione Vaki",
+      "position": "RB",
+      "team": "DET",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Sirgeo Hoffman",
       "position": "RB",
       "team": null,
@@ -1540,6 +1568,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Trayveon Williams",
+      "position": "RB",
+      "team": "DET",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "Tre' Harris",
