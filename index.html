@@ -337,7 +337,7 @@
   .home-col-header .h-team { width: 34px; flex-shrink: 0; }
   .home-col-header .h-adp { width: 40px; flex-shrink: 0; }
   .home-col-header .h-rank { width: 42px; flex-shrink: 0; }
-  .home-col-header .h-val { width: 48px; flex-shrink: 0; text-align: right; cursor: help; }
+  .home-col-header .h-val { width: 72px; flex-shrink: 0; text-align: right; cursor: help; }
 
   @media (max-width: 768px) {
     /* Layout */
@@ -2176,12 +2176,13 @@
     <div class="home-left">
       <div class="home-pill">NFL Fantasy 2026</div>
       <div class="home-wordmark">RoundRoom</div>
-      <div class="home-tagline">VORP-powered NFL draft assistant. Live Sleeper sync.</div>
+      <div class="home-tagline">Your edge in Sleeper fantasy drafts.</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;">AI-powered rankings, real-time draft sync, and expert insights.</div>
 
       <div class="home-feature-chips">
         <span title="Live Sleeper WebSocket sync — picks update the moment your league drafts" style="cursor:default;">⚡ Real-time picks</span>
-        <span title="VORP: Value Over Replacement Player — cross-position scoring that shows true draft value" style="cursor:default;">📊 VORP recommendations</span>
-        <span onclick="openResearchStandalone()" title="Browse player stats, ADP, and VORP rankings" style="cursor:pointer;">🔍 Player research</span>
+        <span title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement" style="cursor:default;">📊 Value-based rankings</span>
+        <span title="Browse player stats, average draft position, and value rankings" style="cursor:default;">🔍 Player research</span>
       </div>
 
       <div class="home-action-cards">
@@ -2192,6 +2193,7 @@
           </div>
 
           <div id="connect-form" style="display:none;">
+            <div id="connect-step-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;">Step 1 of 3 — Enter your Sleeper username</div>
             <div id="setup-error" class="error-msg hidden"></div>
 
             <div class="form-group">
@@ -2241,9 +2243,8 @@
       </div>
 
       <div class="home-secondary-links">
-        <button onclick="openResearchStandalone()">🔍 Browse Players</button>
-        <button onclick="enterPrepMode()">🎯 Prep Mode</button>
-        <button onclick="openListsOverlay()">⭐ My Lists</button>
+        <button onclick="openResearchStandalone()">🔍 Research Players</button>
+        <button onclick="openListsOverlay()">⭐ My Targets</button>
         <button onclick="openHelp()" style="color:var(--text-muted);">❓ How it works</button>
       </div>
 
@@ -2280,9 +2281,9 @@
         <span class="h-pos"></span>
         <span class="h-name">Player</span>
         <span class="h-team">Team</span>
-        <span class="h-adp">ADP</span>
+        <span class="h-adp" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
         <span class="h-rank">Rank</span>
-        <span class="h-val" title="Rounds vs FantasyPros consensus. Positive = falling (value pick). Negative = rising (high demand).">vs FP ↕</span>
+        <span class="h-val" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">vs Experts</span>
       </div>
       <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
     </div>
@@ -2325,7 +2326,7 @@
 
   <!-- Data attribution -->
   <div style="font-size:0.62rem;color:var(--text-muted);text-align:center;padding:0.1rem 0.5rem;background:var(--bg-secondary);border-bottom:1px solid var(--border);">
-    <span class="data-source-line">Rankings: FantasyPros consensus · 12-team PPR · Aug 2026</span> &nbsp;|&nbsp; VORP methodology via FantasyPros/4for4
+    <span class="data-source-line">Rankings: FantasyPros consensus · 12-team PPR · Aug 2026</span> &nbsp;|&nbsp; <span title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span> methodology via FantasyPros/4for4
   </div>
 
   <!-- Strategy bar -->
@@ -2407,7 +2408,7 @@
     <div class="panel" id="panel-research">
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;flex-shrink:0;">
         <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
-        <button onclick="openListsOverlay()" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">⭐ View My Lists</button>
+        <button onclick="openListsOverlay()" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">⭐ View My Targets</button>
         <button id="research-standalone-close" onclick="closeResearchStandalone()" title="Close" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-primary);font-size:0.85rem;cursor:pointer;font-family:inherit;">✕</button>
       </div>
       <div class="research-controls">
@@ -2431,10 +2432,10 @@
         <span style="width:32px;flex-shrink:0;"></span>
         <span style="flex:1;">Player</span>
         <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
-        <span style="width:42px;flex-shrink:0;">ADP</span>
+        <span style="width:42px;flex-shrink:0;" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
         <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
-        <span style="width:34px;flex-shrink:0;" title="Points above replacement-level player">VORP</span>
-        <span style="width:40px;flex-shrink:0;" title="Rounds vs FantasyPros consensus. + = value, - = reach">vs FP</span>
+        <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
+        <span style="width:40px;flex-shrink:0;" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">vs FP</span>
         <span style="width:18px;flex-shrink:0;"></span>
       </div>
       <div id="research-player-list"></div>
@@ -3497,6 +3498,8 @@ async function fetchLeagues() {
 
     renderLeagues();
     document.getElementById('leagues-section').classList.remove('hidden');
+    const stepHint = document.getElementById('connect-step-hint');
+    if (stepHint) stepHint.textContent = 'Step 2 of 3 — Select your league';
   } catch(e) {
     showError(e.message || 'Failed to connect to Sleeper API');
   } finally {
@@ -3570,6 +3573,8 @@ async function selectLeague(league, el) {
 
     renderDraftInfo(league, draft);
     document.getElementById('draft-info-section').classList.remove('hidden');
+    const stepHint = document.getElementById('connect-step-hint');
+    if (stepHint) stepHint.textContent = 'Step 3 of 3 — Confirm your draft slot, then hit Start.';
   } catch(e) {
     showError('Failed to load draft info');
   }
@@ -4026,14 +4031,14 @@ function renderRosterSlots() {
       return `<div class="roster-slot filled">
         <div style="display:flex;align-items:center;gap:0.35rem;">
           <span class="pos-dot pos-dot-${player.position}"></span>
-          <span class="slot-pos">${s.label}</span>
+          <span class="slot-pos"${s.key === 'FLEX' ? ' title="Flex slot — RB, WR, or TE"' : ''}>${s.label}</span>
         </div>
         <span class="slot-player">${escHtml(player.name)}</span>
         <span class="slot-team" style="font-size:0.65rem;font-family:'DM Mono',monospace;">${escHtml(player.team||'')}</span>
       </div>`;
     } else {
       return `<div class="roster-slot empty">
-        <span class="slot-pos">${s.label}</span>
+        <span class="slot-pos"${s.key === 'FLEX' ? ' title="Flex slot — RB, WR, or TE"' : ''}>${s.label}</span>
         <span class="slot-player" style="color:var(--text-muted);font-weight:400;">—</span>
       </div>`;
     }
@@ -8037,7 +8042,13 @@ function toggleConnectCard(open) {
   collapsed.style.display = open ? 'none' : '';
   form.style.display = open ? 'block' : 'none';
   if (card) card.classList.toggle('expanded', open);
-  if (open) document.getElementById('username-input')?.focus();
+  if (open) {
+    document.getElementById('username-input')?.focus();
+    const stepHint = document.getElementById('connect-step-hint');
+    if (stepHint && document.getElementById('leagues-section')?.classList.contains('hidden')) {
+      stepHint.textContent = 'Step 1 of 3 — Enter your Sleeper username';
+    }
+  }
 }
 
 function setHomePos(pos) {
@@ -8192,7 +8203,7 @@ if (!document.body.classList.contains('companion-mode')) {
 <div id="cv-lists-overlay" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:810;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;max-width:360px;width:100%;max-height:85vh;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-      <div style="font-size:0.95rem;font-weight:800;">My Lists</div>
+      <div style="font-size:0.95rem;font-weight:800;">My Targets</div>
       <button onclick="document.getElementById('cv-lists-overlay').style.display='none'" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:0.8rem;">✕</button>
     </div>
     <div id="cv-lists-body"></div>
