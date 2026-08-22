@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-22T19:46:08.035Z",
+  "fetched_at": "2026-08-21T20:41:00.122Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -142,13 +142,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Brenen Thompson",
-      "position": "WR",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Brevin Jordan",
       "position": "TE",
       "team": "HOU",
@@ -231,20 +224,6 @@
       "team": "CLE",
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Cedrick Wilson",
-      "position": "WR",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Chase Curtis",
-      "position": "TE",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Chris Bell",
@@ -452,8 +431,8 @@
     {
       "name": "DT Sheffield",
       "position": "WR",
-      "team": null,
-      "status": "Questionable",
+      "team": "NYJ",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -639,13 +618,6 @@
       "body_part": "Pectoral"
     },
     {
-      "name": "Isaiah Bond",
-      "position": "WR",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Head"
-    },
-    {
       "name": "Isaiah Crowell",
       "position": "RB",
       "team": null,
@@ -695,11 +667,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Jacory Croskey-Merritt",
+      "name": "Jacob Saylors",
       "position": "RB",
-      "team": "WAS",
+      "team": "DET",
       "status": "Questionable",
-      "body_part": "Undisclosed"
+      "body_part": "Ankle"
     },
     {
       "name": "Jake Bentley",
@@ -712,15 +684,8 @@
       "name": "Jake Bobo",
       "position": "WR",
       "team": "SEA",
-      "status": "IR",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Jakobi Meyers",
-      "position": "WR",
-      "team": "JAX",
       "status": "Questionable",
-      "body_part": "Hand"
+      "body_part": "Leg"
     },
     {
       "name": "Jalen McMillan",
@@ -907,7 +872,7 @@
     {
       "name": "Johnny Wilson",
       "position": "WR",
-      "team": null,
+      "team": "PHI",
       "status": "Questionable",
       "body_part": "Knee"
     },
@@ -1028,7 +993,7 @@
       "position": "WR",
       "team": "BUF",
       "status": "Questionable",
-      "body_part": "Foot"
+      "body_part": "Lower Body"
     },
     {
       "name": "Kevin Coleman",
@@ -1290,13 +1255,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Noah Whittington",
-      "position": "RB",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Parker Washington",
       "position": "WR",
       "team": "JAX",
@@ -1465,13 +1423,6 @@
       "body_part": null
     },
     {
-      "name": "Sione Vaki",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Sirgeo Hoffman",
       "position": "RB",
       "team": null,
@@ -1570,13 +1521,6 @@
       "body_part": null
     },
     {
-      "name": "Trayveon Williams",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Concussion"
-    },
-    {
       "name": "Tre' Harris",
       "position": "WR",
       "team": "LAC",
@@ -1673,13 +1617,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Xavier Legette",
-      "position": "WR",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Lower Body"
     },
     {
       "name": "Xavier Weaver",

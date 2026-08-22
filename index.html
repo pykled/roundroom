@@ -7929,9 +7929,18 @@ function renderResearchProfile() {
   const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
     .filter(([, v]) => v != null)
     .map(([l, v]) => `${l} ${v.toFixed(1)}`);
-  if ((p.high && p.low) || srcParts.length) {
+  const adpForRange = p.adp || p.composite_adp;
+  const stdevForRange = p.stdev;
+  const rangeHtml = (adpForRange && stdevForRange)
+    ? (() => {
+        const lo = Math.max(1, Math.round(adpForRange - stdevForRange));
+        const hi = Math.round(adpForRange + stdevForRange);
+        return `<div class="rsch-drafted-main">Typically drafted: <b>Pick ${lo}&ndash;${hi}</b></div>`;
+      })()
+    : '';
+  if (rangeHtml || srcParts.length) {
     html += `<div class="rsch-drafted">
-      ${p.high && p.low ? `<div class="rsch-drafted-main">Typically drafted: <b>Pick ${p.high}&ndash;${p.low}</b></div>` : ''}
+      ${rangeHtml}
       ${srcParts.length ? `<div class="rsch-drafted-sub">${srcParts.join(' · ')}</div>` : ''}
     </div>`;
   }
