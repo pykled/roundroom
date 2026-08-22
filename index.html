@@ -196,7 +196,7 @@
     border-color: var(--border-bright); color: var(--text-primary);
   }
 
-  .home-action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .home-action-cards { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
   .home-action-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -357,7 +357,7 @@
     .home-left .home-wordmark { font-size: 2.4rem; }
     .home-feature-chips { margin: 0.75rem 0 1.1rem; gap: 0.3rem; }
     .home-feature-chips span { font-size: 0.64rem; padding: 0.2rem 0.5rem; }
-    .home-action-cards { grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0; }
+    .home-action-cards { grid-template-columns: 1fr; gap: 0.6rem; margin-bottom: 0; }
     .home-card-connect, .home-card-mock { padding: 0.9rem; }
     .home-home-pill { margin-bottom: 0.5rem; }
     .home-secondary-links { gap: 1rem; margin-top: 0.85rem; }
@@ -2179,13 +2179,7 @@
       <div class="home-tagline">Your edge in Sleeper fantasy drafts.</div>
       <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;">AI-powered rankings, real-time draft sync, and expert insights.</div>
 
-      <div class="home-feature-chips">
-        <span title="Live Sleeper WebSocket sync — picks update the moment your league drafts" style="cursor:default;">⚡ Real-time picks</span>
-        <span title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement" style="cursor:default;">📊 Value-based rankings</span>
-        <span title="Browse player stats, average draft position, and value rankings" style="cursor:default;">🔍 Player research</span>
-      </div>
-
-      <div class="home-action-cards">
+      <div class="home-action-cards" style="margin-top:1.75rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
           <div id="connect-collapsed">
             <button class="home-connect-btn" onclick="toggleConnectCard(true)">Connect My Sleeper League →</button>
