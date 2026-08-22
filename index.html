@@ -2233,7 +2233,7 @@
           </div>
         </div>
 
-        <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()">
+        <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()" style="display:none;">
           <div class="home-card-icon">⚡</div>
           <div class="home-card-title">Mock Draft</div>
           <div class="home-card-sub">Practice without an account</div>
@@ -2315,7 +2315,7 @@
     </div>
     <button id="exit-prep-btn" class="btn btn-ghost btn-sm" onclick="exitPrepMode()" style="margin-left:auto;">← Exit Prep</button>
     <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()" style="margin-left:auto;">🔍 Research</button>
-    <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()">⚡ Mock Draft</button>
+    <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()" style="display:none;">⚡ Mock Draft</button>
     <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
     <div class="live-indicator" style="margin-left:0.5rem;">
       <div class="live-dot" id="live-dot"></div>
@@ -2465,7 +2465,7 @@
       <button class="mobile-tab" id="tab-research" onclick="showMobileTab('research')">
         <span class="tab-icon">🔍</span>Research
       </button>
-      <button class="mobile-tab" id="tab-mock" onclick="openMockModal()">
+      <button class="mobile-tab" id="tab-mock" onclick="openMockModal()" style="display:none;">
         <span class="tab-icon">⚡</span>Mock
       </button>
     </div>
