@@ -20,6 +20,8 @@ jobs:
       # back to data/ at completion and they're committed alongside the picks.
       - run: node scripts/crawl.js --resume
       - run: node scripts/aggregate.js
+      - name: Aggregate SF ADP
+        run: node scripts/aggregate.js --sf
       - name: Verify crawl quality
         # Fail the run rather than committing empty/thin data — a red run is
         # visible; a silent commit of bad data is not.
@@ -36,6 +38,8 @@ jobs:
       - run: node scripts/vorp.js
       - run: node scripts/fetch-fantasypros.js
       - run: node scripts/fetch-underdog.js
+      - name: Fetch FantasyPros SF ADP
+        run: node scripts/fetch-fantasypros-sf-adp.js
       - run: node scripts/fetch-injuries.js
       - run: node scripts/merge-sources.js
       - name: Commit data

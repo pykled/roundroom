@@ -2937,6 +2937,7 @@ async function launchStandaloneMock() {
             player_id: p.player_id || null,
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
+            composite_sf_adp: p.composite_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,
@@ -3818,6 +3819,7 @@ async function startDraftAssistant() {
             player_id: p.player_id || null,
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
+            composite_sf_adp: p.composite_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,
@@ -4557,14 +4559,11 @@ function getProjectedPts(player, allPlayers) {
 
 function sfSortValue(p) {
   // Returns a sort value for SF mode: lower = better rank.
-  // Uses SF VORP (inverted) for QBs, standard ADP for everyone else.
   if (!STATE.isSuperflex) return p.composite_adp ?? p.adp ?? 999;
+  // Use real SF ADP data if available, fall back to VORP inversion
+  if (p.composite_sf_adp != null) return p.composite_sf_adp;
   const sfVorp = lookupVorp(p.name, p.position);
-  if (sfVorp != null) {
-    // Convert VORP to a pseudo-ADP: player with highest VORP = rank 1.
-    // Sort by -vorp so higher VORP = lower sort value = earlier rank.
-    return -sfVorp;
-  }
+  if (sfVorp != null) return -sfVorp;
   return p.composite_adp ?? p.adp ?? 999;
 }
 
@@ -7138,7 +7137,8 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
         adp: p.composite_adp||p.sleeper_adp||p.fantasypros_adp||999,
         stdev: p.stdev||2.0, high: p.high||Math.max(1,Math.round((p.composite_adp||999)-3)),
         low: p.low||Math.round((p.composite_adp||999)+3), times_drafted: p.times_drafted||0,
-        player_id: p.player_id||null, bye: p.bye||null
+        player_id: p.player_id||null, bye: p.bye||null,
+        composite_sf_adp: p.composite_sf_adp ?? null
       })) };
     }
   } catch(e) {}
@@ -7738,6 +7738,7 @@ async function ensureResearchData() {
             player_id: p.player_id || null,
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
+            composite_sf_adp: p.composite_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,

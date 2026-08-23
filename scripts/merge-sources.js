@@ -152,6 +152,43 @@ function main() {
 
   players.sort((a, b) => a.composite_adp - b.composite_adp);
 
+  // ── SF composite ADP ─────────────────────────────────────────────────────
+  // Blend Sleeper SF empirical ADP (weight 2) with FantasyPros 2QB consensus
+  // (weight 1). Players with no SF signal fall back to composite_adp — non-QB
+  // positions won't move much anyway.
+  const sfAdpMap = {};
+  const sfSources = [
+    { data: loadJson('adp_sf.json'), field: 'weighted_adp', weight: 2 },
+    { data: loadJson('fantasypros_sf_adp.json'), field: 'adp', weight: 1 },
+  ];
+
+  sfSources.forEach(({ data, field, weight }) => {
+    if (!data) return;
+    (Array.isArray(data) ? data : data.players || []).forEach(p => {
+      const key = normName(p.name);
+      if (!key) return;
+      if (!sfAdpMap[key]) sfAdpMap[key] = { sum: 0, w: 0 };
+      const val = p[field];
+      if (val != null && isFinite(val)) {
+        sfAdpMap[key].sum += val * weight;
+        sfAdpMap[key].w += weight;
+      }
+    });
+  });
+
+  let sfTagged = 0;
+  players.forEach(p => {
+    const key = normName(p.name);
+    const entry = sfAdpMap[key];
+    if (entry && entry.w > 0) {
+      p.composite_sf_adp = Math.round((entry.sum / entry.w) * 100) / 100;
+      sfTagged++;
+    }
+    // Fall back to composite_adp if no SF data (non-QB positions won't move much)
+    if (!p.composite_sf_adp) p.composite_sf_adp = p.composite_adp;
+  });
+  console.log(`SF composite: ${sfTagged} players with real SF ADP data; rest fall back to composite_adp.`);
+
   // Injury overlay — match by normalized name + team (data/injuries.json from
   // fetch-injuries.js). Falls back to name-only when the injury record has no
   // team and the name is unambiguous.

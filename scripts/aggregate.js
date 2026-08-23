@@ -27,6 +27,14 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
+
+// --sf: aggregate SuperFlex picks (raw_picks_sf.json -> adp_sf.json).
+// SF leagues are rarer, so the minimum draft threshold is lower.
+const isSf = process.argv.includes('--sf');
+const PICKS_FILE = path.join(DATA_DIR, isSf ? 'raw_picks_sf.json' : 'raw_picks.json');
+const OUTPUT_FILE = path.join(DATA_DIR, isSf ? 'adp_sf.json' : 'adp.json');
+const QUALITY_FILE = path.join(DATA_DIR, isSf ? 'data_quality_sf.json' : 'data_quality.json');
+
 // During draft season (Aug 1 – Sep 15) the crawl sample is thin relative to
 // player pool churn — requiring 10 drafts per player dropped 200+ real players
 // when only ~16 quality drafts passed filters. 5 keeps coverage while the
@@ -37,7 +45,8 @@ function inDraftSeason(d = new Date()) {
   const day = d.getUTCDate();
   return (m === 8) || (m === 9 && day <= 15);
 }
-const MIN_DRAFTS = inDraftSeason() ? 5 : 10;
+// SF leagues are much rarer in the crawl sample — require only 3 drafts.
+const MIN_DRAFTS = isSf ? 3 : (inDraftSeason() ? 5 : 10);
 const DATE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 const AUTOPICK_MAX_FRAC = 0.40;              // >40% autopick => suspect
 const MIN_DURATION_MS = 8 * 60 * 1000;       // < 8 min => too fast
@@ -64,14 +73,26 @@ function stdev(nums, mean) {
 }
 
 function main() {
-  const rawPath = path.join(DATA_DIR, 'raw_picks.json');
+  const rawPath = PICKS_FILE;
   if (!fs.existsSync(rawPath)) {
-    console.error('data/raw_picks.json not found. Run crawl.js first.');
+    if (isSf) {
+      // SF picks may simply not exist yet (crawl predates SF tagging). Write an
+      // empty-but-valid output and exit 0 so the pipeline continues.
+      console.warn(`${rawPath} not found — writing empty SF ADP and continuing.`);
+      fs.writeFileSync(OUTPUT_FILE, JSON.stringify({
+        generated_at: new Date().toISOString(),
+        total_drafts: 0,
+        min_drafts: MIN_DRAFTS,
+        players: [],
+      }, null, 2));
+      process.exit(0);
+    }
+    console.error(`${rawPath} not found. Run crawl.js first.`);
     process.exit(1);
   }
 
   const picks = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
-  console.log(`Loaded ${picks.length} picks.`);
+  console.log(`Loaded ${picks.length} ${isSf ? 'SF ' : ''}picks.`);
 
   // Crawl-level counts (drafts the crawler already discarded before storing).
   let crawlMeta = {};
@@ -153,14 +174,16 @@ function main() {
   }
 
   // Fold in crawl-time skips so the report reflects the full funnel.
-  const crawlTooOld = Number(crawlMeta.skipped_too_old || 0);
-  const crawlAuction = Number(crawlMeta.skipped_auction || 0);
+  // (Crawl meta counts the combined std+SF population, so only fold it into
+  // the standard report.)
+  const crawlTooOld = isSf ? 0 : Number(crawlMeta.skipped_too_old || 0);
+  const crawlAuction = isSf ? 0 : Number(crawlMeta.skipped_auction || 0);
   reasons.too_old += crawlTooOld;
   reasons.wrong_format += crawlAuction; // auction == wrong format for ADP
 
-  const totalRawDrafts = Number(
-    crawlMeta.completed_drafts_seen || (drafts.size + crawlTooOld + crawlAuction)
-  );
+  const totalRawDrafts = isSf
+    ? drafts.size
+    : Number(crawlMeta.completed_drafts_seen || (drafts.size + crawlTooOld + crawlAuction));
   // Drafts that passed the date gate (crawl already excluded too-old ones).
   const draftsAfterDateFilterTotal = totalRawDrafts - reasons.too_old;
 
@@ -252,7 +275,7 @@ function main() {
     min_drafts: MIN_DRAFTS,
     players,
   };
-  fs.writeFileSync(path.join(DATA_DIR, 'adp.json'), JSON.stringify(out, null, 2));
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(out, null, 2));
 
   const quality = {
     generated_at: generatedAt,
@@ -263,17 +286,21 @@ function main() {
     players_in_output: players.length,
     players_dropped_low_sample: droppedLowSample,
   };
-  fs.writeFileSync(
-    path.join(DATA_DIR, 'data_quality.json'),
-    JSON.stringify(quality, null, 2)
-  );
+  fs.writeFileSync(QUALITY_FILE, JSON.stringify(quality, null, 2));
+
+  if (isSf && qualifyingDrafts.size < 3) {
+    console.warn(
+      `WARNING: only ${qualifyingDrafts.size} qualifying SF drafts (<3) — ` +
+      'SF ADP is thin; composite will fall back to standard ADP where missing.'
+    );
+  }
 
   console.log(
-    `Wrote adp.json: ${players.length} players (>=${MIN_DRAFTS} drafts) ` +
+    `Wrote ${path.basename(OUTPUT_FILE)}: ${players.length} players (>=${MIN_DRAFTS} drafts) ` +
     `from ${qualifyingDrafts.size} qualifying drafts.`
   );
   console.log(`Dropped ${droppedLowSample} players for low sample (<${MIN_DRAFTS}).`);
-  console.log('Wrote data_quality.json:');
+  console.log(`Wrote ${path.basename(QUALITY_FILE)}:`);
   console.log(JSON.stringify(quality, null, 2));
   if (players.length) {
     console.log('Top 5 by weighted ADP:');

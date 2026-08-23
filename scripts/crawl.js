@@ -112,6 +112,11 @@ async function processDraft(draft, { picks, completedDrafts, league, cutoff, cou
     return 0;
   }
 
+  // SuperFlex detection: league roster (when available) or draft settings.
+  const rosterPositions = draft.settings?.roster_positions ||
+                          (league?.roster_positions) || [];
+  const isSf = rosterPositions.includes('SUPER_FLEX');
+
   const draftPicks = await throttledFetch(`${API}/draft/${draft.draft_id}/picks`);
   if (!Array.isArray(draftPicks) || draftPicks.length === 0) return 0;
 
@@ -140,6 +145,7 @@ async function processDraft(draft, { picks, completedDrafts, league, cutoff, cou
       draft_duration_ms: draftDurationMs,
       picked_by: p.picked_by || null,
       is_autopick: isAutopick,
+      is_sf: isSf,
       metadata: meta,
     });
   }
@@ -204,21 +210,27 @@ async function main() {
 
   // ── Resume: reload prior picks ──────────────────────────────────────────
   if (RESUME) {
-    const rawPath = path.join(DATA_DIR, 'raw_picks.json');
-    if (fs.existsSync(rawPath)) {
+    // Standard and SF picks are stored in separate files — reload both.
+    let priorTotal = 0;
+    for (const file of ['raw_picks.json', 'raw_picks_sf.json']) {
+      const rawPath = path.join(DATA_DIR, file);
+      if (!fs.existsSync(rawPath)) continue;
       try {
         const prior = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
         if (Array.isArray(prior) && prior.length) {
+          priorTotal += prior.length;
           const fresh = prior.filter(p => p && p.draft_id && p.draft_start_time && p.draft_start_time >= cutoff);
-          picks = fresh;
+          picks.push(...fresh);
           for (const p of fresh) { seenDrafts.add(p.draft_id); completedDrafts.add(p.draft_id); }
-          console.log(`[resume] Loaded ${prior.length} prior picks; kept ${fresh.length} within ${DATE_WINDOW_DAYS}d from ${completedDrafts.size} drafts`);
         }
       } catch (e) {
-        console.warn(`[resume] Could not parse raw_picks.json: ${e.message} — starting fresh`);
+        console.warn(`[resume] Could not parse ${file}: ${e.message} — skipping`);
       }
+    }
+    if (priorTotal > 0) {
+      console.log(`[resume] Loaded ${priorTotal} prior picks; kept ${picks.length} within ${DATE_WINDOW_DAYS}d from ${completedDrafts.size} drafts`);
     } else {
-      console.log('[resume] No existing raw_picks.json — starting fresh');
+      console.log('[resume] No existing raw picks — starting fresh');
     }
   }
 
@@ -228,10 +240,17 @@ async function main() {
   // Checkpoint: save picks + meta + frontier to disk
   const checkpoint = (reason) => {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(path.join(DATA_DIR, 'raw_picks.json'), JSON.stringify(picks));
+    // Split standard vs SuperFlex picks into separate files so the two ADP
+    // populations never mix.
+    const sfPicks = picks.filter(p => p.is_sf);
+    const stdPicks = picks.filter(p => !p.is_sf);
+    fs.writeFileSync(path.join(DATA_DIR, 'raw_picks.json'), JSON.stringify(stdPicks));
+    fs.writeFileSync(path.join(DATA_DIR, 'raw_picks_sf.json'), JSON.stringify(sfPicks));
     fs.writeFileSync(path.join(DATA_DIR, 'crawl_meta.json'), JSON.stringify({
       total_drafts: completedDrafts.size,
       total_picks: picks.length,
+      picks_standard: stdPicks.length,
+      picks_sf: sfPicks.length,
       crawled_at: new Date().toISOString(),
       seeds_used: SEED_USERNAMES,
       users_explored: seenUsers.size,

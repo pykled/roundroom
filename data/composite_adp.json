@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-23T07:22:39.243Z",
+  "generated_at": "2026-08-23T07:30:11.363Z",
   "weights": {
     "sleeper": 0.5,
     "fantasypros": 0.35,
     "underdog": 0.15
   },
   "sources": {
-    "sleeper_drafts": 273,
+    "sleeper_drafts": 257,
     "fantasypros": true,
     "underdog": false
   },
@@ -15,33 +15,36 @@
       "name": "Jahmyr Gibbs",
       "position": "RB",
       "team": "DET",
-      "composite_adp": 2.08,
-      "sleeper_adp": 1.54,
+      "composite_adp": 2.07,
+      "sleeper_adp": 1.53,
       "fantasypros_adp": 2.84,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 8.25,
       "bye": 6
     },
     {
       "name": "Ja'Marr Chase",
       "position": "WR",
       "team": "CIN",
-      "composite_adp": 2.64,
-      "sleeper_adp": 3.44,
+      "composite_adp": 2.62,
+      "sleeper_adp": 3.41,
       "fantasypros_adp": 1.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 10.56,
       "bye": 6
     },
     {
       "name": "Bijan Robinson",
       "position": "RB",
       "team": "ATL",
-      "composite_adp": 2.8,
-      "sleeper_adp": 2.09,
+      "composite_adp": 2.79,
+      "sleeper_adp": 2.07,
       "fantasypros_adp": 3.82,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 10.09,
       "bye": 11
     },
     {
@@ -53,6 +56,7 @@
       "fantasypros_adp": 3.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 12.86,
       "injury_status": "Questionable",
       "bye": 11
     },
@@ -61,32 +65,35 @@
       "position": "WR",
       "team": "SEA",
       "composite_adp": 5.55,
-      "sleeper_adp": 6.12,
+      "sleeper_adp": 6.11,
       "fantasypros_adp": 4.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 14.49,
       "bye": 11
     },
     {
       "name": "Amon-Ra St. Brown",
       "position": "WR",
       "team": "DET",
-      "composite_adp": 7.05,
-      "sleeper_adp": 8.13,
+      "composite_adp": 7.03,
+      "sleeper_adp": 8.1,
       "fantasypros_adp": 5.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 16.14,
       "bye": 6
     },
     {
       "name": "Christian McCaffrey",
       "position": "RB",
       "team": "SF",
-      "composite_adp": 9.09,
-      "sleeper_adp": 8.36,
+      "composite_adp": 9.07,
+      "sleeper_adp": 8.32,
       "fantasypros_adp": 10.14,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 24.07,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -94,11 +101,12 @@
       "name": "CeeDee Lamb",
       "position": "WR",
       "team": "DAL",
-      "composite_adp": 10.54,
-      "sleeper_adp": 11.8,
+      "composite_adp": 10.53,
+      "sleeper_adp": 11.77,
       "fantasypros_adp": 8.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 22.36,
       "bye": 14
     },
     {
@@ -110,72 +118,79 @@
       "fantasypros_adp": 12.88,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 17.77,
       "bye": 13
     },
     {
       "name": "Justin Jefferson",
       "position": "WR",
       "team": "MIN",
-      "composite_adp": 11.5,
-      "sleeper_adp": 13.06,
+      "composite_adp": 11.49,
+      "sleeper_adp": 13.05,
       "fantasypros_adp": 9.26,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 23.65,
       "bye": 6
     },
     {
       "name": "James Cook",
       "position": "RB",
       "team": "BUF",
-      "composite_adp": 13.88,
-      "sleeper_adp": 10.95,
+      "composite_adp": 13.85,
+      "sleeper_adp": 10.9,
       "fantasypros_adp": 18.07,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 22.07,
       "bye": 7
     },
     {
       "name": "Ashton Jeanty",
       "position": "RB",
       "team": "LV",
-      "composite_adp": 15.04,
-      "sleeper_adp": 13.58,
+      "composite_adp": 15.01,
+      "sleeper_adp": 13.52,
       "fantasypros_adp": 17.13,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 32.59,
       "bye": 13
     },
     {
       "name": "De'Von Achane",
       "position": "RB",
       "team": "MIA",
-      "composite_adp": 17.29,
-      "sleeper_adp": 14,
+      "composite_adp": 17.25,
+      "sleeper_adp": 13.93,
       "fantasypros_adp": 21.99,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 42.73,
       "bye": 6
     },
     {
       "name": "Drake London",
       "position": "WR",
       "team": "ATL",
-      "composite_adp": 17.29,
-      "sleeper_adp": 20.82,
+      "composite_adp": 17.31,
+      "sleeper_adp": 20.86,
       "fantasypros_adp": 12.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 30.85,
       "bye": 11
     },
     {
       "name": "Chase Brown",
       "position": "RB",
       "team": "CIN",
-      "composite_adp": 17.84,
-      "sleeper_adp": 17.99,
+      "composite_adp": 17.77,
+      "sleeper_adp": 17.87,
       "fantasypros_adp": 17.63,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 38.44,
       "bye": 6
     },
     {
@@ -187,116 +202,127 @@
       "fantasypros_adp": 13.9,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 28.83,
       "bye": 11
     },
     {
       "name": "Brock Bowers",
       "position": "TE",
       "team": "LV",
-      "composite_adp": 18.93,
-      "sleeper_adp": 19.63,
+      "composite_adp": 18.9,
+      "sleeper_adp": 19.58,
       "fantasypros_adp": 17.92,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 32.02,
       "bye": 13
     },
     {
       "name": "Saquon Barkley",
       "position": "RB",
       "team": "PHI",
-      "composite_adp": 20.65,
-      "sleeper_adp": 17.11,
+      "composite_adp": 20.46,
+      "sleeper_adp": 16.8,
       "fantasypros_adp": 25.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 31.55,
       "bye": 10
     },
     {
       "name": "Omarion Hampton",
       "position": "RB",
       "team": "LAC",
-      "composite_adp": 20.78,
-      "sleeper_adp": 17.68,
+      "composite_adp": 20.75,
+      "sleeper_adp": 17.63,
       "fantasypros_adp": 25.2,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 41.16,
       "bye": 7
     },
     {
       "name": "Trey McBride",
       "position": "TE",
       "team": "ARI",
-      "composite_adp": 21.1,
-      "sleeper_adp": 21.09,
+      "composite_adp": 21.12,
+      "sleeper_adp": 21.13,
       "fantasypros_adp": 21.11,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 41.02,
       "bye": 14
     },
     {
       "name": "Josh Allen",
       "position": "QB",
       "team": "BUF",
-      "composite_adp": 21.73,
-      "sleeper_adp": 18.84,
+      "composite_adp": 21.79,
+      "sleeper_adp": 18.94,
       "fantasypros_adp": 25.85,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 1.03,
       "bye": 7
     },
     {
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
-      "composite_adp": 22.98,
-      "sleeper_adp": 27.66,
+      "composite_adp": 22.93,
+      "sleeper_adp": 27.57,
       "fantasypros_adp": 16.3,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 30.01,
       "bye": 8
     },
     {
       "name": "George Pickens",
       "position": "WR",
       "team": "DAL",
-      "composite_adp": 23.23,
-      "sleeper_adp": 25.42,
+      "composite_adp": 23.16,
+      "sleeper_adp": 25.31,
       "fantasypros_adp": 20.09,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 35.05,
       "bye": 14
     },
     {
       "name": "Kenneth Walker",
       "position": "RB",
       "team": "KC",
-      "composite_adp": 23.91,
-      "sleeper_adp": 21.03,
+      "composite_adp": 23.84,
+      "sleeper_adp": 20.91,
       "fantasypros_adp": 28.02,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 40.52,
       "bye": 5
     },
     {
       "name": "Chris Olave",
       "position": "WR",
       "team": "NO",
-      "composite_adp": 26.21,
-      "sleeper_adp": 31.54,
+      "composite_adp": 26.15,
+      "sleeper_adp": 31.43,
       "fantasypros_adp": 18.6,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 41.8,
       "bye": 8
     },
     {
       "name": "Malik Nabers",
       "position": "WR",
       "team": "NYG",
-      "composite_adp": 26.56,
-      "sleeper_adp": 27.64,
+      "composite_adp": 26.59,
+      "sleeper_adp": 27.69,
       "fantasypros_adp": 25.01,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 44.2,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -304,33 +330,36 @@
       "name": "Rashee Rice",
       "position": "WR",
       "team": "KC",
-      "composite_adp": 27.85,
-      "sleeper_adp": 31.34,
+      "composite_adp": 27.81,
+      "sleeper_adp": 31.27,
       "fantasypros_adp": 22.86,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 46.65,
       "bye": 5
     },
     {
       "name": "Derrick Henry",
       "position": "RB",
       "team": "BAL",
-      "composite_adp": 30.75,
-      "sleeper_adp": 25.55,
+      "composite_adp": 30.68,
+      "sleeper_adp": 25.43,
       "fantasypros_adp": 38.18,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 30.02,
       "bye": 13
     },
     {
       "name": "Jeremiyah Love",
       "position": "RB",
       "team": "ARI",
-      "composite_adp": 31.98,
-      "sleeper_adp": 25.83,
+      "composite_adp": 31.99,
+      "sleeper_adp": 25.85,
       "fantasypros_adp": 40.77,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 66.02,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -338,22 +367,24 @@
       "name": "Lamar Jackson",
       "position": "QB",
       "team": "BAL",
-      "composite_adp": 32.21,
-      "sleeper_adp": 31.49,
+      "composite_adp": 32.25,
+      "sleeper_adp": 31.57,
       "fantasypros_adp": 33.23,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 2.64,
       "bye": 13
     },
     {
       "name": "DeVonta Smith",
       "position": "WR",
       "team": "PHI",
-      "composite_adp": 33.85,
-      "sleeper_adp": 40.64,
+      "composite_adp": 33.6,
+      "sleeper_adp": 40.2,
       "fantasypros_adp": 24.16,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 49.66,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -361,33 +392,36 @@
       "name": "Tetairoa McMillan",
       "position": "WR",
       "team": "CAR",
-      "composite_adp": 36.07,
-      "sleeper_adp": 37.84,
+      "composite_adp": 36.04,
+      "sleeper_adp": 37.78,
       "fantasypros_adp": 33.55,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 54.36,
       "bye": 5
     },
     {
       "name": "Kyren Williams",
       "position": "RB",
       "team": "LAR",
-      "composite_adp": 37.29,
-      "sleeper_adp": 33.54,
+      "composite_adp": 37.22,
+      "sleeper_adp": 33.42,
       "fantasypros_adp": 42.64,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 49.01,
       "bye": 11
     },
     {
       "name": "Breece Hall",
       "position": "RB",
       "team": "NYJ",
-      "composite_adp": 37.94,
-      "sleeper_adp": 36.21,
+      "composite_adp": 37.93,
+      "sleeper_adp": 36.2,
       "fantasypros_adp": 40.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 60.57,
       "injury_status": "Questionable",
       "bye": 13
     },
@@ -395,145 +429,158 @@
       "name": "Colston Loveland",
       "position": "TE",
       "team": "CHI",
-      "composite_adp": 38.09,
-      "sleeper_adp": 37.9,
+      "composite_adp": 38.08,
+      "sleeper_adp": 37.88,
       "fantasypros_adp": 38.37,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 55.98,
       "bye": 10
     },
     {
       "name": "Zay Flowers",
       "position": "WR",
       "team": "BAL",
-      "composite_adp": 38.32,
-      "sleeper_adp": 44.14,
+      "composite_adp": 38.28,
+      "sleeper_adp": 44.07,
       "fantasypros_adp": 30,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 49.06,
       "bye": 13
     },
     {
       "name": "Drake Maye",
       "position": "QB",
       "team": "NE",
-      "composite_adp": 38.49,
-      "sleeper_adp": 38.56,
+      "composite_adp": 38.62,
+      "sleeper_adp": 38.78,
       "fantasypros_adp": 38.38,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 3.48,
       "bye": 11
     },
     {
       "name": "Ladd McConkey",
       "position": "WR",
       "team": "LAC",
-      "composite_adp": 38.99,
-      "sleeper_adp": 40.72,
+      "composite_adp": 38.85,
+      "sleeper_adp": 40.49,
       "fantasypros_adp": 36.51,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 61.9,
       "bye": 7
     },
     {
       "name": "Garrett Wilson",
       "position": "WR",
       "team": "NYJ",
-      "composite_adp": 39.19,
-      "sleeper_adp": 45.77,
+      "composite_adp": 39.16,
+      "sleeper_adp": 45.72,
       "fantasypros_adp": 29.8,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 69.19,
       "bye": 13
     },
     {
       "name": "Tee Higgins",
       "position": "WR",
       "team": "CIN",
-      "composite_adp": 39.53,
-      "sleeper_adp": 41.55,
+      "composite_adp": 39.51,
+      "sleeper_adp": 41.52,
       "fantasypros_adp": 36.64,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 50,
       "bye": 6
     },
     {
       "name": "Javonte Williams",
       "position": "RB",
       "team": "DAL",
-      "composite_adp": 40.68,
-      "sleeper_adp": 37.81,
+      "composite_adp": 40.62,
+      "sleeper_adp": 37.7,
       "fantasypros_adp": 44.79,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 52.86,
       "bye": 14
-    },
-    {
-      "name": "Josh Jacobs",
-      "position": "RB",
-      "team": "GB",
-      "composite_adp": 40.83,
-      "sleeper_adp": 37.54,
-      "fantasypros_adp": 45.54,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 11
     },
     {
       "name": "Emeka Egbuka",
       "position": "WR",
       "team": "TB",
-      "composite_adp": 40.86,
-      "sleeper_adp": 41.35,
+      "composite_adp": 40.78,
+      "sleeper_adp": 41.21,
       "fantasypros_adp": 40.16,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 55.22,
       "injury_status": "Questionable",
       "bye": 10
+    },
+    {
+      "name": "Josh Jacobs",
+      "position": "RB",
+      "team": "GB",
+      "composite_adp": 40.82,
+      "sleeper_adp": 37.52,
+      "fantasypros_adp": 45.54,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 54.05,
+      "injury_status": "Questionable",
+      "bye": 11
     },
     {
       "name": "Jaylen Waddle",
       "position": "WR",
       "team": "DEN",
-      "composite_adp": 45.14,
-      "sleeper_adp": 51.54,
+      "composite_adp": 45.05,
+      "sleeper_adp": 51.38,
       "fantasypros_adp": 36,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 61.85,
       "bye": 10
     },
     {
       "name": "Joe Burrow",
       "position": "QB",
       "team": "CIN",
-      "composite_adp": 45.95,
-      "sleeper_adp": 45.76,
+      "composite_adp": 46.05,
+      "sleeper_adp": 45.92,
       "fantasypros_adp": 46.23,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 4.72,
       "bye": 6
     },
     {
       "name": "Travis Etienne",
       "position": "RB",
       "team": "NO",
-      "composite_adp": 47.86,
-      "sleeper_adp": 46.84,
+      "composite_adp": 47.83,
+      "sleeper_adp": 46.8,
       "fantasypros_adp": 49.31,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 69.23,
       "bye": 8
     },
     {
       "name": "Tyler Warren",
       "position": "TE",
       "team": "IND",
-      "composite_adp": 48.56,
-      "sleeper_adp": 44.76,
+      "composite_adp": 48.49,
+      "sleeper_adp": 44.63,
       "fantasypros_adp": 54,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 80.51,
       "injury_status": "Questionable",
       "bye": 13
     },
@@ -541,33 +588,36 @@
       "name": "Bucky Irving",
       "position": "RB",
       "team": "TB",
-      "composite_adp": 49.82,
-      "sleeper_adp": 43.48,
+      "composite_adp": 49.81,
+      "sleeper_adp": 43.46,
       "fantasypros_adp": 58.87,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 76.8,
       "bye": 10
     },
     {
       "name": "Cam Skattebo",
       "position": "RB",
       "team": "NYG",
-      "composite_adp": 49.93,
-      "sleeper_adp": 45.2,
+      "composite_adp": 49.82,
+      "sleeper_adp": 45.02,
       "fantasypros_adp": 56.68,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 75.05,
       "bye": 8
     },
     {
       "name": "Luther Burden",
       "position": "WR",
       "team": "CHI",
-      "composite_adp": 50.89,
-      "sleeper_adp": 52.8,
+      "composite_adp": 50.91,
+      "sleeper_adp": 52.82,
       "fantasypros_adp": 48.17,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 76.2,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -575,44 +625,48 @@
       "name": "Davante Adams",
       "position": "WR",
       "team": "LAR",
-      "composite_adp": 53.74,
-      "sleeper_adp": 56.12,
+      "composite_adp": 53.75,
+      "sleeper_adp": 56.13,
       "fantasypros_adp": 50.35,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 66.37,
       "bye": 11
     },
     {
       "name": "Jayden Daniels",
       "position": "QB",
       "team": "WAS",
-      "composite_adp": 53.89,
-      "sleeper_adp": 54.07,
+      "composite_adp": 54.2,
+      "sleeper_adp": 54.6,
       "fantasypros_adp": 53.63,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 6.69,
       "bye": 7
     },
     {
       "name": "Terry McLaurin",
       "position": "WR",
       "team": "WAS",
-      "composite_adp": 54.75,
-      "sleeper_adp": 61.06,
+      "composite_adp": 54.73,
+      "sleeper_adp": 61.03,
       "fantasypros_adp": 45.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 67.14,
       "bye": 7
     },
     {
       "name": "Quinshon Judkins",
       "position": "RB",
       "team": "CLE",
-      "composite_adp": 56.05,
-      "sleeper_adp": 52.43,
+      "composite_adp": 55.99,
+      "sleeper_adp": 52.33,
       "fantasypros_adp": 61.21,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 73.69,
       "injury_status": "Questionable",
       "bye": 11
     },
@@ -620,44 +674,48 @@
       "name": "D'Andre Swift",
       "position": "RB",
       "team": "CHI",
-      "composite_adp": 57.61,
-      "sleeper_adp": 57.63,
+      "composite_adp": 57.46,
+      "sleeper_adp": 57.38,
       "fantasypros_adp": 57.57,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 72.15,
       "bye": 10
     },
     {
       "name": "David Montgomery",
       "position": "RB",
       "team": "HOU",
-      "composite_adp": 57.82,
-      "sleeper_adp": 55.56,
+      "composite_adp": 57.56,
+      "sleeper_adp": 55.12,
       "fantasypros_adp": 61.05,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 75.72,
       "bye": 8
     },
     {
       "name": "DJ Moore",
       "position": "WR",
       "team": "BUF",
-      "composite_adp": 58.16,
-      "sleeper_adp": 61.87,
+      "composite_adp": 58.1,
+      "sleeper_adp": 61.77,
       "fantasypros_adp": 52.86,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 78.12,
       "bye": 7
     },
     {
       "name": "Jalen Hurts",
       "position": "QB",
       "team": "PHI",
-      "composite_adp": 59.15,
-      "sleeper_adp": 59.58,
+      "composite_adp": 59.32,
+      "sleeper_adp": 59.87,
       "fantasypros_adp": 58.53,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 6.85,
       "bye": 10
     },
     {
@@ -669,28 +727,31 @@
       "fantasypros_adp": 55.13,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 67,
       "bye": 6
     },
     {
       "name": "TreVeyon Henderson",
       "position": "RB",
       "team": "NE",
-      "composite_adp": 59.88,
-      "sleeper_adp": 54.52,
+      "composite_adp": 59.83,
+      "sleeper_adp": 54.44,
       "fantasypros_adp": 67.54,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 84.6,
       "bye": 11
     },
     {
       "name": "Mike Evans",
       "position": "WR",
       "team": "SF",
-      "composite_adp": 61.74,
-      "sleeper_adp": 66.28,
+      "composite_adp": 61.71,
+      "sleeper_adp": 66.24,
       "fantasypros_adp": 55.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 77.54,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -703,39 +764,43 @@
       "fantasypros_adp": 57.26,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 74.31,
       "bye": 10
     },
     {
       "name": "Caleb Williams",
       "position": "QB",
       "team": "CHI",
-      "composite_adp": 63.06,
-      "sleeper_adp": 60.52,
+      "composite_adp": 63.26,
+      "sleeper_adp": 60.86,
       "fantasypros_adp": 66.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 9.93,
       "bye": 10
     },
     {
       "name": "Bhayshul Tuten",
       "position": "RB",
       "team": "JAX",
-      "composite_adp": 64.26,
-      "sleeper_adp": 61.58,
+      "composite_adp": 64.21,
+      "sleeper_adp": 61.5,
       "fantasypros_adp": 68.08,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 81.78,
       "bye": 7
     },
     {
       "name": "Carnell Tate",
       "position": "WR",
       "team": "TEN",
-      "composite_adp": 65.31,
-      "sleeper_adp": 64.69,
+      "composite_adp": 65.27,
+      "sleeper_adp": 64.62,
       "fantasypros_adp": 66.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 96.38,
       "injury_status": "Questionable",
       "bye": 9
     },
@@ -743,44 +808,48 @@
       "name": "Christian Watson",
       "position": "WR",
       "team": "GB",
-      "composite_adp": 66.32,
-      "sleeper_adp": 72.19,
+      "composite_adp": 66.25,
+      "sleeper_adp": 72.06,
       "fantasypros_adp": 57.94,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 72.17,
       "bye": 11
     },
     {
       "name": "Jadarian Price",
       "position": "RB",
       "team": "SEA",
-      "composite_adp": 69.99,
-      "sleeper_adp": 66.92,
+      "composite_adp": 69.81,
+      "sleeper_adp": 66.61,
       "fantasypros_adp": 74.37,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 83.34,
       "bye": 11
     },
     {
       "name": "Harold Fannin",
       "position": "TE",
       "team": "CLE",
-      "composite_adp": 70.63,
-      "sleeper_adp": 67.77,
+      "composite_adp": 70.7,
+      "sleeper_adp": 67.89,
       "fantasypros_adp": 74.72,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 106.41,
       "bye": 11
     },
     {
       "name": "Sam LaPorta",
       "position": "TE",
       "team": "DET",
-      "composite_adp": 71.3,
-      "sleeper_adp": 62.44,
+      "composite_adp": 71.14,
+      "sleeper_adp": 62.17,
       "fantasypros_adp": 83.96,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 99.37,
       "injury_status": "Questionable",
       "bye": 6
     },
@@ -788,11 +857,12 @@
       "name": "Parker Washington",
       "position": "WR",
       "team": "JAX",
-      "composite_adp": 71.47,
-      "sleeper_adp": 75.25,
+      "composite_adp": 71.29,
+      "sleeper_adp": 74.95,
       "fantasypros_adp": 66.07,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 91.67,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -800,11 +870,12 @@
       "name": "Tucker Kraft",
       "position": "TE",
       "team": "GB",
-      "composite_adp": 71.6,
-      "sleeper_adp": 67.31,
+      "composite_adp": 71.48,
+      "sleeper_adp": 67.11,
       "fantasypros_adp": 77.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 81.07,
       "injury_status": "Questionable",
       "bye": 11
     },
@@ -812,22 +883,24 @@
       "name": "Justin Herbert",
       "position": "QB",
       "team": "LAC",
-      "composite_adp": 73.33,
-      "sleeper_adp": 74.32,
+      "composite_adp": 73.49,
+      "sleeper_adp": 74.59,
       "fantasypros_adp": 71.92,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 11.7,
       "bye": 7
     },
     {
       "name": "Marvin Harrison",
       "position": "WR",
       "team": "ARI",
-      "composite_adp": 73.71,
-      "sleeper_adp": 77.55,
+      "composite_adp": 73.61,
+      "sleeper_adp": 77.39,
       "fantasypros_adp": 68.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 92.89,
       "bye": 14
     },
     {
@@ -839,39 +912,43 @@
       "fantasypros_adp": 76.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 94.61,
       "bye": 7
     },
     {
       "name": "Jaylen Warren",
       "position": "RB",
       "team": "PIT",
-      "composite_adp": 75.9,
-      "sleeper_adp": 75.08,
+      "composite_adp": 75.71,
+      "sleeper_adp": 74.77,
       "fantasypros_adp": 77.06,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 97.09,
       "bye": 9
     },
     {
       "name": "Kyle Pitts",
       "position": "TE",
       "team": "ATL",
-      "composite_adp": 76.02,
-      "sleeper_adp": 73.29,
+      "composite_adp": 76.01,
+      "sleeper_adp": 73.27,
       "fantasypros_adp": 79.92,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 108.1,
       "bye": 11
     },
     {
       "name": "Dak Prescott",
       "position": "QB",
       "team": "DAL",
-      "composite_adp": 77,
-      "sleeper_adp": 75.4,
+      "composite_adp": 77.09,
+      "sleeper_adp": 75.55,
       "fantasypros_adp": 79.28,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 15.04,
       "bye": 14
     },
     {
@@ -883,6 +960,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 78.87,
       "bye": 11
     },
     {
@@ -894,17 +972,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 79.4,
       "bye": 6
     },
     {
       "name": "DK Metcalf",
       "position": "WR",
       "team": "PIT",
-      "composite_adp": 81.48,
-      "sleeper_adp": 83.31,
+      "composite_adp": 81.41,
+      "sleeper_adp": 83.19,
       "fantasypros_adp": 78.86,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 98.1,
       "injury_status": "Questionable",
       "bye": 9
     },
@@ -912,22 +992,24 @@
       "name": "Trevor Lawrence",
       "position": "QB",
       "team": "JAX",
-      "composite_adp": 82.6,
-      "sleeper_adp": 86.05,
+      "composite_adp": 82.76,
+      "sleeper_adp": 86.32,
       "fantasypros_adp": 77.68,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 14.58,
       "bye": 7
     },
     {
       "name": "Rhamondre Stevenson",
       "position": "RB",
       "team": "NE",
-      "composite_adp": 84.62,
-      "sleeper_adp": 87.7,
+      "composite_adp": 84.52,
+      "sleeper_adp": 87.53,
       "fantasypros_adp": 80.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 96.97,
       "bye": 11
     },
     {
@@ -939,83 +1021,91 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 84.83,
       "bye": 13
     },
     {
       "name": "Jaxson Dart",
       "position": "QB",
       "team": "NYG",
-      "composite_adp": 85.07,
-      "sleeper_adp": 76.62,
+      "composite_adp": 85.38,
+      "sleeper_adp": 77.15,
       "fantasypros_adp": 97.13,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 24.43,
       "bye": 8
     },
     {
       "name": "Courtland Sutton",
       "position": "WR",
       "team": "DEN",
-      "composite_adp": 87.1,
-      "sleeper_adp": 89.71,
+      "composite_adp": 87.09,
+      "sleeper_adp": 89.7,
       "fantasypros_adp": 83.36,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 102.46,
       "bye": 10
     },
     {
       "name": "Michael Wilson",
       "position": "WR",
       "team": "ARI",
-      "composite_adp": 87.24,
-      "sleeper_adp": 87.13,
+      "composite_adp": 87.28,
+      "sleeper_adp": 87.2,
       "fantasypros_adp": 87.39,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 115.9,
       "bye": 14
     },
     {
       "name": "RJ Harvey",
       "position": "RB",
       "team": "DEN",
-      "composite_adp": 87.64,
-      "sleeper_adp": 82.86,
+      "composite_adp": 87.76,
+      "sleeper_adp": 83.05,
       "fantasypros_adp": 94.48,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 124.35,
       "bye": 10
     },
     {
       "name": "Tony Pollard",
       "position": "RB",
       "team": "TEN",
-      "composite_adp": 89.11,
-      "sleeper_adp": 92.44,
+      "composite_adp": 88.94,
+      "sleeper_adp": 92.15,
       "fantasypros_adp": 84.35,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 97.31,
       "bye": 9
     },
     {
       "name": "Rico Dowdle",
       "position": "RB",
       "team": "PIT",
-      "composite_adp": 89.72,
-      "sleeper_adp": 91.21,
+      "composite_adp": 89.63,
+      "sleeper_adp": 91.07,
       "fantasypros_adp": 87.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 101.12,
       "bye": 9
     },
     {
       "name": "Chuba Hubbard",
       "position": "RB",
       "team": "CAR",
-      "composite_adp": 90.91,
-      "sleeper_adp": 85.63,
+      "composite_adp": 90.84,
+      "sleeper_adp": 85.52,
       "fantasypros_adp": 98.45,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 114.49,
       "injury_status": "Questionable",
       "bye": 5
     },
@@ -1023,11 +1113,12 @@
       "name": "Chris Godwin",
       "position": "WR",
       "team": "TB",
-      "composite_adp": 91.17,
-      "sleeper_adp": 101.03,
+      "composite_adp": 91.12,
+      "sleeper_adp": 100.95,
       "fantasypros_adp": 77.08,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 108.32,
       "bye": 10
     },
     {
@@ -1039,6 +1130,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 92.53,
       "bye": 13
     },
     {
@@ -1050,17 +1142,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 95.09,
       "bye": 11
     },
     {
       "name": "Patrick Mahomes",
       "position": "QB",
       "team": "KC",
-      "composite_adp": 97.24,
-      "sleeper_adp": 94.38,
+      "composite_adp": 97.37,
+      "sleeper_adp": 94.6,
       "fantasypros_adp": 101.32,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 26.71,
       "injury_status": "Questionable",
       "bye": 5
     },
@@ -1068,11 +1162,12 @@
       "name": "Michael Pittman",
       "position": "WR",
       "team": "PIT",
-      "composite_adp": 97.44,
-      "sleeper_adp": 108.99,
+      "composite_adp": 97.46,
+      "sleeper_adp": 109.01,
       "fantasypros_adp": 80.95,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 122.55,
       "injury_status": "Questionable",
       "bye": 9
     },
@@ -1080,11 +1175,12 @@
       "name": "Makai Lemon",
       "position": "WR",
       "team": "PHI",
-      "composite_adp": 97.69,
-      "sleeper_adp": 90.44,
+      "composite_adp": 97.72,
+      "sleeper_adp": 90.49,
       "fantasypros_adp": 108.05,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 125.09,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -1097,17 +1193,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 97.99,
       "bye": 6
     },
     {
       "name": "Josh Downs",
       "position": "WR",
       "team": "IND",
-      "composite_adp": 99.06,
-      "sleeper_adp": 107.01,
+      "composite_adp": 98.87,
+      "sleeper_adp": 106.69,
       "fantasypros_adp": 87.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 129.84,
       "bye": 13
     },
     {
@@ -1119,39 +1217,43 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 99.28,
       "bye": 9
     },
     {
       "name": "Travis Kelce",
       "position": "TE",
       "team": "KC",
-      "composite_adp": 99.77,
-      "sleeper_adp": 100.39,
+      "composite_adp": 99.51,
+      "sleeper_adp": 99.94,
       "fantasypros_adp": 98.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 123.61,
       "bye": 5
     },
     {
       "name": "Wan'Dale Robinson",
       "position": "WR",
       "team": "TEN",
-      "composite_adp": 99.99,
-      "sleeper_adp": 109.84,
+      "composite_adp": 99.92,
+      "sleeper_adp": 109.72,
       "fantasypros_adp": 85.93,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 134.16,
       "bye": 9
     },
     {
       "name": "George Kittle",
       "position": "TE",
       "team": "SF",
-      "composite_adp": 100.2,
-      "sleeper_adp": 100.34,
+      "composite_adp": 100,
+      "sleeper_adp": 100.01,
       "fantasypros_adp": 99.99,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 109.9,
       "injury_status": "PUP",
       "bye": 8
     },
@@ -1159,44 +1261,36 @@
       "name": "J.K. Dobbins",
       "position": "RB",
       "team": "DEN",
-      "composite_adp": 100.3,
-      "sleeper_adp": 98.76,
+      "composite_adp": 100.01,
+      "sleeper_adp": 98.26,
       "fantasypros_adp": 102.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 103.47,
       "bye": 10
     },
     {
       "name": "Brock Purdy",
       "position": "QB",
       "team": "SF",
-      "composite_adp": 100.75,
-      "sleeper_adp": 103.91,
+      "composite_adp": 100.95,
+      "sleeper_adp": 104.26,
       "fantasypros_adp": 96.23,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 22.19,
       "bye": 8
-    },
-    {
-      "name": "Bo Nix",
-      "position": "QB",
-      "team": "DEN",
-      "composite_adp": 101.44,
-      "sleeper_adp": 102.14,
-      "fantasypros_adp": 100.44,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 10
     },
     {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
-      "composite_adp": 101.51,
-      "sleeper_adp": 82.3,
+      "composite_adp": 101.65,
+      "sleeper_adp": 82.54,
       "fantasypros_adp": 128.96,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 140.57,
       "injury_status": "Doubtful",
       "bye": 8
     },
@@ -1204,23 +1298,25 @@
       "name": "Jonathon Brooks",
       "position": "RB",
       "team": "CAR",
-      "composite_adp": 102.03,
-      "sleeper_adp": 106.84,
+      "composite_adp": 101.87,
+      "sleeper_adp": 106.56,
       "fantasypros_adp": 95.17,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 105.77,
       "bye": 5
     },
     {
-      "name": "Matthew Stafford",
+      "name": "Bo Nix",
       "position": "QB",
-      "team": "LAR",
-      "composite_adp": 102.51,
-      "sleeper_adp": 101.1,
-      "fantasypros_adp": 104.53,
+      "team": "DEN",
+      "composite_adp": 102.12,
+      "sleeper_adp": 103.29,
+      "fantasypros_adp": 100.44,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 11
+      "composite_sf_adp": 25.27,
+      "bye": 10
     },
     {
       "name": "Will Anderson",
@@ -1231,28 +1327,43 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 102.64,
       "bye": 8
+    },
+    {
+      "name": "Matthew Stafford",
+      "position": "QB",
+      "team": "LAR",
+      "composite_adp": 102.8,
+      "sleeper_adp": 101.59,
+      "fantasypros_adp": 104.53,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 30.76,
+      "bye": 11
     },
     {
       "name": "Dalton Kincaid",
       "position": "TE",
       "team": "BUF",
-      "composite_adp": 103.23,
-      "sleeper_adp": 96.11,
+      "composite_adp": 103.03,
+      "sleeper_adp": 95.78,
       "fantasypros_adp": 113.39,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 118.36,
       "bye": 7
     },
     {
       "name": "Kyle Monangai",
       "position": "RB",
       "team": "CHI",
-      "composite_adp": 103.85,
-      "sleeper_adp": 97.75,
+      "composite_adp": 103.71,
+      "sleeper_adp": 97.51,
       "fantasypros_adp": 112.57,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 115.6,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -1260,11 +1371,12 @@
       "name": "Alec Pierce",
       "position": "WR",
       "team": "IND",
-      "composite_adp": 105.07,
-      "sleeper_adp": 108.77,
+      "composite_adp": 105.2,
+      "sleeper_adp": 108.99,
       "fantasypros_adp": 99.79,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 106.42,
       "injury_status": "PUP",
       "bye": 13
     },
@@ -1272,11 +1384,12 @@
       "name": "Quentin Johnston",
       "position": "WR",
       "team": "LAC",
-      "composite_adp": 105.4,
-      "sleeper_adp": 110.46,
+      "composite_adp": 105.27,
+      "sleeper_adp": 110.25,
       "fantasypros_adp": 98.16,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 107.45,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -1284,55 +1397,60 @@
       "name": "Blake Corum",
       "position": "RB",
       "team": "LAR",
-      "composite_adp": 106.28,
-      "sleeper_adp": 103.45,
+      "composite_adp": 106.2,
+      "sleeper_adp": 103.31,
       "fantasypros_adp": 110.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 105.04,
       "bye": 11
     },
     {
       "name": "Jordan Addison",
       "position": "WR",
       "team": "MIN",
-      "composite_adp": 106.82,
-      "sleeper_adp": 106.89,
+      "composite_adp": 106.75,
+      "sleeper_adp": 106.77,
       "fantasypros_adp": 106.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 115.59,
       "bye": 6
     },
     {
       "name": "Kenny Gainwell",
       "position": "RB",
       "team": "TB",
-      "composite_adp": 107.59,
-      "sleeper_adp": 113.18,
+      "composite_adp": 107.52,
+      "sleeper_adp": 113.06,
       "fantasypros_adp": 99.61,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 129.48,
       "bye": 10
     },
     {
       "name": "Stefon Diggs",
       "position": "WR",
       "team": "WAS",
-      "composite_adp": 108.34,
-      "sleeper_adp": 115.91,
+      "composite_adp": 108.27,
+      "sleeper_adp": 115.78,
       "fantasypros_adp": 97.53,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 127.04,
       "bye": 7
     },
     {
       "name": "Jakobi Meyers",
       "position": "WR",
       "team": "JAX",
-      "composite_adp": 108.73,
-      "sleeper_adp": 113.16,
+      "composite_adp": 108.88,
+      "sleeper_adp": 113.41,
       "fantasypros_adp": 102.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 129.33,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -1340,11 +1458,12 @@
       "name": "Jake Ferguson",
       "position": "TE",
       "team": "DAL",
-      "composite_adp": 109.32,
-      "sleeper_adp": 105.46,
+      "composite_adp": 109.24,
+      "sleeper_adp": 105.32,
       "fantasypros_adp": 114.84,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 143.61,
       "bye": 14
     },
     {
@@ -1356,28 +1475,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 109.48,
       "bye": 8
     },
     {
       "name": "Jayden Reed",
       "position": "WR",
       "team": "GB",
-      "composite_adp": 109.96,
-      "sleeper_adp": 113.04,
+      "composite_adp": 109.83,
+      "sleeper_adp": 112.81,
       "fantasypros_adp": 105.57,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 120.76,
       "bye": 11
     },
     {
       "name": "Jared Goff",
       "position": "QB",
       "team": "DET",
-      "composite_adp": 110.35,
-      "sleeper_adp": 112.52,
+      "composite_adp": 110.9,
+      "sleeper_adp": 113.47,
       "fantasypros_adp": 107.24,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 32.04,
       "bye": 6
     },
     {
@@ -1389,17 +1511,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 112.44,
       "bye": 11
     },
     {
       "name": "Isaiah Likely",
       "position": "TE",
       "team": "NYG",
-      "composite_adp": 113.28,
-      "sleeper_adp": 109.46,
+      "composite_adp": 113.22,
+      "sleeper_adp": 109.36,
       "fantasypros_adp": 118.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 127.58,
       "bye": 8
     },
     {
@@ -1411,17 +1535,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 113.98,
       "bye": 8
     },
     {
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
-      "composite_adp": 114.66,
-      "sleeper_adp": 113.54,
+      "composite_adp": 114.58,
+      "sleeper_adp": 113.41,
       "fantasypros_adp": 116.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 110.42,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -1434,28 +1560,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 117.04,
       "bye": 13
     },
     {
       "name": "Jordan Mason",
       "position": "RB",
       "team": "MIN",
-      "composite_adp": 117.79,
-      "sleeper_adp": 117.43,
+      "composite_adp": 117.64,
+      "sleeper_adp": 117.17,
       "fantasypros_adp": 118.3,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 113.82,
       "bye": 6
     },
     {
       "name": "Rachaad White",
       "position": "RB",
       "team": "WAS",
-      "composite_adp": 118.84,
-      "sleeper_adp": 126.4,
+      "composite_adp": 118.57,
+      "sleeper_adp": 125.93,
       "fantasypros_adp": 108.05,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 125.82,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -1468,50 +1597,55 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 119.04,
       "bye": 11
     },
     {
       "name": "Jordan Love",
       "position": "QB",
       "team": "GB",
-      "composite_adp": 119.08,
-      "sleeper_adp": 118.89,
+      "composite_adp": 119.57,
+      "sleeper_adp": 119.73,
       "fantasypros_adp": 119.34,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 45.01,
       "bye": 11
     },
     {
       "name": "KC Concepcion",
       "position": "WR",
       "team": "CLE",
-      "composite_adp": 119.73,
-      "sleeper_adp": 118.81,
+      "composite_adp": 119.58,
+      "sleeper_adp": 118.55,
       "fantasypros_adp": 121.04,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 142.15,
       "bye": 11
     },
     {
       "name": "Aaron Jones",
       "position": "RB",
       "team": "MIN",
-      "composite_adp": 120.1,
-      "sleeper_adp": 124,
+      "composite_adp": 120.26,
+      "sleeper_adp": 124.27,
       "fantasypros_adp": 114.53,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 132.24,
       "bye": 6
     },
     {
       "name": "Baker Mayfield",
       "position": "QB",
       "team": "TB",
-      "composite_adp": 120.53,
-      "sleeper_adp": 121.66,
+      "composite_adp": 120.86,
+      "sleeper_adp": 122.22,
       "fantasypros_adp": 118.92,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 45.11,
       "bye": 10
     },
     {
@@ -1523,28 +1657,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 122.26,
       "bye": 10
     },
     {
       "name": "Dallas Goedert",
       "position": "TE",
       "team": "PHI",
-      "composite_adp": 122.87,
-      "sleeper_adp": 124.37,
+      "composite_adp": 122.82,
+      "sleeper_adp": 124.29,
       "fantasypros_adp": 120.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 127.56,
       "bye": 10
     },
     {
       "name": "Kyler Murray",
       "position": "QB",
       "team": "MIN",
-      "composite_adp": 123.2,
-      "sleeper_adp": 130.84,
+      "composite_adp": 123.44,
+      "sleeper_adp": 131.25,
       "fantasypros_adp": 112.29,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 37.65,
       "bye": 6
     },
     {
@@ -1556,6 +1693,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 124.4,
       "bye": 7
     },
     {
@@ -1567,95 +1705,104 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 127.21,
       "bye": 13
     },
     {
       "name": "Mark Andrews",
       "position": "TE",
       "team": "BAL",
-      "composite_adp": 127.56,
-      "sleeper_adp": 124.45,
+      "composite_adp": 127.62,
+      "sleeper_adp": 124.54,
       "fantasypros_adp": 132.01,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 128.25,
       "bye": 13
     },
     {
       "name": "Matthew Golden",
       "position": "WR",
       "team": "GB",
-      "composite_adp": 127.73,
-      "sleeper_adp": 126.85,
+      "composite_adp": 127.7,
+      "sleeper_adp": 126.79,
       "fantasypros_adp": 128.99,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 140.77,
       "bye": 11
-    },
-    {
-      "name": "Tyler Shough",
-      "position": "QB",
-      "team": "NO",
-      "composite_adp": 128.42,
-      "sleeper_adp": 131.12,
-      "fantasypros_adp": 124.57,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Khalil Shakir",
       "position": "WR",
       "team": "BUF",
-      "composite_adp": 128.79,
-      "sleeper_adp": 134.56,
+      "composite_adp": 128.64,
+      "sleeper_adp": 134.31,
       "fantasypros_adp": 120.55,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 153.79,
       "injury_status": "Questionable",
       "bye": 7
+    },
+    {
+      "name": "Tyler Shough",
+      "position": "QB",
+      "team": "NO",
+      "composite_adp": 128.81,
+      "sleeper_adp": 131.78,
+      "fantasypros_adp": 124.57,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 48.68,
+      "bye": 8
     },
     {
       "name": "Los Angeles Rams",
       "position": "DEF",
       "team": "LAR",
-      "composite_adp": 129.56,
-      "sleeper_adp": 103.07,
+      "composite_adp": 129.44,
+      "sleeper_adp": 102.87,
       "fantasypros_adp": 167.4,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 129.44,
       "bye": 11
     },
     {
       "name": "Romeo Doubs",
       "position": "WR",
       "team": "NE",
-      "composite_adp": 130.65,
-      "sleeper_adp": 130.15,
+      "composite_adp": 130.74,
+      "sleeper_adp": 130.31,
       "fantasypros_adp": 131.36,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 143.89,
       "bye": 11
     },
     {
       "name": "Jalen Coker",
       "position": "WR",
       "team": "CAR",
-      "composite_adp": 131.66,
-      "sleeper_adp": 136.93,
+      "composite_adp": 131.58,
+      "sleeper_adp": 136.78,
       "fantasypros_adp": 124.14,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 146.27,
       "bye": 5
     },
     {
       "name": "Houston Texans",
       "position": "DEF",
       "team": "HOU",
-      "composite_adp": 131.76,
-      "sleeper_adp": 116.61,
+      "composite_adp": 131.79,
+      "sleeper_adp": 116.66,
       "fantasypros_adp": 153.4,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 131.79,
       "bye": 8
     },
     {
@@ -1667,31 +1814,34 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 132.01,
       "bye": 11
-    },
-    {
-      "name": "Jayden Higgins",
-      "position": "WR",
-      "team": "HOU",
-      "composite_adp": 132.98,
-      "sleeper_adp": 132.98,
-      "fantasypros_adp": null,
-      "underdog_adp": null,
-      "sources_count": 1,
-      "injury_status": "IR",
-      "bye": 8
     },
     {
       "name": "Xavier Worthy",
       "position": "WR",
       "team": "KC",
-      "composite_adp": 133.2,
-      "sleeper_adp": 136.48,
+      "composite_adp": 133.16,
+      "sleeper_adp": 136.42,
       "fantasypros_adp": 128.51,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 133.27,
       "injury_status": "Questionable",
       "bye": 5
+    },
+    {
+      "name": "Jayden Higgins",
+      "position": "WR",
+      "team": "HOU",
+      "composite_adp": 133.48,
+      "sleeper_adp": 133.48,
+      "fantasypros_adp": null,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 133.48,
+      "injury_status": "IR",
+      "bye": 8
     },
     {
       "name": "Nakobe Dean",
@@ -1702,6 +1852,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 135.01,
       "bye": 13
     },
     {
@@ -1713,62 +1864,56 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 136.8,
       "bye": 8
     },
     {
       "name": "Deebo Samuel",
       "position": "WR",
       "team": "SF",
-      "composite_adp": 139.16,
-      "sleeper_adp": 139.35,
+      "composite_adp": 139.15,
+      "sleeper_adp": 139.33,
       "fantasypros_adp": 138.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 144.8,
       "bye": 8
+    },
+    {
+      "name": "Tyler Allgeier",
+      "position": "RB",
+      "team": "ARI",
+      "composite_adp": 139.9,
+      "sleeper_adp": 140.62,
+      "fantasypros_adp": 138.88,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 140.08,
+      "bye": 14
     },
     {
       "name": "Sam Darnold",
       "position": "QB",
       "team": "SEA",
-      "composite_adp": 139.53,
-      "sleeper_adp": 137.77,
+      "composite_adp": 139.93,
+      "sleeper_adp": 138.46,
       "fantasypros_adp": 142.04,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 61.93,
       "bye": 11
     },
     {
       "name": "Malik Willis",
       "position": "QB",
       "team": "MIA",
-      "composite_adp": 139.71,
-      "sleeper_adp": 144.88,
+      "composite_adp": 140.12,
+      "sleeper_adp": 145.58,
       "fantasypros_adp": 132.32,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 53.92,
       "bye": 6
-    },
-    {
-      "name": "Tyler Allgeier",
-      "position": "RB",
-      "team": "ARI",
-      "composite_adp": 139.77,
-      "sleeper_adp": 140.4,
-      "fantasypros_adp": 138.88,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 14
-    },
-    {
-      "name": "C.J. Stroud",
-      "position": "QB",
-      "team": "HOU",
-      "composite_adp": 140.03,
-      "sleeper_adp": 137.31,
-      "fantasypros_adp": 143.92,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Caleb Downs",
@@ -1779,6 +1924,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 140.27,
       "bye": 14
     },
     {
@@ -1790,7 +1936,32 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 140.45,
       "bye": 6
+    },
+    {
+      "name": "C.J. Stroud",
+      "position": "QB",
+      "team": "HOU",
+      "composite_adp": 140.71,
+      "sleeper_adp": 138.46,
+      "fantasypros_adp": 143.92,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 63.12,
+      "bye": 8
+    },
+    {
+      "name": "Seattle Seahawks",
+      "position": "DEF",
+      "team": "SEA",
+      "composite_adp": 141.15,
+      "sleeper_adp": 122.74,
+      "fantasypros_adp": 167.45,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 141.15,
+      "bye": 11
     },
     {
       "name": "Nick Bolton",
@@ -1801,28 +1972,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 141.15,
       "bye": 5
-    },
-    {
-      "name": "Seattle Seahawks",
-      "position": "DEF",
-      "team": "SEA",
-      "composite_adp": 141.19,
-      "sleeper_adp": 122.81,
-      "fantasypros_adp": 167.45,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Cam Ward",
       "position": "QB",
       "team": "TEN",
-      "composite_adp": 141.32,
-      "sleeper_adp": 130.76,
+      "composite_adp": 141.93,
+      "sleeper_adp": 131.79,
       "fantasypros_adp": 156.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 69.05,
       "bye": 9
     },
     {
@@ -1834,17 +1996,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 142.12,
       "bye": 7
     },
     {
       "name": "De'Zhaun Stribling",
       "position": "WR",
       "team": "SF",
-      "composite_adp": 142.25,
-      "sleeper_adp": 140.19,
+      "composite_adp": 142.15,
+      "sleeper_adp": 140.02,
       "fantasypros_adp": 145.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 150.18,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -1852,11 +2016,12 @@
       "name": "Brandon Aubrey",
       "position": "K",
       "team": "DAL",
-      "composite_adp": 142.93,
-      "sleeper_adp": 112.92,
+      "composite_adp": 142.83,
+      "sleeper_adp": 112.76,
       "fantasypros_adp": 185.79,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 142.83,
       "bye": 14
     },
     {
@@ -1868,50 +2033,67 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 143.23,
       "bye": 13
-    },
-    {
-      "name": "Woody Marks",
-      "position": "RB",
-      "team": "HOU",
-      "composite_adp": 143.93,
-      "sleeper_adp": 146.8,
-      "fantasypros_adp": 139.84,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Chris Rodriguez",
       "position": "RB",
       "team": "JAX",
-      "composite_adp": 143.99,
-      "sleeper_adp": 146.35,
+      "composite_adp": 143.88,
+      "sleeper_adp": 146.16,
       "fantasypros_adp": 140.63,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 131.62,
       "bye": 7
+    },
+    {
+      "name": "Woody Marks",
+      "position": "RB",
+      "team": "HOU",
+      "composite_adp": 144.06,
+      "sleeper_adp": 147.02,
+      "fantasypros_adp": 139.84,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 145.2,
+      "bye": 8
     },
     {
       "name": "Brenton Strange",
       "position": "TE",
       "team": "JAX",
-      "composite_adp": 145.23,
-      "sleeper_adp": 135.56,
+      "composite_adp": 145.17,
+      "sleeper_adp": 135.45,
       "fantasypros_adp": 159.05,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 161.87,
       "bye": 7
+    },
+    {
+      "name": "Tyrone Tracy",
+      "position": "RB",
+      "team": "NYG",
+      "composite_adp": 145.66,
+      "sleeper_adp": 146.14,
+      "fantasypros_adp": 144.98,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 151.22,
+      "bye": 8
     },
     {
       "name": "Zach Charbonnet",
       "position": "RB",
       "team": "SEA",
-      "composite_adp": 145.74,
-      "sleeper_adp": 141.8,
+      "composite_adp": 145.72,
+      "sleeper_adp": 141.76,
       "fantasypros_adp": 151.38,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 148.24,
       "injury_status": "PUP",
       "bye": 11
     },
@@ -1919,33 +2101,24 @@
       "name": "Denver Broncos",
       "position": "DEF",
       "team": "DEN",
-      "composite_adp": 146.09,
-      "sleeper_adp": 133.95,
+      "composite_adp": 146.02,
+      "sleeper_adp": 133.83,
       "fantasypros_adp": 163.44,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 146.02,
       "bye": 10
-    },
-    {
-      "name": "Tyrone Tracy",
-      "position": "RB",
-      "team": "NYG",
-      "composite_adp": 146.19,
-      "sleeper_adp": 147.04,
-      "fantasypros_adp": 144.98,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Denzel Boston",
       "position": "WR",
       "team": "CLE",
-      "composite_adp": 146.28,
-      "sleeper_adp": 143.2,
+      "composite_adp": 146.09,
+      "sleeper_adp": 142.89,
       "fantasypros_adp": 150.67,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 165.57,
       "bye": 11
     },
     {
@@ -1957,40 +2130,44 @@
       "fantasypros_adp": 134.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 151.58,
       "bye": 8
     },
     {
       "name": "Hunter Henry",
       "position": "TE",
       "team": "NE",
-      "composite_adp": 147.84,
-      "sleeper_adp": 135.39,
+      "composite_adp": 147.9,
+      "sleeper_adp": 135.5,
       "fantasypros_adp": 165.62,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 160.24,
       "bye": 11
-    },
-    {
-      "name": "Daniel Jones",
-      "position": "QB",
-      "team": "IND",
-      "composite_adp": 148.89,
-      "sleeper_adp": 146.46,
-      "fantasypros_adp": 152.36,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 13
     },
     {
       "name": "Oronde Gadsden",
       "position": "TE",
       "team": "LAC",
-      "composite_adp": 148.91,
-      "sleeper_adp": 116.08,
+      "composite_adp": 148.96,
+      "sleeper_adp": 116.15,
       "fantasypros_adp": 195.82,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 180.36,
       "bye": 7
+    },
+    {
+      "name": "Tyjae Spears",
+      "position": "RB",
+      "team": "TEN",
+      "composite_adp": 149.57,
+      "sleeper_adp": 156.03,
+      "fantasypros_adp": 140.33,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 163.23,
+      "bye": 9
     },
     {
       "name": "Nik Bonitto",
@@ -2001,18 +2178,20 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 149.82,
       "bye": 10
     },
     {
-      "name": "Tyjae Spears",
-      "position": "RB",
-      "team": "TEN",
-      "composite_adp": 149.88,
-      "sleeper_adp": 156.56,
-      "fantasypros_adp": 140.33,
+      "name": "Daniel Jones",
+      "position": "QB",
+      "team": "IND",
+      "composite_adp": 150.48,
+      "sleeper_adp": 149.16,
+      "fantasypros_adp": 152.36,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 9
+      "composite_sf_adp": 64.96,
+      "bye": 13
     },
     {
       "name": "Daiyan Henley",
@@ -2023,28 +2202,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 150.85,
       "bye": 7
     },
     {
       "name": "Rashid Shaheed",
       "position": "WR",
       "team": "SEA",
-      "composite_adp": 151.78,
-      "sleeper_adp": 153.06,
+      "composite_adp": 151.73,
+      "sleeper_adp": 152.98,
       "fantasypros_adp": 149.95,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 150.1,
       "bye": 11
     },
     {
       "name": "Jonah Coleman",
       "position": "RB",
       "team": "DEN",
-      "composite_adp": 151.91,
-      "sleeper_adp": 149.25,
+      "composite_adp": 151.8,
+      "sleeper_adp": 149.07,
       "fantasypros_adp": 155.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 158.06,
       "bye": 10
     },
     {
@@ -2056,17 +2238,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 152.9,
       "bye": 7
     },
     {
       "name": "Philadelphia Eagles",
       "position": "DEF",
       "team": "PHI",
-      "composite_adp": 154.14,
-      "sleeper_adp": 139.66,
+      "composite_adp": 154.12,
+      "sleeper_adp": 139.63,
       "fantasypros_adp": 174.83,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 154.12,
       "bye": 10
     },
     {
@@ -2078,6 +2262,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 154.61,
       "bye": 11
     },
     {
@@ -2089,18 +2274,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 155.69,
       "bye": 8
-    },
-    {
-      "name": "Bryce Young",
-      "position": "QB",
-      "team": "CAR",
-      "composite_adp": 155.95,
-      "sleeper_adp": 146.38,
-      "fantasypros_adp": 169.61,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 5
     },
     {
       "name": "Tom Brady",
@@ -2110,17 +2285,19 @@
       "sleeper_adp": 155.97,
       "fantasypros_adp": null,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 155.97
     },
     {
       "name": "Chig Okonkwo",
       "position": "TE",
       "team": "WAS",
-      "composite_adp": 156.83,
-      "sleeper_adp": 155.55,
+      "composite_adp": 156.62,
+      "sleeper_adp": 155.19,
       "fantasypros_adp": 158.67,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 170.66,
       "bye": 7
     },
     {
@@ -2132,7 +2309,20 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 157.1,
       "bye": 8
+    },
+    {
+      "name": "Bryce Young",
+      "position": "QB",
+      "team": "CAR",
+      "composite_adp": 157.26,
+      "sleeper_adp": 148.62,
+      "fantasypros_adp": 169.61,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 76.16,
+      "bye": 5
     },
     {
       "name": "Nick Cross",
@@ -2143,6 +2333,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 157.46,
       "bye": 7
     },
     {
@@ -2150,122 +2341,133 @@
       "position": "K",
       "team": "LAC",
       "composite_adp": 158.36,
-      "sleeper_adp": 133.66,
+      "sleeper_adp": 133.65,
       "fantasypros_adp": 193.65,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 158.36,
+      "bye": 7
+    },
+    {
+      "name": "Keaton Mitchell",
+      "position": "RB",
+      "team": "LAC",
+      "composite_adp": 159,
+      "sleeper_adp": 163.69,
+      "fantasypros_adp": 152.3,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 152.41,
       "bye": 7
     },
     {
       "name": "Alvin Kamara",
       "position": "RB",
       "team": "NO",
-      "composite_adp": 159.24,
-      "sleeper_adp": 161.35,
+      "composite_adp": 159.27,
+      "sleeper_adp": 161.41,
       "fantasypros_adp": 156.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 167.49,
       "injury_status": "Questionable",
       "bye": 8
-    },
-    {
-      "name": "Keaton Mitchell",
-      "position": "RB",
-      "team": "LAC",
-      "composite_adp": 159.26,
-      "sleeper_adp": 164.13,
-      "fantasypros_adp": 152.3,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 7
     },
     {
       "name": "Dylan Sampson",
       "position": "RB",
       "team": "CLE",
       "composite_adp": 160.34,
-      "sleeper_adp": 169.17,
+      "sleeper_adp": 169.16,
       "fantasypros_adp": 147.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 171.77,
       "bye": 11
     },
     {
       "name": "Brian Robinson",
       "position": "RB",
       "team": "ATL",
-      "composite_adp": 161.66,
-      "sleeper_adp": 150.17,
+      "composite_adp": 161.7,
+      "sleeper_adp": 150.24,
       "fantasypros_adp": 178.07,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 156.39,
       "bye": 11
     },
     {
       "name": "Ka'imi Fairbairn",
       "position": "K",
       "team": "HOU",
-      "composite_adp": 163.19,
-      "sleeper_adp": 142.58,
+      "composite_adp": 163.45,
+      "sleeper_adp": 143.01,
       "fantasypros_adp": 192.64,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 163.45,
       "bye": 8
     },
     {
       "name": "Travis Hunter",
       "position": "WR",
       "team": "JAX",
-      "composite_adp": 163.41,
-      "sleeper_adp": 150.3,
+      "composite_adp": 163.59,
+      "sleeper_adp": 150.6,
       "fantasypros_adp": 182.15,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 184.31,
       "bye": 7
     },
     {
       "name": "Omar Cooper",
       "position": "WR",
       "team": "NYJ",
-      "composite_adp": 165.43,
-      "sleeper_adp": 153.67,
+      "composite_adp": 165.42,
+      "sleeper_adp": 153.66,
       "fantasypros_adp": 182.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 187.22,
       "bye": 13
-    },
-    {
-      "name": "Jason Myers",
-      "position": "K",
-      "team": "SEA",
-      "composite_adp": 166.32,
-      "sleeper_adp": 142.55,
-      "fantasypros_adp": 200.28,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "New England Patriots",
       "position": "DEF",
       "team": "NE",
-      "composite_adp": 166.32,
-      "sleeper_adp": 153.54,
+      "composite_adp": 166.07,
+      "sleeper_adp": 153.12,
       "fantasypros_adp": 184.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 166.07,
       "bye": 11
     },
     {
       "name": "Cam Little",
       "position": "K",
       "team": "JAX",
-      "composite_adp": 166.45,
-      "sleeper_adp": 144.24,
+      "composite_adp": 166.48,
+      "sleeper_adp": 144.29,
       "fantasypros_adp": 198.18,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 166.48,
       "bye": 7
+    },
+    {
+      "name": "Jason Myers",
+      "position": "K",
+      "team": "SEA",
+      "composite_adp": 166.72,
+      "sleeper_adp": 143.22,
+      "fantasypros_adp": 200.28,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 166.72,
+      "bye": 11
     },
     {
       "name": "Rueben Bain",
@@ -2276,19 +2478,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 167.31,
       "bye": 10
-    },
-    {
-      "name": "Isiah Pacheco",
-      "position": "RB",
-      "team": "DET",
-      "composite_adp": 168.7,
-      "sleeper_adp": 173.27,
-      "fantasypros_adp": 162.16,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 6
     },
     {
       "name": "Devin Lloyd",
@@ -2299,52 +2490,58 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 168.74,
       "bye": 5
+    },
+    {
+      "name": "Isiah Pacheco",
+      "position": "RB",
+      "team": "DET",
+      "composite_adp": 168.81,
+      "sleeper_adp": 173.46,
+      "fantasypros_adp": 162.16,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 158.31,
+      "injury_status": "Questionable",
+      "bye": 6
     },
     {
       "name": "Baltimore Ravens",
       "position": "DEF",
       "team": "BAL",
-      "composite_adp": 168.98,
-      "sleeper_adp": 149.39,
+      "composite_adp": 169.09,
+      "sleeper_adp": 149.57,
       "fantasypros_adp": 196.97,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 169.09,
       "bye": 13
     },
     {
       "name": "T.J. Hockenson",
       "position": "TE",
       "team": "MIN",
-      "composite_adp": 169.94,
-      "sleeper_adp": 156.22,
+      "composite_adp": 169.8,
+      "sleeper_adp": 155.97,
       "fantasypros_adp": 189.55,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 204.71,
       "bye": 6
     },
     {
       "name": "Kenyon Sadiq",
       "position": "TE",
       "team": "NYJ",
-      "composite_adp": 170.01,
-      "sleeper_adp": 133.11,
+      "composite_adp": 170.09,
+      "sleeper_adp": 133.25,
       "fantasypros_adp": 222.72,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 199.95,
       "injury_status": "Questionable",
       "bye": 13
-    },
-    {
-      "name": "Jauan Jennings",
-      "position": "WR",
-      "team": "MIN",
-      "composite_adp": 170.31,
-      "sleeper_adp": 176.2,
-      "fantasypros_adp": 161.9,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 6
     },
     {
       "name": "Byron Young",
@@ -2355,52 +2552,69 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 170.42,
       "bye": 11
     },
     {
       "name": "Tank Bigsby",
       "position": "RB",
       "team": "PHI",
-      "composite_adp": 170.84,
-      "sleeper_adp": 168.51,
+      "composite_adp": 170.78,
+      "sleeper_adp": 168.41,
       "fantasypros_adp": 174.17,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 10
-    },
-    {
-      "name": "Dalton Schultz",
-      "position": "TE",
-      "team": "HOU",
-      "composite_adp": 170.96,
-      "sleeper_adp": 172.56,
-      "fantasypros_adp": 168.68,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
-    },
-    {
-      "name": "Jalen McMillan",
-      "position": "WR",
-      "team": "TB",
-      "composite_adp": 171.14,
-      "sleeper_adp": 171.12,
-      "fantasypros_adp": 171.18,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
+      "composite_sf_adp": 152.91,
       "bye": 10
     },
     {
       "name": "Minnesota Vikings",
       "position": "DEF",
       "team": "MIN",
-      "composite_adp": 171.28,
-      "sleeper_adp": 160.74,
+      "composite_adp": 171.18,
+      "sleeper_adp": 160.56,
       "fantasypros_adp": 186.34,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 171.18,
       "bye": 6
+    },
+    {
+      "name": "Jalen McMillan",
+      "position": "WR",
+      "team": "TB",
+      "composite_adp": 171.2,
+      "sleeper_adp": 171.21,
+      "fantasypros_adp": 171.18,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 174.3,
+      "injury_status": "Questionable",
+      "bye": 10
+    },
+    {
+      "name": "Jauan Jennings",
+      "position": "WR",
+      "team": "MIN",
+      "composite_adp": 171.28,
+      "sleeper_adp": 177.84,
+      "fantasypros_adp": 161.9,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 170.42,
+      "bye": 6
+    },
+    {
+      "name": "Dalton Schultz",
+      "position": "TE",
+      "team": "HOU",
+      "composite_adp": 171.32,
+      "sleeper_adp": 173.17,
+      "fantasypros_adp": 168.68,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 186.74,
+      "bye": 8
     },
     {
       "name": "Andrew Van Ginkel",
@@ -2411,17 +2625,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 172.36,
       "bye": 6
     },
     {
       "name": "Braelon Allen",
       "position": "RB",
       "team": "NYJ",
-      "composite_adp": 174.55,
-      "sleeper_adp": 173.24,
+      "composite_adp": 174.59,
+      "sleeper_adp": 173.31,
       "fantasypros_adp": 176.42,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 162.88,
       "bye": 13
     },
     {
@@ -2433,61 +2649,67 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 174.89,
       "bye": 7
     },
     {
       "name": "Pittsburgh Steelers",
       "position": "DEF",
       "team": "PIT",
-      "composite_adp": 175.01,
-      "sleeper_adp": 166.46,
+      "composite_adp": 174.95,
+      "sleeper_adp": 166.35,
       "fantasypros_adp": 187.23,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 174.95,
       "bye": 9
     },
     {
       "name": "Jacksonville Jaguars",
       "position": "DEF",
       "team": "JAX",
-      "composite_adp": 176.5,
-      "sleeper_adp": 166.81,
+      "composite_adp": 176.49,
+      "sleeper_adp": 166.78,
       "fantasypros_adp": 190.35,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 176.49,
       "bye": 7
     },
     {
       "name": "AJ Barner",
       "position": "TE",
       "team": "SEA",
-      "composite_adp": 176.86,
-      "sleeper_adp": 155.36,
+      "composite_adp": 176.79,
+      "sleeper_adp": 155.24,
       "fantasypros_adp": 207.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 190,
       "bye": 11
     },
     {
       "name": "Jalen Nailor",
       "position": "WR",
       "team": "LV",
-      "composite_adp": 178.2,
-      "sleeper_adp": 170.34,
+      "composite_adp": 178.15,
+      "sleeper_adp": 170.24,
       "fantasypros_adp": 189.44,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 184.88,
       "bye": 13
     },
     {
       "name": "Emmett Johnson",
       "position": "RB",
       "team": "KC",
-      "composite_adp": 179.13,
-      "sleeper_adp": 169.7,
+      "composite_adp": 179.15,
+      "sleeper_adp": 169.74,
       "fantasypros_adp": 192.59,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 182.96,
       "bye": 5
     },
     {
@@ -2499,61 +2721,67 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 179.25,
       "bye": 11
     },
     {
       "name": "Nicholas Singleton",
       "position": "RB",
       "team": "TEN",
-      "composite_adp": 180.61,
-      "sleeper_adp": 161.91,
+      "composite_adp": 180.75,
+      "sleeper_adp": 162.15,
       "fantasypros_adp": 207.32,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 189.95,
       "bye": 9
     },
     {
       "name": "Los Angeles Chargers",
       "position": "DEF",
       "team": "LAC",
-      "composite_adp": 181.01,
-      "sleeper_adp": 173.14,
+      "composite_adp": 181.08,
+      "sleeper_adp": 173.26,
       "fantasypros_adp": 192.26,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 181.08,
       "bye": 7
-    },
-    {
-      "name": "Jacoby Brissett",
-      "position": "QB",
-      "team": "ARI",
-      "composite_adp": 181.19,
-      "sleeper_adp": 173.44,
-      "fantasypros_adp": 192.25,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 14
     },
     {
       "name": "Jerry Jeudy",
       "position": "WR",
       "team": "CLE",
-      "composite_adp": 181.58,
-      "sleeper_adp": 192.76,
+      "composite_adp": 181.55,
+      "sleeper_adp": 192.7,
       "fantasypros_adp": 165.62,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 178.12,
       "bye": 11
+    },
+    {
+      "name": "Jacoby Brissett",
+      "position": "QB",
+      "team": "ARI",
+      "composite_adp": 181.58,
+      "sleeper_adp": 174.11,
+      "fantasypros_adp": 192.25,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 83.97,
+      "bye": 14
     },
     {
       "name": "Tre' Harris",
       "position": "WR",
       "team": "LAC",
-      "composite_adp": 182.71,
-      "sleeper_adp": 184.51,
+      "composite_adp": 182.56,
+      "sleeper_adp": 184.25,
       "fantasypros_adp": 180.14,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 185.78,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -2561,22 +2789,24 @@
       "name": "Tre Tucker",
       "position": "WR",
       "team": "LV",
-      "composite_adp": 183.02,
-      "sleeper_adp": 190.85,
+      "composite_adp": 182.77,
+      "sleeper_adp": 190.42,
       "fantasypros_adp": 171.83,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 176.18,
       "bye": 13
     },
     {
       "name": "Tank Dell",
       "position": "WR",
       "team": "HOU",
-      "composite_adp": 183.53,
-      "sleeper_adp": 171.26,
+      "composite_adp": 183.61,
+      "sleeper_adp": 171.39,
       "fantasypros_adp": 201.07,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 195.94,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -2584,11 +2814,12 @@
       "name": "Mike Washington",
       "position": "RB",
       "team": "LV",
-      "composite_adp": 184.17,
-      "sleeper_adp": 174.15,
+      "composite_adp": 184.08,
+      "sleeper_adp": 174,
       "fantasypros_adp": 198.48,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 179.16,
       "bye": 13
     },
     {
@@ -2596,76 +2827,83 @@
       "position": "K",
       "team": "LAR",
       "composite_adp": 184.31,
-      "sleeper_adp": 156.21,
+      "sleeper_adp": 156.2,
       "fantasypros_adp": 224.46,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 184.31,
       "bye": 11
     },
     {
       "name": "Eddy Pineiro",
       "position": "K",
       "team": "SF",
-      "composite_adp": 184.51,
-      "sleeper_adp": 168.59,
+      "composite_adp": 184.61,
+      "sleeper_adp": 168.76,
       "fantasypros_adp": 207.26,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 184.61,
       "bye": 8
     },
     {
       "name": "Detroit Lions",
       "position": "DEF",
       "team": "DET",
-      "composite_adp": 185.3,
-      "sleeper_adp": 160.61,
+      "composite_adp": 185.18,
+      "sleeper_adp": 160.4,
       "fantasypros_adp": 220.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 185.18,
       "bye": 6
     },
     {
       "name": "Andy Borregales",
       "position": "K",
       "team": "NE",
-      "composite_adp": 185.59,
-      "sleeper_adp": 159.92,
+      "composite_adp": 185.56,
+      "sleeper_adp": 159.88,
       "fantasypros_adp": 222.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 185.56,
       "bye": 11
     },
     {
       "name": "Malik Washington",
       "position": "WR",
       "team": "MIA",
-      "composite_adp": 185.78,
-      "sleeper_adp": 183.05,
+      "composite_adp": 185.59,
+      "sleeper_adp": 182.72,
       "fantasypros_adp": 189.68,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 198.03,
       "bye": 6
     },
     {
       "name": "Fernando Mendoza",
       "position": "QB",
       "team": "LV",
-      "composite_adp": 185.9,
-      "sleeper_adp": 135.57,
+      "composite_adp": 186.55,
+      "sleeper_adp": 136.68,
       "fantasypros_adp": 257.8,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 121.75,
       "bye": 13
     },
     {
       "name": "Cairo Santos",
       "position": "K",
       "team": "CHI",
-      "composite_adp": 186.79,
-      "sleeper_adp": 165.93,
+      "composite_adp": 186.65,
+      "sleeper_adp": 165.7,
       "fantasypros_adp": 216.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 186.65,
       "bye": 10
     },
     {
@@ -2677,6 +2915,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 186.8,
       "bye": 8
     },
     {
@@ -2688,29 +2927,32 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 190.2,
       "bye": 10
-    },
-    {
-      "name": "Evan McPherson",
-      "position": "K",
-      "team": "CIN",
-      "composite_adp": 190.53,
-      "sleeper_adp": 173.89,
-      "fantasypros_adp": 214.3,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 6
     },
     {
       "name": "Drew Allar",
       "position": "QB",
       "team": "PIT",
-      "composite_adp": 190.91,
-      "sleeper_adp": 190.91,
+      "composite_adp": 190.32,
+      "sleeper_adp": 190.32,
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 190.32,
       "bye": 9
+    },
+    {
+      "name": "Evan McPherson",
+      "position": "K",
+      "team": "CIN",
+      "composite_adp": 190.72,
+      "sleeper_adp": 174.22,
+      "fantasypros_adp": 214.3,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 190.72,
+      "bye": 6
     },
     {
       "name": "Cyrus Allen",
@@ -2721,6 +2963,7 @@
       "fantasypros_adp": 220.55,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.22,
       "bye": 5
     },
     {
@@ -2732,18 +2975,20 @@
       "fantasypros_adp": 206.4,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 208.09,
       "bye": 13
     },
     {
-      "name": "Adonai Mitchell",
-      "position": "WR",
-      "team": "NYJ",
-      "composite_adp": 191.88,
-      "sleeper_adp": 207.56,
-      "fantasypros_adp": 169.48,
+      "name": "Jake Bates",
+      "position": "K",
+      "team": "DET",
+      "composite_adp": 191.65,
+      "sleeper_adp": 170.72,
+      "fantasypros_adp": 221.54,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 13
+      "composite_sf_adp": 191.65,
+      "bye": 6
     },
     {
       "name": "CJ Allen",
@@ -2754,73 +2999,93 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 191.95,
       "bye": 13
     },
     {
-      "name": "Jake Bates",
-      "position": "K",
-      "team": "DET",
-      "composite_adp": 192,
-      "sleeper_adp": 171.32,
-      "fantasypros_adp": 221.54,
+      "name": "Adonai Mitchell",
+      "position": "WR",
+      "team": "NYJ",
+      "composite_adp": 192.13,
+      "sleeper_adp": 207.99,
+      "fantasypros_adp": 169.48,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 6
+      "composite_sf_adp": 174.81,
+      "bye": 13
     },
     {
       "name": "Tyler Loop",
       "position": "K",
       "team": "BAL",
-      "composite_adp": 192.56,
-      "sleeper_adp": 181.22,
+      "composite_adp": 192.46,
+      "sleeper_adp": 181.05,
       "fantasypros_adp": 208.77,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 192.46,
       "bye": 13
     },
     {
       "name": "Aaron Rodgers",
       "position": "QB",
       "team": "PIT",
-      "composite_adp": 192.84,
-      "sleeper_adp": 173.89,
+      "composite_adp": 193,
+      "sleeper_adp": 174.16,
       "fantasypros_adp": 219.91,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 94.28,
       "bye": 9
     },
     {
       "name": "Germie Bernard",
       "position": "WR",
       "team": "PIT",
-      "composite_adp": 193.06,
-      "sleeper_adp": 164.36,
+      "composite_adp": 193.26,
+      "sleeper_adp": 164.71,
       "fantasypros_adp": 234.05,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.09,
       "bye": 9
-    },
-    {
-      "name": "Green Bay Packers",
-      "position": "DEF",
-      "team": "GB",
-      "composite_adp": 193.73,
-      "sleeper_adp": 187.24,
-      "fantasypros_adp": 203,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Ja'Kobi Lane",
       "position": "WR",
       "team": "BAL",
-      "composite_adp": 193.88,
-      "sleeper_adp": 158.39,
+      "composite_adp": 193.8,
+      "sleeper_adp": 158.26,
       "fantasypros_adp": 244.57,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 220.09,
       "bye": 13
+    },
+    {
+      "name": "Green Bay Packers",
+      "position": "DEF",
+      "team": "GB",
+      "composite_adp": 193.94,
+      "sleeper_adp": 187.59,
+      "fantasypros_adp": 203,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 193.94,
+      "bye": 11
+    },
+    {
+      "name": "Ricky Pearsall",
+      "position": "WR",
+      "team": "SF",
+      "composite_adp": 194.14,
+      "sleeper_adp": 194.14,
+      "fantasypros_adp": null,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 194.14,
+      "injury_status": "IR",
+      "bye": 8
     },
     {
       "name": "Cedric Gray",
@@ -2831,73 +3096,67 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 194.68,
       "bye": 9
     },
     {
       "name": "Zachariah Branch",
       "position": "WR",
       "team": "ATL",
-      "composite_adp": 194.75,
-      "sleeper_adp": 171.56,
+      "composite_adp": 194.74,
+      "sleeper_adp": 171.55,
       "fantasypros_adp": 227.88,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 215.66,
       "bye": 11
     },
     {
       "name": "Gunnar Helm",
       "position": "TE",
       "team": "TEN",
-      "composite_adp": 194.82,
-      "sleeper_adp": 179.1,
+      "composite_adp": 194.91,
+      "sleeper_adp": 179.25,
       "fantasypros_adp": 217.27,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.72,
       "bye": 9
     },
     {
       "name": "Terrance Ferguson",
       "position": "TE",
       "team": "LAR",
-      "composite_adp": 195.08,
-      "sleeper_adp": 177.21,
+      "composite_adp": 194.96,
+      "sleeper_adp": 177.01,
       "fantasypros_adp": 220.6,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 185.6,
       "bye": 11
     },
     {
       "name": "MarShawn Lloyd",
       "position": "RB",
       "team": "GB",
-      "composite_adp": 195.25,
-      "sleeper_adp": 194.91,
+      "composite_adp": 195.13,
+      "sleeper_adp": 194.71,
       "fantasypros_adp": 195.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 176.79,
       "bye": 11
-    },
-    {
-      "name": "Ricky Pearsall",
-      "position": "WR",
-      "team": "SF",
-      "composite_adp": 195.42,
-      "sleeper_adp": 195.42,
-      "fantasypros_adp": null,
-      "underdog_adp": null,
-      "sources_count": 1,
-      "injury_status": "IR",
-      "bye": 8
     },
     {
       "name": "Geno Smith",
       "position": "QB",
       "team": "NYJ",
-      "composite_adp": 195.95,
-      "sleeper_adp": 173.97,
+      "composite_adp": 196.64,
+      "sleeper_adp": 175.15,
       "fantasypros_adp": 227.34,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 97.72,
       "bye": 13
     },
     {
@@ -2909,40 +3168,44 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 197.18,
       "bye": 13
     },
     {
-      "name": "James Conner",
-      "position": "RB",
-      "team": "ARI",
-      "composite_adp": 197.27,
-      "sleeper_adp": 194.37,
-      "fantasypros_adp": 201.41,
+      "name": "Ryan Flournoy",
+      "position": "WR",
+      "team": "DAL",
+      "composite_adp": 197.37,
+      "sleeper_adp": 206.48,
+      "fantasypros_adp": 184.35,
       "underdog_adp": null,
       "sources_count": 2,
-      "injury_status": "Questionable",
+      "composite_sf_adp": 189.96,
       "bye": 14
     },
     {
       "name": "Chris Boswell",
       "position": "K",
       "team": "PIT",
-      "composite_adp": 197.53,
-      "sleeper_adp": 167.68,
+      "composite_adp": 197.71,
+      "sleeper_adp": 167.99,
       "fantasypros_adp": 240.17,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 197.71,
       "bye": 9
     },
     {
-      "name": "Ryan Flournoy",
-      "position": "WR",
-      "team": "DAL",
-      "composite_adp": 197.58,
-      "sleeper_adp": 206.84,
-      "fantasypros_adp": 184.35,
+      "name": "James Conner",
+      "position": "RB",
+      "team": "ARI",
+      "composite_adp": 197.76,
+      "sleeper_adp": 195.2,
+      "fantasypros_adp": 201.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 198.33,
+      "injury_status": "Questionable",
       "bye": 14
     },
     {
@@ -2954,6 +3217,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 198.71,
       "bye": 13
     },
     {
@@ -2965,28 +3229,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 198.95,
       "bye": 11
     },
     {
       "name": "Isaac TeSlaa",
       "position": "WR",
       "team": "DET",
-      "composite_adp": 199.11,
-      "sleeper_adp": 189.45,
+      "composite_adp": 199.45,
+      "sleeper_adp": 190.02,
       "fantasypros_adp": 212.92,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 197.18,
       "bye": 6
     },
     {
       "name": "Kansas City Chiefs",
       "position": "DEF",
       "team": "KC",
-      "composite_adp": 200.09,
-      "sleeper_adp": 193.27,
+      "composite_adp": 199.97,
+      "sleeper_adp": 193.07,
       "fantasypros_adp": 209.83,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 199.97,
       "bye": 5
     },
     {
@@ -2997,17 +3264,19 @@
       "sleeper_adp": 200.61,
       "fantasypros_adp": null,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 200.61
     },
     {
       "name": "Pat Bryant",
       "position": "WR",
       "team": "DEN",
-      "composite_adp": 200.94,
-      "sleeper_adp": 207.12,
+      "composite_adp": 201.01,
+      "sleeper_adp": 207.25,
       "fantasypros_adp": 192.1,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 196.99,
       "bye": 10
     },
     {
@@ -3019,106 +3288,104 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 201.61,
       "bye": 7
     },
     {
       "name": "Harrison Butker",
       "position": "K",
       "team": "KC",
-      "composite_adp": 201.97,
-      "sleeper_adp": 173.3,
+      "composite_adp": 202.07,
+      "sleeper_adp": 173.46,
       "fantasypros_adp": 242.93,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 202.07,
       "bye": 5
     },
     {
-      "name": "Kimani Vidal",
+      "name": "Ray Davis",
       "position": "RB",
-      "team": "LAC",
-      "composite_adp": 202.37,
-      "sleeper_adp": 204.04,
-      "fantasypros_adp": 199.98,
+      "team": "BUF",
+      "composite_adp": 202.76,
+      "sleeper_adp": 209.44,
+      "fantasypros_adp": 193.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 187.14,
       "bye": 7
     },
     {
       "name": "Will Reichard",
       "position": "K",
       "team": "MIN",
-      "composite_adp": 202.44,
-      "sleeper_adp": 165.94,
+      "composite_adp": 203.16,
+      "sleeper_adp": 167.17,
       "fantasypros_adp": 254.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 203.16,
       "bye": 6
-    },
-    {
-      "name": "Ray Davis",
-      "position": "RB",
-      "team": "BUF",
-      "composite_adp": 202.99,
-      "sleeper_adp": 209.83,
-      "fantasypros_adp": 193.22,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 7
     },
     {
       "name": "Chase McLaughlin",
       "position": "K",
       "team": "TB",
-      "composite_adp": 203.37,
-      "sleeper_adp": 187.12,
+      "composite_adp": 203.19,
+      "sleeper_adp": 186.82,
       "fantasypros_adp": 226.58,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 203.19,
       "bye": 10
     },
     {
       "name": "Antonio Williams",
       "position": "WR",
       "team": "WAS",
-      "composite_adp": 203.52,
-      "sleeper_adp": 184.53,
+      "composite_adp": 203.29,
+      "sleeper_adp": 184.13,
       "fantasypros_adp": 230.66,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 215.02,
       "bye": 7
     },
     {
       "name": "Dontayvion Wicks",
       "position": "WR",
       "team": "PHI",
-      "composite_adp": 204.25,
-      "sleeper_adp": 211.39,
+      "composite_adp": 203.78,
+      "sleeper_adp": 210.59,
       "fantasypros_adp": 194.04,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 191.98,
       "bye": 10
+    },
+    {
+      "name": "Kimani Vidal",
+      "position": "RB",
+      "team": "LAC",
+      "composite_adp": 204.16,
+      "sleeper_adp": 207.09,
+      "fantasypros_adp": 199.98,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 186.6,
+      "bye": 7
     },
     {
       "name": "Greg Dulcich",
       "position": "TE",
       "team": "MIA",
-      "composite_adp": 204.34,
-      "sleeper_adp": 204.81,
+      "composite_adp": 204.37,
+      "sleeper_adp": 204.86,
       "fantasypros_adp": 203.68,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 198.31,
       "bye": 6
-    },
-    {
-      "name": "Tennessee Titans",
-      "position": "DEF",
-      "team": "TEN",
-      "composite_adp": 204.61,
-      "sleeper_adp": 179.77,
-      "fantasypros_adp": 240.1,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 9
     },
     {
       "name": "Kam Curl",
@@ -3129,6 +3396,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 205.1,
       "bye": 11
     },
     {
@@ -3140,29 +3408,21 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 205.1,
       "bye": 10
     },
     {
       "name": "Chris Bell",
       "position": "WR",
       "team": "MIA",
-      "composite_adp": 205.34,
-      "sleeper_adp": 176.66,
+      "composite_adp": 205.65,
+      "sleeper_adp": 177.19,
       "fantasypros_adp": 246.3,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 232.56,
       "injury_status": "Questionable",
       "bye": 6
-    },
-    {
-      "name": "Parker White",
-      "position": "K",
-      "team": null,
-      "composite_adp": 205.94,
-      "sleeper_adp": 205.94,
-      "fantasypros_adp": null,
-      "underdog_adp": null,
-      "sources_count": 1
     },
     {
       "name": "Greg Rousseau",
@@ -3173,17 +3433,32 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 206.19,
       "bye": 7
+    },
+    {
+      "name": "Jaylin Noel",
+      "position": "WR",
+      "team": "HOU",
+      "composite_adp": 207.08,
+      "sleeper_adp": 217.8,
+      "fantasypros_adp": 191.77,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 195.06,
+      "injury_status": "Questionable",
+      "bye": 8
     },
     {
       "name": "Kayshon Boutte",
       "position": "WR",
       "team": "NE",
-      "composite_adp": 206.65,
-      "sleeper_adp": 210.47,
+      "composite_adp": 207.15,
+      "sleeper_adp": 211.31,
       "fantasypros_adp": 201.2,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 188.92,
       "bye": 11
     },
     {
@@ -3195,40 +3470,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 207.24,
       "bye": 11
-    },
-    {
-      "name": "Jaylin Noel",
-      "position": "WR",
-      "team": "HOU",
-      "composite_adp": 207.27,
-      "sleeper_adp": 218.12,
-      "fantasypros_adp": 191.77,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 8
     },
     {
       "name": "Malachi Fields",
       "position": "WR",
       "team": "NYG",
-      "composite_adp": 207.97,
-      "sleeper_adp": 184.08,
+      "composite_adp": 208.12,
+      "sleeper_adp": 184.34,
       "fantasypros_adp": 242.1,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 228.44,
       "bye": 8
     },
     {
       "name": "Kaytron Allen",
       "position": "RB",
       "team": "WAS",
-      "composite_adp": 208.42,
-      "sleeper_adp": 195.46,
+      "composite_adp": 208.33,
+      "sleeper_adp": 195.3,
       "fantasypros_adp": 226.94,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 193.72,
       "bye": 7
     },
     {
@@ -3240,28 +3506,43 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 208.45,
       "bye": 8
+    },
+    {
+      "name": "Tennessee Titans",
+      "position": "DEF",
+      "team": "TEN",
+      "composite_adp": 208.77,
+      "sleeper_adp": 186.84,
+      "fantasypros_adp": 240.1,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 208.77,
+      "bye": 9
     },
     {
       "name": "Caleb Douglas",
       "position": "WR",
       "team": "MIA",
-      "composite_adp": 208.82,
-      "sleeper_adp": 200.9,
+      "composite_adp": 208.84,
+      "sleeper_adp": 200.94,
       "fantasypros_adp": 220.13,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.73,
       "bye": 6
     },
     {
       "name": "Dallas Cowboys",
       "position": "DEF",
       "team": "DAL",
-      "composite_adp": 209.13,
-      "sleeper_adp": 180.36,
+      "composite_adp": 208.95,
+      "sleeper_adp": 180.06,
       "fantasypros_adp": 250.23,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 208.95,
       "bye": 14
     },
     {
@@ -3273,6 +3554,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 209.47,
       "bye": 7
     },
     {
@@ -3284,39 +3566,55 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 209.61,
       "bye": 9
     },
     {
       "name": "Troy Franklin",
       "position": "WR",
       "team": "DEN",
-      "composite_adp": 209.98,
-      "sleeper_adp": 211.5,
+      "composite_adp": 209.86,
+      "sleeper_adp": 211.3,
       "fantasypros_adp": 207.81,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 204.47,
       "bye": 10
     },
     {
       "name": "Elijah Sarratt",
       "position": "WR",
       "team": "BAL",
-      "composite_adp": 210.09,
-      "sleeper_adp": 175.61,
+      "composite_adp": 210.01,
+      "sleeper_adp": 175.48,
       "fantasypros_adp": 259.34,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 238.61,
       "bye": 13
+    },
+    {
+      "name": "Jaydon Blue",
+      "position": "RB",
+      "team": "DAL",
+      "composite_adp": 210.62,
+      "sleeper_adp": 204.5,
+      "fantasypros_adp": 219.36,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 195.91,
+      "bye": 14
     },
     {
       "name": "Eli Stowers",
       "position": "TE",
       "team": "PHI",
-      "composite_adp": 210.93,
-      "sleeper_adp": 164.39,
+      "composite_adp": 210.86,
+      "sleeper_adp": 164.27,
       "fantasypros_adp": 277.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 248.6,
       "bye": 10
     },
     {
@@ -3328,18 +3626,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 211.15,
       "bye": 5
-    },
-    {
-      "name": "Jaydon Blue",
-      "position": "RB",
-      "team": "DAL",
-      "composite_adp": 211.41,
-      "sleeper_adp": 205.84,
-      "fantasypros_adp": 219.36,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 14
     },
     {
       "name": "Tykee Smith",
@@ -3350,6 +3638,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 214.21,
       "bye": 10
     },
     {
@@ -3361,6 +3650,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 214.44,
       "bye": 14
     },
     {
@@ -3372,17 +3662,19 @@
       "fantasypros_adp": 259.93,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.75,
       "bye": 10
     },
     {
       "name": "Ted Hurst",
       "position": "WR",
       "team": "TB",
-      "composite_adp": 215.51,
-      "sleeper_adp": 196.58,
+      "composite_adp": 215.75,
+      "sleeper_adp": 196.99,
       "fantasypros_adp": 242.55,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 226.12,
       "bye": 10
     },
     {
@@ -3394,6 +3686,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 216,
       "bye": 13
     },
     {
@@ -3405,28 +3698,31 @@
       "fantasypros_adp": 256.63,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 216.01,
       "bye": 8
     },
     {
       "name": "Tua Tagovailoa",
       "position": "QB",
       "team": "ATL",
-      "composite_adp": 216.45,
-      "sleeper_adp": 179.05,
+      "composite_adp": 216.52,
+      "sleeper_adp": 179.16,
       "fantasypros_adp": 269.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 130.22,
       "bye": 11
     },
     {
       "name": "Cade Otton",
       "position": "TE",
       "team": "TB",
-      "composite_adp": 217.04,
-      "sleeper_adp": 199.91,
+      "composite_adp": 216.93,
+      "sleeper_adp": 199.72,
       "fantasypros_adp": 241.51,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.44,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -3439,17 +3735,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 217.29,
       "bye": 5
     },
     {
       "name": "Trey Benson",
       "position": "RB",
       "team": "ARI",
-      "composite_adp": 219.25,
-      "sleeper_adp": 184.69,
+      "composite_adp": 219.87,
+      "sleeper_adp": 185.73,
       "fantasypros_adp": 268.63,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 242.54,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -3457,23 +3755,13 @@
       "name": "Pat Freiermuth",
       "position": "TE",
       "team": "PIT",
-      "composite_adp": 220.72,
-      "sleeper_adp": 208.47,
+      "composite_adp": 220.52,
+      "sleeper_adp": 208.13,
       "fantasypros_adp": 238.22,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.48,
       "bye": 9
-    },
-    {
-      "name": "Cooper Kupp",
-      "position": "WR",
-      "team": "SEA",
-      "composite_adp": 220.74,
-      "sleeper_adp": 215.52,
-      "fantasypros_adp": 228.2,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Anthony Hill",
@@ -3484,39 +3772,55 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 220.9,
       "bye": 9
+    },
+    {
+      "name": "Cooper Kupp",
+      "position": "WR",
+      "team": "SEA",
+      "composite_adp": 221.13,
+      "sleeper_adp": 216.18,
+      "fantasypros_adp": 228.2,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 219.92,
+      "bye": 11
     },
     {
       "name": "David Njoku",
       "position": "TE",
       "team": "LAC",
-      "composite_adp": 221.5,
-      "sleeper_adp": 201.7,
+      "composite_adp": 221.66,
+      "sleeper_adp": 201.97,
       "fantasypros_adp": 249.79,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.24,
       "bye": 7
     },
     {
       "name": "Demond Claiborne",
       "position": "RB",
       "team": "MIN",
-      "composite_adp": 221.82,
-      "sleeper_adp": 205.31,
+      "composite_adp": 221.8,
+      "sleeper_adp": 205.27,
       "fantasypros_adp": 245.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 216.54,
       "bye": 6
     },
     {
       "name": "Buffalo Bills",
       "position": "DEF",
       "team": "BUF",
-      "composite_adp": 222.24,
-      "sleeper_adp": 218.83,
+      "composite_adp": 222.57,
+      "sleeper_adp": 219.39,
       "fantasypros_adp": 227.11,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.57,
       "bye": 7
     },
     {
@@ -3528,6 +3832,7 @@
       "fantasypros_adp": 288.04,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.58,
       "bye": 10
     },
     {
@@ -3539,17 +3844,19 @@
       "fantasypros_adp": 282.29,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 222.92,
       "bye": 8
     },
     {
       "name": "Sean Tucker",
       "position": "RB",
       "team": "TB",
-      "composite_adp": 223.83,
-      "sleeper_adp": 242.48,
+      "composite_adp": 223.7,
+      "sleeper_adp": 242.25,
       "fantasypros_adp": 197.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 186.17,
       "bye": 10
     },
     {
@@ -3561,18 +3868,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 223.88,
       "bye": 6
-    },
-    {
-      "name": "Indianapolis Colts",
-      "position": "DEF",
-      "team": "IND",
-      "composite_adp": 223.89,
-      "sleeper_adp": 188.4,
-      "fantasypros_adp": 274.59,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 13
     },
     {
       "name": "Dallas Turner",
@@ -3583,6 +3880,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 224.36,
       "bye": 6
     },
     {
@@ -3594,6 +3892,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 224.57,
       "bye": 8
     },
     {
@@ -3605,86 +3904,94 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
-      "bye": 9
-    },
-    {
-      "name": "Calvin Ridley",
-      "position": "WR",
-      "team": "TEN",
-      "composite_adp": 225.3,
-      "sleeper_adp": 238.47,
-      "fantasypros_adp": 206.48,
-      "underdog_adp": null,
-      "sources_count": 2,
+      "composite_sf_adp": 225.11,
       "bye": 9
     },
     {
       "name": "Mason Taylor",
       "position": "TE",
       "team": "NYJ",
-      "composite_adp": 226.48,
-      "sleeper_adp": 195,
+      "composite_adp": 226.82,
+      "sleeper_adp": 195.59,
       "fantasypros_adp": 271.44,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 250.39,
       "bye": 13
-    },
-    {
-      "name": "Wil Lutz",
-      "position": "K",
-      "team": "DEN",
-      "composite_adp": 226.6,
-      "sleeper_adp": 198.54,
-      "fantasypros_adp": 266.69,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 10
-    },
-    {
-      "name": "New York Giants",
-      "position": "DEF",
-      "team": "NYG",
-      "composite_adp": 226.95,
-      "sleeper_adp": 199.5,
-      "fantasypros_adp": 266.16,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Keon Coleman",
       "position": "WR",
       "team": "BUF",
-      "composite_adp": 227.12,
-      "sleeper_adp": 213.67,
+      "composite_adp": 226.9,
+      "sleeper_adp": 213.3,
       "fantasypros_adp": 246.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 225.15,
       "injury_status": "Questionable",
       "bye": 7
+    },
+    {
+      "name": "New York Giants",
+      "position": "DEF",
+      "team": "NYG",
+      "composite_adp": 227.98,
+      "sleeper_adp": 201.25,
+      "fantasypros_adp": 266.16,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 227.98,
+      "bye": 8
+    },
+    {
+      "name": "Calvin Ridley",
+      "position": "WR",
+      "team": "TEN",
+      "composite_adp": 228.43,
+      "sleeper_adp": 243.79,
+      "fantasypros_adp": 206.48,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 192.13,
+      "bye": 9
     },
     {
       "name": "Kaelon Black",
       "position": "RB",
       "team": "SF",
-      "composite_adp": 229.35,
-      "sleeper_adp": 214.07,
+      "composite_adp": 229.54,
+      "sleeper_adp": 214.38,
       "fantasypros_adp": 251.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 212.78,
       "bye": 8
     },
     {
       "name": "Emanuel Wilson",
       "position": "RB",
       "team": "SEA",
-      "composite_adp": 230.09,
-      "sleeper_adp": 234.88,
+      "composite_adp": 229.95,
+      "sleeper_adp": 234.65,
       "fantasypros_adp": 223.24,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 190.39,
       "injury_status": "Questionable",
       "bye": 11
+    },
+    {
+      "name": "Chimere Dike",
+      "position": "WR",
+      "team": "TEN",
+      "composite_adp": 230.45,
+      "sleeper_adp": 224.14,
+      "fantasypros_adp": 239.46,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 225,
+      "bye": 9
     },
     {
       "name": "Najee Harris",
@@ -3695,18 +4002,8 @@
       "fantasypros_adp": 263.11,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 226.87,
       "bye": 8
-    },
-    {
-      "name": "Chimere Dike",
-      "position": "WR",
-      "team": "TEN",
-      "composite_adp": 230.58,
-      "sleeper_adp": 224.37,
-      "fantasypros_adp": 239.46,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 9
     },
     {
       "name": "Rashod Bateman",
@@ -3717,30 +4014,21 @@
       "fantasypros_adp": 223.09,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 200.16,
       "bye": 13
     },
     {
       "name": "Ollie Gordon",
       "position": "RB",
       "team": "MIA",
-      "composite_adp": 232.4,
-      "sleeper_adp": 227.29,
+      "composite_adp": 232.03,
+      "sleeper_adp": 226.66,
       "fantasypros_adp": 239.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.2,
       "injury_status": "Questionable",
       "bye": 6
-    },
-    {
-      "name": "Cleveland Browns",
-      "position": "DEF",
-      "team": "CLE",
-      "composite_adp": 232.87,
-      "sleeper_adp": 242.09,
-      "fantasypros_adp": 219.7,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Jalen Carter",
@@ -3751,6 +4039,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 233.24,
       "bye": 10
     },
     {
@@ -3762,6 +4051,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 233.48,
       "bye": 13
     },
     {
@@ -3773,28 +4063,68 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 234.62,
       "bye": 13
     },
     {
       "name": "Jaylen Wright",
       "position": "RB",
       "team": "MIA",
-      "composite_adp": 234.98,
-      "sleeper_adp": 236.17,
+      "composite_adp": 234.66,
+      "sleeper_adp": 235.64,
       "fantasypros_adp": 233.27,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 204.16,
       "bye": 6
+    },
+    {
+      "name": "Cleveland Browns",
+      "position": "DEF",
+      "team": "CLE",
+      "composite_adp": 234.76,
+      "sleeper_adp": 245.31,
+      "fantasypros_adp": 219.7,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 234.76,
+      "bye": 11
+    },
+    {
+      "name": "Ty Simpson",
+      "position": "QB",
+      "team": "LAR",
+      "composite_adp": 234.86,
+      "sleeper_adp": 158.7,
+      "fantasypros_adp": 343.66,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 202.75,
+      "bye": 11
     },
     {
       "name": "Tory Horton",
       "position": "WR",
       "team": "SEA",
-      "composite_adp": 235.03,
-      "sleeper_adp": 219.78,
+      "composite_adp": 235.08,
+      "sleeper_adp": 219.86,
       "fantasypros_adp": 256.82,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 230.77,
+      "injury_status": "Questionable",
+      "bye": 11
+    },
+    {
+      "name": "Michael Penix",
+      "position": "QB",
+      "team": "ATL",
+      "composite_adp": 235.99,
+      "sleeper_adp": 198.88,
+      "fantasypros_adp": 289.01,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 153.53,
       "injury_status": "Questionable",
       "bye": 11
     },
@@ -3802,46 +4132,13 @@
       "name": "Darnell Mooney",
       "position": "WR",
       "team": "NYG",
-      "composite_adp": 235.27,
-      "sleeper_adp": 247.77,
+      "composite_adp": 236.4,
+      "sleeper_adp": 249.69,
       "fantasypros_adp": 217.41,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 205.01,
       "bye": 8
-    },
-    {
-      "name": "Michael Penix",
-      "position": "QB",
-      "team": "ATL",
-      "composite_adp": 235.29,
-      "sleeper_adp": 197.69,
-      "fantasypros_adp": 289.01,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 11
-    },
-    {
-      "name": "Shedeur Sanders",
-      "position": "QB",
-      "team": "CLE",
-      "composite_adp": 236.43,
-      "sleeper_adp": 194.54,
-      "fantasypros_adp": 296.27,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
-    },
-    {
-      "name": "Ty Simpson",
-      "position": "QB",
-      "team": "LAR",
-      "composite_adp": 236.47,
-      "sleeper_adp": 161.44,
-      "fantasypros_adp": 343.66,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Robert Spillane",
@@ -3852,6 +4149,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 236.59,
       "bye": 11
     },
     {
@@ -3863,30 +4161,8 @@
       "fantasypros_adp": 237.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 226.76,
       "bye": 13
-    },
-    {
-      "name": "Tyreek Hill",
-      "position": "WR",
-      "team": "FA",
-      "composite_adp": 236.89,
-      "sleeper_adp": 210.27,
-      "fantasypros_adp": 274.91,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable"
-    },
-    {
-      "name": "Brandon Aiyuk",
-      "position": "WR",
-      "team": "SF",
-      "composite_adp": 236.96,
-      "sleeper_adp": 220.35,
-      "fantasypros_adp": 260.68,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "DNR",
-      "bye": 8
     },
     {
       "name": "Trey Smack",
@@ -3897,28 +4173,68 @@
       "fantasypros_adp": 258.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 236.97,
       "bye": 11
+    },
+    {
+      "name": "Tyreek Hill",
+      "position": "WR",
+      "team": "FA",
+      "composite_adp": 236.98,
+      "sleeper_adp": 210.43,
+      "fantasypros_adp": 274.91,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 246.69,
+      "injury_status": "Questionable"
+    },
+    {
+      "name": "Shedeur Sanders",
+      "position": "QB",
+      "team": "CLE",
+      "composite_adp": 237.01,
+      "sleeper_adp": 195.52,
+      "fantasypros_adp": 296.27,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 167.36,
+      "bye": 11
+    },
+    {
+      "name": "Brandon Aiyuk",
+      "position": "WR",
+      "team": "SF",
+      "composite_adp": 237.49,
+      "sleeper_adp": 221.25,
+      "fantasypros_adp": 260.68,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 238.77,
+      "injury_status": "DNR",
+      "bye": 8
     },
     {
       "name": "Deshaun Watson",
       "position": "QB",
       "team": "CLE",
-      "composite_adp": 237.5,
-      "sleeper_adp": 199.57,
+      "composite_adp": 237.88,
+      "sleeper_adp": 200.22,
       "fantasypros_adp": 291.69,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 157.46,
       "bye": 11
     },
     {
       "name": "Kaleb Johnson",
       "position": "RB",
       "team": "PIT",
-      "composite_adp": 237.8,
-      "sleeper_adp": 208.53,
+      "composite_adp": 238.02,
+      "sleeper_adp": 208.9,
       "fantasypros_adp": 279.62,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 244.64,
       "bye": 9
     },
     {
@@ -3930,6 +4246,7 @@
       "fantasypros_adp": 236.35,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 234.43,
       "bye": 13
     },
     {
@@ -3941,6 +4258,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 239.15,
       "bye": 11
     },
     {
@@ -3952,6 +4270,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 239.49,
       "bye": 10
     },
     {
@@ -3963,18 +4282,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 239.89,
       "bye": 10
-    },
-    {
-      "name": "Kirk Cousins",
-      "position": "QB",
-      "team": "LV",
-      "composite_adp": 240.08,
-      "sleeper_adp": 207.68,
-      "fantasypros_adp": 286.36,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 13
     },
     {
       "name": "Darren Waller",
@@ -3985,7 +4294,20 @@
       "fantasypros_adp": 268.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 237.61,
       "bye": 5
+    },
+    {
+      "name": "Kirk Cousins",
+      "position": "QB",
+      "team": "LV",
+      "composite_adp": 241.1,
+      "sleeper_adp": 209.42,
+      "fantasypros_adp": 286.36,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 152.76,
+      "bye": 13
     },
     {
       "name": "Terrel Bernard",
@@ -3996,17 +4318,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 241.15,
       "bye": 7
     },
     {
       "name": "Carson Beck",
       "position": "QB",
       "team": "ARI",
-      "composite_adp": 242.39,
-      "sleeper_adp": 188.26,
+      "composite_adp": 243.04,
+      "sleeper_adp": 189.36,
       "fantasypros_adp": 319.73,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 180.31,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -4014,11 +4338,12 @@
       "name": "Elic Ayomanor",
       "position": "WR",
       "team": "TEN",
-      "composite_adp": 243.23,
-      "sleeper_adp": 238.35,
+      "composite_adp": 243.24,
+      "sleeper_adp": 238.36,
       "fantasypros_adp": 250.21,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 227.2,
       "bye": 9
     },
     {
@@ -4030,17 +4355,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 244.4,
       "bye": 6
     },
     {
       "name": "Devin Neal",
       "position": "RB",
       "team": "NO",
-      "composite_adp": 245.87,
-      "sleeper_adp": 225.12,
+      "composite_adp": 245.54,
+      "sleeper_adp": 224.56,
       "fantasypros_adp": 275.51,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 234.04,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -4053,17 +4380,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 246.2,
       "bye": 14
     },
     {
       "name": "Jake Tonges",
       "position": "TE",
       "team": "SF",
-      "composite_adp": 246.29,
-      "sleeper_adp": 216.58,
+      "composite_adp": 246.36,
+      "sleeper_adp": 216.7,
       "fantasypros_adp": 288.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 256.61,
       "bye": 8
     },
     {
@@ -4075,6 +4404,7 @@
       "fantasypros_adp": 264.42,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 229.24,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -4087,6 +4417,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 246.63,
       "bye": 11
     },
     {
@@ -4098,28 +4429,19 @@
       "fantasypros_adp": 243.88,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 214.44,
       "bye": 11
-    },
-    {
-      "name": "Theo Johnson",
-      "position": "TE",
-      "team": "NYG",
-      "composite_adp": 247.9,
-      "sleeper_adp": 225.27,
-      "fantasypros_adp": 280.23,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Adam Randall",
       "position": "RB",
       "team": "BAL",
-      "composite_adp": 248.12,
-      "sleeper_adp": 221.47,
+      "composite_adp": 247.88,
+      "sleeper_adp": 221.06,
       "fantasypros_adp": 286.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 248.03,
       "injury_status": "Questionable",
       "bye": 13
     },
@@ -4132,18 +4454,20 @@
       "fantasypros_adp": 303.97,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 279.56,
       "injury_status": "Questionable"
     },
     {
-      "name": "Washington Commanders",
-      "position": "DEF",
-      "team": "WAS",
-      "composite_adp": 249.33,
-      "sleeper_adp": 213.72,
-      "fantasypros_adp": 300.2,
+      "name": "Theo Johnson",
+      "position": "TE",
+      "team": "NYG",
+      "composite_adp": 248.69,
+      "sleeper_adp": 226.62,
+      "fantasypros_adp": 280.23,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 7
+      "composite_sf_adp": 245.24,
+      "bye": 8
     },
     {
       "name": "Jessie Bates",
@@ -4154,6 +4478,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 249.66,
       "bye": 11
     },
     {
@@ -4165,17 +4490,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 250.19,
       "bye": 11
     },
     {
       "name": "Skyler Bell",
       "position": "WR",
       "team": "BUF",
-      "composite_adp": 251.99,
-      "sleeper_adp": 225.31,
+      "composite_adp": 252.02,
+      "sleeper_adp": 225.36,
       "fantasypros_adp": 290.11,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 259.04,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -4188,6 +4515,7 @@
       "fantasypros_adp": 253.61,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 237.16,
       "bye": 10
     },
     {
@@ -4199,17 +4527,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 252.55,
       "bye": 5
     },
     {
       "name": "Tampa Bay Buccaneers",
       "position": "DEF",
       "team": "TB",
-      "composite_adp": 252.78,
-      "sleeper_adp": 243.77,
+      "composite_adp": 252.88,
+      "sleeper_adp": 243.94,
       "fantasypros_adp": 265.64,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 252.88,
       "bye": 10
     },
     {
@@ -4221,19 +4551,20 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 253.24,
       "bye": 9
     },
     {
-      "name": "J.J. McCarthy",
-      "position": "QB",
-      "team": "MIN",
-      "composite_adp": 254.53,
-      "sleeper_adp": 207.34,
-      "fantasypros_adp": 321.94,
+      "name": "Indianapolis Colts",
+      "position": "DEF",
+      "team": "IND",
+      "composite_adp": 253.66,
+      "sleeper_adp": 239.01,
+      "fantasypros_adp": 274.59,
       "underdog_adp": null,
       "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 6
+      "composite_sf_adp": 253.66,
+      "bye": 13
     },
     {
       "name": "Mike Gesicki",
@@ -4244,6 +4575,20 @@
       "fantasypros_adp": 275.86,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 244.14,
+      "bye": 6
+    },
+    {
+      "name": "J.J. McCarthy",
+      "position": "QB",
+      "team": "MIN",
+      "composite_adp": 254.63,
+      "sleeper_adp": 207.51,
+      "fantasypros_adp": 321.94,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 186.4,
+      "injury_status": "Questionable",
       "bye": 6
     },
     {
@@ -4255,18 +4600,20 @@
       "fantasypros_adp": 255.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 245.5,
       "bye": 11
     },
     {
-      "name": "Colby Parkinson",
-      "position": "TE",
-      "team": "LAR",
-      "composite_adp": 255.59,
-      "sleeper_adp": 249.11,
-      "fantasypros_adp": 264.84,
+      "name": "Washington Commanders",
+      "position": "DEF",
+      "team": "WAS",
+      "composite_adp": 255.72,
+      "sleeper_adp": 224.58,
+      "fantasypros_adp": 300.2,
       "underdog_adp": null,
       "sources_count": 2,
-      "bye": 11
+      "composite_sf_adp": 255.72,
+      "bye": 7
     },
     {
       "name": "Cashius Howell",
@@ -4277,6 +4624,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 255.8,
       "bye": 6
     },
     {
@@ -4288,6 +4636,7 @@
       "fantasypros_adp": 288.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 261.41,
       "injury_status": "IR",
       "bye": 5
     },
@@ -4300,6 +4649,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 256.12,
       "bye": 6
     },
     {
@@ -4311,7 +4661,20 @@
       "fantasypros_adp": 281.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 256.35,
       "bye": 7
+    },
+    {
+      "name": "Colby Parkinson",
+      "position": "TE",
+      "team": "LAR",
+      "composite_adp": 256.55,
+      "sleeper_adp": 250.75,
+      "fantasypros_adp": 264.84,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 234.38,
+      "bye": 11
     },
     {
       "name": "Las Vegas Raiders",
@@ -4322,6 +4685,7 @@
       "fantasypros_adp": 280.8,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 257.29,
       "bye": 13
     },
     {
@@ -4333,18 +4697,8 @@
       "fantasypros_adp": 265.81,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 231.18,
       "bye": 11
-    },
-    {
-      "name": "Darius Slayton",
-      "position": "WR",
-      "team": "NYG",
-      "composite_adp": 259,
-      "sleeper_adp": 253.15,
-      "fantasypros_adp": 267.36,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Devaughn Vele",
@@ -4355,7 +4709,20 @@
       "fantasypros_adp": 254.4,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 240.33,
       "bye": 8
+    },
+    {
+      "name": "Wil Lutz",
+      "position": "K",
+      "team": "DEN",
+      "composite_adp": 259.11,
+      "sleeper_adp": 253.8,
+      "fantasypros_adp": 266.69,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 259.11,
+      "bye": 10
     },
     {
       "name": "Josiah Trotter",
@@ -4366,6 +4733,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.22,
       "bye": 10
     },
     {
@@ -4377,6 +4745,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.25,
       "bye": 8
     },
     {
@@ -4388,6 +4757,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.36,
       "bye": 10
     },
     {
@@ -4399,18 +4769,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 260.01,
       "bye": 10
-    },
-    {
-      "name": "New Orleans Saints",
-      "position": "DEF",
-      "team": "NO",
-      "composite_adp": 260.3,
-      "sleeper_adp": 256.44,
-      "fantasypros_adp": 265.81,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Brashard Smith",
@@ -4421,6 +4781,7 @@
       "fantasypros_adp": 276.89,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 260.75,
       "bye": 5
     },
     {
@@ -4432,6 +4793,7 @@
       "fantasypros_adp": 261.08,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 238.06,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -4444,6 +4806,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 262,
       "bye": 11
     },
     {
@@ -4455,6 +4818,7 @@
       "fantasypros_adp": 253.84,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 233.07,
       "injury_status": "Questionable",
       "bye": 13
     },
@@ -4467,6 +4831,7 @@
       "fantasypros_adp": 265.07,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 250.35,
       "injury_status": "Questionable",
       "bye": 5
     },
@@ -4479,6 +4844,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 263.28,
       "bye": 9
     },
     {
@@ -4490,42 +4856,58 @@
       "fantasypros_adp": 282.74,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 240.31,
       "bye": 13
     },
     {
       "name": "Marvin Mims",
       "position": "WR",
       "team": "DEN",
-      "composite_adp": 265.31,
-      "sleeper_adp": 264.51,
+      "composite_adp": 265.65,
+      "sleeper_adp": 265.09,
       "fantasypros_adp": 266.45,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 247.66,
       "injury_status": "Questionable",
       "bye": 10
     },
     {
-      "name": "Kyle Williams",
-      "position": "WR",
-      "team": "NE",
-      "composite_adp": 265.7,
-      "sleeper_adp": 257.46,
-      "fantasypros_adp": 277.48,
+      "name": "New Orleans Saints",
+      "position": "DST",
+      "team": "NO",
+      "composite_adp": 265.81,
+      "sleeper_adp": null,
+      "fantasypros_adp": 265.81,
       "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
+      "sources_count": 1,
+      "composite_sf_adp": 265.81,
+      "bye": 8
     },
     {
       "name": "DJ Giddens",
       "position": "RB",
       "team": "IND",
-      "composite_adp": 265.74,
-      "sleeper_adp": 263.1,
+      "composite_adp": 265.95,
+      "sleeper_adp": 263.45,
       "fantasypros_adp": 269.51,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 242.14,
       "injury_status": "Questionable",
       "bye": 13
+    },
+    {
+      "name": "Kyle Williams",
+      "position": "WR",
+      "team": "NE",
+      "composite_adp": 266.25,
+      "sleeper_adp": 258.39,
+      "fantasypros_adp": 277.48,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 247.81,
+      "bye": 11
     },
     {
       "name": "Christian Kirk",
@@ -4536,19 +4918,9 @@
       "fantasypros_adp": 256.8,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 241.85,
       "injury_status": "Questionable",
       "bye": 8
-    },
-    {
-      "name": "Eli Raridon",
-      "position": "TE",
-      "team": "NE",
-      "composite_adp": 266.89,
-      "sleeper_adp": 228.25,
-      "fantasypros_adp": 322.09,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Cincinnati Bengals",
@@ -4559,17 +4931,31 @@
       "fantasypros_adp": 267.62,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 267.62,
       "bye": 6
+    },
+    {
+      "name": "Eli Raridon",
+      "position": "TE",
+      "team": "NE",
+      "composite_adp": 267.71,
+      "sleeper_adp": 229.65,
+      "fantasypros_adp": 322.09,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 284.88,
+      "bye": 11
     },
     {
       "name": "Oscar Delp",
       "position": "TE",
       "team": "NO",
-      "composite_adp": 268.18,
-      "sleeper_adp": 247.87,
+      "composite_adp": 268.09,
+      "sleeper_adp": 247.72,
       "fantasypros_adp": 297.19,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 265.46,
       "bye": 8
     },
     {
@@ -4581,6 +4967,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 268.35,
       "bye": 7
     },
     {
@@ -4592,6 +4979,7 @@
       "fantasypros_adp": 263.24,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 253.11,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -4604,6 +4992,7 @@
       "fantasypros_adp": 268.75,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 268.75,
       "bye": 13
     },
     {
@@ -4615,6 +5004,7 @@
       "fantasypros_adp": 269,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.25,
       "bye": 8
     },
     {
@@ -4626,6 +5016,7 @@
       "fantasypros_adp": 303.03,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 279.4,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -4638,17 +5029,19 @@
       "fantasypros_adp": 269.03,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 269.03,
       "bye": 11
     },
     {
       "name": "Michael Mayer",
       "position": "TE",
       "team": "LV",
-      "composite_adp": 269.1,
-      "sleeper_adp": 247.15,
+      "composite_adp": 269.16,
+      "sleeper_adp": 247.25,
       "fantasypros_adp": 300.46,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 271.36,
       "bye": 13
     },
     {
@@ -4660,17 +5053,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 269.3,
       "bye": 6
     },
     {
       "name": "Elijah Arroyo",
       "position": "TE",
       "team": "SEA",
-      "composite_adp": 269.93,
-      "sleeper_adp": 243.64,
+      "composite_adp": 270.14,
+      "sleeper_adp": 243.99,
       "fantasypros_adp": 307.49,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 274.28,
       "bye": 11
     },
     {
@@ -4682,6 +5077,7 @@
       "fantasypros_adp": 267.95,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 237.06,
       "bye": 6
     },
     {
@@ -4693,18 +5089,8 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 270.96,
       "bye": 6
-    },
-    {
-      "name": "Tyquan Thornton",
-      "position": "WR",
-      "team": "KC",
-      "composite_adp": 271.49,
-      "sleeper_adp": 273.87,
-      "fantasypros_adp": 268.1,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 5
     },
     {
       "name": "Will Howard",
@@ -4715,18 +5101,32 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 271.91,
       "bye": 9
     },
     {
       "name": "Mac Jones",
       "position": "QB",
       "team": "SF",
-      "composite_adp": 272.23,
-      "sleeper_adp": 228.39,
+      "composite_adp": 272.07,
+      "sleeper_adp": 228.11,
       "fantasypros_adp": 334.87,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 202.6,
       "bye": 8
+    },
+    {
+      "name": "Tyquan Thornton",
+      "position": "WR",
+      "team": "KC",
+      "composite_adp": 272.75,
+      "sleeper_adp": 276,
+      "fantasypros_adp": 268.1,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 234.32,
+      "bye": 5
     },
     {
       "name": "Brenen Thompson",
@@ -4737,6 +5137,7 @@
       "fantasypros_adp": 312.12,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 275.12,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -4749,6 +5150,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 274.12,
       "bye": 6
     },
     {
@@ -4760,18 +5162,8 @@
       "fantasypros_adp": 292.03,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 246.68,
       "bye": 8
-    },
-    {
-      "name": "Eli Heidenreich",
-      "position": "RB",
-      "team": "PIT",
-      "composite_adp": 275.32,
-      "sleeper_adp": 255.24,
-      "fantasypros_adp": 304,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 9
     },
     {
       "name": "Mansoor Delane",
@@ -4782,6 +5174,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 275.85,
       "bye": 5
     },
     {
@@ -4793,6 +5186,7 @@
       "fantasypros_adp": 328.38,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 300,
       "bye": 6
     },
     {
@@ -4804,7 +5198,20 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 275.96,
       "bye": 13
+    },
+    {
+      "name": "Eli Heidenreich",
+      "position": "RB",
+      "team": "PIT",
+      "composite_adp": 276.05,
+      "sleeper_adp": 256.48,
+      "fantasypros_adp": 304,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 278.09,
+      "bye": 9
     },
     {
       "name": "Tremaine Edmunds",
@@ -4815,28 +5222,31 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 276.21,
       "bye": 8
     },
     {
       "name": "Max Klare",
       "position": "TE",
       "team": "LAR",
-      "composite_adp": 278.43,
-      "sleeper_adp": 244.87,
+      "composite_adp": 278.25,
+      "sleeper_adp": 244.56,
       "fantasypros_adp": 326.37,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 288.15,
       "bye": 11
     },
     {
       "name": "Isaiah Bond",
       "position": "WR",
       "team": "CLE",
-      "composite_adp": 278.85,
-      "sleeper_adp": 271.94,
+      "composite_adp": 278.8,
+      "sleeper_adp": 271.86,
       "fantasypros_adp": 288.72,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 264.32,
       "bye": 11
     },
     {
@@ -4848,6 +5258,7 @@
       "fantasypros_adp": 279.01,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 256.11,
       "bye": 11
     },
     {
@@ -4859,6 +5270,7 @@
       "fantasypros_adp": 279.3,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 279.3,
       "bye": 5
     },
     {
@@ -4870,17 +5282,19 @@
       "fantasypros_adp": 293.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 271.69,
       "bye": 8
     },
     {
       "name": "Anthony Richardson",
       "position": "QB",
       "team": "IND",
-      "composite_adp": 280.77,
-      "sleeper_adp": 236.93,
+      "composite_adp": 281,
+      "sleeper_adp": 237.32,
       "fantasypros_adp": 343.39,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 189,
       "bye": 13
     },
     {
@@ -4892,6 +5306,7 @@
       "fantasypros_adp": 281,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 268.67,
       "bye": 8
     },
     {
@@ -4903,6 +5318,7 @@
       "fantasypros_adp": 281.09,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 233.53,
       "bye": 14
     },
     {
@@ -4914,6 +5330,7 @@
       "fantasypros_adp": 281.6,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 281.6,
       "bye": 11
     },
     {
@@ -4925,18 +5342,8 @@
       "fantasypros_adp": 282.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 269,
       "bye": 14
-    },
-    {
-      "name": "Odell Beckham",
-      "position": "WR",
-      "team": "NYG",
-      "composite_adp": 282.8,
-      "sleeper_adp": 256.93,
-      "fantasypros_adp": 319.75,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
     },
     {
       "name": "Malik Benson",
@@ -4947,7 +5354,20 @@
       "fantasypros_adp": 309,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 267.33,
       "bye": 13
+    },
+    {
+      "name": "Darius Slayton",
+      "position": "WR",
+      "team": "NYG",
+      "composite_adp": 284.75,
+      "sleeper_adp": 296.92,
+      "fantasypros_adp": 267.36,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 245.16,
+      "bye": 8
     },
     {
       "name": "Justin Joly",
@@ -4958,6 +5378,7 @@
       "fantasypros_adp": 334.31,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 294.39,
       "bye": 10
     },
     {
@@ -4969,6 +5390,7 @@
       "fantasypros_adp": 285.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 285.67,
       "bye": 13
     },
     {
@@ -4980,6 +5402,7 @@
       "fantasypros_adp": 285.97,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 265.4,
       "bye": 6
     },
     {
@@ -4991,6 +5414,7 @@
       "fantasypros_adp": 286,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 260,
       "bye": 13
     },
     {
@@ -5002,6 +5426,7 @@
       "fantasypros_adp": 286.29,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 258.28,
       "bye": 8
     },
     {
@@ -5013,6 +5438,7 @@
       "fantasypros_adp": 286.86,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.12,
       "bye": 10
     },
     {
@@ -5024,6 +5450,7 @@
       "fantasypros_adp": 297.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 264.84,
       "bye": 9
     },
     {
@@ -5035,6 +5462,7 @@
       "fantasypros_adp": 288.29,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.29,
       "injury_status": "Questionable"
     },
     {
@@ -5046,6 +5474,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.4,
       "bye": 8
     },
     {
@@ -5057,6 +5486,7 @@
       "fantasypros_adp": 288.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.67,
       "bye": 7
     },
     {
@@ -5068,6 +5498,7 @@
       "fantasypros_adp": 355.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 318.75,
       "bye": 13
     },
     {
@@ -5079,17 +5510,19 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.85,
       "bye": 11
     },
     {
       "name": "Cade Klubnik",
       "position": "QB",
       "team": "NYJ",
-      "composite_adp": 289.22,
-      "sleeper_adp": 248.25,
+      "composite_adp": 289.6,
+      "sleeper_adp": 248.89,
       "fantasypros_adp": 347.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 269,
       "bye": 13
     },
     {
@@ -5101,6 +5534,7 @@
       "fantasypros_adp": 341.59,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 233.5,
       "bye": 5
     },
     {
@@ -5112,6 +5546,7 @@
       "fantasypros_adp": 273.97,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 256.95,
       "bye": 11
     },
     {
@@ -5123,6 +5558,7 @@
       "fantasypros_adp": 291.29,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 291.29,
       "bye": 5
     },
     {
@@ -5134,6 +5570,7 @@
       "fantasypros_adp": 278.77,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 252.78,
       "bye": 6
     },
     {
@@ -5145,6 +5582,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 291.59,
       "bye": 11
     },
     {
@@ -5155,19 +5593,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 291.8,
       "underdog_adp": null,
-      "sources_count": 1
-    },
-    {
-      "name": "Tez Johnson",
-      "position": "WR",
-      "team": "TB",
-      "composite_adp": 291.99,
-      "sleeper_adp": 280.13,
-      "fantasypros_adp": 308.94,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 10
+      "sources_count": 1,
+      "composite_sf_adp": 291.8
     },
     {
       "name": "Garrett Nussmeier",
@@ -5178,7 +5605,21 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 292.16,
       "bye": 5
+    },
+    {
+      "name": "Tez Johnson",
+      "position": "WR",
+      "team": "TB",
+      "composite_adp": 292.26,
+      "sleeper_adp": 280.59,
+      "fantasypros_adp": 308.94,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 276.42,
+      "injury_status": "Questionable",
+      "bye": 10
     },
     {
       "name": "Haynes King",
@@ -5189,6 +5630,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 292.44,
       "injury_status": "Questionable",
       "bye": 5
     },
@@ -5200,18 +5642,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 292.67,
       "underdog_adp": null,
-      "sources_count": 1
-    },
-    {
-      "name": "Jameis Winston",
-      "position": "QB",
-      "team": "NYG",
-      "composite_adp": 292.77,
-      "sleeper_adp": 254.9,
-      "fantasypros_adp": 346.87,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 8
+      "sources_count": 1,
+      "composite_sf_adp": 292.67
     },
     {
       "name": "Emari Demercado",
@@ -5222,6 +5654,7 @@
       "fantasypros_adp": 293.41,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.84,
       "bye": 5
     },
     {
@@ -5233,6 +5666,7 @@
       "fantasypros_adp": 294.08,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.22,
       "bye": 14
     },
     {
@@ -5244,6 +5678,7 @@
       "fantasypros_adp": 309.77,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 271.85,
       "bye": 14
     },
     {
@@ -5255,6 +5690,7 @@
       "fantasypros_adp": 320.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 290.81,
       "bye": 6
     },
     {
@@ -5266,6 +5702,7 @@
       "fantasypros_adp": 296,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 296,
       "bye": 13
     },
     {
@@ -5277,6 +5714,7 @@
       "fantasypros_adp": 301.49,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 268.73,
       "bye": 5
     },
     {
@@ -5288,6 +5726,7 @@
       "fantasypros_adp": 329.8,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 290,
       "bye": 7
     },
     {
@@ -5299,6 +5738,7 @@
       "fantasypros_adp": 357.5,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 297.45,
       "bye": 11
     },
     {
@@ -5310,6 +5750,7 @@
       "fantasypros_adp": 297.49,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 259.21,
       "injury_status": "IR",
       "bye": 7
     },
@@ -5322,18 +5763,8 @@
       "fantasypros_adp": 334.08,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 283.1,
       "bye": 10
-    },
-    {
-      "name": "DeMario Douglas",
-      "position": "WR",
-      "team": "NE",
-      "composite_adp": 298.35,
-      "sleeper_adp": 301.48,
-      "fantasypros_adp": 293.89,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Devin Singletary",
@@ -5344,6 +5775,7 @@
       "fantasypros_adp": 298.66,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 254.32,
       "bye": 8
     },
     {
@@ -5355,7 +5787,20 @@
       "fantasypros_adp": 298.71,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 276.85,
       "bye": 9
+    },
+    {
+      "name": "DeMario Douglas",
+      "position": "WR",
+      "team": "NE",
+      "composite_adp": 299.15,
+      "sleeper_adp": 302.84,
+      "fantasypros_adp": 293.89,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 270.97,
+      "bye": 11
     },
     {
       "name": "Barion Brown",
@@ -5366,6 +5811,7 @@
       "fantasypros_adp": 321,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 288.4,
       "bye": 8
     },
     {
@@ -5377,6 +5823,7 @@
       "fantasypros_adp": 299.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 268.85,
       "injury_status": "PUP",
       "bye": 8
     },
@@ -5389,6 +5836,7 @@
       "fantasypros_adp": 299.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 273.52,
       "bye": 14
     },
     {
@@ -5400,6 +5848,7 @@
       "fantasypros_adp": 299.52,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 275.42,
       "bye": 10
     },
     {
@@ -5411,6 +5860,7 @@
       "fantasypros_adp": 300.88,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 296,
       "bye": 8
     },
     {
@@ -5422,6 +5872,7 @@
       "fantasypros_adp": 300.97,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 272.94,
       "bye": 6
     },
     {
@@ -5433,6 +5884,7 @@
       "fantasypros_adp": 301.2,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 240.8,
       "bye": 13
     },
     {
@@ -5444,6 +5896,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 301.26,
       "bye": 8
     },
     {
@@ -5455,6 +5908,7 @@
       "fantasypros_adp": 294.29,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 262.36,
       "bye": 7
     },
     {
@@ -5466,18 +5920,8 @@
       "fantasypros_adp": 335.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 305.09,
       "bye": 11
-    },
-    {
-      "name": "Marquise Brown",
-      "position": "WR",
-      "team": "PHI",
-      "composite_adp": 302.09,
-      "sleeper_adp": 302.09,
-      "fantasypros_adp": null,
-      "underdog_adp": null,
-      "sources_count": 1,
-      "bye": 10
     },
     {
       "name": "Cole Kmet",
@@ -5488,6 +5932,7 @@
       "fantasypros_adp": 326.83,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 287.5,
       "bye": 10
     },
     {
@@ -5499,6 +5944,7 @@
       "fantasypros_adp": 346.2,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 303.5,
       "bye": 8
     },
     {
@@ -5510,6 +5956,7 @@
       "fantasypros_adp": 303.09,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 270.09,
       "bye": 11
     },
     {
@@ -5521,6 +5968,7 @@
       "fantasypros_adp": 305.85,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 276.47,
       "bye": 11
     },
     {
@@ -5532,6 +5980,7 @@
       "fantasypros_adp": 338.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 300.67,
       "bye": 6
     },
     {
@@ -5543,6 +5992,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 304.71,
       "bye": 7
     },
     {
@@ -5554,7 +6004,20 @@
       "fantasypros_adp": 306,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 306,
       "bye": 14
+    },
+    {
+      "name": "Marquise Brown",
+      "position": "WR",
+      "team": "PHI",
+      "composite_adp": 306.37,
+      "sleeper_adp": 306.37,
+      "fantasypros_adp": null,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 306.37,
+      "bye": 10
     },
     {
       "name": "Jaelan Phillips",
@@ -5565,6 +6028,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 307,
       "bye": 5
     },
     {
@@ -5576,18 +6040,8 @@
       "fantasypros_adp": 307,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.5,
       "bye": 6
-    },
-    {
-      "name": "Jam Miller",
-      "position": "RB",
-      "team": "NE",
-      "composite_adp": 307.61,
-      "sleeper_adp": 296.36,
-      "fantasypros_adp": 323.67,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 11
     },
     {
       "name": "Olamide Zaccheaus",
@@ -5598,6 +6052,7 @@
       "fantasypros_adp": 308.42,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.17,
       "bye": 11
     },
     {
@@ -5609,7 +6064,20 @@
       "fantasypros_adp": 309,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 270,
       "bye": 7
+    },
+    {
+      "name": "Jam Miller",
+      "position": "RB",
+      "team": "NE",
+      "composite_adp": 309.25,
+      "sleeper_adp": 299.15,
+      "fantasypros_adp": 323.67,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 294,
+      "bye": 11
     },
     {
       "name": "Jack Endries",
@@ -5620,6 +6088,7 @@
       "fantasypros_adp": null,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 309.35,
       "bye": 6
     },
     {
@@ -5631,6 +6100,7 @@
       "fantasypros_adp": 309.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 271.5,
       "bye": 6
     },
     {
@@ -5642,6 +6112,7 @@
       "fantasypros_adp": 309.77,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 282.1,
       "bye": 10
     },
     {
@@ -5653,6 +6124,7 @@
       "fantasypros_adp": 322.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 287,
       "injury_status": "Questionable",
       "bye": 13
     },
@@ -5665,6 +6137,7 @@
       "fantasypros_adp": 310.75,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 296,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -5672,11 +6145,12 @@
       "name": "Michael Trigg",
       "position": "TE",
       "team": "DAL",
-      "composite_adp": 311.01,
-      "sleeper_adp": 254.85,
+      "composite_adp": 310.8,
+      "sleeper_adp": 254.49,
       "fantasypros_adp": 391.25,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 323,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -5689,6 +6163,7 @@
       "fantasypros_adp": 311.04,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.32,
       "bye": 7
     },
     {
@@ -5700,6 +6175,7 @@
       "fantasypros_adp": 311.11,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.06,
       "injury_status": "Questionable",
       "bye": 11
     },
@@ -5712,6 +6188,7 @@
       "fantasypros_adp": 327.64,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 293.41,
       "bye": 5
     },
     {
@@ -5723,6 +6200,7 @@
       "fantasypros_adp": 312,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 281.33,
       "bye": 11
     },
     {
@@ -5734,6 +6212,7 @@
       "fantasypros_adp": 312.06,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.71,
       "bye": 10
     },
     {
@@ -5744,7 +6223,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 312.5,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 247
     },
     {
       "name": "Jalen Royals",
@@ -5755,6 +6235,7 @@
       "fantasypros_adp": 312.89,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 284.79,
       "bye": 5
     },
     {
@@ -5766,6 +6247,7 @@
       "fantasypros_adp": 313.07,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.75,
       "bye": 5
     },
     {
@@ -5777,18 +6259,8 @@
       "fantasypros_adp": 313.15,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 280.48,
       "bye": 8
-    },
-    {
-      "name": "Joe Flacco",
-      "position": "QB",
-      "team": "CIN",
-      "composite_adp": 313.59,
-      "sleeper_adp": 293.34,
-      "fantasypros_adp": 342.53,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 6
     },
     {
       "name": "Riley Leonard",
@@ -5799,6 +6271,7 @@
       "fantasypros_adp": 358.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 201.5,
       "bye": 13
     },
     {
@@ -5810,6 +6283,7 @@
       "fantasypros_adp": 314.36,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 261.42,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -5822,6 +6296,7 @@
       "fantasypros_adp": 314.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 314.5,
       "bye": 9
     },
     {
@@ -5833,6 +6308,7 @@
       "fantasypros_adp": 315.87,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 290.4,
       "bye": 11
     },
     {
@@ -5844,6 +6320,7 @@
       "fantasypros_adp": 316,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 283,
       "bye": 11
     },
     {
@@ -5855,6 +6332,7 @@
       "fantasypros_adp": 316,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.5,
       "injury_status": "Questionable",
       "bye": 6
     },
@@ -5867,18 +6345,8 @@
       "fantasypros_adp": 317.31,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 279.94,
       "bye": 7
-    },
-    {
-      "name": "New York Jets",
-      "position": "DEF",
-      "team": "NYJ",
-      "composite_adp": 317.4,
-      "sleeper_adp": 315.44,
-      "fantasypros_adp": 320.2,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "bye": 13
     },
     {
       "name": "Erick All Jr.",
@@ -5889,6 +6357,7 @@
       "fantasypros_adp": 317.58,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 286.16,
       "bye": 6
     },
     {
@@ -5900,6 +6369,7 @@
       "fantasypros_adp": 366.4,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 315.2,
       "bye": 7
     },
     {
@@ -5911,6 +6381,7 @@
       "fantasypros_adp": 318.43,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.5,
       "injury_status": "Questionable",
       "bye": 6
     },
@@ -5922,7 +6393,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 318.56,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 281.71
     },
     {
       "name": "Tyler Goodson",
@@ -5933,6 +6405,7 @@
       "fantasypros_adp": 318.8,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 288.2,
       "bye": 11
     },
     {
@@ -5944,7 +6417,20 @@
       "fantasypros_adp": 319.68,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 283.35,
       "bye": 11
+    },
+    {
+      "name": "Odell Beckham Jr.",
+      "position": "WR",
+      "team": "NYG",
+      "composite_adp": 319.75,
+      "sleeper_adp": null,
+      "fantasypros_adp": 319.75,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 297,
+      "bye": 8
     },
     {
       "name": "Ashton Dulin",
@@ -5955,6 +6441,7 @@
       "fantasypros_adp": 320.88,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 280.86,
       "bye": 13
     },
     {
@@ -5966,6 +6453,7 @@
       "fantasypros_adp": 321.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 321.4,
       "bye": 8
     },
     {
@@ -5977,7 +6465,20 @@
       "fantasypros_adp": 326.7,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 289.39,
       "bye": 5
+    },
+    {
+      "name": "New York Jets",
+      "position": "DEF",
+      "team": "NYJ",
+      "composite_adp": 322.09,
+      "sleeper_adp": 323.42,
+      "fantasypros_adp": 320.2,
+      "underdog_adp": null,
+      "sources_count": 2,
+      "composite_sf_adp": 322.09,
+      "bye": 13
     },
     {
       "name": "Miami Dolphins",
@@ -5988,6 +6489,7 @@
       "fantasypros_adp": 322.13,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 322.13,
       "bye": 6
     },
     {
@@ -5999,6 +6501,7 @@
       "fantasypros_adp": 322.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 285.5,
       "bye": 10
     },
     {
@@ -6010,6 +6513,7 @@
       "fantasypros_adp": 323.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 277.17,
       "bye": 6
     },
     {
@@ -6021,6 +6525,7 @@
       "fantasypros_adp": 323.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 276.5,
       "bye": 7
     },
     {
@@ -6032,20 +6537,9 @@
       "fantasypros_adp": 324.13,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 277.71,
       "injury_status": "Questionable",
       "bye": 13
-    },
-    {
-      "name": "Marcus Mariota",
-      "position": "QB",
-      "team": "WAS",
-      "composite_adp": 324.23,
-      "sleeper_adp": 310.33,
-      "fantasypros_adp": 344.08,
-      "underdog_adp": null,
-      "sources_count": 2,
-      "injury_status": "Questionable",
-      "bye": 7
     },
     {
       "name": "Deion Burks",
@@ -6056,6 +6550,7 @@
       "fantasypros_adp": 374.2,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 314.8,
       "bye": 13
     },
     {
@@ -6067,6 +6562,7 @@
       "fantasypros_adp": 351.75,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 324.57,
       "injury_status": "Questionable",
       "bye": 6
     },
@@ -6079,6 +6575,7 @@
       "fantasypros_adp": 325,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 281,
       "bye": 8
     },
     {
@@ -6090,6 +6587,7 @@
       "fantasypros_adp": 325.92,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 283.2,
       "bye": 9
     },
     {
@@ -6101,6 +6599,7 @@
       "fantasypros_adp": 326.31,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.67,
       "bye": 13
     },
     {
@@ -6112,6 +6611,7 @@
       "fantasypros_adp": 326.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 246,
       "bye": 13
     },
     {
@@ -6123,6 +6623,7 @@
       "fantasypros_adp": 326.96,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 296.36,
       "bye": 7
     },
     {
@@ -6134,6 +6635,7 @@
       "fantasypros_adp": 327.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 279.56,
       "bye": 13
     },
     {
@@ -6144,7 +6646,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 327.4,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 270.25
     },
     {
       "name": "Jawhar Jordan",
@@ -6155,6 +6658,7 @@
       "fantasypros_adp": 327.95,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 290.06,
       "injury_status": "Questionable",
       "bye": 8
     },
@@ -6167,6 +6671,7 @@
       "fantasypros_adp": 328,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 256.2,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -6179,6 +6684,7 @@
       "fantasypros_adp": 329.11,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 278.71,
       "injury_status": "Questionable",
       "bye": 7
     },
@@ -6191,6 +6697,7 @@
       "fantasypros_adp": 329.44,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 286.7,
       "bye": 10
     },
     {
@@ -6202,6 +6709,7 @@
       "fantasypros_adp": 330.08,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.83,
       "bye": 8
     },
     {
@@ -6213,6 +6721,7 @@
       "fantasypros_adp": 330.75,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 307,
       "bye": 11
     },
     {
@@ -6224,6 +6733,7 @@
       "fantasypros_adp": 331,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 282,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -6236,6 +6746,7 @@
       "fantasypros_adp": 352.33,
       "underdog_adp": null,
       "sources_count": 2,
+      "composite_sf_adp": 217.33,
       "bye": 14
     },
     {
@@ -6247,6 +6758,7 @@
       "fantasypros_adp": 333.55,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 289.64,
       "bye": 7
     },
     {
@@ -6258,6 +6770,7 @@
       "fantasypros_adp": 334,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 296.67,
       "bye": 10
     },
     {
@@ -6269,6 +6782,7 @@
       "fantasypros_adp": 336.19,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 299.39,
       "bye": 11
     },
     {
@@ -6280,6 +6794,7 @@
       "fantasypros_adp": 337.25,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 300,
       "bye": 9
     },
     {
@@ -6291,6 +6806,7 @@
       "fantasypros_adp": 338,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 341,
       "bye": 6
     },
     {
@@ -6302,6 +6818,7 @@
       "fantasypros_adp": 338,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 343,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -6314,6 +6831,7 @@
       "fantasypros_adp": 338.13,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 295.08,
       "bye": 6
     },
     {
@@ -6325,6 +6843,7 @@
       "fantasypros_adp": 339,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 274,
       "bye": 5
     },
     {
@@ -6336,6 +6855,7 @@
       "fantasypros_adp": 339.33,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 300,
       "bye": 5
     },
     {
@@ -6347,6 +6867,7 @@
       "fantasypros_adp": 339.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 307.5,
       "bye": 7
     },
     {
@@ -6358,6 +6879,7 @@
       "fantasypros_adp": 340.33,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 315.5,
       "bye": 6
     },
     {
@@ -6369,6 +6891,7 @@
       "fantasypros_adp": 341,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 298,
       "bye": 13
     },
     {
@@ -6380,6 +6903,7 @@
       "fantasypros_adp": 341.86,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 309.43,
       "bye": 11
     },
     {
@@ -6391,7 +6915,20 @@
       "fantasypros_adp": 342,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 303,
       "bye": 7
+    },
+    {
+      "name": "Joe Flacco",
+      "position": "QB",
+      "team": "CIN",
+      "composite_adp": 342.53,
+      "sleeper_adp": null,
+      "fantasypros_adp": 342.53,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 267.33,
+      "bye": 6
     },
     {
       "name": "Travis Homer",
@@ -6402,7 +6939,21 @@
       "fantasypros_adp": 343,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 270.5,
       "bye": 9
+    },
+    {
+      "name": "Marcus Mariota",
+      "position": "QB",
+      "team": "WAS",
+      "composite_adp": 344.08,
+      "sleeper_adp": null,
+      "fantasypros_adp": 344.08,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 213.33,
+      "injury_status": "Questionable",
+      "bye": 7
     },
     {
       "name": "Noah Fant",
@@ -6413,6 +6964,7 @@
       "fantasypros_adp": 344.89,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 311.78,
       "bye": 8
     },
     {
@@ -6424,6 +6976,7 @@
       "fantasypros_adp": 344.95,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 306.47,
       "bye": 7
     },
     {
@@ -6435,6 +6988,7 @@
       "fantasypros_adp": 345.14,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 306,
       "injury_status": "Questionable",
       "bye": 10
     },
@@ -6447,6 +7001,7 @@
       "fantasypros_adp": 345.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 330,
       "bye": 10
     },
     {
@@ -6458,6 +7013,7 @@
       "fantasypros_adp": 346.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 279,
       "bye": 6
     },
     {
@@ -6469,7 +7025,20 @@
       "fantasypros_adp": 346.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 315,
       "bye": 6
+    },
+    {
+      "name": "Jameis Winston",
+      "position": "QB",
+      "team": "NYG",
+      "composite_adp": 346.87,
+      "sleeper_adp": null,
+      "fantasypros_adp": 346.87,
+      "underdog_adp": null,
+      "sources_count": 1,
+      "composite_sf_adp": 233.33,
+      "bye": 8
     },
     {
       "name": "Jimmy Horn Jr.",
@@ -6480,6 +7049,7 @@
       "fantasypros_adp": 347,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 315.5,
       "bye": 5
     },
     {
@@ -6491,6 +7061,7 @@
       "fantasypros_adp": 348.43,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 301.42,
       "bye": 5
     },
     {
@@ -6501,7 +7072,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 348.62,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 299.08
     },
     {
       "name": "Jacob Cowing",
@@ -6512,6 +7084,7 @@
       "fantasypros_adp": 349.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 295.25,
       "bye": 8
     },
     {
@@ -6523,6 +7096,7 @@
       "fantasypros_adp": 351,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 200,
       "bye": 11
     },
     {
@@ -6534,6 +7108,7 @@
       "fantasypros_adp": 351.27,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 299.9,
       "bye": 11
     },
     {
@@ -6545,6 +7120,7 @@
       "fantasypros_adp": 352.17,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 319.8,
       "bye": 6
     },
     {
@@ -6556,6 +7132,7 @@
       "fantasypros_adp": 352.4,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 306.83,
       "injury_status": "Questionable"
     },
     {
@@ -6566,7 +7143,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 352.67,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 239
     },
     {
       "name": "Luke Musgrave",
@@ -6577,6 +7155,7 @@
       "fantasypros_adp": 353.07,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 310.62,
       "injury_status": "PUP",
       "bye": 11
     },
@@ -6589,6 +7168,7 @@
       "fantasypros_adp": 354.82,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 312.85,
       "bye": 7
     },
     {
@@ -6600,6 +7180,7 @@
       "fantasypros_adp": 356.71,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 310.93,
       "bye": 5
     },
     {
@@ -6611,6 +7192,7 @@
       "fantasypros_adp": 358,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 358,
       "bye": 9
     },
     {
@@ -6622,6 +7204,7 @@
       "fantasypros_adp": 358,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 358,
       "bye": 14
     },
     {
@@ -6633,6 +7216,7 @@
       "fantasypros_adp": 358.42,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 310.5,
       "bye": 9
     },
     {
@@ -6644,6 +7228,7 @@
       "fantasypros_adp": 359,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 301,
       "bye": 14
     },
     {
@@ -6655,6 +7240,7 @@
       "fantasypros_adp": 360,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 321,
       "bye": 13
     },
     {
@@ -6666,6 +7252,7 @@
       "fantasypros_adp": 360.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 297,
       "injury_status": "Questionable"
     },
     {
@@ -6677,6 +7264,7 @@
       "fantasypros_adp": 361.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 303.67,
       "bye": 13
     },
     {
@@ -6688,6 +7276,7 @@
       "fantasypros_adp": 362,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 313.67,
       "bye": 10
     },
     {
@@ -6699,6 +7288,7 @@
       "fantasypros_adp": 363,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 312,
       "bye": 11
     },
     {
@@ -6710,6 +7300,7 @@
       "fantasypros_adp": 363,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 363,
       "bye": 13
     },
     {
@@ -6720,7 +7311,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 363.33,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 325.67
     },
     {
       "name": "Durham Smythe",
@@ -6731,6 +7323,7 @@
       "fantasypros_adp": 363.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 306,
       "bye": 13
     },
     {
@@ -6742,6 +7335,7 @@
       "fantasypros_adp": 363.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 287.5,
       "injury_status": "IR"
     },
     {
@@ -6753,6 +7347,7 @@
       "fantasypros_adp": 367.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 315.5,
       "bye": 8
     },
     {
@@ -6763,7 +7358,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 368.4,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 307.6
     },
     {
       "name": "Zach Ertz",
@@ -6773,7 +7369,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 368.5,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 315.4
     },
     {
       "name": "Jason Sanders",
@@ -6784,6 +7381,7 @@
       "fantasypros_adp": 369,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 369,
       "bye": 13
     },
     {
@@ -6795,6 +7393,7 @@
       "fantasypros_adp": 370.2,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 304.25,
       "injury_status": "Questionable"
     },
     {
@@ -6805,7 +7404,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 370.67,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 289
     },
     {
       "name": "Tyler Conklin",
@@ -6816,6 +7416,7 @@
       "fantasypros_adp": 371.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 328,
       "bye": 6
     },
     {
@@ -6827,6 +7428,7 @@
       "fantasypros_adp": 371.8,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 321,
       "bye": 7
     },
     {
@@ -6838,6 +7440,7 @@
       "fantasypros_adp": 371.89,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 331.2,
       "injury_status": "Questionable",
       "bye": 14
     },
@@ -6850,6 +7453,7 @@
       "fantasypros_adp": 375,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 334.5,
       "bye": 14
     },
     {
@@ -6861,6 +7465,7 @@
       "fantasypros_adp": 375,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 293,
       "bye": 11
     },
     {
@@ -6872,6 +7477,7 @@
       "fantasypros_adp": 378.6,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 332.67,
       "bye": 14
     },
     {
@@ -6883,6 +7489,7 @@
       "fantasypros_adp": 378.67,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 328.5,
       "bye": 10
     },
     {
@@ -6894,6 +7501,7 @@
       "fantasypros_adp": 382.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 382.5,
       "bye": 7
     },
     {
@@ -6905,6 +7513,7 @@
       "fantasypros_adp": 383.29,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 327.6,
       "bye": 7
     },
     {
@@ -6916,6 +7525,7 @@
       "fantasypros_adp": 385.33,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 326,
       "bye": 13
     },
     {
@@ -6927,6 +7537,7 @@
       "fantasypros_adp": 389.5,
       "underdog_adp": null,
       "sources_count": 1,
+      "composite_sf_adp": 335.5,
       "bye": 10
     },
     {
@@ -6937,7 +7548,8 @@
       "sleeper_adp": null,
       "fantasypros_adp": 390.5,
       "underdog_adp": null,
-      "sources_count": 1
+      "sources_count": 1,
+      "composite_sf_adp": 390.5
     }
   ]
 }
