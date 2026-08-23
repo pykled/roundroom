@@ -5024,13 +5024,8 @@ function computeScoreBreakdown(player, ctx, available) {
     return { score: -Infinity };
   }
 
-  // Hard prune: a player who realistically won't fall to your NEXT pick, when
-  // you're planning ahead. Never prune on the clock — everything on the board
-  // is draftable right now.
-  if (!ctx.onClock && ctx.decisionPick &&
-      calcSurvivalProbability(player, ctx.decisionPick) < 0.03) {
-    return { score: -Infinity };
-  }
+  // No hard prune on survival — undrafted players can always fall. The
+  // urgencyMultiplier already depresses scores for low-survival players naturally.
 
   const rawVorp   = calcVOR(player, available);
   const base      = adjustVorpValue(rawVorp, player.position, ctx.scoringType, ctx.totalTeams, ctx.isSuperflex);
