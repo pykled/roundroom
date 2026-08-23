@@ -28,8 +28,9 @@ const DATA_DIR = path.join(__dirname, '..', 'data');
 const SEASON = '2026';
 
 const SEED_USERNAMES = [
+  // Core / existing
   'pykle',
-  'scott_fish',           // Scott Fish Bowl organizer
+  'scott_fish',           // Scott Fish Bowl organizer — massive SF tournament
   'jasonmoore',           // FantasyPros analyst
   'fullhousefantasy',
   'rotounderworld',
@@ -47,6 +48,23 @@ const SEED_USERNAMES = [
   'rotoballer',
   'pfref',
   'dynastyleaguefootball',
+
+  // SF / 2QB community — added to grow SF draft pool
+  'superflexdude',        // John Hogue, @SuperFlexDude — dedicated SF/2QB analyst
+  'jjzachariason',        // JJ Zachariason — dynasty/SF analyst
+  'dynastynerds',         // Dynasty Nerds — SF-heavy dynasty community
+  '4for4football',        // 4for4.com analysts
+  'footballguys',         // FootballGuys — SFB OG participants
+  'fantasylife',          // FantasyLife / Adam Aizer
+  'bestballers',          // Best Ball Network — SF best ball heavy
+  'superflex_show',       // The SuperFlex Show podcast
+  'aaronpiersol',         // SFB regular
+  'kdickey',              // Known SFB/SF community participant
+  'glennweiss',           // Glen Weiss — longtime SFB participant
+  'joe_pisapia',          // Joe Pisapia — analyst, SFB player
+  'sharpfootball',        // Sharp Football Analysis
+  'mikeclayff',           // Mike Clay ESPN — known SF/2QB ranker
+  'nateabrams',           // Nate Abrams — SF analyst
 ];
 
 const MAX_DRAFTS = 3000;
