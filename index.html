@@ -435,17 +435,22 @@
   /* Touch-friendly available rows */
   .cv-avail-row { min-height: 44px; }
 
+  /* Companion rec cards — same .rec-card system as the main panel, compacted */
+  #cv-recs .rec-card { padding: 0.65rem 0.75rem; margin-bottom: 0.5rem; }
+  #cv-recs .rec-name { font-size: 0.88rem; }
+  #cv-recs .rec-why { font-size: 0.7rem; margin-bottom: 0.35rem; }
+  #cv-recs .rec-survival { font-size: 0.66rem; }
+
   /* Phone-sized: scale up the primary glance targets */
   @media (max-width: 640px) {
     #companion-view { font-size: 15px; }
-    #cv-rec-card { padding: 1.1rem 1rem; border-radius: 16px; }
-    #cv-rec-name { font-size: 1.75rem !important; line-height: 1.05; }
-    #cv-rec-meta { font-size: 0.9rem !important; margin-top: 0.25rem; }
-    #cv-rec-reason { font-size: 0.9rem !important; margin-top: 0.55rem !important; }
-    #cv-rec-card .cv-rec-label { font-size: 0.72rem !important; }
+    #cv-recs .rec-card:first-child { padding: 1rem; border-radius: 14px; }
+    #cv-recs .rec-card:first-child .rec-name { font-size: 1.35rem; line-height: 1.1; }
+    #cv-recs .rec-card:first-child .rec-why { font-size: 0.85rem; }
     .cv-scroll { padding: 1rem !important; }
     .cv-avail-row { min-height: 48px; padding: 0.6rem 0.7rem !important; }
-    .cv-avail-row span { font-size: 0.95rem !important; }
+    .cv-avail-row .cv-avail-name { font-size: 0.95rem !important; }
+    .cv-avail-row .cv-avail-sub { font-size: 0.72rem !important; }
     #cv-pick-status { font-size: 0.82rem !important; }
     .cv-header .cv-logo { font-size: 1rem !important; }
     #cv-turn-banner { font-size: 1.25rem; padding: 0.85rem; }
@@ -7477,95 +7482,6 @@ function importListsFromURL() {
   } catch(e) {}
 }
 
-function scoreRecommendation(player, myPositions, myPickNumbers, currentPick) {
-  // Custom-list overrides: DND sinks to the bottom; Target gets a boost applied at the end.
-  if (isDND(player.name)) return -1000;
-  const pos = player.position;
-  const totalTeams = STATE.totalTeams || (MOCK.active ? MOCK_CFG.teams : 12);
-  const isSuperflex = STATE.isSuperflex || (MOCK.active ? MOCK_CFG.superflex : false);
-
-  const counts = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0 };
-  (myPositions || []).forEach(p => { if (counts[p] !== undefined) counts[p]++; });
-
-  const round = Math.ceil(currentPick / totalTeams);
-  const picksRemaining = (myPickNumbers || []).filter(n => n >= currentPick).length;
-
-  // 1. VORP — raw projection above replacement baseline (QB14/RB36/WR48/TE12; QB24 in SF)
-  const vorp = lookupVorp(player.name, pos) || 0;
-  // Normalize: 60 VORP ≈ elite; scale to 0-100
-  const vorpScore = Math.min(100, Math.max(0, vorp / 60 * 100));
-
-  // 2. ADP value — player falling past consensus = value
-  // Use SF ADP directly when available, so QBs are judged against real SF market.
-  let adp = (isSuperflex && player.composite_sf_adp != null)
-    ? player.composite_sf_adp
-    : (player.adp || currentPick);
-  const diff = currentPick - adp; // positive = fell, negative = reach
-  // +10 picks of fall → ~+40 pts. Reaching by 10 → ~-30 pts.
-  const adpScore = Math.min(100, Math.max(0, 50 + diff * 3.5));
-
-  // 3. Positional need — fully dynamic from the derived roster config.
-  const rc = getRosterConfig();
-  const totalRounds = STATE.totalRounds || (MOCK.active ? MOCK_CFG.rounds : 15);
-  const have = counts[pos] || 0;
-  const target = rc.targetMin[pos] != null ? rc.targetMin[pos] : 1;
-  const scar = scarcityMultiplier(totalTeams, pos, rc);
-  const isMultiQB = rc.starters.SF > 0 || rc.starters.QB > 1;
-
-  let needScore;
-  if (pos === 'K' || pos === 'DST') {
-    const hasSlot = pos === 'K' ? rc.hasKicker : rc.hasDST;
-    if (!hasSlot) {
-      needScore = 0; // league doesn't roster this position — never recommend
-    } else {
-      // Only worth a pick in the closing rounds (K last, DST one earlier).
-      const gateRound = totalRounds - (pos === 'K' ? 1 : 2);
-      needScore = round >= gateRound && have === 0 ? 55 : 5;
-    }
-  } else if (rc.targetMin[pos] == null) {
-    needScore = 30; // unknown position
-  } else if (target <= 0) {
-    needScore = 5; // no starter slot and no flex path for this position
-  } else if (have < target) {
-    // Below starter target: need scales with how empty the slot group is,
-    // amplified/dampened by league-shape scarcity (sub-linear so a deep
-    // position still registers when you have zero of it).
-    const gapFrac = (target - have) / target; // 1 = empty, →0 as slots fill
-    needScore = Math.min(100, (45 + 50 * gapFrac) * Math.pow(scar, 0.8));
-    // TE nuance falls out of scarcity, but an elite TE at cost is extra juice.
-    if (pos === 'TE' && have === 0 && adp < 50) needScore = Math.min(100, needScore + 15);
-  } else {
-    // At/above target: bench depth, decaying with surplus.
-    const surplus = have - target;
-    needScore = Math.max(4, (32 - surplus * 11) * Math.min(1.15, scar));
-  }
-
-  // Urgency modifier: few picks left and a starter slot still empty → boost.
-  if (picksRemaining <= 3 && have === 0 && target >= 1 && pos !== 'K' && pos !== 'DST') {
-    needScore = Math.min(100, needScore + 25);
-  }
-
-  // 4. Draft timing / tier value — round-aware, driven by scarcity not position names.
-  let tierScore = 50;
-  if (round <= 3) {
-    // Early rounds: back scarce positions; fade deep ones unless they're
-    // clearly the best player available (big ADP faller).
-    tierScore = Math.max(15, Math.min(85, 50 + (scar - 1) * 55));
-    if (diff >= totalTeams) tierScore = Math.max(tierScore, 70); // BPA override
-    if (pos === 'K' || pos === 'DST') tierScore = 5; // never early
-  }
-  // Mid rounds (4-8): window for your starting QB in 1-QB formats.
-  if (round >= 4 && round <= 8 && pos === 'QB' && !isMultiQB && have === 0) tierScore = 65;
-  // Late rounds: stream K/DST if the league rosters them.
-  if (round >= Math.max(9, totalRounds - 6) && ((pos === 'K' && rc.hasKicker) || (pos === 'DST' && rc.hasDST))) tierScore = 45;
-  // Multi-QB formats: QBs in rounds 1-6 are equivalent to RB/WR (QB run runs deep).
-  if (isMultiQB && pos === 'QB' && round <= 6 && have < target) tierScore = Math.max(tierScore, 75);
-
-  let finalScore = vorpScore * 0.30 + needScore * 0.35 + adpScore * 0.25 + tierScore * 0.10;
-  if (isTarget(player.name)) finalScore += 25; // user-flagged target: surface higher
-  return finalScore;
-}
-
 function renderCompanionView() {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('companion-view').style.display = 'flex';
@@ -7596,8 +7512,6 @@ function renderCompanionView() {
         };
       });
 
-  const myPositions = myRosterPlayers.map(p => p.position);
-
   // ── Pick status header ─────────────────────────────────────────────────
   const pickStatusEl = document.getElementById('cv-pick-status');
   const slotEl = document.getElementById('cv-slot-badge');
@@ -7609,11 +7523,11 @@ function renderCompanionView() {
   if (qrBtn) qrBtn.style.display = (!isMock && STATE.draftId && window.innerWidth > 640) ? 'block' : 'none';
 
   if (isMyTurn) {
-    pickStatusEl.textContent = `⚡ Pick #${currentPick} — YOUR TURN`;
+    pickStatusEl.textContent = `Pick #${currentPick} — YOUR TURN`;
     pickStatusEl.style.color = 'var(--accent)';
     if (turnBanner) {
       turnBanner.classList.add('on');
-      turnBanner.textContent = `⚡ YOUR TURN — Pick #${currentPick}`;
+      turnBanner.textContent = `YOUR TURN — Pick #${currentPick}`;
     }
   } else {
     const nextMine = myPickNumbers.find(n => n >= currentPick);
@@ -7636,52 +7550,87 @@ function renderCompanionView() {
     if (p.sleeper_id && draftedIds.has(p.sleeper_id)) return false;
     if (draftedNames.has(normalizePlayerName(p.name))) return false;
     return p.adp < 250;
-  }).sort((a, b) => sfSortValue(a) - sfSortValue(b)).slice(0, 40);
+  }).sort((a, b) => sfSortValue(a) - sfSortValue(b));
 
-  const scored = available.map(p => ({
-    ...p,
-    score: scoreRecommendation(p, myPositions, myPickNumbers, currentPick)
-  })).sort((a, b) => b.score - a.score);
+  // Same scoring engine as the main recommendations panel:
+  // score = adjustedVORP × W_strategy × M_need × M_urgency × M_target
+  const ctx = buildScoringContext(available);
+  const scored = available.map(p => {
+    const parts = computeScoreBreakdown(p, ctx, available);
+    return { ...p, score: parts.score, parts };
+  }).filter(p => isFinite(p.score)).sort((a, b) => b.score - a.score);
 
-  // ── Top recommendation card ────────────────────────────────────────────
-  const top = scored[0];
-  if (top) {
-    document.getElementById('cv-rec-name').textContent = top.name;
-    const vorp = lookupVorp(top.name, top.position);
-    const cvAdp = (STATE.isSuperflex && top.composite_sf_adp != null) ? top.composite_sf_adp : top.adp;
-    const adpStr = cvAdp < 999 ? `${STATE.isSuperflex ? 'SF ADP' : 'ADP'} ${cvAdp.toFixed(1)}` : '';
-    const vorpStr = vorp ? ` · VORP ${vorp.toFixed(0)}` : '';
-    document.getElementById('cv-rec-meta').textContent = `${top.position}${top.team ? ' · ' + top.team : ''} · ${adpStr}${vorpStr}`;
-    document.getElementById('cv-rec-reason').textContent = buildCompanionReason(top, myRosterPlayers, currentPick);
-    const ctrl = document.getElementById('cv-rec-controls');
-    if (ctrl) {
-      const tgt = isTarget(top.name);
-      const nameArg = escAttr(JSON.stringify(top.name));
-      ctrl.style.display = 'flex';
-      ctrl.innerHTML =
-        `<button onclick='toggleTarget(${nameArg})' style="flex:1;padding:0.3rem;border-radius:6px;border:1px solid ${tgt ? 'rgba(250,204,21,0.5)' : 'var(--border)'};background:${tgt ? 'rgba(250,204,21,0.12)' : 'none'};color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">${tgt ? '⭐ Targeted' : '⭐ Target'}</button>` +
-        `<button onclick='toggleDND(${nameArg})' style="flex:1;padding:0.3rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">🚫 Don't draft</button>`;
-    }
-  } else {
-    document.getElementById('cv-rec-name').textContent = '—';
-    document.getElementById('cv-rec-meta').textContent = 'No data';
-    document.getElementById('cv-rec-reason').textContent = '';
-    const ctrl = document.getElementById('cv-rec-controls');
-    if (ctrl) ctrl.style.display = 'none';
+  // Shared reason text — same generator as the main panel, with the legacy
+  // companion copy as fallback.
+  const whyFor = (p) => {
+    try {
+      return typeof generateWhyText === 'function'
+        ? generateWhyText(p, available, p.parts, ctx)
+        : buildCompanionReason(p, myRosterPlayers, currentPick);
+    } catch (e) { return buildCompanionReason(p, myRosterPlayers, currentPick); }
+  };
+  const injDot = (p) => typeof injuryDotHtml === 'function' ? injuryDotHtml(p) : '';
+  const trendArrow = (p) => typeof trendArrowHtml === 'function' ? trendArrowHtml(p) : '';
+  const displayAdp = (p) => (STATE.isSuperflex && p.composite_sf_adp != null) ? p.composite_sf_adp : p.adp;
+
+  // ── Top 5 recommendations — same .rec-card system as the main panel ───
+  const top5 = scored.slice(0, 5);
+  const recsEl = document.getElementById('cv-recs');
+  if (recsEl) {
+    recsEl.innerHTML = top5.length === 0
+      ? `<div style="font-size:0.75rem;color:var(--text-muted);padding:0.5rem 0;">No available players</div>`
+      : top5.map((p, i) => {
+          const tgt = isTarget(p.name);
+          const nameArg = escAttr(JSON.stringify(p.name));
+          const vorp = lookupVorp(p.name, p.position);
+          const cvAdp = displayAdp(p);
+          const adpStr = cvAdp < 999 ? `${STATE.isSuperflex ? 'SF ADP' : 'ADP'} ${cvAdp.toFixed(1)}` : '';
+          return `<div class="rec-card" style="${tgt ? 'border-color:rgba(250,204,21,0.4);' : ''}">
+            <div class="rec-rank">#${i + 1}</div>
+            <div class="rec-player">
+              <div style="display:flex;align-items:center;gap:0.4rem;min-width:0;">
+                <span class="pos-dot pos-dot-${p.position}"></span>
+                <span class="rec-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
+                ${injDot(p)}${trendArrow(p)}
+              </div>
+              <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
+                <span class="pos-tag">${p.position}</span>
+                ${vorp != null ? `<span style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--text-muted);">VORP +${vorp.toFixed(0)}</span>` : ''}
+              </div>
+            </div>
+            <div class="rec-why">${escHtml(whyFor(p))}</div>
+            <div class="rec-survival">
+              <span style="font-family:'DM Mono',monospace;">${adpStr ? adpStr + ' · ' : ''}${escHtml(p.team || 'FA')} · Bye ${p.bye || '?'}</span>
+              <div style="display:flex;gap:0.4rem;">
+                <button onclick='event.stopPropagation();toggleTarget(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid ${tgt ? 'rgba(250,204,21,0.5)' : 'var(--border)'};background:${tgt ? 'rgba(250,204,21,0.12)' : 'none'};color:${tgt ? 'var(--gold)' : 'var(--text-secondary)'};font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">${tgt ? '★ Targeted' : '★ Target'}</button>
+                <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
   }
 
-  // ── Best available list (top 8 after #1) ──────────────────────────────
-  document.getElementById('cv-available').innerHTML = scored.slice(1, 9).map(p => {
+  // ── Next best available (after the top 5) ─────────────────────────────
+  document.getElementById('cv-available').innerHTML = scored.slice(5, 13).map(p => {
     const col = posColors[p.position] || '#888';
     const tgt = isTarget(p.name);
     const nameArg = escAttr(JSON.stringify(p.name));
+    const reason = whyFor(p);
+    const rowAdp = displayAdp(p);
     return `<div class="cv-avail-row" style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.5rem;background:var(--bg-card);border-radius:6px;border:1px solid ${tgt ? 'rgba(250,204,21,0.4)' : 'var(--border)'};">
       <span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>
-      <span style="flex:1;font-size:0.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${tgt ? '⭐ ' : ''}${escHtml(p.name)}</span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:flex;align-items:center;gap:0.3rem;">
+          <span class="cv-avail-name" style="font-size:0.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${tgt ? 'color:var(--gold);' : ''}">${escHtml(p.name)}</span>
+          ${injDot(p)}
+          <span class="cv-avail-sub" style="font-size:0.6rem;color:var(--text-muted);flex-shrink:0;">${p.bye ? `Bye ${p.bye}` : ''}</span>
+        </span>
+        ${reason ? `<span class="cv-avail-sub" style="font-size:0.6rem;color:var(--text-muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(reason)}</span>` : ''}
+      </span>
       <span style="font-size:0.65rem;color:${col};font-weight:700;flex-shrink:0;">${p.position}</span>
-      ${p.adp < 999 ? `<span style="font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">${((STATE.isSuperflex && p.composite_sf_adp != null) ? p.composite_sf_adp : p.adp).toFixed(1)}</span>` : ''}
-      <button onclick='event.stopPropagation();toggleTarget(${nameArg})' title="${tgt ? 'Remove target' : 'Target'}" style="flex-shrink:0;padding:0 0.2rem;border:none;background:none;font-size:0.8rem;cursor:pointer;line-height:1;opacity:${tgt ? '1' : '0.4'};">⭐</button>
-      <button onclick='event.stopPropagation();toggleDND(${nameArg})' title="Do not draft" style="flex-shrink:0;padding:0 0.2rem;border:none;background:none;font-size:0.8rem;cursor:pointer;line-height:1;opacity:0.4;">🚫</button>
+      ${rowAdp < 999 ? `<span style="font-size:0.62rem;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">${rowAdp.toFixed(1)}</span>` : ''}
+      <button onclick='event.stopPropagation();toggleTarget(${nameArg})' title="${tgt ? 'Remove target' : 'Target'}" style="flex-shrink:0;padding:0 0.25rem;border:none;background:none;color:${tgt ? 'var(--gold)' : 'var(--text-secondary)'};font-size:0.85rem;cursor:pointer;line-height:1;opacity:${tgt ? '1' : '0.45'};">★</button>
+      <button onclick='event.stopPropagation();toggleDND(${nameArg})' title="Do not draft" style="flex-shrink:0;padding:0 0.25rem;border:none;background:none;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;line-height:1;opacity:0.45;">✕</button>
     </div>`;
   }).join('');
 
@@ -8272,8 +8221,8 @@ if (!document.body.classList.contains('companion-mode')) {
     <span id="cv-pick-status" style="font-size:0.7rem;font-weight:600;color:var(--text-muted);flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Waiting for draft...</span>
     <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
       <span id="cv-slot-badge" style="font-size:0.65rem;background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.35rem;font-weight:600;"></span>
-      <button id="cv-lists-btn" onclick="openListsOverlay()" title="My lists" style="display:none;padding:0.2rem 0.4rem;border-radius:5px;border:1px solid var(--border);background:none;font-size:0.85rem;cursor:pointer;line-height:1;">⭐</button>
-      <button id="cv-qr-btn" onclick="companionShowQR()" title="Share to phone" style="display:none;padding:0.2rem 0.4rem;border-radius:5px;border:1px solid var(--border);background:none;font-size:0.85rem;cursor:pointer;line-height:1;">📱</button>
+      <button id="cv-lists-btn" onclick="openListsOverlay()" title="My lists" style="display:none;padding:0.2rem 0.4rem;border-radius:5px;border:1px solid var(--border);background:none;color:var(--gold);font-size:0.85rem;cursor:pointer;line-height:1;">★</button>
+      <button id="cv-qr-btn" onclick="companionShowQR()" title="Share to phone" style="display:none;padding:0.2rem 0.4rem;border-radius:5px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.65rem;font-weight:700;cursor:pointer;line-height:1;">QR</button>
       <button id="cv-refresh-btn" onclick="companionRefresh()" title="Refresh" style="display:none;padding:0.2rem 0.4rem;border-radius:5px;border:1px solid var(--border);background:none;color:var(--text-muted);font-size:0.7rem;cursor:pointer;line-height:1;">↻</button>
     </div>
   </div>
@@ -8282,19 +8231,14 @@ if (!document.body.classList.contains('companion-mode')) {
   <div class="cv-scroll" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0.75rem;">
 
     <!-- YOUR TURN banner (mobile-dominant) -->
-    <div id="cv-turn-banner">⚡ YOUR TURN — pick now</div>
+    <div id="cv-turn-banner">YOUR TURN — pick now</div>
 
-    <!-- Top recommendation card -->
-    <div id="cv-rec-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.75rem;margin-bottom:0.75rem;">
-      <div class="cv-rec-label" style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Top Pick</div>
-      <div id="cv-rec-name" style="font-size:1rem;font-weight:800;margin-bottom:0.15rem;">—</div>
-      <div id="cv-rec-meta" style="font-size:0.72rem;color:var(--text-muted);">Loading...</div>
-      <div id="cv-rec-reason" style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.35rem;line-height:1.4;"></div>
-      <div id="cv-rec-controls" style="display:none;gap:0.4rem;margin-top:0.5rem;"></div>
-    </div>
+    <!-- Top 5 recommendations (same card system as the main panel) -->
+    <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Recommendations</div>
+    <div id="cv-recs" style="margin-bottom:0.75rem;"></div>
 
-    <!-- Available players list -->
-    <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Best Available</div>
+    <!-- Next best available list -->
+    <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Next Best Available</div>
     <div id="cv-available" style="display:flex;flex-direction:column;gap:3px;margin-bottom:0.75rem;"></div>
 
     <!-- My roster -->
