@@ -4995,19 +4995,19 @@ function getStrategyWeight(player, ctx) {
     const rc = STATE.rosterConfig;
     const maxStarterQB = (rc?.starters?.QB ?? 1) + (rc?.starters?.SF ?? 1);
     if (pos === 'QB') {
-      if (qbCount === 0)                    w = effRound <= 3 ? 2.0 : 1.8;
-      else if (qbCount < maxStarterQB)      w = effRound <= 8 ? 2.2 : 1.2; // still filling starter QB slots
+      if (qbCount === 0)                    w = effRound <= 4 ? 2.6 : 2.0;
+      else if (qbCount < maxStarterQB)      w = effRound <= 8 ? 2.4 : 1.2; // still filling starter QB slots
       else if (qbCount === maxStarterQB)    w = 0.2; // one backup QB — low but possible late
       else                                  w = 0.05; // beyond backup — wasteful
-    } else if (pos === 'RB') w = (qbCount === 0 && effRound <= 3 && rank <= 8) ? 1.6 : 1.0;
-    else if (pos === 'WR')   w = (qbCount >= 1 && wrCount < 3 && effRound <= 4) ? 1.2 : 1.0;
+    } else if (pos === 'RB') w = qbCount >= 1 ? 1.3 : 1.0; // RB boost only AFTER securing a QB
+    else if (pos === 'WR')   w = qbCount >= 1 ? 1.2 : 1.0;
     else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
   } else { // bpa (default)
     if (pos === 'QB' && qbCount >= 1) w = 0.3;
     else if (pos === 'TE' && teCount >= 1) w = 0.25;
   }
 
-  return Math.max(0.05, Math.min(2.5, w));
+  return Math.max(0.05, Math.min(3.0, w));
 }
 
 // v2 — full breakdown so generateWhyText can cite the dominant factor.
