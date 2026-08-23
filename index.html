@@ -4218,6 +4218,14 @@ function renderBoard() {
 
   let players = [...STATE.mergedPlayers];
 
+  // SF re-sort: elite QBs move to their true draft position.
+  // Sort a local copy only — never mutate STATE.mergedPlayers — and
+  // reassign display rank so the shown number matches visual position.
+  if (STATE.isSuperflex) {
+    players.sort((a, b) => sfSortValue(a) - sfSortValue(b));
+    players = players.map((p, i) => ({ ...p, rank: i + 1 }));
+  }
+
   // Filter by position
   if (STATE.posFilter !== 'ALL') {
     players = players.filter(p => p.position === STATE.posFilter);
@@ -4545,6 +4553,19 @@ function getProjectedPts(player, allPlayers) {
     .filter(p => p.position === pos && (p.rank || 999) < (player.rank || 999))
     .length + 1;
   return table[Math.min(posRank - 1, table.length - 1)] || table[table.length - 1];
+}
+
+function sfSortValue(p) {
+  // Returns a sort value for SF mode: lower = better rank.
+  // Uses SF VORP (inverted) for QBs, standard ADP for everyone else.
+  if (!STATE.isSuperflex) return p.composite_adp ?? p.adp ?? 999;
+  const sfVorp = lookupVorp(p.name, p.position);
+  if (sfVorp != null) {
+    // Convert VORP to a pseudo-ADP: player with highest VORP = rank 1.
+    // Sort by -vorp so higher VORP = lower sort value = earlier rank.
+    return -sfVorp;
+  }
+  return p.composite_adp ?? p.adp ?? 999;
 }
 
 function lookupVorp(name, pos) {
@@ -7820,7 +7841,11 @@ function renderResearchList() {
     value: (a, b) => (researchValue(b) ?? -999) - (researchValue(a) ?? -999),
     volatility: (a, b) => (b.stdev ?? -1) - (a.stdev ?? -1),
   };
-  players.sort(sorters[RESEARCH.sort] || sorters.adp);
+  // SF-aware default: when sorting by ADP (the default) in a superflex
+  // league, use the SF-adjusted sort so elite QBs rank where they belong.
+  // Explicit user-chosen sorts (vorp/value/volatility) are respected as-is.
+  const sfOverride = STATE.isSuperflex && (!RESEARCH.sort || RESEARCH.sort === 'adp');
+  players.sort(sfOverride ? (a, b) => sfSortValue(a) - sfSortValue(b) : (sorters[RESEARCH.sort] || sorters.adp));
 
   RESEARCH.lastList = players;
 
