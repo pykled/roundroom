@@ -2938,6 +2938,7 @@ async function launchStandaloneMock() {
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
             composite_sf_adp: p.composite_sf_adp ?? null,
+            fantasypros_sf_adp: p.fantasypros_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,
@@ -3820,6 +3821,7 @@ async function startDraftAssistant() {
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
             composite_sf_adp: p.composite_sf_adp ?? null,
+            fantasypros_sf_adp: p.fantasypros_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,
@@ -4303,8 +4305,18 @@ function createPlayerCard(player) {
   const injuryHtml = player.injury_status && player.injury_status !== 'Active'
     ? `<span class="injury-badge">${escHtml(player.injury_status.substring(0,3))}</span>` : '';
 
-  const cardVal = (player.composite_adp != null && player.fantasypros_adp != null)
-    ? player.composite_adp - player.fantasypros_adp : null;
+  // ADP display: use SF ADP when in superflex mode
+  const isSuperflex = STATE.isSuperflex;
+  const displayAdp = (isSuperflex && player.composite_sf_adp != null)
+    ? player.composite_sf_adp
+    : (player.composite_adp || player.adp);
+
+  // Delta: compare vs experts using matching ADP type
+  const cardVal = (isSuperflex && player.composite_sf_adp != null && player.fantasypros_sf_adp != null)
+    ? player.composite_sf_adp - player.fantasypros_sf_adp
+    : (!isSuperflex && player.composite_adp != null && player.fantasypros_adp != null)
+      ? player.composite_adp - player.fantasypros_adp
+      : null;
   const cardValHtml = (cardVal == null || Math.abs(cardVal) < 0.3) ? ''
     : cardVal > 0
       ? `<span class="card-val-good" title="Going ${cardVal.toFixed(1)} rounds later than FantasyPros — potential value">+${cardVal.toFixed(1)}</span>`
@@ -4322,7 +4334,7 @@ function createPlayerCard(player) {
       </div>
     </div>
     <div class="player-right">
-      <span class="player-adp">${player.adp_formatted || player.adp || '?'}</span>
+      <span class="player-adp">${displayAdp != null ? (typeof displayAdp === 'number' ? displayAdp.toFixed(2) : displayAdp) : '?'}${isSuperflex && player.composite_sf_adp != null ? '<span style="font-size:0.58rem;color:#a78bfa;margin-left:2px;vertical-align:middle;">SF</span>' : ''}</span>
       ${cardValHtml}
       <button class="icon-btn${isTargeted ? ' star-active' : ''}" onclick="handleCardTarget(event,'${escAttr(player.name)}')">★</button>
       <button class="icon-btn${isAvoided ? ' avoid-active' : ''}" onclick="handleCardDND(event,'${escAttr(player.name)}')">✕</button>
@@ -7138,7 +7150,8 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
         stdev: p.stdev||2.0, high: p.high||Math.max(1,Math.round((p.composite_adp||999)-3)),
         low: p.low||Math.round((p.composite_adp||999)+3), times_drafted: p.times_drafted||0,
         player_id: p.player_id||null, bye: p.bye||null,
-        composite_sf_adp: p.composite_sf_adp ?? null
+        composite_sf_adp: p.composite_sf_adp ?? null,
+        fantasypros_sf_adp: p.fantasypros_sf_adp ?? null
       })) };
     }
   } catch(e) {}
@@ -7739,6 +7752,7 @@ async function ensureResearchData() {
             bye: p.bye || null,
             composite_adp: p.composite_adp ?? null,
             composite_sf_adp: p.composite_sf_adp ?? null,
+            fantasypros_sf_adp: p.fantasypros_sf_adp ?? null,
             sleeper_adp: p.sleeper_adp ?? null,
             fantasypros_adp: p.fantasypros_adp ?? null,
             underdog_adp: p.underdog_adp ?? null,

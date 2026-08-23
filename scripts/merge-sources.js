@@ -162,6 +162,18 @@ function main() {
     { data: loadJson('fantasypros_sf_adp.json'), field: 'adp', weight: 1 },
   ];
 
+  // Raw FantasyPros SF ADP lookup (unblended) — stored per player so the UI
+  // can compare the SF composite against SF experts directly.
+  const fpSfRaw = {};
+  {
+    const fpSfData = loadJson('fantasypros_sf_adp.json');
+    const fpSfList = Array.isArray(fpSfData) ? fpSfData : (fpSfData && fpSfData.players) || [];
+    fpSfList.forEach(p => {
+      const key = normName(p.name);
+      if (key && p.adp != null) fpSfRaw[key] = p.adp;
+    });
+  }
+
   sfSources.forEach(({ data, field, weight }) => {
     if (!data) return;
     (Array.isArray(data) ? data : data.players || []).forEach(p => {
@@ -186,6 +198,8 @@ function main() {
     }
     // Fall back to composite_adp if no SF data (non-QB positions won't move much)
     if (!p.composite_sf_adp) p.composite_sf_adp = p.composite_adp;
+    const fpSfVal = fpSfRaw[key];
+    if (fpSfVal != null) p.fantasypros_sf_adp = fpSfVal;
   });
   console.log(`SF composite: ${sfTagged} players with real SF ADP data; rest fall back to composite_adp.`);
 
