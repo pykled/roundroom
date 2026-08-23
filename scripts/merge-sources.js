@@ -180,6 +180,23 @@ function main() {
     console.log('Injury overlay: data/injuries.json missing — skipping.');
   }
 
+  // Bye week overlay — team-level map from data/bye-weeks.json (fetch-injuries.js).
+  const byeData = loadJson('bye-weeks.json');
+  const byeMap = (byeData && byeData.bye_weeks) || {};
+  let byeTagged = 0;
+  for (const p of players) {
+    const team = (p.team || '').toUpperCase();
+    if (byeMap[team] != null) {
+      p.bye = byeMap[team];
+      byeTagged++;
+    }
+  }
+  if (Object.keys(byeMap).length) {
+    console.log(`Bye week overlay: tagged ${byeTagged} players from bye-weeks.json.`);
+  } else {
+    console.log('Bye week overlay: data/bye-weeks.json missing — skipping.');
+  }
+
   const out = {
     generated_at: new Date().toISOString(),
     weights: WEIGHTS,

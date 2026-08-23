@@ -5214,6 +5214,19 @@ function renderRecommendations() {
 
   const top5 = scored.slice(0, 5);
 
+  // Bye week conflict check — warn if drafting this player creates a bye-heavy week
+  function getByeConflictNote(topPick, rosterPlayers) {
+    if (!topPick || !topPick.bye) return null;
+    const targetBye = topPick.bye;
+    // Count how many current roster players share this bye week
+    const conflicts = rosterPlayers.filter(p => p.bye === targetBye && p.name !== topPick.name);
+    if (conflicts.length >= 2) {
+      const names = conflicts.slice(0, 2).map(p => p.last_name || p.name.split(' ').slice(-1)[0]).join(', ');
+      return `Bye Wk ${targetBye} conflict — ${topPick.name.split(' ').slice(-1)[0]} + ${names} all off week ${targetBye}`;
+    }
+    return null;
+  }
+
   // Danger alert
   const danger = getDangerAlert();
 
@@ -5256,6 +5269,12 @@ function renderRecommendations() {
 
   if (danger) {
     html += `<div class="recs-watchlist"><span class="recs-watch-label">Watch</span> ${escHtml(danger)}</div>`;
+  }
+
+  const rosterArr = Object.values(STATE.rosterSlots).filter(Boolean);
+  const byeNote = getByeConflictNote(top5[0]?.player, rosterArr);
+  if (byeNote) {
+    html += `<div class="recs-watchlist"><span class="recs-watch-label">Bye Risk</span> ${escHtml(byeNote)}</div>`;
   }
 
   if (nextMyPick) {
