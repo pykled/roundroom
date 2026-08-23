@@ -436,6 +436,16 @@
   .cv-avail-row { min-height: 44px; }
 
   /* Companion rec cards — same .rec-card system as the main panel, compacted */
+  .cv-strat-btn {
+    flex: 1; padding: 0.35rem 0.5rem; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg-card);
+    color: var(--text-secondary); font-size: 0.68rem; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .cv-strat-btn.active {
+    border-color: rgba(124,111,247,0.5); background: rgba(124,111,247,0.15);
+    color: #a78bfa;
+  }
   #cv-recs .rec-card { padding: 0.65rem 0.75rem; margin-bottom: 0.5rem; }
   #cv-recs .rec-name { font-size: 0.88rem; }
   #cv-recs .rec-why { font-size: 0.7rem; margin-bottom: 0.35rem; }
@@ -2367,6 +2377,7 @@
     <button class="strategy-btn" data-strategy="hero_rb" onclick="setStrategy('hero_rb')" title="Land one elite RB anchor in round 1, then fill WR in rounds 2–4">Hero RB</button>
     <button class="strategy-btn" data-strategy="robust_rb" onclick="setStrategy('robust_rb')" title="Secure 4 RBs in the first 6 rounds before filling other positions">Robust RB</button>
     <button class="strategy-btn" data-strategy="superflex" id="btn-superflex" onclick="setStrategy('superflex')" style="display:none;border-color:rgba(124,111,247,0.5);color:#a78bfa;" title="SuperFlex leagues: prioritizes getting two QBs before the positional run">2-QB</button>
+    <button class="strategy-btn" data-strategy="superflex_punt" id="btn-superflex-punt" onclick="setStrategy('superflex_punt')" style="display:none;border-color:rgba(124,111,247,0.5);color:#a78bfa;" title="SuperFlex QB-punt: prioritize elite RB/WR value early, grab QBs at a discount in the mid rounds">SF Punt</button>
   </div>
 
   <!-- Offline data banner -->
@@ -2997,8 +3008,10 @@ async function launchStandaloneMock() {
     if (badge) badge.textContent = slot;
     const sfBadge = document.getElementById('sf-badge');
     const sfBtn = document.getElementById('btn-superflex');
+    const sfPuntBtn = document.getElementById('btn-superflex-punt');
     if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? '' : 'none';
     if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
+    if (sfPuntBtn) sfPuntBtn.style.display = STATE.isSuperflex ? '' : 'none';
 
     // Close config overlay, show app screen
     closeMockConfig();
@@ -3588,8 +3601,10 @@ async function selectLeague(league, el) {
   STATE.scoringType = league.scoring_settings?.rec === 1 ? 'ppr' : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'standard';
   const sfBadge = document.getElementById('sf-badge');
   const sfBtn = document.getElementById('btn-superflex');
+  const sfPuntBtn = document.getElementById('btn-superflex-punt');
   if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? '' : 'none';
   if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
+  if (sfPuntBtn) sfPuntBtn.style.display = STATE.isSuperflex ? '' : 'none';
   if (STATE.isSuperflex) setStrategy('superflex');
 
   // Get draft for this league
@@ -4596,18 +4611,43 @@ function sfSortValue(p) {
   return p.composite_adp ?? p.adp ?? 999;
 }
 
+// Cached normalized-key indexes for fast VORP lookup (rebuilt when source data changes)
+let _vorpLiveIndex = null;   // norm(name) -> {vorp_std, vorp_sf}
+let _vorpLiveIndexSize = -1; // detect when STATE.vorpData changes
+let _vorpLookupCache = new Map(); // `${name}|${pos}|${isSF}` -> value
+
 function lookupVorp(name, pos) {
   if (!name) return null;
+  const isSF = !!STATE.isSuperflex;
+  const cacheKey = `${name}|${pos}|${isSF}`;
+  if (_vorpLookupCache.has(cacheKey)) return _vorpLookupCache.get(cacheKey);
+  const result = _computeVorpLookup(name, pos);
+  _vorpLookupCache.set(cacheKey, result);
+  return result;
+}
+
+function _computeVorpLookup(name, pos) {
   const norm = s => s.toLowerCase().replace(/\./g,'').replace(/['']/g,"'").trim();
   const nLive = norm(name);
 
-  // 1. Live VORP data (from /api/vorp) takes priority over hardcoded tables
-  if (STATE.vorpData && Object.keys(STATE.vorpData).length > 0) {
-    const liveKey = Object.keys(STATE.vorpData).find(k => norm(k) === nLive);
-    if (liveKey) {
-      const v = STATE.vorpData[liveKey];
-      const val = (STATE.isSuperflex && v.vorp_sf != null) ? v.vorp_sf : v.vorp_std;
-      if (val != null) return val;
+  // 1. Live VORP data (from /api/vorp) takes priority over hardcoded tables.
+  // Indexed by normalized name; index rebuilt whenever STATE.vorpData changes.
+  if (STATE.vorpData) {
+    const size = Object.keys(STATE.vorpData).length;
+    if (size > 0) {
+      if (!_vorpLiveIndex || _vorpLiveIndexSize !== size) {
+        _vorpLiveIndex = {};
+        for (const [k, v] of Object.entries(STATE.vorpData)) {
+          _vorpLiveIndex[norm(k)] = v;
+        }
+        _vorpLiveIndexSize = size;
+        _vorpLookupCache.clear(); // invalidate value cache when source changes
+      }
+      const v = _vorpLiveIndex[nLive];
+      if (v) {
+        const val = (STATE.isSuperflex && v.vorp_sf != null) ? v.vorp_sf : v.vorp_std;
+        if (val != null) return val;
+      }
     }
   }
 
@@ -5006,6 +5046,20 @@ function getStrategyWeight(player, ctx) {
     } else if (pos === 'RB') w = qbCount >= 1 ? 1.3 : 1.0; // RB boost only AFTER securing a QB
     else if (pos === 'WR')   w = qbCount >= 1 ? 1.2 : 1.0;
     else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
+  } else if (strategy === 'superflex_punt') {
+    const rc = STATE.rosterConfig;
+    const maxStarterQB = (rc?.starters?.QB ?? 1) + (rc?.starters?.SF ?? 1);
+    if (pos === 'QB') {
+      // Punt QBs early — only take if exceptional. Ramp up as it gets late so
+      // you're never shut out of startable QBs.
+      if (qbCount >= maxStarterQB)      w = 0.1;
+      else if (effRound <= 3)           w = 0.5;   // strongly de-prioritize early
+      else if (effRound <= 5)           w = 0.9;   // neutral-ish mid
+      else if (effRound <= 7)           w = qbCount === 0 ? 2.0 : 1.4; // safety net kicks in
+      else                              w = qbCount === 0 ? 2.8 : 1.6; // must get QBs now
+    } else if (pos === 'RB') w = effRound <= 5 ? 1.35 : 1.0;  // hammer skill value early
+    else if (pos === 'WR')   w = effRound <= 5 ? 1.3 : 1.0;
+    else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
   } else { // bpa (default)
     if (pos === 'QB' && qbCount >= 1) w = 0.3;
     else if (pos === 'TE' && teCount >= 1) w = 0.25;
@@ -5074,49 +5128,56 @@ function generateWhyText(player, available, parts, ctx) {
     return `${pos}${posRank} available · +${vor.toFixed(0)} pts over replacement`;
   }
 
-  const strategyNames = { zero_rb: 'Zero-RB', hero_rb: 'Hero-RB', robust_rb: 'Robust-RB', superflex: 'SuperFlex', bpa: 'BPA' };
-  const stratName = strategyNames[STATE.strategy] || 'BPA';
+  // 2. ADP value (faller) — the most actionable signal: a player sliding
+  // well past where the market expected him to go.
+  const adpNow = (STATE.isSuperflex && player.composite_sf_adp != null)
+    ? player.composite_sf_adp
+    : (player.composite_adp || player.adp);
+  if (adpNow != null && isFinite(adpNow)) {
+    const fell = ctx.currentPick - adpNow;
+    if (fell >= ctx.totalTeams) {
+      return `Falling — ${Math.round(fell)} picks past ${STATE.isSuperflex ? 'SF ' : ''}ADP ${adpNow.toFixed(0)}`;
+    }
+  }
 
-  // Which multiplier moved the score most (furthest above 1.0)?
-  const factors = [
-    { k: 'urgency',  v: parts.mUrgency },
-    { k: 'need',     v: parts.mNeed },
-    { k: 'strategy', v: parts.wStrategy },
-  ];
-  factors.sort((a, b) => b.v - a.v);
-  const dom = factors[0];
+  // 3. Tier cliff / scarcity — urgency dominates and the tier is nearly gone.
+  if (parts.tierFactor > 1.0 && parts.tierCount <= 3) {
+    return `Last of a tier — only ${parts.tierCount} ${pos}${parts.tierCount === 1 ? '' : 's'} left at this value`;
+  }
 
+  // 4. Position run in progress.
+  if (parts.runActive) {
+    return `${pos} run underway — ${pos}s coming off the board fast`;
+  }
+
+  // 5. Low survival — must act now.
+  if (survPct < 35) {
+    return `Won't make it back — ${survPct}% to survive to your next pick`;
+  }
+
+  // 6. Roster hole at a startable position.
   const have = ctx.counts[pos] || 0;
-  const vorLabel = vor > 120 ? 'elite value' : vor > 60 ? 'strong value' : vor > 20 ? 'solid value' : 'depth';
+  if (have === 0 && pos !== 'K' && pos !== 'DST') {
+    return `Fills a hole — no ${pos} on your roster yet`;
+  }
 
-  // Strategy dominates within its defined windows — name the plan.
-  if (dom.k === 'strategy' && parts.wStrategy > 1.15) {
+  // 7. Elite at the position — top-3 remaining.
+  if (posRank >= 1 && posRank <= 3) {
+    return `${pos}${posRank} overall — premium tier at the position`;
+  }
+
+  // 8. Strategy-specific — the plan itself is driving the pick.
+  if (parts.wStrategy > 1.15) {
     if (STATE.strategy === 'zero_rb' && pos === 'RB') return `Zero-RB pivot — attack RB value now · +${vor.toFixed(0)} VORP`;
-    if (STATE.strategy === 'zero_rb' && pos === 'WR') return `Zero-RB — stack WR early · ${vorLabel}`;
+    if (STATE.strategy === 'zero_rb' && pos === 'WR') return `Zero-RB — stack WR early · +${vor.toFixed(0)} VORP`;
     if (STATE.strategy === 'hero_rb' && pos === 'RB') return `Hero-RB anchor — grab your elite back · +${vor.toFixed(0)} VORP`;
     if (STATE.strategy === 'robust_rb' && pos === 'RB') return `Robust-RB — building the backfield · +${vor.toFixed(0)} VORP`;
     if (STATE.strategy === 'superflex' && pos === 'QB') return `SuperFlex — QB is scarce, lock one in · +${vor.toFixed(0)} VORP`;
-    return `${stratName} fit — ${pos}${posRank} · ${vorLabel}`;
+    if (STATE.strategy === 'superflex_punt' && pos === 'QB') return `QB safety net — punt window closing, grab value · +${vor.toFixed(0)} VORP`;
   }
 
-  // Urgency dominates — positional scarcity / tier is about to break.
-  if (dom.k === 'urgency' && parts.mUrgency > 1.02) {
-    if (parts.tierFactor > 1.0) {
-      return `Positional scarcity — only ${parts.tierCount} ${pos}${parts.tierCount === 1 ? '' : 's'} left in striking distance`;
-    }
-    if (parts.runActive) return `${pos} run underway — the board is thinning fast at ${pos}`;
-    if (survPct < 30) return `Won't make it back — ${pos}${posRank}, ${survPct}% to survive your next pick`;
-    return `Timing edge — ${pos}${posRank} likely gone soon · ${vorLabel}`;
-  }
-
-  // Need dominates — roster hole.
-  if (dom.k === 'need' && parts.mNeed > 1.0) {
-    if (have === 0) return `Roster need — no ${pos} yet, ${vorLabel} (+${vor.toFixed(0)} VORP)`;
-    return `Roster need — only ${have} ${pos} so far · +${vor.toFixed(0)} VORP`;
-  }
-
-  // Otherwise it's simply the best value on the board.
-  return `${stratName}: ${pos}${posRank} available · +${vor.toFixed(0)} pts over replacement`;
+  // 9. Fallback — still specific: positional rank + real VORP number.
+  return `${pos}${posRank} · +${vor.toFixed(0)} pts over replacement`;
 }
 
 function getTierBreak(player, available) {
@@ -5488,8 +5549,10 @@ function goHome() {
   document.querySelectorAll('.league-card').forEach(c => c.classList.remove('selected'));
   const sfBadge = document.getElementById('sf-badge');
   const sfBtn = document.getElementById('btn-superflex');
+  const sfPuntBtn = document.getElementById('btn-superflex-punt');
   if (sfBadge) sfBadge.style.display = 'none';
   if (sfBtn) sfBtn.style.display = 'none';
+  if (sfPuntBtn) sfPuntBtn.style.display = 'none';
 }
 
 async function refreshDraftStatus(initial = false) {
@@ -6410,10 +6473,11 @@ function processNewPicks(picks, silent = false) {
     }
   }
 
-  // Companion compact view (popup mode, or any time it is on screen)
+  // Companion compact view (popup mode, or any time it is on screen).
+  // Debounced: the live poll can fire this several times a second.
   if (document.getElementById('companion-view')?.style.display !== 'none') {
     try {
-      renderCompanionView();
+      renderCompanionViewDebounced();
     } catch (e) {
       console.error('processNewPicks: companion render error', e);
     }
@@ -7481,9 +7545,36 @@ function importListsFromURL() {
   } catch(e) {}
 }
 
+// Debounced wrapper for the high-frequency live-poll path (processNewPicks).
+// Coalesces bursts of picks into a single render.
+let _cvRenderTimer = null;
+function renderCompanionViewDebounced() {
+  if (_cvRenderTimer) return; // already scheduled
+  _cvRenderTimer = setTimeout(() => {
+    _cvRenderTimer = null;
+    renderCompanionView();
+  }, 60); // coalesce bursts within 60ms
+}
+
+function setCompanionStrategy(strat) {
+  STATE.strategy = strat;
+  document.getElementById('cv-strat-premium')?.classList.toggle('active', strat === 'superflex');
+  document.getElementById('cv-strat-punt')?.classList.toggle('active', strat === 'superflex_punt');
+  renderCompanionView();
+}
+
 function renderCompanionView() {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('companion-view').style.display = 'flex';
+
+  // SF-only strategy toggle (QB Premium vs QB Punt)
+  const stratToggle = document.getElementById('cv-strategy-toggle');
+  if (stratToggle) {
+    stratToggle.style.display = STATE.isSuperflex ? 'flex' : 'none';
+    // sync active state in case strategy was set elsewhere
+    document.getElementById('cv-strat-premium')?.classList.toggle('active', STATE.strategy !== 'superflex_punt');
+    document.getElementById('cv-strat-punt')?.classList.toggle('active', STATE.strategy === 'superflex_punt');
+  }
 
   // Show refresh + lists buttons whenever companion is active
   const refreshBtn = document.getElementById('cv-refresh-btn');
@@ -8240,6 +8331,10 @@ if (!document.body.classList.contains('companion-mode')) {
 
     <!-- Top 5 recommendations (same card system as the main panel) -->
     <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Recommendations</div>
+    <div id="cv-strategy-toggle" style="display:none;gap:0.3rem;margin-bottom:0.6rem;">
+      <button id="cv-strat-premium" onclick="setCompanionStrategy('superflex')" class="cv-strat-btn active">QB Premium</button>
+      <button id="cv-strat-punt" onclick="setCompanionStrategy('superflex_punt')" class="cv-strat-btn">QB Punt</button>
+    </div>
     <div id="cv-recs" style="margin-bottom:0.75rem;"></div>
 
     <!-- Next best available list -->
