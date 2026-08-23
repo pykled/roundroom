@@ -3977,7 +3977,11 @@ function _normCDF(z) {
 
 function calcSurvivalProbability(player, nextPickNum) {
   if (!player || !nextPickNum) return 0.5;
-  const adp = player.adp || 999;
+  // In SF mode, use SF ADP so elite RBs/WRs aren't wrongly pruned (their standard
+  // ADP looks like they'd be gone pick 1-3, but in SF drafts QBs go first).
+  const adp = (STATE.isSuperflex && player.composite_sf_adp != null)
+    ? player.composite_sf_adp
+    : (player.composite_adp || player.adp || 999);
   const stdev = Math.max(player.stdev || 15, 1);
   const picksUntilNext = nextPickNum - (STATE.lastPickCount + 1);
   if (picksUntilNext <= 0) return 0;
