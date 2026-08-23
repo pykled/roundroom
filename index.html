@@ -4161,7 +4161,15 @@ function renderScarcityBars() {
 // ===== PLAYER BOARD =====
 
 function computeTiers(players) {
-  // Group players into tiers based on ADP gaps
+  // Group players into tiers based on ADP gaps.
+  // In SF mode, use composite_sf_adp so tier breaks reflect SF draft value cliffs.
+  const adpField = p => STATE.isSuperflex && p.composite_sf_adp != null
+    ? p.composite_sf_adp
+    : (p.composite_adp || p.adp);
+  const stdevField = p => STATE.isSuperflex && p.composite_sf_adp != null
+    ? (p.weighted_stdev || p.stdev || 8)
+    : (p.stdev || 15);
+
   const tiers = [];
   let currentTier = [players[0]];
   let tierNum = 1;
@@ -4169,8 +4177,8 @@ function computeTiers(players) {
   for (let i = 1; i < players.length; i++) {
     const prev = players[i-1];
     const curr = players[i];
-    const adpGap = (curr.adp || i+1) - (prev.adp || i);
-    const stdevAvg = ((prev.stdev || 15) + (curr.stdev || 15)) / 2;
+    const adpGap = (adpField(curr) || i+1) - (adpField(prev) || i);
+    const stdevAvg = (stdevField(prev) + stdevField(curr)) / 2;
 
     if (adpGap > 2 && adpGap > stdevAvg * 0.7) {
       tiers.push({ tierNum, players: currentTier });
