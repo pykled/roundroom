@@ -7608,6 +7608,12 @@ function renderCompanionView() {
             </div>
           </div>`;
         }).join('');
+
+    // Watchlist: danger alert (high-value player at risk of being gone)
+    const danger = getDangerAlert();
+    if (danger) {
+      recsEl.innerHTML += `<div class="recs-watchlist"><span class="recs-watch-label">Watch</span> ${escHtml(danger)}</div>`;
+    }
   }
 
   // ── Next best available (after the top 5) ─────────────────────────────
