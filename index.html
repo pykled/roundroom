@@ -613,10 +613,11 @@
   .app-header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
-    padding: 0.75rem 1.25rem;
+    padding: 0.55rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0;
+    justify-content: space-between;
     flex-shrink: 0;
     position: relative;
   }
@@ -1081,7 +1082,7 @@
     margin-bottom: 0.35rem;
   }
 
-  .rec-name { font-size: 0.95rem; font-weight: 700; color: #ffffff; }
+  .rec-name { font-size: 1rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em; }
   .rec-adp { font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
 
   .rec-why {
@@ -1108,17 +1109,24 @@
   .survival-mid { color: rgba(255,255,255,0.6); }
   .survival-high { color: #ffffff; }
 
-  .danger-alert {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 0.7rem 0.9rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.65);
+  .recs-watchlist {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-left: 2px solid var(--amber);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: rgba(245,158,11,0.05);
+    border-radius: 0 6px 6px 0;
   }
 
-  .danger-alert strong { color: var(--danger); }
+  .recs-watch-label {
+    font-weight: 700;
+    color: var(--amber);
+    margin-right: 0.35rem;
+    text-transform: uppercase;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
 
   /* Pick log */
   .pick-log {
@@ -2294,12 +2302,13 @@
       <button onclick="goHome()" title="Back to home" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;border-radius:4px;display:flex;align-items:center;gap:0.25rem;font-family:inherit;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">← Home</button>
       <div class="header-league" id="header-league-name">—</div>
       <span id="sf-badge" style="display:none;font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;background:rgba(124,111,247,0.2);color:#a78bfa;border:1px solid rgba(124,111,247,0.4);border-radius:4px;padding:0.1rem 0.35rem;">SUPERFLEX</span>
+      <button id="exit-prep-btn" class="btn btn-ghost btn-sm" onclick="exitPrepMode()">← Exit Prep</button>
     </div>
     <div class="header-pick">
       <div class="pick-counter">Pick <strong id="current-pick-num">1</strong> of <strong id="total-picks">180</strong></div>
       <div style="display:flex;align-items:center;gap:0.4rem;">
         <div class="your-pick-in" id="your-pick-in-badge">Your pick in: —</div>
-        <button id="slot-edit-btn" onclick="toggleSlotEdit()" title="Change draft slot" style="background:none;border:1px solid var(--border);border-radius:5px;color:var(--text-muted);font-size:0.65rem;padding:0.2rem 0.4rem;cursor:pointer;font-family:inherit;">slot #<span id="slot-badge">5</span> ✎</button>
+        <button id="slot-edit-btn" onclick="toggleSlotEdit()" title="Change draft slot" style="background:none;border:none;color:var(--text-muted);font-size:0.7rem;padding:0.1rem 0.2rem;cursor:pointer;font-family:inherit;">✎<span id="slot-badge" style="display:none;">5</span></button>
       </div>
     </div>
 
@@ -2308,13 +2317,14 @@
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Change Draft Slot</div>
       <div style="display:flex;gap:0.3rem;flex-wrap:wrap;max-width:220px;" id="slot-edit-picker"></div>
     </div>
-    <button id="exit-prep-btn" class="btn btn-ghost btn-sm" onclick="exitPrepMode()" style="margin-left:auto;">← Exit Prep</button>
-    <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()" style="margin-left:auto;">🔍 Research</button>
-    <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()" style="display:none;">⚡ Mock Draft</button>
-    <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
-    <div class="live-indicator" style="margin-left:0.5rem;">
-      <div class="live-dot" id="live-dot"></div>
-      <span id="live-label">Connecting...</span>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-left:auto;">
+      <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()">Research</button>
+      <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()" style="display:none;">Mock Draft</button>
+      <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
+      <div class="live-indicator">
+        <div class="live-dot" id="live-dot"></div>
+        <span id="live-label">Connecting...</span>
+      </div>
     </div>
   </div>
 
@@ -4982,7 +4992,7 @@ function generateWhyText(player, available, parts, ctx) {
 
   if (isTarget(player.name)) {
     const urg = survPct < 25 ? 'won\'t last — take now' : survPct < 55 ? 'risky to wait' : 'likely available';
-    return `★ Your target — ${pos}${posRank} available · ${urg}`;
+    return `Your target — ${pos}${posRank} available · ${urg}`;
   }
 
   // Situational override copy always wins — it fired because it was decisive.
@@ -5078,7 +5088,7 @@ function getDangerAlert() {
     const s = calcSurvivalProbability(p, myNextPick);
     const survPct = Math.round(s * 100);
     const posRank = getPosRank(p, available);
-    return `⚠ ${p.name} (${p.position}${posRank}) — only ${survPct}% chance survives to your pick`;
+    return `${p.name} (${p.position}${posRank}) — only ${survPct}% chance survives to your pick`;
   }
 
   // Fallback: warn if top player overall has very low survival
@@ -5160,9 +5170,6 @@ function renderRecommendations() {
   const danger = getDangerAlert();
 
   let html = '';
-  if (danger) {
-    html += `<div class="danger-alert"><strong>${danger}</strong></div>`;
-  }
 
   top5.forEach((item, i) => {
     const p = item.player;
@@ -5173,7 +5180,7 @@ function renderRecommendations() {
     const vor = calcVOR(p, available);
 
     html += `<div class="rec-card" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
-      <div class="rec-rank">#${i+1} Recommendation</div>
+      <div class="rec-rank">#${i+1}</div>
       <div class="rec-player">
         <div style="display:flex;align-items:center;gap:0.4rem;">
           <span class="pos-dot pos-dot-${p.position}"></span>
@@ -5194,6 +5201,10 @@ function renderRecommendations() {
       </div>
     </div>`;
   });
+
+  if (danger) {
+    html += `<div class="recs-watchlist"><span class="recs-watch-label">Watch</span> ${escHtml(danger)}</div>`;
+  }
 
   if (nextMyPick) {
     const picksUntil = nextMyPick - STATE.lastPickCount - 1;
