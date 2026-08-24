@@ -7134,16 +7134,48 @@ async function bootCompanionMode(draftId) {
     if (autoSlot) {
       // We know exactly who they are — auto-proceed with a quick confirm screen
       // (note: autoSlot is only set when resolvedUserId is in this draft's draft_order)
+      const isSF = (draft.settings?.slots_super_flex || 0) > 0;
+      const scoringRaw = (draft.metadata?.scoring_type || 'ppr').toLowerCase();
+      const scoringLabel = scoringRaw === 'std' || scoringRaw === 'standard' ? 'Standard'
+        : scoringRaw === 'half_ppr' ? 'Half PPR' : 'PPR';
+      const draftType = (draft.type || 'snake').charAt(0).toUpperCase() + (draft.type || 'snake').slice(1);
+      const bootStrats = isSF
+        ? [['superflex','QB Premium'],['superflex_punt','QB Punt'],['zero_rb','Zero RB']]
+        : [['bpa','BPA'],['zero_rb','Zero RB'],['hero_rb','Hero RB'],['robust_rb','Robust RB']];
+      const defaultStrat = isSF ? 'superflex' : 'bpa';
+      window._bootStrat = defaultStrat;
+      const stratBtns = bootStrats.map(([k, label]) =>
+        `<button onclick="window._bootStrat='${k}';document.querySelectorAll('.boot-strat-btn').forEach(b=>b.classList.toggle('active',b.dataset.s==='${k}'))"
+          class="boot-strat-btn${k === defaultStrat ? ' active' : ''}" data-s="${k}"
+          style="flex:1;padding:0.4rem 0.3rem;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;"
+          >${escHtml(label)}</button>`
+      ).join('');
       document.getElementById('setup-screen').innerHTML = `
+        <style>.boot-strat-btn.active{background:rgba(99,102,241,0.18)!important;color:#818cf8!important;border-color:rgba(99,102,241,0.5)!important;}</style>
         <div style="padding:1.25rem;max-width:340px;margin:0 auto;width:100%;text-align:center;">
           <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1rem;">
             <span style="font-size:1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">RoundRoom</span>
             <span style="font-size:0.6rem;background:rgba(99,102,241,0.15);color:#6366f1;border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:0.1rem 0.3rem;font-weight:600;">COMPANION</span>
           </div>
-          <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.5rem;">${escHtml(draft.metadata?.name || 'Draft')}</div>
-          <div style="font-size:2rem;font-weight:800;color:#6366f1;margin:0.75rem 0;">Slot ${autoSlot}</div>
-          <div style="font-size:0.8rem;color:#cbd5e1;margin-bottom:1.25rem;">Auto-detected from your Sleeper account</div>
-          <button onclick="companionSelectSlot(${autoSlot}, '${draftId}', ${totalTeams}, ${totalRounds})"
+          <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.75rem;">${escHtml(draft.metadata?.name || 'Draft')}</div>
+
+          <!-- Slot -->
+          <div style="font-size:2rem;font-weight:800;color:#6366f1;margin-bottom:0.25rem;">Slot ${autoSlot}</div>
+          <div style="font-size:0.75rem;color:#64748b;margin-bottom:1rem;">Auto-detected from your Sleeper account</div>
+
+          <!-- Draft info card -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.1rem;">
+            <span style="font-size:0.68rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">${totalTeams} Teams</span>
+            <span style="font-size:0.68rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">${draftType}</span>
+            <span style="font-size:0.68rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">${scoringLabel}</span>
+            ${isSF ? `<span style="font-size:0.68rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(124,111,247,0.15);color:#a78bfa;border:1px solid rgba(124,111,247,0.4);">SuperFlex</span>` : ''}
+          </div>
+
+          <!-- Strategy picker -->
+          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:0.4rem;text-align:left;">Strategy</div>
+          <div style="display:flex;gap:0.3rem;margin-bottom:1.1rem;">${stratBtns}</div>
+
+          <button onclick="STATE.strategy=window._bootStrat||'${defaultStrat}';companionSelectSlot(${autoSlot}, '${draftId}', ${totalTeams}, ${totalRounds})"
             style="width:100%;padding:0.7rem;border-radius:8px;border:none;background:#6366f1;color:#ffffff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">
             That's me — Let's go →
           </button>
