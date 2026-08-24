@@ -337,7 +337,7 @@
   .home-col-header .h-team { width: 34px; flex-shrink: 0; }
   .home-col-header .h-adp { width: 40px; flex-shrink: 0; }
   .home-col-header .h-rank { width: 42px; flex-shrink: 0; }
-  .home-col-header .h-val { width: 72px; flex-shrink: 0; text-align: right; cursor: help; }
+  .home-col-header .h-val { width: 48px; flex-shrink: 0; text-align: right; cursor: help; }
 
   @media (max-width: 768px) {
     /* Layout */
@@ -3021,6 +3021,7 @@ async function launchStandaloneMock() {
 
     initMainView();
     if (STATE.isSuperflex) setStrategy('superflex');
+    else if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') setStrategy('bpa');
     // NO startDraftSync() call — this is mock mode
     setLiveStatus(false, 'Mock');
 
@@ -3606,6 +3607,7 @@ async function selectLeague(league, el) {
   if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
   if (sfPuntBtn) sfPuntBtn.style.display = STATE.isSuperflex ? '' : 'none';
   if (STATE.isSuperflex) setStrategy('superflex');
+  else if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') setStrategy('bpa');
 
   // Get draft for this league
   try {
@@ -4613,7 +4615,7 @@ function sfSortValue(p) {
 
 // Cached normalized-key indexes for fast VORP lookup (rebuilt when source data changes)
 let _vorpLiveIndex = null;   // norm(name) -> {vorp_std, vorp_sf}
-let _vorpLiveIndexSize = -1; // detect when STATE.vorpData changes
+let _vorpLiveIndexSource = null; // exact STATE.vorpData object the index was built from — every refresh assigns a fresh object, so identity change ⇔ new data (count-based checks missed same-size refreshes)
 let _vorpLookupCache = new Map(); // `${name}|${pos}|${isSF}` -> value
 
 function lookupVorp(name, pos) {
@@ -4635,12 +4637,12 @@ function _computeVorpLookup(name, pos) {
   if (STATE.vorpData) {
     const size = Object.keys(STATE.vorpData).length;
     if (size > 0) {
-      if (!_vorpLiveIndex || _vorpLiveIndexSize !== size) {
+      if (!_vorpLiveIndex || _vorpLiveIndexSource !== STATE.vorpData) {
         _vorpLiveIndex = {};
         for (const [k, v] of Object.entries(STATE.vorpData)) {
           _vorpLiveIndex[norm(k)] = v;
         }
-        _vorpLiveIndexSize = size;
+        _vorpLiveIndexSource = STATE.vorpData;
         _vorpLookupCache.clear(); // invalidate value cache when source changes
       }
       const v = _vorpLiveIndex[nLive];
@@ -4997,6 +4999,9 @@ function getStrategyWeight(player, ctx) {
   let strategy = STATE.strategy || ctx.strategy;
   // If superflex league and strategy wasn't manually set away from default, use SF weights
   if (ctx.isSuperflex && (!strategy || strategy === 'bpa')) strategy = 'superflex';
+  // Hard guard: SF strategies must never apply to a non-SF draft, even if
+  // STATE.strategy went stale from a previously-viewed SF league or mock.
+  if (!ctx.isSuperflex && (strategy === 'superflex' || strategy === 'superflex_punt')) strategy = 'bpa';
   const isSF = ctx.isSuperflex;
   // Round derived from the board (robust to joining mid-draft), shifted by
   // league size so scarcity windows move a round earlier in 14-team, later in 8.
@@ -5172,8 +5177,8 @@ function generateWhyText(player, available, parts, ctx) {
     if (STATE.strategy === 'zero_rb' && pos === 'WR') return `Zero-RB — stack WR early · +${vor.toFixed(0)} VORP`;
     if (STATE.strategy === 'hero_rb' && pos === 'RB') return `Hero-RB anchor — grab your elite back · +${vor.toFixed(0)} VORP`;
     if (STATE.strategy === 'robust_rb' && pos === 'RB') return `Robust-RB — building the backfield · +${vor.toFixed(0)} VORP`;
-    if (STATE.strategy === 'superflex' && pos === 'QB') return `SuperFlex — QB is scarce, lock one in · +${vor.toFixed(0)} VORP`;
-    if (STATE.strategy === 'superflex_punt' && pos === 'QB') return `QB safety net — punt window closing, grab value · +${vor.toFixed(0)} VORP`;
+    if (STATE.isSuperflex && STATE.strategy === 'superflex' && pos === 'QB') return `SuperFlex — QB is scarce, lock one in · +${vor.toFixed(0)} VORP`;
+    if (STATE.isSuperflex && STATE.strategy === 'superflex_punt' && pos === 'QB') return `QB safety net — punt window closing, grab value · +${vor.toFixed(0)} VORP`;
   }
 
   // 9. Fallback — still specific: positional rank + real VORP number.
@@ -5523,7 +5528,10 @@ function goHome() {
   STATE.draftComplete = false;
   STATE.draftStatus = null;
   STATE.isSuperflex = false;
+  if (STATE.strategy !== 'bpa') setStrategy('bpa'); // any strategy (zero_rb, SF, …) must not leak into the next draft
   STATE.scoringType = 'ppr';
+  STATE.isCompanion = false;
+  document.body.classList.remove('companion-mode');
   STATE.rosterConfig = null;
   STATE.mySlot = 1;
   STATE.totalTeams = 12;
@@ -6270,11 +6278,15 @@ function selectReviewTeamById(rosterId) {
 
 function exitReviewRoom() {
   document.getElementById('review-screen').style.display = 'none';
-  document.getElementById('setup-screen').style.display = 'flex';
   STATE.reviewDraft = null;
   STATE.reviewPicks = null;
   STATE.reviewUserMap = null;
-  document.querySelectorAll('.league-card').forEach(c => c.classList.remove('selected'));
+  STATE.reviewTotalTeams = null;
+  STATE.reviewTotalRounds = null;
+  STATE.reviewLeague = null;
+  // Full reset — selectLeague() set isSuperflex/scoringType/strategy/rosterConfig
+  // for the reviewed league; a partial clear here leaked them into Prep Mode.
+  goHome();
 }
 
 function openReviewPickModal(pickNo) {
@@ -7185,6 +7197,16 @@ function companionShowManualSlots(draftId, totalTeams, totalRounds, draft, misma
   `;
 }
 
+// Fallback scoring detection when the league object isn't reachable:
+// Sleeper draft.metadata.scoring_type is e.g. 'ppr', 'half_ppr', 'std', '2qb', 'dynasty_half_ppr'.
+function companionScoringFromDraft(d) {
+  const st = (d?.metadata?.scoring_type || '').toLowerCase();
+  if (st.includes('half')) return 'half_ppr';
+  if (st.includes('ppr')) return 'ppr';
+  if (st.includes('std') || st.includes('standard')) return 'standard';
+  return 'ppr';
+}
+
 async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   // Loading state while player data loads
   document.getElementById('setup-screen').innerHTML = `
@@ -7219,24 +7241,39 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
         const lResp = await fetch(`https://api.sleeper.app/v1/league/${d.league_id}`);
         const league = await lResp.json();
         detectedSF = (league.roster_positions || []).includes('SUPER_FLEX');
+        // League scoring settings are canonical — without this every companion
+        // draft scored as full PPR regardless of the league's actual format.
+        STATE.scoringType = league.scoring_settings?.rec === 1 ? 'ppr' : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'standard';
       } catch(e) {
         detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
           (d.settings?.slots_qb || 0) >= 2 ||
           (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+        STATE.scoringType = companionScoringFromDraft(d);
       }
     } else {
       detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
         (d.settings?.slots_qb || 0) >= 2 ||
         (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+      STATE.scoringType = companionScoringFromDraft(d);
     }
     STATE.isSuperflex = detectedSF;
     if (STATE.isSuperflex && (!STATE.strategy || STATE.strategy === 'bpa')) {
       STATE.strategy = 'superflex';
+    } else if (!STATE.isSuperflex && (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt')) {
+      STATE.strategy = 'bpa';
     }
     STATE.selectedDraft = d;
     STATE.rosterConfig = deriveRosterConfig(d.settings || null, STATE.isSuperflex);
     draftName = d.metadata?.name || 'Sleeper Draft';
-  } catch(e) {}
+  } catch(e) {
+    // Draft fetch failed — reset to safe defaults instead of silently carrying
+    // whatever SF/scoring/roster state a previous draft left behind.
+    STATE.isSuperflex = false;
+    STATE.scoringType = 'ppr';
+    STATE.rosterConfig = deriveRosterConfig(null, false);
+    if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') STATE.strategy = 'bpa';
+    console.error('companionSelectSlot: draft/league fetch failed — using default (1QB, PPR) settings', e);
+  }
   STATE.selectedLeague = { name: draftName };
 
   // Superflex header badge
