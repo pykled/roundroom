@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-23T20:29:57.262Z",
+  "fetched_at": "2026-08-24T08:54:38.410Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -98,6 +98,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Ashton Jeanty",
+      "position": "RB",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Audric Estime",
@@ -219,13 +226,6 @@
       "body_part": "Lower Body"
     },
     {
-      "name": "Carnell Tate",
-      "position": "WR",
-      "team": "TEN",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Carsen Ryan",
       "position": "TE",
       "team": "CLE",
@@ -244,6 +244,13 @@
       "position": "TE",
       "team": "IND",
       "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Caullin Lacy",
+      "position": "WR",
+      "team": "NYJ",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1491,6 +1498,13 @@
       "team": "DET",
       "status": "Questionable",
       "body_part": "Hip"
+    },
+    {
+      "name": "Sam Scott",
+      "position": "RB",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Sean McKeon",
