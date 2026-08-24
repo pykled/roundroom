@@ -14,7 +14,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npm install
+      # No package-lock.json in this repo, so key on package.json and skip
+      # install entirely on an exact cache hit.
+      - uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
+      - if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
       # Restore persisted frontier + known leagues from the previous run so we
       # skip re-exploring users/leagues already traversed. The crawl saves these
       # back to data/ at completion and they're committed alongside the picks.

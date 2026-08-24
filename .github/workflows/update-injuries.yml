@@ -1,0 +1,33 @@
+name: Update Injuries
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # every 2 hours
+  workflow_dispatch:
+jobs:
+  injuries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      # No package-lock.json in this repo, so key on package.json and skip
+      # install entirely on an exact cache hit.
+      - uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
+      - if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+      - run: node scripts/fetch-injuries.js
+      - run: node scripts/merge-sources.js
+      - name: Commit injury data
+        run: |
+          git config user.name "RoundRoom Bot"
+          git config user.email "bot@roundroom.app"
+          git add data/injuries.json data/bye-weeks.json data/composite_adp.json
+          git diff --staged --quiet || git commit -m "chore: update injuries $(date -u +%Y-%m-%dT%H:%M)"
+          git push

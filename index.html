@@ -6740,6 +6740,20 @@ function startCompanionSSE(draftId) {
     } catch(err) {}
   };
 
+  // Server signals an imminent restart — reconnect proactively before the
+  // connection drops so the draft board stays live through deploys.
+  es.addEventListener('restart', () => {
+    es.close();
+    if (_companionSSE === es) _companionSSE = null;
+    if (!SYNC.stopped && !STATE.draftComplete && STATE.draftId === draftId) {
+      setTimeout(() => {
+        if (!_companionSSE && !SYNC.stopped && !STATE.draftComplete && STATE.draftId === draftId) {
+          startCompanionSSE(draftId);
+        }
+      }, 1500);
+    }
+  });
+
   es.onerror = () => {
     // Only tear down if the browser gave up (CLOSED); otherwise EventSource
     // auto-reconnects on its own. Previously we closed on ANY error, which
@@ -7198,9 +7212,24 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   try {
     const dResp = await fetch(`https://api.sleeper.app/v1/draft/${draftId}`);
     const d = await dResp.json();
-    STATE.isSuperflex = (d.settings?.slots_super_flex || 0) > 0 ||
-      (d.settings?.slots_qb || 0) >= 2 ||
-      (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+    // Prefer league roster_positions (canonical source) over draft settings heuristics
+    let detectedSF = false;
+    if (d.league_id) {
+      try {
+        const lResp = await fetch(`https://api.sleeper.app/v1/league/${d.league_id}`);
+        const league = await lResp.json();
+        detectedSF = (league.roster_positions || []).includes('SUPER_FLEX');
+      } catch(e) {
+        detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
+          (d.settings?.slots_qb || 0) >= 2 ||
+          (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+      }
+    } else {
+      detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
+        (d.settings?.slots_qb || 0) >= 2 ||
+        (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+    }
+    STATE.isSuperflex = detectedSF;
     if (STATE.isSuperflex && (!STATE.strategy || STATE.strategy === 'bpa')) {
       STATE.strategy = 'superflex';
     }

@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
+    "compression": "^1.8.1",
     "express": "^4.19.2"
   }
 }

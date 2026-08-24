@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 
@@ -10,6 +11,30 @@ let playerCache = null;
 let playerCacheTime = 0;
 const PLAYER_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+// Data files only change on deploy (GHA commits → Railway redeploys), so a
+// 1-hour TTL is just a safety net against long-lived containers going stale.
+const FILE_CACHE_TTL = 60 * 60 * 1000;
+const fileCache = new Map(); // key → { value, time }
+
+function cached(key, compute) {
+  const entry = fileCache.get(key);
+  if (entry && Date.now() - entry.time < FILE_CACHE_TTL) return entry.value;
+  const value = compute();
+  fileCache.set(key, { value, time: Date.now() });
+  return value;
+}
+
+function readDataFile(name) {
+  return cached(name, () =>
+    JSON.parse(fs.readFileSync(path.join(__dirname, 'data', name), 'utf8'))
+  );
+}
+
+// SSE must be excluded — compression buffers the stream and breaks real-time delivery
+app.use(compression({
+  filter: (req, res) =>
+    req.path === '/api/draft-stream' ? false : compression.filter(req, res),
+}));
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
@@ -37,8 +62,7 @@ app.get('/api/players', async (req, res) => {
 // Serve live ADP data (updated nightly by GitHub Actions)
 app.get('/api/adp', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/adp.json'), 'utf8'));
-    res.json(data);
+    res.json(readDataFile('adp.json'));
   } catch (e) {
     res.status(503).json({ error: 'ADP data not yet generated' });
   }
@@ -46,8 +70,7 @@ app.get('/api/adp', (req, res) => {
 
 app.get('/api/vorp', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/vorp.json'), 'utf8'));
-    res.json(data);
+    res.json(readDataFile('vorp.json'));
   } catch (e) {
     res.status(503).json({ error: 'VORP data not yet generated' });
   }
@@ -59,19 +82,22 @@ app.get('/api/vorp', (req, res) => {
 // blended values, but the research UI needs both.
 app.get('/api/composite-adp', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/composite_adp.json'), 'utf8'));
-    try {
-      const adp = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/adp.json'), 'utf8'));
-      const byName = {};
-      (adp.players || []).forEach(p => { if (p && p.name) byName[p.name.toLowerCase()] = p; });
-      (data.players || []).forEach(p => {
-        const src = byName[(p.name || '').toLowerCase()];
-        if (!src) return;
-        ['weighted_adp', 'stdev', 'weighted_stdev', 'high', 'low', 'times_drafted', 'outliers_removed'].forEach(k => {
-          if (p[k] == null && src[k] != null) p[k] = src[k];
+    const data = cached('composite-adp:merged', () => {
+      const composite = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/composite_adp.json'), 'utf8'));
+      try {
+        const adp = readDataFile('adp.json');
+        const byName = {};
+        (adp.players || []).forEach(p => { if (p && p.name) byName[p.name.toLowerCase()] = p; });
+        (composite.players || []).forEach(p => {
+          const src = byName[(p.name || '').toLowerCase()];
+          if (!src) return;
+          ['weighted_adp', 'stdev', 'weighted_stdev', 'high', 'low', 'times_drafted', 'outliers_removed'].forEach(k => {
+            if (p[k] == null && src[k] != null) p[k] = src[k];
+          });
         });
-      });
-    } catch (e) {} // enrichment is best-effort — raw composite data still ships
+      } catch (e) {} // enrichment is best-effort — raw composite data still ships
+      return composite;
+    });
     res.json(data);
   } catch (e) {
     res.status(503).json({ error: 'Composite ADP data not yet generated' });
@@ -81,10 +107,10 @@ app.get('/api/composite-adp', (req, res) => {
 // Data freshness — lets the frontend warn users when ADP data is stale.
 app.get('/api/data-freshness', (req, res) => {
   try {
-    const quality = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/data_quality.json'), 'utf8'));
+    const quality = readDataFile('data_quality.json');
     let crawlMeta = {};
     try {
-      crawlMeta = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/crawl_meta.json'), 'utf8'));
+      crawlMeta = readDataFile('crawl_meta.json');
     } catch (e) {}
     const generatedAt = quality.generated_at || crawlMeta.crawled_at || null;
     const ageHours = generatedAt
@@ -361,6 +387,21 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Fantasy Draft Assistant running on port ${PORT}`);
+});
+
+// Graceful shutdown — notify SSE clients before Railway kills the container
+// so the frontend can reconnect proactively instead of waiting for a dead connection.
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received — notifying SSE clients and shutting down');
+  for (const [, relay] of draftRelays) {
+    for (const client of relay.clients) {
+      try { client.write('event: restart\ndata: {}\n\n'); } catch (e) {}
+    }
+  }
+  // Give clients a moment to receive the event, then close
+  setTimeout(() => {
+    server.close(() => process.exit(0));
+  }, 1000);
 });
