@@ -5015,7 +5015,7 @@ function getStrategyWeight(player, ctx) {
   if (pos === 'K')   return (effRound < 13 || ctx.counts.K   >= (STATE.rosterConfig?.K   ?? 1)) ? 0.05 : 1.0;
   if (pos === 'DST') return (effRound < 12 || ctx.counts.DST >= (STATE.rosterConfig?.DST ?? 1)) ? 0.05 : 1.0;
   if (pos === 'TE' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
-  if (pos === 'QB' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
+  if (pos === 'QB' && effRound <= 2 && !isSF) return 0.08;
 
   let w = 1.0;
 
@@ -5066,6 +5066,7 @@ function getStrategyWeight(player, ctx) {
     else if (pos === 'WR')   w = effRound <= 5 ? 1.3 : 1.0;
     else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
   } else { // bpa (default)
+    if (pos === 'QB' && qbCount === 0) w = 0.45;  // non-SF first QB: defer to ~round 5+
     if (pos === 'QB' && qbCount >= 1) w = 0.3;
     else if (pos === 'TE' && teCount >= 1) w = 0.25;
   }
