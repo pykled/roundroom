@@ -56,4 +56,5 @@ jobs:
           git config user.email "bot@roundroom.app"
           git add data/
           git diff --staged --quiet || git commit -m "chore: update draft data $(date -u +%Y-%m-%d)"
+          git pull --rebase
           git push
