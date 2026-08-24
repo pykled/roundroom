@@ -4950,10 +4950,16 @@ function urgencyMultiplier(player, ctx) {
     return calcSurvivalProbability(p, atPick);
   };
 
-  // 4a — survival with snake awareness. On the clock the player is available
-  // now (survival 1.0); planning ahead, measure at your decision pick.
+  // 4a — survival with snake awareness. On the clock (or nearly — within 2
+  // picks of your turn) survival-to-your-pick matters. Any farther out, rank
+  // pure best-player-available: the player IS on the board right now, and
+  // discounting by survival-to-decisionPick tanks elite players while other
+  // teams are picking (Gibbs at ADP 1.4 ranked below Taylor at ADP 9.6 at
+  // pick 1). Tier-break (4b) and the survival % note still use decisionPick,
+  // so "he won't make it back to you" planning info is preserved.
+  const picksUntilDecision = ctx.decisionPick != null ? (ctx.decisionPick - ctx.currentPick) : 0;
   let ownSurv;
-  if (ctx.onClock) {
+  if (ctx.onClock || picksUntilDecision > 2) {
     ownSurv = 1.0;
   } else if (ctx.followingPick && (ctx.followingPick - ctx.decisionPick) <= 3) {
     // Back-to-back turn — you effectively pick twice; discount deferrals less.
@@ -7241,23 +7247,26 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
       try {
         const lResp = await fetch(`https://api.sleeper.app/v1/league/${d.league_id}`);
         const league = await lResp.json();
-        detectedSF = (league.roster_positions || []).includes('SUPER_FLEX');
+        detectedSF = (league.roster_positions || []).includes('SUPER_FLEX') ||
+          (d.settings?.slots_super_flex || 0) > 0;
         // League scoring settings are canonical — without this every companion
         // draft scored as full PPR regardless of the league's actual format.
         STATE.scoringType = league.scoring_settings?.rec === 1 ? 'ppr' : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'standard';
       } catch(e) {
-        detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
-          (d.settings?.slots_qb || 0) >= 2 ||
-          (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+        // Fallback: only the explicit SF slot count is trustworthy. scoring_type
+        // '2qb' and slots_qb >= 2 both false-positive on non-SF drafts (Sleeper
+        // tags some standard mocks '2qb'; 2QB leagues aren't superflex).
+        detectedSF = (d.settings?.slots_super_flex || 0) > 0;
         STATE.scoringType = companionScoringFromDraft(d);
       }
     } else {
-      detectedSF = (d.settings?.slots_super_flex || 0) > 0 ||
-        (d.settings?.slots_qb || 0) >= 2 ||
-        (d.metadata?.scoring_type || '').toLowerCase() === '2qb';
+      detectedSF = (d.settings?.slots_super_flex || 0) > 0;
       STATE.scoringType = companionScoringFromDraft(d);
     }
     STATE.isSuperflex = detectedSF;
+    console.log('companionSelectSlot: superflex detection →', detectedSF,
+      '(league_id:', d.league_id || 'none',
+      ', slots_super_flex:', d.settings?.slots_super_flex || 0, ')');
     if (STATE.isSuperflex && (!STATE.strategy || STATE.strategy === 'bpa')) {
       STATE.strategy = 'superflex';
     } else if (!STATE.isSuperflex && (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt')) {
