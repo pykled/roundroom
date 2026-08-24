@@ -8230,6 +8230,22 @@ async function enterPrepMode() {
   STATE.isPrepMode = true;
   STATE.draftStatus = 'prep';
 
+  // Prep mode has no league context — reset format state a previously viewed
+  // league left behind. selectLeague() sets isSuperflex/strategy/scoringType
+  // when a league card is clicked, and nothing on this path cleared them, so
+  // browsing a SuperFlex league then entering Prep Mode ranked QBs first
+  // (Josh Allen #1) in what should be a standard 1-QB board.
+  STATE.isSuperflex = false;
+  STATE.scoringType = 'ppr';
+  STATE.rosterConfig = null;
+  if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') STATE.strategy = 'bpa';
+  const prepSfBadge = document.getElementById('sf-badge');
+  const prepSfBtn = document.getElementById('btn-superflex');
+  const prepSfPuntBtn = document.getElementById('btn-superflex-punt');
+  if (prepSfBadge) prepSfBadge.style.display = 'none';
+  if (prepSfBtn) prepSfBtn.style.display = 'none';
+  if (prepSfPuntBtn) prepSfPuntBtn.style.display = 'none';
+
   const app = document.getElementById('app-screen');
   document.getElementById('setup-screen').style.display = 'none';
   app.classList.add('prep-mode'); // hides pick counter, live indicator, mock banner, roster panel

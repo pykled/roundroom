@@ -118,12 +118,17 @@ function main() {
         duration_ms: (typeof p.draft_duration_ms === 'number') ? p.draft_duration_ms : null,
         total_picks: 0,
         autopicks: 0,
+        qb_round1: 0,
         owners: new Map(),
       };
       drafts.set(p.draft_id, d);
     }
     d.total_picks++;
     if (p.is_autopick === true) d.autopicks++;
+    if ((p.position || '').trim().toUpperCase() === 'QB' &&
+        typeof p.pick_no === 'number' && p.pick_no <= (Number(p.league_size) || 12)) {
+      d.qb_round1++;
+    }
     if (p.picked_by) {
       if (!d.owners.has(p.picked_by)) d.owners.set(p.picked_by, new Set());
       d.owners.get(p.picked_by).add(p.roster_slot);
@@ -138,6 +143,7 @@ function main() {
     wrong_format: 0,
     too_small: 0,
     duplicate_owners: 0,
+    sf_contamination: 0,
   };
   const qualifyingDrafts = new Set();
   let afterDateFilter = 0;
@@ -162,6 +168,13 @@ function main() {
     if (d.total_picks > 0 && (d.autopicks / d.total_picks) > AUTOPICK_MAX_FRAC) {
       reasons.autopick_heavy++; continue;
     }
+
+    // SF contamination — 3+ QBs in round 1 is a SuperFlex/2QB draft signature.
+    // Protects the standard pool from SF drafts that slipped past crawl-time
+    // tagging (old picks stored before is_sf existed keep re-entering via
+    // --resume, and pre-fix crawls misdetected SF entirely). Without this,
+    // Josh Allen's "standard" ADP was pulled to ~20 with a high of #1 overall.
+    if (!isSf && d.qb_round1 >= 3) { reasons.sf_contamination++; continue; }
 
     // Duplicate owners — same user controls >2 teams => test league.
     let dupe = false;

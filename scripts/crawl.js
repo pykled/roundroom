@@ -131,9 +131,16 @@ async function processDraft(draft, { picks, completedDrafts, league, cutoff, cou
   }
 
   // SuperFlex detection: league roster (when available) or draft settings.
-  const rosterPositions = draft.settings?.roster_positions ||
-                          (league?.roster_positions) || [];
-  const isSf = rosterPositions.includes('SUPER_FLEX');
+  // Draft objects don't carry roster_positions — that field only exists on the
+  // league. Mock drafts and drafts crawled without league context must be
+  // detected via draft.settings slot counts / scoring_type, otherwise SF
+  // drafts land in the standard ADP pool and inflate QB ADP (Josh Allen was
+  // going "#1 overall" in the standard data because of exactly this).
+  const rosterPositions = (league?.roster_positions) || [];
+  const isSf = rosterPositions.includes('SUPER_FLEX') ||
+    (draft.settings?.slots_super_flex || 0) > 0 ||
+    (draft.settings?.slots_qb || 0) >= 2 ||
+    String(draft.metadata?.scoring_type || '').toLowerCase().includes('2qb');
 
   const draftPicks = await throttledFetch(`${API}/draft/${draft.draft_id}/picks`);
   if (!Array.isArray(draftPicks) || draftPicks.length === 0) return 0;
