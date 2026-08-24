@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-24T20:36:25.822Z",
+  "fetched_at": "2026-08-24T22:32:09.581Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -264,7 +264,7 @@
       "name": "Cedrick Wilson",
       "position": "WR",
       "team": "DET",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -1213,13 +1213,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Marvin Mims",
-      "position": "WR",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Mason Fine",
       "position": "QB",
       "team": null,
@@ -1409,18 +1402,18 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Raheem Blackshear",
+      "position": "RB",
+      "team": "DET",
+      "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Raheem Mostert",
       "position": "RB",
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
-    },
-    {
-      "name": "Rasheen Ali",
-      "position": "RB",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Reggie Corbin",
@@ -1575,6 +1568,13 @@
       "team": "TB",
       "status": "Questionable",
       "body_part": "Groin"
+    },
+    {
+      "name": "Theo Johnson",
+      "position": "TE",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Tip Reiman",
@@ -1734,7 +1734,7 @@
       "name": "Xavier Weaver",
       "position": "WR",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Concussion"
     },
     {
