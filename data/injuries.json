@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T18:46:18.544Z",
+  "fetched_at": "2026-08-25T20:13:30.763Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -219,18 +219,18 @@
       "body_part": "Achilles"
     },
     {
-      "name": "Bub Means",
-      "position": "WR",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Caleb Lohner",
       "position": "TE",
       "team": "DEN",
       "status": "Questionable",
       "body_part": "Lower Body"
+    },
+    {
+      "name": "Calvin Austin",
+      "position": "WR",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Carsen Ryan",
@@ -294,6 +294,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Chris Olave",
+      "position": "WR",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Upper Body"
     },
     {
       "name": "Chris Thompson",
@@ -721,6 +728,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "position": "WR",
+      "team": "CIN",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Ja'Quinden Jackson",
@@ -1664,7 +1678,7 @@
       "name": "Ty Chandler",
       "position": "RB",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
