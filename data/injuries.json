@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T20:34:56.570Z",
+  "fetched_at": "2026-08-25T22:32:42.656Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -758,6 +758,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Jacob Cowing",
+      "position": "WR",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
@@ -873,7 +880,7 @@
       "name": "Jeff Caldwell",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -1115,6 +1122,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Kurtis Rourke",
+      "position": "QB",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Ribs"
+    },
+    {
       "name": "Kye Robichaux",
       "position": "RB",
       "team": null,
@@ -1202,7 +1216,7 @@
       "name": "Luke Grimm",
       "position": "WR",
       "team": "LAC",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1328,7 +1342,7 @@
       "name": "Moliki Matavao",
       "position": "TE",
       "team": "NO",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -1503,7 +1517,7 @@
       "name": "Sam Scott",
       "position": "RB",
       "team": "NYJ",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1657,7 +1671,7 @@
       "name": "Trey Benson",
       "position": "RB",
       "team": null,
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -1678,7 +1692,7 @@
       "name": "Ty Chandler",
       "position": "RB",
       "team": "NO",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
