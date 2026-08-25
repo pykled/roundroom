@@ -2699,6 +2699,7 @@ const STATE = {
   mergedPlayers: [],   // ADP merged with Sleeper data
   picks: [],           // draft picks so far
   draftedIds: new Set(),
+  draftedNames: new Set(),
   mySlot: 5,
   myPickNumbers: [],
   totalTeams: 12,
@@ -4409,6 +4410,7 @@ function updateMyList() { /* no-op: list management moved to cv-lists-overlay */
 
 function setStrategy(strategy) {
   STATE.strategy = strategy;
+  invalidateScoreCache();
   document.querySelectorAll('.strategy-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.strategy === strategy);
   });
@@ -4851,9 +4853,22 @@ function needGap(pos, ctx) {
   return Math.max(0, positionReq(pos, ctx.isSuperflex) - (ctx.counts[pos] || 0));
 }
 
+// Score + context caches — keyed on draft state. Invalidated whenever picks land.
+// Cuts per-render work from O(n) full rescores to O(1) cache hits between picks.
+const _scoreCache = { key: null, scores: new Map() };
+const _ctxCache   = { key: null, ctx: null };
+function _scoreCacheKey() {
+  return `${STATE.lastPickCount}|${STATE.strategy}|${STATE.isSuperflex ? 1 : 0}|${STATE.mySlot}`;
+}
+function invalidateScoreCache() {
+  _scoreCache.key = null; _scoreCache.scores.clear();
+  _ctxCache.key = null;   _ctxCache.ctx = null;
+}
+
 // Precompute the per-render context once (O(n log n)), not per player.
 function buildScoringContext(available) {
   const isMock = MOCK.active;
+  if (!isMock && _ctxCache.key === _scoreCacheKey() && _ctxCache.ctx) return _ctxCache.ctx;
   const totalTeams  = STATE.totalTeams  || (isMock ? MOCK_CFG.teams  : 12);
   const totalRounds = STATE.totalRounds || (isMock ? MOCK_CFG.rounds : 15);
   const isSuperflex = STATE.isSuperflex || (isMock ? MOCK_CFG.superflex : false);
@@ -4898,10 +4913,12 @@ function buildScoringContext(available) {
       .sort((a, b) => b.pts - a.pts);
   });
 
-  return { isMock, totalTeams, totalRounds, isSuperflex, scoringType, currentPick,
+  const ctx = { isMock, totalTeams, totalRounds, isSuperflex, scoringType, currentPick,
            round, roundShift, myPickNumbers, decisionPick, followingPick, onClock,
            picksLeft, counts, hasHeroRB, runCounts, byPos, allP,
            strategy: STATE.strategy || (isMock ? (MOCK.strategy || 'bpa') : 'bpa') };
+  if (!isMock) { _ctxCache.key = _scoreCacheKey(); _ctxCache.ctx = ctx; }
+  return ctx;
 }
 
 // §3 — positional need multiplier from roster state. Range clamped to [0.5, 1.6].
@@ -5083,6 +5100,14 @@ function getStrategyWeight(player, ctx) {
 // v2 — full breakdown so generateWhyText can cite the dominant factor.
 // score = adjustedVORP × W_strategy × M_need × M_urgency × M_target
 function computeScoreBreakdown(player, ctx, available) {
+  // Cache hit: same draft state → same scores. Skip in mock mode (picks change constantly).
+  if (!MOCK.active) {
+    const ck = _scoreCacheKey();
+    if (_scoreCache.key !== ck) { _scoreCache.key = ck; _scoreCache.scores.clear(); }
+    const pid = player.sleeper_id || player.player_id || player.name;
+    const hit = _scoreCache.scores.get(pid);
+    if (hit !== undefined) return hit;
+  }
   const key = player.sleeper_id || player.name;
   const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
   if (draftedSet.has(key) || draftedSet.has(player.player_id || player.name) ||
@@ -5104,9 +5129,14 @@ function computeScoreBreakdown(player, ctx, available) {
   const combo = Math.max(0.02, Math.min(4.0, wStrategy * mNeed * urg.mUrgency));
   const score = base * combo * mTarget;
 
-  return { score, rawVorp, base, wStrategy, mNeed, mUrgency: urg.mUrgency,
+  const result = { score, rawVorp, base, wStrategy, mNeed, mUrgency: urg.mUrgency,
            mTarget, tierCount: urg.tierCount, tierSurvivors: urg.tierSurvivors,
            tierFactor: urg.tierFactor, runActive: urg.runActive };
+  if (!MOCK.active) {
+    const pid = player.sleeper_id || player.player_id || player.name;
+    _scoreCache.scores.set(pid, result);
+  }
+  return result;
 }
 
 // Back-compat thin wrapper. `ctxOrPick` is a scoring context (preferred);
@@ -5471,7 +5501,7 @@ const SYNC = {
 
 const POLL_FAST = 5000;    // drafting, polling only
 const POLL_SLOW = 20000;   // drafting, WS connected (reconciliation)
-const POLL_COMPANION = 200;   // companion safety-net; SSE relay + direct Sleeper WS are the real-time paths.
+const POLL_COMPANION = 500;   // companion safety-net; SSE relay + direct Sleeper WS are the real-time paths.
 const POLL_PAUSED = 12000; // draft paused
 const POLL_PRE = 15000;    // pre-draft, waiting for start
 
@@ -5531,6 +5561,7 @@ function goHome() {
   STATE.draftId = null;
   STATE.picks = [];
   STATE.draftedIds = new Set();
+  STATE.draftedNames = new Set();
   STATE.lastPickCount = 0;
   STATE.draftComplete = false;
   STATE.draftStatus = null;
@@ -6433,6 +6464,7 @@ function processNewPicks(picks, silent = false) {
 
       // Mark by sleeper player_id
       if (pick.player_id) STATE.draftedIds.add(pick.player_id);
+      if (name) STATE.draftedNames.add(normalizePlayerName(name));
 
       // Also match against our rankings (id first, then normalized name).
       // Players outside our rankings (deep sleepers, IDPs) simply won't be
@@ -6443,6 +6475,7 @@ function processNewPicks(picks, silent = false) {
       );
       if (matched) {
         STATE.draftedIds.add(matched.sleeper_id || matched.name);
+        STATE.draftedNames.add(normalizePlayerName(matched.name));
       }
 
       // My pick? picked_by is authoritative; slot math is the fallback
@@ -6468,6 +6501,7 @@ function processNewPicks(picks, silent = false) {
   });
 
   STATE.lastPickCount = picks.reduce((m, p) => Math.max(m, p.pick_no || 0), STATE.lastPickCount);
+  invalidateScoreCache(); // picks changed → scores stale
 
   // ── Update UI ──────────────────────────────────────────────────────────
   // Companion popup mode has its own compact render path and never shows the
@@ -7683,6 +7717,7 @@ function setCompanionStrategy(strat) {
 function companionToggleSF() {
   STATE.isSuperflex = !STATE.isSuperflex;
   _vorpLookupCache.clear(); // invalidate cached VORP values — they depend on SF mode
+  invalidateScoreCache();
   if (STATE.isSuperflex) {
     if (!STATE.strategy || STATE.strategy === 'bpa') STATE.strategy = 'superflex';
   } else {
@@ -7776,13 +7811,10 @@ function renderCompanionView() {
     if (isMock) {
       return !MOCK.draftedIds.has(p.player_id || p.name) && !MOCK.draftedIds.has(p.name) && p.adp < 250;
     }
-    const draftedIds = new Set((STATE.picks || []).map(x => x.player_id).filter(Boolean));
-    const draftedNames = new Set((STATE.picks || []).map(x => {
-      const m = x.metadata || {};
-      return normalizePlayerName(m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim());
-    }));
-    if (p.sleeper_id && draftedIds.has(p.sleeper_id)) return false;
-    if (draftedNames.has(normalizePlayerName(p.name))) return false;
+    // Reuse STATE.draftedIds (maintained by processNewPicks) — avoids rebuilding two Sets per render.
+    if (p.sleeper_id && STATE.draftedIds.has(p.sleeper_id)) return false;
+    if (STATE.draftedIds.has(p.player_id || p.name)) return false;
+    if (STATE.draftedNames && STATE.draftedNames.has(normalizePlayerName(p.name))) return false;
     return p.adp < 250;
   }).sort((a, b) => sfSortValue(a) - sfSortValue(b));
 
