@@ -7143,9 +7143,17 @@ async function bootCompanionMode(draftId) {
         ? [['superflex','QB Premium'],['superflex_punt','QB Punt'],['zero_rb','Zero RB']]
         : [['bpa','BPA'],['zero_rb','Zero RB'],['hero_rb','Hero RB'],['robust_rb','Robust RB']];
       const defaultStrat = isSF ? 'superflex' : 'bpa';
+      const stratDesc = {
+        bpa:           'Take the best available player each round regardless of position.',
+        zero_rb:       'Ignore RBs early — stack WRs/TEs, grab RBs in mid-rounds when value drops.',
+        hero_rb:       'Draft one elite RB early, then pivot to WRs for the rest of your team.',
+        robust_rb:     'Load up on RBs in the first 3 rounds to insulate against injuries.',
+        superflex:     'Prioritize QBs early — having two elite QBs is a huge advantage.',
+        superflex_punt:'Skip QB in early rounds, target one late, and dominate at skill positions.',
+      };
       window._bootStrat = defaultStrat;
       const stratBtns = bootStrats.map(([k, label]) =>
-        `<button onclick="window._bootStrat='${k}';document.querySelectorAll('.boot-strat-btn').forEach(b=>b.classList.toggle('active',b.dataset.s==='${k}'))"
+        `<button onclick="window._bootStrat='${k}';document.querySelectorAll('.boot-strat-btn').forEach(b=>b.classList.toggle('active',b.dataset.s==='${k}'));document.getElementById('boot-strat-desc').textContent=({bpa:'Take the best available player each round regardless of position.',zero_rb:'Ignore RBs early — stack WRs/TEs, grab RBs in mid-rounds when value drops.',hero_rb:'Draft one elite RB early, then pivot to WRs for the rest of your team.',robust_rb:'Load up on RBs in the first 3 rounds to insulate against injuries.',superflex:'Prioritize QBs early — having two elite QBs is a huge advantage.',superflex_punt:'Skip QB in early rounds, target one late, and dominate at skill positions.'})['${k}']"
           class="boot-strat-btn${k === defaultStrat ? ' active' : ''}" data-s="${k}"
           style="flex:1;padding:0.4rem 0.3rem;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;"
           >${escHtml(label)}</button>`
@@ -7173,7 +7181,8 @@ async function bootCompanionMode(draftId) {
 
           <!-- Strategy picker -->
           <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:0.4rem;text-align:left;">Strategy</div>
-          <div style="display:flex;gap:0.3rem;margin-bottom:1.1rem;">${stratBtns}</div>
+          <div style="display:flex;gap:0.3rem;margin-bottom:0.45rem;">${stratBtns}</div>
+          <div id="boot-strat-desc" style="font-size:0.7rem;color:#64748b;min-height:2.2em;margin-bottom:0.8rem;text-align:left;line-height:1.4;">${stratDesc[defaultStrat]}</div>
 
           <button onclick="STATE.strategy=window._bootStrat||'${defaultStrat}';companionSelectSlot(${autoSlot}, '${draftId}', ${totalTeams}, ${totalRounds})"
             style="width:100%;padding:0.7rem;border-radius:8px;border:none;background:#6366f1;color:#ffffff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">
