@@ -5501,7 +5501,9 @@ const SYNC = {
 
 const POLL_FAST = 5000;    // drafting, polling only
 const POLL_SLOW = 20000;   // drafting, WS connected (reconciliation)
-const POLL_COMPANION = 500;   // companion safety-net; SSE relay + direct Sleeper WS are the real-time paths.
+const POLL_COMPANION      = 500;  // companion idle interval — no new picks
+const POLL_COMPANION_FAST =  50;  // re-poll quickly after a pick lands (catches burst picks in mock)
+const POLL_COMPANION_FAST = 50; // re-poll fast right after new picks land (mock bots fire back-to-back)
 const POLL_PAUSED = 12000; // draft paused
 const POLL_PRE = 15000;    // pre-draft, waiting for start
 
@@ -5737,21 +5739,25 @@ async function _pollPicksInner() {
       const resp = await timedFetch(`https://api.sleeper.app/v1/draft/${STATE.draftId}/picks`);
       if (!resp.ok) throw new Error('API error');
       const picks = await resp.json();
-      processNewPicks(picks);
+      const gotNew = processNewPicks(picks);
       // Every 15th poll, also refresh draft status (paused/complete detection)
       SYNC.hbCount++;
       if (SYNC.hbCount % 15 === 0) refreshDraftStatus();
       SYNC.failCount = 0;
       setLiveStatus(true, 'LIVE');
-      if (!STATE.draftComplete) schedulePoll(POLL_COMPANION);
+      // Fast re-poll right after activity: bot/mock picks land back-to-back,
+      // so chase them at 50ms until a poll comes back empty, then settle back
+      // to the normal safety-net interval.
+      if (!STATE.draftComplete) schedulePoll(gotNew ? POLL_COMPANION_FAST : POLL_COMPANION);
       return; // skip the shared path below
     }
     // Non-companion (or companion while paused/pre-draft): original path
+    let gotNew = false;
     {
       const resp = await timedFetch(`https://api.sleeper.app/v1/draft/${STATE.draftId}/picks`);
       if (!resp.ok) throw new Error('API error');
       const picks = await resp.json();
-      processNewPicks(picks);
+      gotNew = processNewPicks(picks);
     }
     SYNC.failCount = 0;
     if (drafting) setLiveStatus(true, companion ? 'LIVE' : 'LIVE · polling');
@@ -5759,7 +5765,7 @@ async function _pollPicksInner() {
     const interval =
       STATE.draftStatus === 'paused' ? (companion ? 2000 : POLL_PAUSED) :
       STATE.draftStatus === 'pre_draft' ? (companion ? 2000 : POLL_PRE) :
-      companion ? POLL_COMPANION :
+      companion ? (gotNew ? POLL_COMPANION_FAST : POLL_COMPANION) :
       SYNC.wsConnected ? POLL_SLOW : POLL_FAST;
     schedulePoll(interval);
   } catch(e) {
@@ -6445,12 +6451,12 @@ function normalizePlayerName(s) {
 }
 
 function processNewPicks(picks, silent = false) {
-  if (!picks || !Array.isArray(picks)) return;
+  if (!picks || !Array.isArray(picks)) return false;
 
   const newPicks = picks
     .filter(p => p.pick_no > STATE.lastPickCount)
     .sort((a, b) => a.pick_no - b.pick_no);
-  if (newPicks.length === 0) return;
+  if (newPicks.length === 0) return false;
 
   newPicks.forEach(pick => {
     // Process each pick defensively — one malformed pick (missing metadata,
@@ -6540,6 +6546,7 @@ function processNewPicks(picks, silent = false) {
   if (!silent && STATE.lastPickCount >= STATE.totalTeams * STATE.totalRounds) {
     handleDraftComplete();
   }
+  return true; // new picks were processed
 }
 
 function addToMyRoster(player) {
