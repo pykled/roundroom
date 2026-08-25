@@ -7853,6 +7853,37 @@ function importListsFromURL() {
   } catch(e) {}
 }
 
+// "J. Daniels" — first initial + last name
+function shortName(full) {
+  if (!full) return '';
+  const parts = full.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return parts[0][0] + '. ' + parts.slice(1).join(' ');
+}
+
+// Per-pick letter grade: blend of ADP value (did they fall?) + VORP tier.
+// Designed for single picks — deliberately simpler than the full-roster gradeDraft().
+function gradePickValue(player, pickNo) {
+  const adp = player.adp || pickNo;
+  const delta = pickNo - adp; // positive = player fell (value), negative = reach
+  const vorp  = lookupVorp(player.name, player.position) || 0;
+  // Normalise VORP to 0-100 range (rough tier thresholds from league data)
+  const vorpScore = Math.max(0, Math.min(100, 30 + vorp * 0.9));
+  // Normalise ADP delta: +10 spots = great value, -10 = big reach
+  const adpScore  = Math.max(0, Math.min(100, 50 + delta * 3.5));
+  const composite = vorpScore * 0.55 + adpScore * 0.45;
+
+  if (composite >= 88) return { grade: 'A+', color: '#22c55e' };
+  if (composite >= 78) return { grade: 'A',  color: '#22c55e' };
+  if (composite >= 68) return { grade: 'A-', color: '#4ade80' };
+  if (composite >= 60) return { grade: 'B+', color: '#86efac' };
+  if (composite >= 52) return { grade: 'B',  color: '#86efac' };
+  if (composite >= 44) return { grade: 'B-', color: '#fbbf24' };
+  if (composite >= 36) return { grade: 'C+', color: '#fbbf24' };
+  if (composite >= 28) return { grade: 'C',  color: '#f97316' };
+  return { grade: 'D', color: '#ef4444' };
+}
+
 // Debounced wrapper for the high-frequency live-poll path (processNewPicks).
 // Coalesces bursts of picks into a single render.
 let _cvRenderTimer = null;
@@ -7950,17 +7981,18 @@ function renderCompanionView() {
 
   // Roster: list of { name, position, team }
   const myRosterPlayers = isMock
-    ? MOCK.picks.filter(p => p.isUser).map(p => ({ name: p.player.name, position: p.player.position, team: p.player.team, bye: p.player.bye }))
+    ? MOCK.picks.filter(p => p.isUser).map(p => ({ name: p.player.name, position: p.player.position, team: p.player.team, bye: p.player.bye, adp: p.player.adp, pickNum: p.pickNum }))
     : (STATE.picks || []).filter(p => myPickNumbers.includes(p.pick_no)).map(p => {
         const m = p.metadata || {};
         const name = m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim();
-        // Enrich with bye week from merged player data
         const merged = (STATE.mergedPlayers || []).find(mp => mp.name === name || mp.sleeper_id === p.player_id);
         return {
           name,
           position: (m.position || '').replace('DEF', 'DST'),
           team: m.team,
-          bye: merged?.bye || null
+          bye: merged?.bye || null,
+          adp: merged?.adp || null,
+          pickNum: p.pick_no
         };
       });
 
@@ -8107,17 +8139,74 @@ function renderCompanionView() {
     </div>`;
   }).join('');
 
-  // ── My roster chips ───────────────────────────────────────────────────
-  document.getElementById('cv-roster').innerHTML = myRosterPlayers.length === 0
-    ? `<span style="font-size:0.72rem;color:var(--text-muted);">No picks yet</span>`
-    : myRosterPlayers.map(p => {
-        const col = posColors[p.position] || '#888';
-        return `<div style="display:flex;align-items:center;gap:0.3rem;padding:0.2rem 0.4rem;background:var(--bg-card);border-radius:5px;border:1px solid var(--border);">
-          <span style="width:5px;height:5px;border-radius:50%;background:${col};"></span>
-          <span style="font-size:0.68rem;font-weight:600;white-space:nowrap;">${escHtml(p.name.split(' ').pop())}</span>
-          <span style="font-size:0.6rem;color:${col};font-weight:700;">${p.position}</span>
-        </div>`;
-      }).join('');
+  // ── My roster — slot-organized vertical list with per-pick grades ────
+  const rc = getRosterConfig();
+  // Build ordered slot list from actual league settings
+  const cvSlots = [];
+  const push = (pos, label, count) => { for (let i = 0; i < count; i++) cvSlots.push({ pos, label }); };
+  push('QB',  'QB',   rc.starters.QB  || 1);
+  push('RB',  'RB',   rc.starters.RB  || 2);
+  push('WR',  'WR',   rc.starters.WR  || 2);
+  push('TE',  'TE',   rc.starters.TE  || 1);
+  push('FLEX','FLEX', rc.starters.FLEX || 1);
+  if (rc.starters.SF > 0) push('SF', 'SF', rc.starters.SF);
+  push('K',   'K',    rc.starters.K   || 1);
+  push('DST', 'DST',  rc.starters.DST || 1);
+  push('BN',  'BN',   rc.bench        || 5);
+
+  // Assign drafted players to slots in order drafted
+  const slotAssigned = [];
+  const posQueues = {};
+  myRosterPlayers.forEach(p => {
+    const pos = p.position === 'DEF' ? 'DST' : p.position;
+    if (!posQueues[pos]) posQueues[pos] = [];
+    posQueues[pos].push(p);
+  });
+  cvSlots.forEach(slot => {
+    const q = posQueues[slot.pos] || posQueues['RB'] || posQueues['WR'] || posQueues['TE'] || [];
+    // FLEX/SF can hold RB, WR, TE, QB
+    let match = null;
+    if (slot.pos === 'FLEX' || slot.pos === 'SF') {
+      const eligible = slot.pos === 'SF' ? ['QB','RB','WR','TE'] : ['RB','WR','TE'];
+      for (const ep of eligible) {
+        if (posQueues[ep]?.length) { match = posQueues[ep].shift(); break; }
+      }
+    } else if (posQueues[slot.pos]?.length) {
+      match = posQueues[slot.pos].shift();
+    } else if (slot.pos === 'BN') {
+      // Bench: take any remaining player
+      for (const ep of ['QB','RB','WR','TE','K','DST']) {
+        if (posQueues[ep]?.length) { match = posQueues[ep].shift(); break; }
+      }
+    }
+    slotAssigned.push({ slot, player: match });
+  });
+
+  const rosterEl = document.getElementById('cv-roster');
+  if (!rosterEl) return;
+  if (myRosterPlayers.length === 0) {
+    rosterEl.innerHTML = `<span style="font-size:0.72rem;color:var(--text-muted);">No picks yet</span>`;
+    return;
+  }
+  rosterEl.style.display = 'flex';
+  rosterEl.style.flexDirection = 'column';
+  rosterEl.style.gap = '2px';
+  rosterEl.innerHTML = slotAssigned.map(({ slot, player }) => {
+    const col = posColors[slot.pos] || posColors[player?.position] || '#888';
+    if (player) {
+      const g = gradePickValue(player, player.pickNum || 0);
+      return `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0.4rem;background:var(--bg-card);border-radius:5px;border:1px solid var(--border);">
+        <span style="font-size:0.62rem;font-weight:700;color:${col};width:28px;flex-shrink:0;">${slot.label}</span>
+        <span style="font-size:0.75rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(shortName(player.name))}</span>
+        <span style="font-size:0.7rem;font-weight:800;color:${g.color};flex-shrink:0;font-family:'DM Mono',monospace;">${g.grade}</span>
+      </div>`;
+    } else {
+      return `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0.4rem;border-radius:5px;">
+        <span style="font-size:0.62rem;font-weight:700;color:var(--text-muted);width:28px;flex-shrink:0;opacity:0.5;">${slot.label}</span>
+        <span style="font-size:0.7rem;color:var(--text-muted);opacity:0.4;">—</span>
+      </div>`;
+    }
+  }).join('');
 }
 
 function buildCompanionReason(player, myRosterPlayers, currentPick) {
@@ -8743,7 +8832,7 @@ if (!document.body.classList.contains('companion-mode')) {
 
     <!-- My roster -->
     <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">My Roster</div>
-    <div id="cv-roster" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+    <div id="cv-roster" style="display:flex;flex-direction:column;gap:2px;"></div>
 
   </div>
 
