@@ -245,6 +245,7 @@ function ensureDraftRelay(draftId) {
   function connectWS() {
     if (relay.clients.size === 0) return;
     const endpoints = [
+      'wss://broadcast.sleeper.app/',              // public broadcast — no auth required (used by Flock, etc.)
       'wss://sleeper.app/socket/websocket?vsn=2.0.0',
       'wss://sleeper.app/ws/websocket?vsn=2.0.0'
     ];
@@ -337,7 +338,7 @@ function ensureDraftRelay(draftId) {
     }
     await fetchAndPush();
     // Slow poll when WS is handling real-time events — just a safety net
-    relay.timer = setTimeout(poll, relay.wsConnected ? 5000 : 400);
+    relay.timer = setTimeout(poll, relay.wsConnected ? 5000 : 200);
   }
 
   connectWS();

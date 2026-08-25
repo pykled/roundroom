@@ -6891,7 +6891,10 @@ function startSleeperWS(draftId) {
   if (!window.WebSocket || !draftId || _sleeperWSDead) return;
 
   try {
-    const ws = new WebSocket('wss://sleeper.app/socket/websocket?vsn=2.0.0');
+    // broadcast.sleeper.app is the unauthenticated public broadcast server
+    // used by third-party draft tools (Flock Fantasy, etc.). The main
+    // sleeper.app socket requires auth and always rejects our join.
+    const ws = new WebSocket('wss://broadcast.sleeper.app/');
     _sleeperWS = ws;
     let msgRef = 0;
     let hb = null;
