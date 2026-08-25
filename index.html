@@ -5090,13 +5090,27 @@ function getStrategyWeight(player, ctx) {
   } else if (strategy === 'hero_rb') {
     const hasHero = ctx.hasHeroRB;
     if (pos === 'RB') {
-      if (effRound <= 3)      w = (!hasHero && rank <= 20) ? 2.5 : 0.2;
-      else if (effRound <= 6) w = (rbCount < 2) ? 0.5 : 0.2;
-      else                    w = 0.2;
+      if (effRound <= 3) {
+        // Hunt elite early; hard-pass on everything else
+        w = (!hasHero && rank <= 20) ? 2.5 : 0.15;
+      } else if (effRound <= 5) {
+        // WR stacking phase — but if hero is locked and you still only have 1 RB,
+        // don't completely freeze out a 2nd RB
+        w = hasHero && rbCount < 2 ? 0.75 : (rbCount < 2 ? 0.35 : 0.15);
+      } else if (effRound <= 9) {
+        // Mid-rounds: secure the 2nd RB (volume back / handcuff), then bench depth
+        w = rbCount < 2 ? 0.95 : (rbCount < 3 ? 0.35 : 0.15);
+      } else {
+        // Late: handcuffs / flex depth
+        w = rbCount < 2 ? 0.85 : (rbCount < 4 ? 0.25 : 0.12);
+      }
     } else if (pos === 'WR') {
       w = hasHero ? (effRound <= 4 ? 1.5 : 1.2) : 1.0;
+    } else if (pos === 'QB') {
+      // Hero RB doesn't value QBs specially — match BPA's deferral (was accidentally 1.0)
+      w = qbCount === 0 ? 0.45 : 0.2;
     }
-    // TE/QB stay at BPA baseline (1.0) for hero_rb.
+    // TE stays at BPA baseline (1.0) for hero_rb.
   } else if (strategy === 'robust_rb') {
     if (pos === 'RB')      w = rbCount < 4 ? (effRound <= 3 ? 2.0 : (effRound <= 6 ? 1.4 : 1.2)) : 0.5;
     else if (pos === 'WR') w = (rbCount >= 2 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
@@ -7936,15 +7950,23 @@ function renderCompanionView() {
 
   // Roster: list of { name, position, team }
   const myRosterPlayers = isMock
-    ? MOCK.picks.filter(p => p.isUser).map(p => ({ name: p.player.name, position: p.player.position, team: p.player.team }))
+    ? MOCK.picks.filter(p => p.isUser).map(p => ({ name: p.player.name, position: p.player.position, team: p.player.team, bye: p.player.bye }))
     : (STATE.picks || []).filter(p => myPickNumbers.includes(p.pick_no)).map(p => {
         const m = p.metadata || {};
+        const name = m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim();
+        // Enrich with bye week from merged player data
+        const merged = (STATE.mergedPlayers || []).find(mp => mp.name === name || mp.sleeper_id === p.player_id);
         return {
-          name: m.player_name || `${m.first_name || ''} ${m.last_name || ''}`.trim(),
+          name,
           position: (m.position || '').replace('DEF', 'DST'),
-          team: m.team
+          team: m.team,
+          bye: merged?.bye || null
         };
       });
+
+  // Pre-compute roster bye weeks + teams for conflict highlighting in rec cards
+  const rosterByes  = new Set(myRosterPlayers.map(p => p.bye).filter(Boolean));
+  const rosterTeams = new Set(myRosterPlayers.map(p => p.team).filter(Boolean));
 
   // ── Pick status header ─────────────────────────────────────────────────
   const pickStatusEl = document.getElementById('cv-pick-status');
@@ -8016,6 +8038,10 @@ function renderCompanionView() {
           const vorp = lookupVorp(p.name, p.position);
           const cvAdp = displayAdp(p);
           const adpStr = cvAdp < 999 ? `${STATE.isSuperflex ? 'SF ADP' : 'ADP'} ${cvAdp.toFixed(1)}` : '';
+          const byeConflict = p.bye && rosterByes.has(p.bye);
+          const teamStack   = p.team && rosterTeams.has(p.team);
+          const byeStr  = p.bye ? `Bye ${p.bye}` : 'Bye ?';
+          const teamStr = p.team || 'FA';
           return `<div class="rec-card" style="${tgt ? 'border-color:rgba(250,204,21,0.4);' : ''}">
             <div class="rec-rank">#${i + 1}</div>
             <div class="rec-player">
@@ -8031,7 +8057,14 @@ function renderCompanionView() {
             </div>
             <div class="rec-why">${escHtml(whyFor(p))}</div>
             <div class="rec-survival">
-              <span style="font-family:'DM Mono',monospace;">${adpStr ? adpStr + ' · ' : ''}${escHtml(p.team || 'FA')} · Bye ${p.bye || '?'}</span>
+              <span style="font-family:'DM Mono',monospace;">
+                ${adpStr ? adpStr + ' · ' : ''}
+                <span style="${teamStack ? 'color:#f59e0b;font-weight:700;' : ''}" title="${teamStack ? 'Already have a player from this team' : ''}">${escHtml(teamStr)}</span>
+                ${teamStack ? '<span title="You already have a player from this team" style="font-size:0.6rem;color:#f59e0b;margin-left:1px;">⚡stack</span>' : ''}
+                ·
+                <span style="${byeConflict ? 'color:#f87171;font-weight:700;' : ''}" title="${byeConflict ? 'Bye week conflict with existing roster player' : ''}">${escHtml(byeStr)}</span>
+                ${byeConflict ? '<span title="Bye week conflict" style="font-size:0.6rem;color:#f87171;margin-left:1px;">⚠</span>' : ''}
+              </span>
               <div style="display:flex;gap:0.4rem;">
                 <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
               </div>
@@ -8053,13 +8086,17 @@ function renderCompanionView() {
     const nameArg = escAttr(JSON.stringify(p.name));
     const reason = whyFor(p);
     const rowAdp = displayAdp(p);
+    const rowByeConflict = p.bye && rosterByes.has(p.bye);
+    const rowTeamStack   = p.team && rosterTeams.has(p.team);
+    const byeLabel = p.bye ? (rowByeConflict ? `⚠ Bye ${p.bye}` : `Bye ${p.bye}`) : '';
     return `<div class="cv-avail-row" style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.5rem;background:var(--bg-card);border-radius:6px;border:1px solid ${tgt ? 'rgba(250,204,21,0.4)' : 'var(--border)'};">
       <span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>
       <span style="flex:1;min-width:0;">
         <span style="display:flex;align-items:center;gap:0.3rem;">
           <span class="cv-avail-name" style="font-size:0.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${tgt ? 'color:var(--gold);' : ''}">${escHtml(p.name)}</span>
           ${injDot(p)}
-          <span class="cv-avail-sub" style="font-size:0.6rem;color:var(--text-muted);flex-shrink:0;">${p.bye ? `Bye ${p.bye}` : ''}</span>
+          ${byeLabel ? `<span class="cv-avail-sub" style="font-size:0.6rem;${rowByeConflict ? 'color:#f87171;font-weight:600;' : 'color:var(--text-muted);'}flex-shrink:0;" title="${rowByeConflict ? 'Bye week conflict' : ''}">${byeLabel}</span>` : ''}
+          ${rowTeamStack ? `<span style="font-size:0.58rem;color:#f59e0b;flex-shrink:0;" title="Same team as a roster player">⚡</span>` : ''}
         </span>
         ${reason ? `<span class="cv-avail-sub" style="font-size:0.6rem;color:var(--text-muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(reason)}</span>` : ''}
       </span>
