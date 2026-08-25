@@ -4858,7 +4858,10 @@ function needGap(pos, ctx) {
 const _scoreCache = { key: null, scores: new Map() };
 const _ctxCache   = { key: null, ctx: null };
 function _scoreCacheKey() {
-  return `${STATE.lastPickCount}|${STATE.strategy||'bpa'}|${STATE.isSuperflex ? 1 : 0}|${STATE.mySlot||0}`;
+  // draftId guards against cross-draft collisions (same pickCount/strategy/slot
+  // in a new draft must not serve the old draft's scores); scoringType because
+  // adjustVorpValue depends on it and it can change after league detection.
+  return `${STATE.draftId||''}|${STATE.lastPickCount}|${STATE.strategy||'bpa'}|${STATE.isSuperflex ? 1 : 0}|${STATE.scoringType||'ppr'}|${STATE.mySlot||0}`;
 }
 function invalidateScoreCache() {
   _scoreCache.key = null; _scoreCache.scores.clear();
@@ -5634,11 +5637,16 @@ function applyDraftStatus(status, initial = false) {
   }
 
   if (status === 'pre_draft') {
+    // Companion is typically opened seconds before the draft goes live — a 15s
+    // status/pick cycle here meant up to two full cycles (~30s+) of dead air
+    // while real picks were already landing. Poll tight in companion mode.
+    const companion = STATE.isCompanion || document.body.classList.contains('companion-mode');
+    const wait = companion ? 2000 : POLL_PRE;
     setLiveStatus(false, 'Waiting for draft');
     countdownBanner.classList.remove('hidden');
     startHeaderCountdown();
-    SYNC.statusTimer = setTimeout(() => { SYNC.statusTimer = null; refreshDraftStatus(); }, POLL_PRE);
-    schedulePoll(POLL_PRE); // status can lag an early start; picks endpoint won't
+    SYNC.statusTimer = setTimeout(() => { SYNC.statusTimer = null; refreshDraftStatus(); }, wait);
+    schedulePoll(wait); // status can lag an early start; picks endpoint won't
     return;
   }
 
@@ -5759,6 +5767,16 @@ async function _pollPicksInner() {
       gotNew = processNewPicks(picks);
     }
     SYNC.failCount = 0;
+    // Picks landing while status still says pre_draft means the draft IS live
+    // and Sleeper's status endpoint is lagging. Flip immediately so the next
+    // poll takes the fast companion branch (50/500ms) instead of waiting out
+    // the pre-draft interval for the status refresh to catch up.
+    if (companion && gotNew && STATE.draftStatus === 'pre_draft') {
+      STATE.draftStatus = 'drafting';
+      setLiveStatus(true, 'LIVE');
+      const banner = document.getElementById('countdown-banner');
+      if (banner) banner.classList.add('hidden');
+    }
     if (drafting) setLiveStatus(true, companion ? 'LIVE' : 'LIVE · polling');
     if (STATE.draftComplete) return;
     const interval =
@@ -7314,6 +7332,15 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   STATE.draftedIds = new Set();
   STATE.draftedNames = new Set();
   STATE.lastPickCount = 0;
+  // Full per-draft reset: stale picks corrupt the roster/recent-runs views, and
+  // a leftover draftComplete=true from a finished prior draft makes
+  // schedulePoll() a permanent no-op — the companion would never poll again.
+  STATE.picks = [];
+  STATE.draftComplete = false;
+  STATE.draftStatus = null;
+  STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
+  _vorpLookupCache.clear(); // cached VORP values depend on the previous draft's SF/scoring mode
+  invalidateScoreCache();
   document.body.classList.add('companion-mode');
 
   // ── Fire ALL independent fetches in parallel ─────────────────────────────
