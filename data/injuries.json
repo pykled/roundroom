@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-24T22:32:09.581Z",
+  "fetched_at": "2026-08-25T01:36:48.850Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -249,8 +249,8 @@
     {
       "name": "Caullin Lacy",
       "position": "WR",
-      "team": null,
-      "status": "Questionable",
+      "team": "NYJ",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -688,6 +688,13 @@
       "body_part": "Knee - MCL"
     },
     {
+      "name": "J. Michael Sturdivant",
+      "position": "WR",
+      "team": "GB",
+      "status": "Questionable",
+      "body_part": "Concussion"
+    },
+    {
       "name": "J.J. McCarthy",
       "position": "QB",
       "team": "MIN",
@@ -1076,7 +1083,7 @@
       "name": "Kye Robichaux",
       "position": "RB",
       "team": "DET",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Foot"
     },
     {
@@ -1325,6 +1332,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Oscar Delp",
+      "position": "TE",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Parker Washington",
       "position": "WR",
       "team": "JAX",
@@ -1467,8 +1481,8 @@
     {
       "name": "Sam Scott",
       "position": "RB",
-      "team": null,
-      "status": "Questionable",
+      "team": "NYJ",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -1538,7 +1552,7 @@
       "name": "Tanner McLachlan",
       "position": "TE",
       "team": "SF",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
