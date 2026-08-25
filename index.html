@@ -4858,7 +4858,7 @@ function needGap(pos, ctx) {
 const _scoreCache = { key: null, scores: new Map() };
 const _ctxCache   = { key: null, ctx: null };
 function _scoreCacheKey() {
-  return `${STATE.lastPickCount}|${STATE.strategy}|${STATE.isSuperflex ? 1 : 0}|${STATE.mySlot}`;
+  return `${STATE.lastPickCount}|${STATE.strategy||'bpa'}|${STATE.isSuperflex ? 1 : 0}|${STATE.mySlot||0}`;
 }
 function invalidateScoreCache() {
   _scoreCache.key = null; _scoreCache.scores.clear();
@@ -7122,7 +7122,7 @@ async function companionSaveUsername(draftId, totalTeams, totalRounds) {
         if (autoSlot) {
           status.style.color = '#6366f1';
           status.textContent = `✓ Found you — Slot ${autoSlot}. Loading…`;
-          setTimeout(() => companionSelectSlot(autoSlot, draftId, totalTeams || draft.settings?.teams || 12, totalRounds || draft.settings?.rounds || 15), 600);
+          companionSelectSlot(autoSlot, draftId, totalTeams || draft.settings?.teams || 12, totalRounds || draft.settings?.rounds || 15);
           return;
         } else {
           // Username is valid on Sleeper but not a participant in this draft
@@ -7296,87 +7296,93 @@ function companionScoringFromDraft(d) {
 }
 
 async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
-  // Loading state while player data loads
   document.getElementById('setup-screen').innerHTML = `
     <div style="padding:2rem;text-align:center;">
       <div class="spinner" style="margin:0 auto 1rem;"></div>
-      <p style="color:var(--text-muted);font-size:0.85rem;">Loading player data…</p>
+      <p style="color:var(--text-muted);font-size:0.85rem;">Loading…</p>
     </div>
   `;
 
-  // Core STATE
+  // Core STATE — set immediately so poll timings and pick numbers are ready
   STATE.mySlot = slot;
   STATE.totalTeams = totalTeams;
   STATE.totalRounds = totalRounds;
   STATE.draftId = draftId;
   STATE.myPickNumbers = calcMyPicks(slot, totalTeams, totalRounds);
   STATE.isMockMode = false;
-  // Explicit companion flag: the poll loop keys its fast timings off this.
-  // The body class alone was fragile (only added by the ?companion=1 URL
-  // path); without it the poller fell through to the slow main-app intervals.
   STATE.isCompanion = true;
+  STATE.draftedIds = new Set();
+  STATE.draftedNames = new Set();
+  STATE.lastPickCount = 0;
   document.body.classList.add('companion-mode');
 
-  // Refetch draft for superflex detection + league name (initMainView needs selectedLeague)
-  let draftName = 'Sleeper Draft';
+  // ── Fire ALL independent fetches in parallel ─────────────────────────────
+  // Draft must resolve first (need league_id); everything else is independent.
+  const adpPromise  = fetch('/api/composite-adp').catch(() => null);
+  const vorpPromise = fetch('/api/vorp').catch(() => null);
+
+  // Draft fetch — needed to get league_id for SF/scoring detection
+  let d = null;
   try {
     const dResp = await fetch(`https://api.sleeper.app/v1/draft/${draftId}`);
-    const d = await dResp.json();
-    // Prefer league roster_positions (canonical source) over draft settings heuristics
-    let detectedSF = false;
-    if (d.league_id) {
-      try {
-        const lResp = await fetch(`https://api.sleeper.app/v1/league/${d.league_id}`);
-        const league = await lResp.json();
+    if (dResp.ok) d = await dResp.json();
+  } catch(e) {}
+
+  // Now start league + picks fetches immediately (parallel with adp/vorp finishing)
+  const leaguePromise = d?.league_id
+    ? fetch(`https://api.sleeper.app/v1/league/${d.league_id}`).catch(() => null)
+    : Promise.resolve(null);
+  const picksPromise = fetch(`https://api.sleeper.app/v1/draft/${draftId}/picks`).catch(() => null);
+
+  // Await the remaining parallel fetches together
+  const [adpResp, vorpResp, leagueResp, picksResp] = await Promise.all([
+    adpPromise, vorpPromise, leaguePromise, picksPromise
+  ]);
+
+  // ── Process draft/league metadata ────────────────────────────────────────
+  let draftName = 'Sleeper Draft';
+  try {
+    if (d) {
+      let detectedSF = false;
+      if (leagueResp?.ok) {
+        const league = await leagueResp.json();
         detectedSF = (league.roster_positions || []).includes('SUPER_FLEX') ||
           (d.settings?.slots_super_flex || 0) > 0;
-        // League scoring settings are canonical — without this every companion
-        // draft scored as full PPR regardless of the league's actual format.
-        STATE.scoringType = league.scoring_settings?.rec === 1 ? 'ppr' : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'standard';
-      } catch(e) {
-        // Fallback: only the explicit SF slot count is trustworthy. scoring_type
-        // '2qb' and slots_qb >= 2 both false-positive on non-SF drafts (Sleeper
-        // tags some standard mocks '2qb'; 2QB leagues aren't superflex).
+        STATE.scoringType = league.scoring_settings?.rec === 1 ? 'ppr'
+          : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'standard';
+      } else {
         detectedSF = (d.settings?.slots_super_flex || 0) > 0;
         STATE.scoringType = companionScoringFromDraft(d);
       }
-    } else {
-      detectedSF = (d.settings?.slots_super_flex || 0) > 0;
-      STATE.scoringType = companionScoringFromDraft(d);
+      STATE.isSuperflex = detectedSF;
+      console.log('companionSelectSlot: superflex detection →', detectedSF,
+        '(league_id:', d.league_id || 'none', ', slots_super_flex:', d.settings?.slots_super_flex || 0, ')');
+      if (STATE.isSuperflex && (!STATE.strategy || STATE.strategy === 'bpa')) {
+        STATE.strategy = 'superflex';
+      } else if (!STATE.isSuperflex && (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt')) {
+        STATE.strategy = 'bpa';
+      }
+      STATE.selectedDraft = d;
+      STATE.rosterConfig = deriveRosterConfig(d.settings || null, STATE.isSuperflex);
+      draftName = d.metadata?.name || 'Sleeper Draft';
     }
-    STATE.isSuperflex = detectedSF;
-    console.log('companionSelectSlot: superflex detection →', detectedSF,
-      '(league_id:', d.league_id || 'none',
-      ', slots_super_flex:', d.settings?.slots_super_flex || 0, ')');
-    if (STATE.isSuperflex && (!STATE.strategy || STATE.strategy === 'bpa')) {
-      STATE.strategy = 'superflex';
-    } else if (!STATE.isSuperflex && (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt')) {
-      STATE.strategy = 'bpa';
-    }
-    STATE.selectedDraft = d;
-    STATE.rosterConfig = deriveRosterConfig(d.settings || null, STATE.isSuperflex);
-    draftName = d.metadata?.name || 'Sleeper Draft';
   } catch(e) {
-    // Draft fetch failed — reset to safe defaults instead of silently carrying
-    // whatever SF/scoring/roster state a previous draft left behind.
     STATE.isSuperflex = false;
     STATE.scoringType = 'ppr';
     STATE.rosterConfig = deriveRosterConfig(null, false);
     if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') STATE.strategy = 'bpa';
-    console.error('companionSelectSlot: draft/league fetch failed — using default (1QB, PPR) settings', e);
+    console.error('companionSelectSlot: draft/league fetch failed', e);
   }
   STATE.selectedLeague = { name: draftName };
 
-  // Superflex header badge
   const sfBadge = document.getElementById('sf-badge');
   if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? 'inline-block' : 'none';
 
-  // Load ADP (composite first, then Sleeper-only fallback)
+  // ── Process ADP ──────────────────────────────────────────────────────────
   let adpData = null;
   try {
-    const r = await fetch('/api/composite-adp');
-    if (r.ok) {
-      const json = await r.json();
+    if (adpResp?.ok) {
+      const json = await adpResp.json();
       adpData = { players: (json.players||[]).map(p => ({
         name: p.name, position: p.position, team: p.team||'',
         adp: p.composite_adp||p.sleeper_adp||p.fantasypros_adp||999,
@@ -7392,16 +7398,12 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   if (!adpData?.players?.length) {
     try { const r = await fetch('/api/adp'); if (r.ok) adpData = await r.json(); } catch(e) {}
   }
+  if (!adpData?.players?.length) { showError('Failed to load player data'); return; }
 
-  if (!adpData?.players?.length) {
-    showError('Failed to load player data'); return;
-  }
-
-  // Load VORP (non-fatal)
+  // ── Process VORP ─────────────────────────────────────────────────────────
   try {
-    const vr = await fetch('/api/vorp');
-    if (vr.ok) {
-      const vd = await vr.json();
+    if (vorpResp?.ok) {
+      const vd = await vorpResp.json();
       const vm = {};
       (vd.players||[]).forEach(p => { if (p?.name) vm[p.name.toLowerCase()] = {vorp_std:p.vorp_std,vorp_sf:p.vorp_sf}; });
       (adpData.players||[]).forEach(p => { const v=vm[(p.name||'').toLowerCase()]; if(v){p.vorp_std=v.vorp_std;p.vorp_sf=v.vorp_sf;} });
@@ -7411,22 +7413,24 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
 
   STATE.adpPlayers = (adpData.players||[]).filter(p => p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
   STATE.mergedPlayers = mergePlayers(STATE.adpPlayers, {});
+  invalidateScoreCache();
 
-  // Load existing picks
+  // ── Process existing picks ────────────────────────────────────────────────
   try {
-    const pr = await fetch(`https://api.sleeper.app/v1/draft/${draftId}/picks`);
-    const picks = await pr.json();
-    if (picks) processNewPicks(picks, true);
+    if (picksResp?.ok) {
+      const picks = await picksResp.json();
+      if (picks) processNewPicks(picks, true);
+    }
   } catch(e) {}
 
-  // Switch to compact companion view (not the full app-screen)
+  // ── Show UI immediately ───────────────────────────────────────────────────
   document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('ai-fab').style.display = 'none'; // hide FAB in companion
+  document.getElementById('ai-fab').style.display = 'none';
   STATE.isMockMode = false;
 
-  startDraftSync(); // real sync, not mock (REST polling — safety net)
-  startCompanionSSE(STATE.draftId); // fast path: server-side SSE relay
-  startSleeperWS(STATE.draftId);    // fastest path: direct browser → Sleeper WS
+  startDraftSync();
+  startCompanionSSE(STATE.draftId);
+  startSleeperWS(STATE.draftId);
   renderCompanionView();
 }
 
