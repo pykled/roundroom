@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T16:42:58.372Z",
+  "fetched_at": "2026-08-25T18:46:18.544Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -968,6 +968,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Josh Downs",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
@@ -1057,6 +1064,13 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Kenneth Walker",
+      "position": "RB",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Kenny Yeboah",
@@ -1402,13 +1416,6 @@
       "body_part": "Lower Body"
     },
     {
-      "name": "Quinshon Judkins",
-      "position": "RB",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Rachaad White",
       "position": "RB",
       "team": "WAS",
@@ -1563,6 +1570,13 @@
       "body_part": "Personal"
     },
     {
+      "name": "Terrance Ferguson",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Terrell Jennings",
       "position": "RB",
       "team": null,
@@ -1671,7 +1685,7 @@
       "name": "Tyler Warren",
       "position": "TE",
       "team": "IND",
-      "status": "Out",
+      "status": "Questionable",
       "body_part": "Groin"
     },
     {
