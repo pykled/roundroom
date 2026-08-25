@@ -5477,14 +5477,25 @@ function updatePickCounter() {
 }
 
 // ===== LIVE DRAFT SYNC =====
-// REST polling. The Sleeper WebSocket is NOT usable here: the old URL
-// (wss://sleeper.app/ws/websocket) 404s, and the real Phoenix socket
-// (wss://sleeper.app/socket/websocket) rejects `draft:{id}` joins with
-// "unmatched topic" unless the socket is authenticated — which a public
-// companion page can't do. Verified 2026-08-13 with a direct Node client.
-// Companion mode instead runs a cheap 1.5s heartbeat against
-// /v1/draft/{id} (~1KB) and only fetches the full picks list (30KB+)
-// when `last_picked` changes, with a periodic forced reconciliation.
+// REST polling. The Sleeper WebSocket is NOT usable unauthenticated.
+// Re-verified 2026-08-25 with direct Node clients + WS upgrade probes:
+//   - wss://broadcast.sleeper.app/         → NXDOMAIN (host does not exist)
+//   - wss://gateway.sleeper.com/socket/websocket → the socket Sleeper's own
+//     clients use, but it REQUIRES ?token={auth} (500 with no token, 403 with
+//     a bad one). Authenticated joins get real-time `player_picked` events
+//     (payload: pick_no, player_id, picked_by, metadata{first_name,last_name,
+//     team, position, injury_status}).
+//   - wss://sleeper.app/socket/websocket?vsn=2.0.0 → accepts the connection
+//     but rejects `draft:{id}` phx_join with "unmatched topic" (route-level;
+//     no draft topics on the public socket).
+// startSleeperWS() still attempts the public socket once per session in case
+// Sleeper ever opens draft topics, but gives up permanently on join rejection.
+//
+// The ACTUAL latency culprit for REST polling: /v1/draft/{id}/picks is served
+// through Cloudflare with `cache-control: s-maxage=300, stale-while-revalidate`
+// — the edge may serve the same cached picks list for many seconds no matter
+// how fast we poll. Every sync-loop fetch cache-busts with a timestamp query
+// param so each poll gets a distinct cache key and hits origin.
 
 const SYNC = {
   ws: null,
@@ -5520,6 +5531,8 @@ function startDraftSync() {
   SYNC.stopped = false;
   SYNC.lastPicked = -1;
   SYNC.hbCount = 0;
+  // New draft session → give the direct Sleeper WS a fresh chance
+  if (typeof _sleeperWSDead !== 'undefined') { _sleeperWSDead = false; _sleeperWSDelay = 1000; }
   setLiveStatus(false, 'Connecting…');
   refreshDraftStatus(true);
 }
@@ -5690,9 +5703,16 @@ function scheduleImmediatePoll() {
   }, 30);
 }
 
+// Cache-buster: /picks sits behind Cloudflare with s-maxage=300 — an
+// unchanging URL can be served stale from the edge for minutes. A per-request
+// timestamp param forces a distinct cache key (and hits origin) every time.
+function picksUrl() {
+  return `https://api.sleeper.app/v1/draft/${STATE.draftId}/picks?_=${Date.now()}`;
+}
+
 async function fetchPicksOnce() {
   try {
-    const resp = await fetch(`https://api.sleeper.app/v1/draft/${STATE.draftId}/picks`);
+    const resp = await fetch(picksUrl());
     if (resp.ok) processNewPicks(await resp.json());
   } catch(e) {}
 }
@@ -5743,7 +5763,7 @@ async function _pollPicksInner() {
     // Companion: single-hop directly to picks endpoint — skip the metadata
     // pre-check. The two-hop approach (metadata → picks) doubled latency.
     if (companion && drafting) {
-      const resp = await timedFetch(`https://api.sleeper.app/v1/draft/${STATE.draftId}/picks`);
+      const resp = await timedFetch(picksUrl());
       if (!resp.ok) throw new Error('API error');
       const picks = await resp.json();
       const gotNew = processNewPicks(picks);
@@ -5761,7 +5781,7 @@ async function _pollPicksInner() {
     // Non-companion (or companion while paused/pre-draft): original path
     let gotNew = false;
     {
-      const resp = await timedFetch(`https://api.sleeper.app/v1/draft/${STATE.draftId}/picks`);
+      const resp = await timedFetch(picksUrl());
       if (!resp.ok) throw new Error('API error');
       const picks = await resp.json();
       gotNew = processNewPicks(picks);
@@ -6850,34 +6870,44 @@ function startCompanionSSE(draftId) {
   };
 }
 
-// --- Direct client-side Sleeper WebSocket (fastest path) ---
-// Joins Sleeper's Phoenix channel for the draft straight from the browser.
-// The moment a draft event (pick, pause, resume) arrives we trigger an
-// immediate REST fetch — no server hop, ~100-200ms end-to-end. SSE relay and
-// REST polling remain as fallbacks if the WS can't connect.
+// --- Direct client-side Sleeper WebSocket (fastest path, opportunistic) ---
+// Phoenix Channels client against Sleeper's public socket. As of 2026-08-25
+// unauthenticated `draft:{id}` joins are rejected ("unmatched topic") — the
+// authenticated socket is wss://gateway.sleeper.com/socket/websocket?token=…
+// which a public page can't use. We still try once per session: if Sleeper
+// ever opens draft topics this lights up for free. On a successful join,
+// `player_picked` events carry the pick payload (pick_no, player_id,
+// picked_by, metadata) — processed directly, with an immediate REST fetch as
+// reconciliation. On join rejection we stop for good; SSE + cache-busted
+// 500ms polling are the real sync path.
 let _sleeperWS = null;
 let _sleeperWSTimer = null;
+let _sleeperWSDelay = 1000;   // reconnect backoff, 1s → 15s cap
+let _sleeperWSDead = false;   // join rejected — don't retry this session
 
 function startSleeperWS(draftId) {
   if (_sleeperWS) { try { _sleeperWS.close(); } catch(e) {} _sleeperWS = null; }
   if (_sleeperWSTimer) { clearTimeout(_sleeperWSTimer); _sleeperWSTimer = null; }
-  if (!window.WebSocket || !draftId) return;
+  if (!window.WebSocket || !draftId || _sleeperWSDead) return;
 
   try {
     const ws = new WebSocket('wss://sleeper.app/socket/websocket?vsn=2.0.0');
     _sleeperWS = ws;
     let msgRef = 0;
     let hb = null;
+    let joined = false;
+    const topicName = `draft:${draftId}`;
 
     ws.onopen = () => {
       msgRef++;
-      ws.send(JSON.stringify([String(msgRef), String(msgRef), `draft:${draftId}`, 'phx_join', {}]));
+      // [join_ref, msg_ref, topic, event, payload]
+      ws.send(JSON.stringify([String(msgRef), String(msgRef), topicName, 'phx_join', {}]));
       hb = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
           msgRef++;
           ws.send(JSON.stringify([null, String(msgRef), 'phoenix', 'heartbeat', {}]));
         }
-      }, 25000);
+      }, 30000);
     };
 
     ws.onmessage = (e) => {
@@ -6885,24 +6915,58 @@ function startSleeperWS(draftId) {
         const msg = JSON.parse(e.data);
         if (!Array.isArray(msg)) return;
         const topic = msg[2], event = msg[3], payload = msg[4];
-        if (event === 'phx_reply' && payload?.status === 'ok') { schedulePoll(0); return; }
-        if (event === 'phx_reply' && payload?.status === 'error') {
-          // Draft channel unavailable (not yet active, or no WS support) — close and rely on polling
-          try { ws.close(); } catch(_2) {}
+        if (topic !== topicName && topic !== 'phoenix') return;
+
+        if (event === 'phx_reply') {
+          if (payload?.status === 'ok' && topic === topicName && !joined) {
+            joined = true;
+            _sleeperWSDelay = 1000; // reset backoff on a good join
+            SYNC.wsConnected = true;
+            console.log('[SleeperWS] joined', topic);
+            if (STATE.draftStatus === 'drafting') setLiveStatus(true, 'LIVE');
+            schedulePoll(0); // reconcile immediately on connect
+          } else if (payload?.status === 'error' && topic === topicName) {
+            // "unmatched topic" — unauthenticated draft joins aren't allowed.
+            // Permanent for this session; don't burn a reconnect loop all draft.
+            console.log('[SleeperWS] join rejected — falling back to SSE/polling');
+            _sleeperWSDead = true;
+            try { ws.close(); } catch(_2) {}
+          }
           return;
         }
-        if (topic === `draft:${draftId}` && event !== 'phx_error' && event !== 'phx_close') {
-          scheduleImmediatePoll(); // pick happened — fetch immediately (debounced ~120ms for bursts)
+        if (event === 'phx_error' || event === 'phx_close') return; // onclose handles it
+
+        // Draft event. Known pick events ('player_picked' on the authed
+        // socket; 'picked'/'draft_update' seen in other Phoenix apps) may
+        // carry pick data we can apply instantly.
+        const picks =
+          Array.isArray(payload?.picks) ? payload.picks :
+          (payload?.pick && payload.pick.pick_no) ? [payload.pick] :
+          (payload?.pick_no && payload?.player_id) ? [payload] : null;
+        if (picks) {
+          // WS payloads can omit `round` — derive it so renders don't misfile
+          picks.forEach(p => { if (!p.round && STATE.totalTeams) p.round = Math.ceil(p.pick_no / STATE.totalTeams); });
+          processNewPicks(picks);
         }
-      } catch(_) {}
+        // Always reconcile via REST — WS payload may be partial or a
+        // non-pick event (pause/resume/trade/autopick). Debounced ~30ms.
+        scheduleImmediatePoll();
+        if (/pause|resume|start|complete|status/i.test(String(event))) refreshDraftStatus();
+      } catch(err) {
+        console.warn('[SleeperWS] message parse error', err);
+      }
     };
 
     ws.onclose = () => {
       if (hb) { clearInterval(hb); hb = null; }
       if (_sleeperWS === ws) _sleeperWS = null;
-      // Reconnect if draft still active
-      if (!STATE.draftComplete && STATE.draftId === draftId && !SYNC.stopped) {
-        _sleeperWSTimer = setTimeout(() => startSleeperWS(draftId), 4000);
+      if (joined) SYNC.wsConnected = false;
+      // Reconnect with backoff only if the join worked before (a live channel
+      // dropped mid-draft) and the draft is still active.
+      if (joined && !_sleeperWSDead && !STATE.draftComplete && STATE.draftId === draftId && !SYNC.stopped) {
+        _sleeperWSDelay = Math.min(_sleeperWSDelay * 2, 15000);
+        console.log(`[SleeperWS] reconnecting in ${_sleeperWSDelay}ms`);
+        _sleeperWSTimer = setTimeout(() => startSleeperWS(draftId), _sleeperWSDelay);
       }
     };
     ws.onerror = () => {};
