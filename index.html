@@ -5112,8 +5112,8 @@ function getStrategyWeight(player, ctx) {
     }
     // TE stays at BPA baseline (1.0) for hero_rb.
   } else if (strategy === 'robust_rb') {
-    if (pos === 'RB')      w = rbCount < 4 ? (effRound <= 3 ? 2.0 : (effRound <= 6 ? 1.4 : 1.2)) : 0.5;
-    else if (pos === 'WR') w = (rbCount >= 2 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
+    if (pos === 'RB')      w = rbCount < 4 ? (effRound <= 3 ? 2.0 : (effRound <= 6 ? 1.55 : 1.2)) : 0.5;
+    else if (pos === 'WR') w = (rbCount >= 3 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
     else if (pos === 'TE') w = (teCount === 0 && effRound >= 4) ? 1.3 : 1.0;
   } else if (strategy === 'superflex') {
     // maxStarterQB = dedicated QB slots + SF slots (all can start QBs in SF).
