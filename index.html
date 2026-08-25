@@ -4956,7 +4956,26 @@ function needMultiplier(pos, ctx) {
   if (pos === 'TE' && have >= Math.ceil(req) + 1) mNeed = 0.5;                   // one backup TE max
   if (pos === 'QB' && !ctx.isSuperflex && have >= Math.ceil(req) + 1) mNeed = 0.5;
 
-  return Math.max(0.5, Math.min(1.6, mNeed));
+  // Cross-position balance penalty — penalizes stacking one skill position while
+  // others are underfilled. Compares how many picks-ahead-of-req this position is
+  // vs the most underfilled other skill position.
+  if (pos === 'RB' || pos === 'WR' || pos === 'TE') {
+    const others = ['RB', 'WR', 'TE'].filter(p => p !== pos);
+    // surplus = how far above starter requirement (positive = overstacked)
+    const mySurplus = have - positionReq(pos, ctx.isSuperflex);
+    // maxDeficit = worst underfill among peer positions (positive = they need more)
+    const maxDeficit = Math.max(0, ...others.map(p =>
+      positionReq(p, ctx.isSuperflex) - (ctx.counts[p] || 0)
+    ));
+    // If we're 1+ picks over req AND a peer position is meaningfully underfilled,
+    // apply a stacking penalty proportional to the imbalance.
+    if (mySurplus >= 1 && maxDeficit >= 0.5) {
+      const imbalance = Math.min(mySurplus, 2.5); // cap at 2.5 surplus picks
+      mNeed *= Math.max(0.45, 1 - 0.12 * imbalance); // ~12% per surplus pick, floor 0.45
+    }
+  }
+
+  return Math.max(0.4, Math.min(1.6, mNeed));
 }
 
 // §4 — urgency: survival × tier break × position run. Returns { mUrgency, tierCount, tierSurvivors }.
