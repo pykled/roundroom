@@ -7854,8 +7854,11 @@ function importListsFromURL() {
 }
 
 // "J. Daniels" — first initial + last name
-function shortName(full) {
+// shortName(full, position, team)
+// DST: use team abbreviation ("PHI"). Others: "J. Daniels" format.
+function shortName(full, position, team) {
   if (!full) return '';
+  if (position === 'DST' || position === 'DEF') return team || full;
   const parts = full.trim().split(/\s+/);
   if (parts.length === 1) return parts[0];
   return parts[0][0] + '. ' + parts.slice(1).join(' ');
@@ -8197,7 +8200,7 @@ function renderCompanionView() {
       const g = gradePickValue(player, player.pickNum || 0);
       return `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0.4rem;background:var(--bg-card);border-radius:5px;border:1px solid var(--border);">
         <span style="font-size:0.62rem;font-weight:700;color:${col};width:28px;flex-shrink:0;">${slot.label}</span>
-        <span style="font-size:0.75rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(shortName(player.name))}</span>
+        <span style="font-size:0.75rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(shortName(player.name, player.position, player.team))}</span>
         <span style="font-size:0.7rem;font-weight:800;color:${g.color};flex-shrink:0;font-family:'DM Mono',monospace;">${g.grade}</span>
       </div>`;
     } else {
