@@ -7716,6 +7716,7 @@ function toggleDND(name) {
   if (_DND.has(k)) _DND.delete(k);
   else { _DND.set(k, name); _TARGET.delete(k); } // a player can't be both
   saveCustomLists();
+  invalidateScoreCache(); // DND state is checked inside computeScoreBreakdown
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   if (document.getElementById('cv-lists-overlay')?.style.display === 'flex') renderListsOverlay();
 }
@@ -7726,6 +7727,7 @@ function toggleTarget(name) {
   if (_TARGET.has(k)) _TARGET.delete(k);
   else { _TARGET.set(k, name); _DND.delete(k); }
   saveCustomLists();
+  invalidateScoreCache(); // mTarget multiplier depends on target state
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   if (document.getElementById('cv-lists-overlay')?.style.display === 'flex') renderListsOverlay();
 }
@@ -7813,9 +7815,33 @@ function renderCompanionViewDebounced() {
 
 function setCompanionStrategy(strat) {
   STATE.strategy = strat;
-  document.getElementById('cv-strat-premium')?.classList.toggle('active', strat === 'superflex');
-  document.getElementById('cv-strat-punt')?.classList.toggle('active', strat === 'superflex_punt');
+  invalidateScoreCache();
+  syncCompanionStrategyBtns();
   renderCompanionView();
+}
+
+function syncCompanionStrategyBtns() {
+  const strat = STATE.strategy;
+  const isSF = STATE.isSuperflex;
+  const sfIds   = ['cv-strat-premium','cv-strat-punt'];
+  const stdIds  = ['cv-strat-bpa','cv-strat-zerorb','cv-strat-herorb','cv-strat-robustrb'];
+  const stratMap = {
+    'cv-strat-premium': 'superflex', 'cv-strat-punt': 'superflex_punt',
+    'cv-strat-bpa': 'bpa', 'cv-strat-zerorb': 'zero_rb',
+    'cv-strat-herorb': 'hero_rb', 'cv-strat-robustrb': 'robust_rb'
+  };
+  sfIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = isSF ? '' : 'none';
+    el.classList.toggle('active', strat === stratMap[id]);
+  });
+  stdIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = !isSF ? '' : 'none';
+    el.classList.toggle('active', strat === stratMap[id]);
+  });
 }
 
 function companionToggleSF() {
@@ -7850,13 +7876,11 @@ function renderCompanionView() {
     }
   }
 
-  // SF-only strategy toggle (QB Premium vs QB Punt)
+  // Strategy toggle — SF shows QB Premium / QB Punt; standard shows BPA / Zero RB / Hero RB / Robust RB
   const stratToggle = document.getElementById('cv-strategy-toggle');
   if (stratToggle) {
-    stratToggle.style.display = STATE.isSuperflex ? 'flex' : 'none';
-    // sync active state in case strategy was set elsewhere
-    document.getElementById('cv-strat-premium')?.classList.toggle('active', STATE.strategy !== 'superflex_punt');
-    document.getElementById('cv-strat-punt')?.classList.toggle('active', STATE.strategy === 'superflex_punt');
+    stratToggle.style.display = 'flex';
+    syncCompanionStrategyBtns();
   }
 
   // Show refresh + lists buttons whenever companion is active
@@ -7972,8 +7996,7 @@ function renderCompanionView() {
             <div class="rec-survival">
               <span style="font-family:'DM Mono',monospace;">${adpStr ? adpStr + ' · ' : ''}${escHtml(p.team || 'FA')} · Bye ${p.bye || '?'}</span>
               <div style="display:flex;gap:0.4rem;">
-                <button onclick='event.stopPropagation();toggleTarget(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid ${tgt ? 'rgba(250,204,21,0.5)' : 'var(--border)'};background:${tgt ? 'rgba(250,204,21,0.12)' : 'none'};color:${tgt ? 'var(--gold)' : 'var(--text-secondary)'};font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">${tgt ? '★ Targeted' : '★ Target'}</button>
-                <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
+                <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
               </div>
             </div>
           </div>`;
@@ -8628,9 +8651,15 @@ if (!document.body.classList.contains('companion-mode')) {
 
     <!-- Top 5 recommendations (same card system as the main panel) -->
     <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Recommendations</div>
-    <div id="cv-strategy-toggle" style="display:none;gap:0.3rem;margin-bottom:0.6rem;">
-      <button id="cv-strat-premium" onclick="setCompanionStrategy('superflex')" class="cv-strat-btn active">QB Premium</button>
-      <button id="cv-strat-punt" onclick="setCompanionStrategy('superflex_punt')" class="cv-strat-btn">QB Punt</button>
+    <div id="cv-strategy-toggle" style="display:flex;gap:0.3rem;margin-bottom:0.6rem;flex-wrap:wrap;">
+      <!-- SF strategies -->
+      <button id="cv-strat-premium" onclick="setCompanionStrategy('superflex')" class="cv-strat-btn" style="display:none;">QB Premium</button>
+      <button id="cv-strat-punt" onclick="setCompanionStrategy('superflex_punt')" class="cv-strat-btn" style="display:none;">QB Punt</button>
+      <!-- Standard strategies -->
+      <button id="cv-strat-bpa" onclick="setCompanionStrategy('bpa')" class="cv-strat-btn" style="display:none;">BPA</button>
+      <button id="cv-strat-zerorb" onclick="setCompanionStrategy('zero_rb')" class="cv-strat-btn" style="display:none;">Zero RB</button>
+      <button id="cv-strat-herorb" onclick="setCompanionStrategy('hero_rb')" class="cv-strat-btn" style="display:none;">Hero RB</button>
+      <button id="cv-strat-robustrb" onclick="setCompanionStrategy('robust_rb')" class="cv-strat-btn" style="display:none;">Robust RB</button>
     </div>
     <div id="cv-recs" style="margin-bottom:0.75rem;"></div>
 
