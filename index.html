@@ -235,48 +235,52 @@
 
   .home-bookmarklet {
     margin-top: 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.85rem 1rem;
-    background: var(--bg-card);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    background: rgba(52,211,153,0.04);
+  }
+  .home-bookmarklet-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .hbs-step {
     display: flex;
     align-items: center;
-    gap: 0.9rem;
+    gap: 0.65rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
   }
-  .home-bookmarklet-icon {
-    font-size: 1.3rem;
-    flex-shrink: 0;
-  }
-  .home-bookmarklet-text {
-    flex: 1;
-  }
-  .home-bookmarklet-label {
-    font-size: 0.8rem;
+  .hbs-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(52,211,153,0.15);
+    border: 1px solid rgba(52,211,153,0.3);
+    color: #34d399;
+    font-size: 0.65rem;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.15rem;
-  }
-  .home-bookmarklet-sub {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    line-height: 1.4;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
   .home-bookmarklet-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.45rem 0.8rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 8px;
     background: rgba(99,102,241,0.15);
     border: 1px solid rgba(99,102,241,0.35);
     color: var(--accent);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     text-decoration: none;
     cursor: grab;
     flex-shrink: 0;
     white-space: nowrap;
     transition: background 0.15s;
+    margin-left: auto;
   }
   .home-bookmarklet-btn:hover { background: rgba(99,102,241,0.25); }
 
@@ -2220,14 +2224,14 @@
     <div class="home-left">
       <div class="home-pill">NFL Fantasy 2026</div>
       <div class="home-wordmark">RoundRoom</div>
-      <div class="home-tagline">Your edge in Sleeper fantasy drafts.</div>
-      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;">AI-powered rankings, real-time draft sync, and expert insights.</div>
+      <div class="home-tagline">Live draft companion for Sleeper.</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;">Tracks every pick in real time · VORP-ranked recommendations · Who to draft next, instantly.</div>
 
       <div class="home-action-cards" style="margin-top:1.75rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
           <div id="connect-collapsed">
             <button class="home-connect-btn" onclick="toggleConnectCard(true)">Connect My Sleeper League →</button>
-            <div class="home-card-sub">Live sync with your real draft</div>
+            <div class="home-card-sub">Pull in your league settings, then use the live companion bookmark during your draft.</div>
           </div>
 
           <div id="connect-form" style="display:none;">
@@ -2287,17 +2291,31 @@
       </div>
 
       <div class="home-bookmarklet">
-        <div class="home-bookmarklet-icon">🔖</div>
-        <div class="home-bookmarklet-text">
-          <div class="home-bookmarklet-label">Use on Sleeper.com</div>
-          <div class="home-bookmarklet-sub">Drag the button to your bookmarks bar, then click it on any Sleeper draft page.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">🏈 Live Draft Companion</div>
+          <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:0.18rem 0.55rem;white-space:nowrap;">Sleeper only</span>
         </div>
-        <a id="rr-bookmarklet" href="#"
-          class="home-bookmarklet-btn"
-          onclick="return false;"
-          title="Drag to your bookmarks bar">
-          <span style="opacity:0.5;letter-spacing:-1px;font-size:0.7rem;">⠿</span> ⚡ RoundRoom
-        </a>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.45rem;line-height:1.5;">Opens a sidebar on Sleeper.com that tracks picks live and tells you who to draft next — updated after every selection.</div>
+        <div class="home-bookmarklet-steps">
+          <div class="hbs-step">
+            <div class="hbs-num">1</div>
+            <span>Drag this to your bookmarks bar</span>
+            <a id="rr-bookmarklet" href="#"
+              class="home-bookmarklet-btn"
+              onclick="return false;"
+              title="Drag to your bookmarks bar">
+              <span style="opacity:0.5;letter-spacing:-1px;font-size:0.7rem;">⠿</span> ⚡ RoundRoom
+            </a>
+          </div>
+          <div class="hbs-step">
+            <div class="hbs-num">2</div>
+            <span>Open your live draft on <strong style="color:var(--text-primary);">Sleeper.com</strong></span>
+          </div>
+          <div class="hbs-step">
+            <div class="hbs-num">3</div>
+            <span>Click the bookmark — companion launches instantly</span>
+          </div>
+        </div>
       </div>
     </div>
 
