@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T14:52:12.625Z",
+  "fetched_at": "2026-08-25T16:42:58.372Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -184,6 +184,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Brian Thomas",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Britain Covey",
       "position": "WR",
       "team": "PHI",
@@ -217,13 +224,6 @@
       "team": "NO",
       "status": "Questionable",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Cade Otton",
-      "position": "TE",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Caleb Lohner",
@@ -448,13 +448,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "DJ Giddens",
-      "position": "RB",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "DJ Turner",
@@ -732,7 +725,7 @@
     {
       "name": "Ja'Quinden Jackson",
       "position": "RB",
-      "team": "PHI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -865,7 +858,7 @@
     {
       "name": "Jeff Caldwell",
       "position": "WR",
-      "team": "KC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Knee"
     },
@@ -984,7 +977,7 @@
     {
       "name": "Joshua Pitsenberger",
       "position": "RB",
-      "team": "HOU",
+      "team": null,
       "status": "Questionable",
       "body_part": "Ankle"
     },
@@ -1029,6 +1022,13 @@
       "team": "TEN",
       "status": "Questionable",
       "body_part": "Hip"
+    },
+    {
+      "name": "Keaton Mitchell",
+      "position": "RB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Keilan Robinson",
@@ -1089,7 +1089,7 @@
     {
       "name": "Kye Robichaux",
       "position": "RB",
-      "team": "DET",
+      "team": null,
       "status": "Questionable",
       "body_part": "Foot"
     },
@@ -1528,13 +1528,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Skyler Bell",
-      "position": "WR",
-      "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Lower Body"
-    },
-    {
       "name": "Squirrel White",
       "position": "WR",
       "team": null,
@@ -1551,7 +1544,7 @@
     {
       "name": "Tanner McLachlan",
       "position": "TE",
-      "team": "SF",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1635,7 +1628,7 @@
     {
       "name": "Trey Benson",
       "position": "RB",
-      "team": "ARI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Knee"
     },
@@ -1678,7 +1671,7 @@
       "name": "Tyler Warren",
       "position": "TE",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
