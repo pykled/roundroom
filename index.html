@@ -4064,8 +4064,9 @@ function mergePlayers(adpPlayers, sleeperDB) {
       injury_status: (sleeperP && sleeperP.injury_status) || p.injury_status || null,
       age: sleeperP ? sleeperP.age : null,
       full_name: sleeperP ? sleeperP.full_name : p.name,
+      _sleeperActive: sleeperP ? (sleeperP.active !== false) : true,
     };
-  });
+  }).filter(p => p._sleeperActive); // drop retired/inactive players (e.g. Brady)
 }
 
 // ===== INIT MAIN VIEW =====
