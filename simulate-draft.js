@@ -8,16 +8,18 @@
 const fs = require('fs');
 const path = require('path');
 
-// ===== League config (12-team, PPR, 1QB/2RB/3WR/1TE/1FLEX/1K/1DST, non-SF) =====
+// ===== League config (12-team, PPR, SuperFlex: 1QB/2RB/3WR/1TE/1SF/1K/1DST) =====
 const TEAMS = 12;
 const ROUNDS = 15;
 const SCORING = 'ppr';
-const IS_SF = false;
+const IS_SF = true;
 const LEAGUE_SETTINGS = {
   slots_qb: 1, slots_rb: 2, slots_wr: 3, slots_te: 1,
-  slots_flex: 1, slots_super_flex: 0, slots_k: 1, slots_def: 1, slots_bn: 5,
+  slots_flex: 1, slots_super_flex: 1, slots_k: 1, slots_def: 1, slots_bn: 4,
 };
-const STRATEGY_BY_SLOT = { 3: 'hero_rb', 7: 'zero_rb', 11: 'robust_rb' };
+// bpa is coerced to 'superflex' by the engine in SF leagues (mirrors the app),
+// so the field behaves like typical SF drafters. Slot 7 punts QB.
+const STRATEGY_BY_SLOT = { 3: 'superflex', 7: 'superflex_punt' };
 
 // ===== Load data (same files served by /api/composite-adp and /api/vorp) =====
 const DATA_DIR = path.join(__dirname, 'data');
@@ -34,6 +36,11 @@ const adpPlayers = (adpJson.players || []).map(p => ({
   player_id: p.player_id || null,
 })).filter(p => p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
 
+// In SF mode, rank the board by SF ADP (mirrors the app's SF board ordering).
+if (IS_SF) {
+  adpPlayers.sort((a, b) =>
+    (a.composite_sf_adp ?? a.adp ?? 999) - (b.composite_sf_adp ?? b.adp ?? 999));
+}
 const mergedPlayers = adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
 
 // Live VORP map keyed by lowercase name (as built in index.html)
@@ -469,6 +476,31 @@ function getStrategyWeight(player, ctx) {
     else if (pos === 'WR') w = (rbCount >= 3 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
     else if (pos === 'TE') w = (teCount === 0 && effRound >= 4) ? 1.3 : 1.0;
     else if (pos === 'QB') w = qbCount >= 1 ? 0.3 : (effRound <= 6 ? 0.5 : 1.0);
+  } else if (strategy === 'superflex') {
+    const rc = STATE.rosterConfig;
+    const maxStarterQB = (rc?.starters?.QB ?? 1) + (rc?.starters?.SF ?? 1);
+    if (pos === 'QB') {
+      if (qbCount === 0)                    w = effRound <= 4 ? 2.6 : 2.0;
+      else if (qbCount < maxStarterQB)      w = effRound <= 8 ? 2.4 : 1.2;
+      else if (qbCount === maxStarterQB)    w = 0.2;
+      else                                  w = 0.05;
+    } else if (pos === 'RB') w = qbCount >= 1 ? 1.3 : 1.1;
+    else if (pos === 'WR')   w = qbCount >= 1 ? 1.2 : 1.05;
+    else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
+  } else if (strategy === 'superflex_punt') {
+    const rc = STATE.rosterConfig;
+    const maxStarterQB = (rc?.starters?.QB ?? 1) + (rc?.starters?.SF ?? 1);
+    if (pos === 'QB') {
+      if (qbCount >= maxStarterQB)      w = 0.1;
+      else if (effRound <= 3)           w = 0.5;
+      else if (effRound <= 5)           w = 0.9;
+      else if (effRound <= 7)           w = qbCount === 0 ? 2.0 : 1.5;
+      else                              w = qbCount === 0 ? 2.8 : 2.0;
+    } else if (pos === 'RB') {
+      if (effRound <= 5)      w = rbCount < 3 ? 1.55 : 1.15;
+      else                    w = rbCount < 3 ? 1.35 : (rbCount < 5 ? 1.0 : 0.6);
+    } else if (pos === 'WR') w = effRound <= 5 ? 1.3 : 1.0;
+    else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
   } else { // bpa (default)
     if (pos === 'QB') {
       if (qbCount >= 1)         w = 0.3;
