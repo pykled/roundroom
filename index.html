@@ -5107,8 +5107,9 @@ function getStrategyWeight(player, ctx) {
     } else if (pos === 'WR') {
       w = hasHero ? (effRound <= 4 ? 1.5 : 1.2) : 1.0;
     } else if (pos === 'QB') {
-      // Hero RB doesn't value QBs specially — match BPA's deferral (was accidentally 1.0)
-      w = qbCount === 0 ? 0.45 : 0.2;
+      // Suppress QB early to build WR corps; escalate late so you don't go without one
+      if (qbCount === 0) w = effRound <= 7 ? 0.45 : 0.70;
+      else w = 0.2;
     }
     // TE stays at BPA baseline (1.0) for hero_rb.
   } else if (strategy === 'robust_rb') {
