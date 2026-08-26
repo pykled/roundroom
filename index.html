@@ -5085,8 +5085,8 @@ function getStrategyWeight(player, ctx) {
   if (strategy === 'zero_rb') {
     if (pos === 'RB')      w = effRound <= 3 ? 0.10 : (effRound <= 6 ? 1.7 : 1.0); // the pivot: attack RB rounds 4–6
     else if (pos === 'WR') w = effRound <= 4 ? 1.6 : 1.0;
-    else if (pos === 'TE') w = (teCount === 0 && effRound >= 2 && effRound <= 4) ? 1.5 : 1.0;
-    else if (pos === 'QB') w = (qbCount === 0 && effRound >= 4 && effRound <= 6) ? 1.2 : 1.0;
+    else if (pos === 'TE') w = teCount === 0 ? (effRound >= 2 ? 1.5 : 1.0) : 0.3; // boost stays open until a TE lands
+    else if (pos === 'QB') w = qbCount >= 1 ? 0.3 : ((effRound >= 4 && effRound <= 6) ? 1.2 : 1.0); // never a 2nd QB over WR/TE depth
   } else if (strategy === 'hero_rb') {
     const hasHero = ctx.hasHeroRB;
     if (pos === 'RB') {
@@ -5116,6 +5116,7 @@ function getStrategyWeight(player, ctx) {
     if (pos === 'RB')      w = rbCount < 4 ? (effRound <= 3 ? 2.0 : (effRound <= 6 ? 1.55 : 1.2)) : 0.5;
     else if (pos === 'WR') w = (rbCount >= 3 && wrCount < 3 && effRound <= 6) ? 1.4 : 1.0;
     else if (pos === 'TE') w = (teCount === 0 && effRound >= 4) ? 1.3 : 1.0;
+    else if (pos === 'QB') w = qbCount >= 1 ? 0.3 : (effRound <= 6 ? 0.5 : 1.0); // don't let QB interrupt the RB build
   } else if (strategy === 'superflex') {
     // maxStarterQB = dedicated QB slots + SF slots (all can start QBs in SF).
     // Derived from league settings so it works for 2-QB leagues, 2-SF leagues, etc.
@@ -5144,9 +5145,14 @@ function getStrategyWeight(player, ctx) {
     else if (pos === 'WR')   w = effRound <= 5 ? 1.3 : 1.0;
     else if (pos === 'TE')   w = (teCount === 0 && effRound >= 5) ? 1.3 : 1.0;
   } else { // bpa (default)
-    if (pos === 'QB' && qbCount === 0) w = 0.45;  // non-SF first QB: defer to ~round 5+
-    if (pos === 'QB' && qbCount >= 1) w = 0.3;
-    else if (pos === 'TE' && teCount >= 1) w = 0.25;
+    if (pos === 'QB') {
+      // First QB: suppressed early, ramps through the realistic QB window (~R6-8),
+      // then slightly boosted so BPA teams never limp to R9-10 without one.
+      if (qbCount >= 1)         w = 0.3;
+      else if (effRound <= 5)   w = 0.45;
+      else if (effRound <= 8)   w = 0.9;
+      else                      w = 1.15;
+    } else if (pos === 'TE' && teCount >= 1) w = 0.25;
   }
 
   return Math.max(0.05, Math.min(3.0, w));
