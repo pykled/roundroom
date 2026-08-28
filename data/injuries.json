@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-27T20:14:28.755Z",
+  "fetched_at": "2026-08-28T03:38:13.963Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -149,6 +149,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Brayden Willis",
+      "position": "TE",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Concussion"
+    },
+    {
       "name": "Breece Hall",
       "position": "RB",
       "team": "NYJ",
@@ -222,15 +229,8 @@
       "name": "Calvin Austin",
       "position": "WR",
       "team": "NYG",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Carsen Ryan",
-      "position": "TE",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Carson Beck",
@@ -326,8 +326,8 @@
     {
       "name": "Cole Turner",
       "position": "TE",
-      "team": null,
-      "status": "Questionable",
+      "team": "MIA",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -410,8 +410,8 @@
     {
       "name": "Dennis Houston",
       "position": "WR",
-      "team": null,
-      "status": "Questionable",
+      "team": "TB",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
@@ -982,13 +982,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Jordan James",
-      "position": "RB",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Ribs"
-    },
-    {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
@@ -1153,13 +1146,6 @@
       "name": "Kyron Hudson",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Lan Larison",
-      "position": "RB",
-      "team": "NE",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1764,6 +1750,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Will Howard",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Head"
     },
     {
       "name": "Will Mallory",
