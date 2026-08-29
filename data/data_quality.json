@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-08-29T13:56:28.720Z",
-  "total_raw_drafts": 335,
-  "drafts_after_date_filter": 334,
-  "drafts_after_quality_filter": 186,
+  "generated_at": "2026-08-29T22:22:59.356Z",
+  "total_raw_drafts": 1,
+  "drafts_after_date_filter": -6,
+  "drafts_after_quality_filter": 173,
   "filtered_reasons": {
-    "too_old": 1,
+    "too_old": 7,
     "autopick_heavy": 0,
     "too_fast": 1,
-    "wrong_format": 98,
-    "too_small": 24,
-    "duplicate_owners": 5,
-    "sf_contamination": 20
+    "wrong_format": 88,
+    "too_small": 19,
+    "duplicate_owners": 4,
+    "sf_contamination": 13
   },
-  "players_in_output": 332,
-  "players_dropped_low_sample": 286
+  "players_in_output": 326,
+  "players_dropped_low_sample": 267
 }
