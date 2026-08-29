@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-29T16:32:02.981Z",
+  "fetched_at": "2026-08-29T20:45:22.435Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -70,13 +70,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Anthony Gould",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Anthony Torres",
@@ -331,6 +324,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Coleman Owen",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Concussion"
+    },
+    {
       "name": "Corey Rucker",
       "position": "WR",
       "team": "LV",
@@ -362,7 +362,7 @@
       "name": "Dan Chisena",
       "position": "WR",
       "team": "CAR",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1521,13 +1521,6 @@
       "body_part": null
     },
     {
-      "name": "Sione Vaki",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Sirgeo Hoffman",
       "position": "RB",
       "team": null,
@@ -1757,6 +1750,13 @@
       "team": "PIT",
       "status": "Questionable",
       "body_part": "Head"
+    },
+    {
+      "name": "Will Kacmarek",
+      "position": "TE",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Will Mallory",
