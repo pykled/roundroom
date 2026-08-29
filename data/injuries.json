@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-28T20:06:54.215Z",
+  "fetched_at": "2026-08-29T02:56:51.957Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -12,13 +12,6 @@
       "name": "Aaron Anderson",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Adam Randall",
-      "position": "RB",
-      "team": "BAL",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -142,13 +135,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Braxton Berrios",
-      "position": "WR",
-      "team": "NYG",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Brayden Willis",
       "position": "TE",
       "team": "SF",
@@ -233,6 +219,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Cam Camper",
+      "position": "WR",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Head"
+    },
+    {
       "name": "Cameron Dicker",
       "position": "K",
       "team": "LAC",
@@ -257,7 +250,7 @@
       "name": "Caullin Lacy",
       "position": "WR",
       "team": "NYJ",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -667,6 +660,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Ihmir Smith-Marsette",
+      "position": "WR",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Irv Smith",
       "position": "TE",
       "team": null,
@@ -761,7 +761,7 @@
       "name": "Jack Stoll",
       "position": "TE",
       "team": "CLE",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1269,6 +1269,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Marvin Mims",
+      "position": "WR",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Foot"
+    },
+    {
       "name": "Mason Fine",
       "position": "QB",
       "team": null,
@@ -1405,7 +1412,7 @@
       "name": "Patrick Taylor",
       "position": "RB",
       "team": "SF",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1598,13 +1605,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Tez Johnson",
-      "position": "WR",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Groin"
-    },
-    {
       "name": "Theo Johnson",
       "position": "TE",
       "team": "NYG",
@@ -1652,6 +1652,13 @@
       "team": "NE",
       "status": "Questionable",
       "body_part": "Leg"
+    },
+    {
+      "name": "Trevor Etienne",
+      "position": "RB",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Trey Benson",
@@ -1729,6 +1736,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Tyrone Tracy",
+      "position": "RB",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Neck"
     },
     {
       "name": "Wan'Dale Robinson",
