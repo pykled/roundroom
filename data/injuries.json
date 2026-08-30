@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-30T16:26:33.281Z",
+  "fetched_at": "2026-08-30T20:50:25.531Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -434,6 +434,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Dillon Gabriel",
+      "position": "QB",
+      "team": "CLE",
+      "status": "IR",
+      "body_part": "Back"
     },
     {
       "name": "DJ Rogers",
@@ -971,7 +978,7 @@
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
-      "status": "Questionable",
+      "status": "DNR",
       "body_part": "Groin"
     },
     {
@@ -1337,13 +1344,6 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Noah Whittington",
-      "position": "RB",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Ollie Gordon",
