@@ -3018,8 +3018,7 @@ async function launchStandaloneMock() {
       }
     } catch(e) {}
 
-    STATE.adpPlayers = (adpData.players || []).filter(p =>
-      p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+    STATE.adpPlayers = sanitizePlayerPool(adpData.players);
     STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
 
     // Sync header slot badge + superflex UI
@@ -3944,7 +3943,7 @@ async function startDraftAssistant() {
       STATE.usingOfflineData = true;
     }
 
-    STATE.adpPlayers = (adpData.players || []).filter(p => p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+    STATE.adpPlayers = sanitizePlayerPool(adpData.players);
     STATE.sleeperPlayers = sleeperPlayers || {};
 
     // Merge
@@ -4029,6 +4028,44 @@ function calcSurvivalProbability(player, nextPickNum) {
 }
 
 // ===== MERGING =====
+
+// Position aliases — data sources mix 'DEF'/'DST' and 'PK'/'K'. Everything
+// downstream (needMultiplier, hardCap, roster counts) keys on DST/K, so a raw
+// 'DEF' player dodges every filled-slot check and even reads as a roster hole.
+const POS_ALIAS = { DEF: 'DST', PK: 'K' };
+const VALID_POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K', 'DST']);
+
+// Known-retired players that Sleeper's legacy records still mark status
+// "Active" (e.g. Tom Brady, player_id 167). Joke picks in crawled mock drafts
+// give them enough times_drafted to survive ADP aggregation.
+const RETIRED_PLAYERS = new Set([
+  'tom brady', 'rob gronkowski', 'ben roethlisberger', 'drew brees',
+  'philip rivers', 'andrew luck', 'matt ryan', 'jason kelce',
+  'ryan fitzpatrick', 'cam newton', 'jimmy graham', 'adrian peterson',
+  'frank gore', 'lesean mccoy', 'julian edelman',
+]);
+
+function isRetiredPlayer(p) {
+  // Blocklist only — "no team" is NOT a retirement signal here: veteran free
+  // agents (Tyreek Hill, Joe Mixon) legitimately carry team null/"FA" and are
+  // draftable. The data pipeline (scripts/retired-players.js) holds the
+  // stronger years_exp-based heuristic where that metadata exists.
+  const name = (p.name || '').toLowerCase().replace(/[^a-z ]/g, '').trim();
+  return RETIRED_PLAYERS.has(name);
+}
+
+// Single sanitization gate for EVERY code path that loads a player pool
+// (live draft, mock, companion view, review mode, research). Normalizes
+// position aliases and drops retired/teamless players so no load path can
+// resurrect them.
+function sanitizePlayerPool(players) {
+  return (players || [])
+    .map(p => {
+      const pos = POS_ALIAS[p.position] || p.position;
+      return pos === p.position ? p : { ...p, position: pos };
+    })
+    .filter(p => p.position && VALID_POSITIONS.has(p.position) && !isRetiredPlayer(p));
+}
 
 function mergePlayers(adpPlayers, sleeperDB) {
   // Build name→sleeper player map
@@ -4943,21 +4980,27 @@ function buildScoringContext(available) {
   return ctx;
 }
 
-// §3 — positional need multiplier from roster state. Range clamped to [0.5, 1.6].
-function needMultiplier(pos, ctx) {
+// True when a position has no useful roster room left. K/DST: starter slots
+// filled — you never roster a second one. QB/RB/WR/TE: league-derived hard cap
+// reached (starters + realistic flex share + bench depth — legitimate bench
+// picks stay open until then). Capped positions are excluded from the top
+// recommendations entirely; needMultiplier also floors them at 0.01.
+function isPositionCapped(pos, ctx) {
   const rc = STATE.rosterConfig;
   const have = ctx.counts[pos] || 0;
+  if (pos === 'K' || pos === 'DST') return have >= (rc?.starters?.[pos] ?? 1);
+  const cap = rc?.hardCap?.[pos];
+  return cap != null && have >= cap;
+}
 
-  // Hard cap check: suppress any position once you've hit the league-derived roster ceiling.
-  // Caps are derived from actual Sleeper slot settings (starters + flex share + bench depth).
-  if (rc?.hardCap) {
-    const cap = rc.hardCap[pos];
-    if (cap != null && have >= cap) return 0.05;
-  } else {
-    // Fallback if rosterConfig not yet derived (K/DST defaults)
-    if (pos === 'DST' && have >= (rc?.DST ?? 1)) return 0.05;
-    if (pos === 'K'   && have >= (rc?.K   ?? 1)) return 0.05;
-  }
+// §3 — positional need multiplier from roster state. Range clamped to [0.5, 1.6].
+function needMultiplier(pos, ctx) {
+  const have = ctx.counts[pos] || 0;
+
+  // Hard exclusion: filled K/DST slot or league-derived roster ceiling. 0.01
+  // (not 0.05) so even a positive-VORP DST can't outscore late-round skill
+  // depth whose VORP has gone near zero.
+  if (isPositionCapped(pos, ctx)) return 0.01;
 
   if (pos === 'K' || pos === 'DST') return 1.0; // not yet filled — handled by strategy round gates
   const req = positionReq(pos, ctx.isSuperflex);
@@ -5197,12 +5240,13 @@ function computeScoreBreakdown(player, ctx, available) {
   const mNeed     = needMultiplier(player.position, ctx);
   const urg       = urgencyMultiplier(player, ctx);
   const mTarget   = isTarget(player.name) ? 1.5 : 1.0;
+  const capped    = isPositionCapped(player.position, ctx);
 
   // Clamp the product of the non-base multipliers to prevent stacking blowups.
   const combo = Math.max(0.02, Math.min(4.0, wStrategy * mNeed * urg.mUrgency));
   const score = base * combo * mTarget;
 
-  const result = { score, rawVorp, base, wStrategy, mNeed, mUrgency: urg.mUrgency,
+  const result = { score, capped, rawVorp, base, wStrategy, mNeed, mUrgency: urg.mUrgency,
            mTarget, tierCount: urg.tierCount, tierSurvivors: urg.tierSurvivors,
            tierFactor: urg.tierFactor, runActive: urg.runActive };
   if (!MOCK.active) {
@@ -5411,7 +5455,15 @@ function renderRecommendations() {
   });
   scored.sort((a, b) => b.score - a.score);
 
-  const top5 = scored.slice(0, 5);
+  // Capped positions (K/DST starter filled, or hard cap reached) never make
+  // the top recommendations — a ~0-VORP backup DST must not outrank skill
+  // depth just because late-round skill VORP goes negative. They reappear
+  // only if there's literally nothing else left to show.
+  const uncapped = scored.filter(s => isFinite(s.score) && !s.parts.capped);
+  const recPool = uncapped.length >= 5
+    ? uncapped
+    : uncapped.concat(scored.filter(s => isFinite(s.score) && s.parts.capped));
+  const top5 = recPool.slice(0, 5);
 
   // Bye week conflict check — warn if drafting this player creates a bye-heavy week
   function getByeConflictNote(topPick, rosterPlayers) {
@@ -6127,11 +6179,11 @@ async function enterReviewRoom(league, draft) {
       ]);
       if (adpResp.ok) {
         const adpJson = await adpResp.json();
-        STATE.adpPlayers = (adpJson.players || []).map(p => ({
+        STATE.adpPlayers = sanitizePlayerPool((adpJson.players || []).map(p => ({
           name: p.name, position: p.position, team: p.team || '',
           adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
           stdev: p.stdev || 2.0
-        }));
+        })));
         STATE.mergedPlayers = STATE.adpPlayers; // simplified for review mode
       }
       if (vorpResp.ok) {
@@ -6824,11 +6876,11 @@ function startMockCompanionListener() {
         const r = await fetch('/api/composite-adp');
         if (r.ok) {
           const json = await r.json();
-          STATE.adpPlayers = (json.players || []).map(p => ({
+          STATE.adpPlayers = sanitizePlayerPool((json.players || []).map(p => ({
             name: p.name, position: p.position, team: p.team || '',
             adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
             stdev: p.stdev || 2, player_id: p.player_id || null
-          })).filter(p => p.position && ['QB','RB','WR','TE','K','DST'].includes(p.position));
+          })));
           STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
         }
       } catch(_) {}
@@ -6836,7 +6888,7 @@ function startMockCompanionListener() {
       if (!STATE.mergedPlayers?.length) {
         try {
           const r = await fetch('/api/adp');
-          if (r.ok) { const j = await r.json(); STATE.mergedPlayers = (j.players||[]).map(p=>({...p,sleeper_id:p.player_id})); }
+          if (r.ok) { const j = await r.json(); STATE.mergedPlayers = sanitizePlayerPool((j.players||[]).map(p=>({...p,sleeper_id:p.player_id}))); }
         } catch(_) {}
       }
       // VORP (non-fatal)
@@ -7575,7 +7627,7 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
     }
   } catch(e) {}
 
-  STATE.adpPlayers = (adpData.players||[]).filter(p => p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+  STATE.adpPlayers = sanitizePlayerPool(adpData.players);
   STATE.mergedPlayers = mergePlayers(STATE.adpPlayers, {});
   invalidateScoreCache();
 
@@ -8082,7 +8134,9 @@ function renderCompanionView() {
   const displayAdp = (p) => (STATE.isSuperflex && p.composite_sf_adp != null) ? p.composite_sf_adp : p.adp;
 
   // ── Top 5 recommendations — same .rec-card system as the main panel ───
-  const top5 = scored.slice(0, 5);
+  // Same capped-position exclusion as the main recommendations panel.
+  const cvUncapped = scored.filter(p => !p.parts.capped);
+  const top5 = (cvUncapped.length >= 5 ? cvUncapped : cvUncapped.concat(scored.filter(p => p.parts.capped))).slice(0, 5);
   const recsEl = document.getElementById('cv-recs');
   if (recsEl) {
     recsEl.innerHTML = top5.length === 0
@@ -8333,8 +8387,7 @@ async function ensureResearchData() {
       }
     } catch(e) {}
 
-    STATE.adpPlayers = (adpData.players || []).filter(p =>
-      p.position && ['QB','RB','WR','TE','K','DST','DEF','PK'].includes(p.position));
+    STATE.adpPlayers = sanitizePlayerPool(adpData.players);
     STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
     return true;
   } finally {

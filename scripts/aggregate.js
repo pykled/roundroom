@@ -25,6 +25,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { isRetiredPick } = require('./retired-players');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
@@ -214,6 +215,7 @@ function main() {
     const pos = (p.position || '').trim().toUpperCase();
     if (!name || !pos) continue;
     if (typeof p.pick_no !== 'number' || p.pick_no <= 0) continue;
+    if (isRetiredPick(p)) continue; // joke picks of retired players (Brady et al.)
 
     const daysSince = p.draft_start_time ? (now - p.draft_start_time) / DAY_MS : 999;
     const weight = Math.exp(-Math.max(0, daysSince) / RECENCY_HALFLIFE_DIVISOR);

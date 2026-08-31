@@ -26,6 +26,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { isRetiredPlayerRecord } = require('./retired-players');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
@@ -128,6 +129,9 @@ function main() {
 
   const players = [];
   for (const rec of map.values()) {
+    // Last line of defense: retired players that slipped through a source
+    // (Sleeper legacy records mark e.g. Brady "Active") never reach composite.
+    if (isRetiredPlayerRecord(rec)) continue;
     const parts = [];
     if (rec.sleeper_adp != null) parts.push(['sleeper', rec.sleeper_adp]);
     if (rec.fantasypros_adp != null) parts.push(['fantasypros', rec.fantasypros_adp]);
