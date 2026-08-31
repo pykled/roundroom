@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-31T08:28:22.824Z",
+  "fetched_at": "2026-08-31T15:47:26.586Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -457,18 +457,18 @@
       "body_part": null
     },
     {
+      "name": "David Sills",
+      "position": "WR",
+      "team": "TB",
+      "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Davis Allen",
       "position": "TE",
       "team": "LAR",
       "status": "Questionable",
       "body_part": "Quadriceps"
-    },
-    {
-      "name": "Dayton Wade",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "De'Zhaun Stribling",
@@ -705,7 +705,7 @@
       "name": "Grant Calcaterra",
       "position": "TE",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Back"
     },
     {
@@ -756,6 +756,13 @@
       "team": "ARI",
       "status": "Questionable",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Irv Charles",
+      "position": "WR",
+      "team": "SEA",
+      "status": "IR",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Irv Smith",
@@ -992,7 +999,7 @@
       "name": "Jeremy McNichols",
       "position": "RB",
       "team": "WAS",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Quadriceps"
     },
     {
