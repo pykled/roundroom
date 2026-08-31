@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-31T15:47:26.586Z",
+  "fetched_at": "2026-08-31T17:29:02.725Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -179,7 +179,7 @@
     {
       "name": "Brevin Jordan",
       "position": "TE",
-      "team": "HOU",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -207,7 +207,7 @@
     {
       "name": "Brock Rechsteiner",
       "position": "WR",
-      "team": "NO",
+      "team": null,
       "status": "Sus",
       "body_part": "Suspension"
     },
@@ -238,13 +238,6 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Cam Camper",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Head"
     },
     {
       "name": "Cameron Dicker",
@@ -333,7 +326,7 @@
     {
       "name": "Chris Oladokun",
       "position": "QB",
-      "team": "KC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -424,7 +417,7 @@
     {
       "name": "Dalevon Campbell",
       "position": "WR",
-      "team": "LAC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Leg"
     },
@@ -599,7 +592,7 @@
     {
       "name": "EJ Smith",
       "position": "RB",
-      "team": "KC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -751,13 +744,6 @@
       "body_part": "Hamstring"
     },
     {
-      "name": "Ihmir Smith-Marsette",
-      "position": "WR",
-      "team": "ARI",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Irv Charles",
       "position": "WR",
       "team": "SEA",
@@ -858,7 +844,7 @@
     {
       "name": "Jacoby Jones",
       "position": "WR",
-      "team": "WAS",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -952,13 +938,6 @@
       "team": "TEN",
       "status": "IR",
       "body_part": "Pectoral"
-    },
-    {
-      "name": "Jawhar Jordan",
-      "position": "RB",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Jayden Higgins",
@@ -1159,7 +1138,7 @@
     {
       "name": "Kalel Mullings",
       "position": "RB",
-      "team": "TEN",
+      "team": null,
       "status": "Questionable",
       "body_part": "Hip"
     },
@@ -1544,7 +1523,7 @@
     {
       "name": "Quentin Moore",
       "position": "TE",
-      "team": "WAS",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1663,7 +1642,7 @@
     {
       "name": "Sincere Brown",
       "position": "WR",
-      "team": "LAC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
