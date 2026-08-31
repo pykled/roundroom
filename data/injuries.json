@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-31T00:19:34.394Z",
+  "fetched_at": "2026-08-31T08:28:22.824Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -13,6 +13,13 @@
       "position": "WR",
       "team": null,
       "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Adam Randall",
+      "position": "RB",
+      "team": "BAL",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -91,6 +98,20 @@
       "team": "LV",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Beaux Collins",
+      "position": "WR",
+      "team": "ATL",
+      "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Ben Sauls",
+      "position": "K",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Ben Sims",
@@ -177,6 +198,13 @@
       "body_part": "Hand"
     },
     {
+      "name": "Brittain Brown",
+      "position": "RB",
+      "team": "CHI",
+      "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Brock Rechsteiner",
       "position": "WR",
       "team": "NO",
@@ -191,10 +219,17 @@
       "body_part": "Achilles"
     },
     {
+      "name": "Bryson Nesbit",
+      "position": "TE",
+      "team": "MIN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Caleb Lohner",
       "position": "TE",
       "team": "DEN",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Lower Body"
     },
     {
@@ -233,6 +268,20 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Carter Bradley",
+      "position": "QB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Carter Runyon",
+      "position": "TE",
+      "team": "LV",
+      "status": "IR",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Caullin Lacy",
       "position": "WR",
       "team": null,
@@ -261,6 +310,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Chase Roberts",
+      "position": "WR",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Chris Brazzell",
       "position": "WR",
       "team": "CAR",
@@ -275,6 +331,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Chris Oladokun",
+      "position": "QB",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Chris Thompson",
       "position": "WR",
       "team": null,
@@ -285,8 +348,8 @@
       "name": "Christian Kirk",
       "position": "WR",
       "team": "SF",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "IR",
+      "body_part": "Calf"
     },
     {
       "name": "Christian McCaffrey",
@@ -320,8 +383,15 @@
       "name": "Coleman Owen",
       "position": "WR",
       "team": "IND",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Concussion"
+    },
+    {
+      "name": "Connor Hulstein",
+      "position": "TE",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Corey Rucker",
@@ -329,6 +399,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "D.J. Montgomery",
+      "position": "WR",
+      "team": "IND",
+      "status": "IR",
+      "body_part": "Abdomen"
     },
     {
       "name": "D.J. Williams",
@@ -343,6 +420,13 @@
       "team": "NYJ",
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Dalevon Campbell",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Leg"
     },
     {
       "name": "Damien Alford",
@@ -397,7 +481,7 @@
       "name": "Dennis Houston",
       "position": "WR",
       "team": "TB",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Groin"
     },
     {
@@ -425,8 +509,8 @@
       "name": "Devin Neal",
       "position": "RB",
       "team": "NO",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "IR",
+      "body_part": "Hamstring"
     },
     {
       "name": "Dez Fitzpatrick",
@@ -464,6 +548,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Dominic Richardson",
+      "position": "RB",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Donnie Ernsberger",
       "position": "TE",
       "team": "TEN",
@@ -474,6 +565,13 @@
       "name": "Dont'e Thornton",
       "position": "WR",
       "team": "LV",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Dontae Fleming",
+      "position": "WR",
+      "team": "MIN",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -497,6 +595,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "EJ Smith",
+      "position": "RB",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Eli Stowers",
@@ -744,6 +849,13 @@
       "body_part": "Groin"
     },
     {
+      "name": "Jacoby Jones",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
@@ -793,11 +905,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Jalin Hyatt",
-      "position": "WR",
-      "team": "NYG",
+      "name": "Jam Miller",
+      "position": "RB",
+      "team": null,
       "status": "Questionable",
-      "body_part": "Ankle"
+      "body_part": "Undisclosed"
     },
     {
       "name": "Jamal Agnew",
@@ -884,6 +996,13 @@
       "body_part": "Quadriceps"
     },
     {
+      "name": "Jermar Jefferson",
+      "position": "RB",
+      "team": "MIN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Jerome Ford",
       "position": "RB",
       "team": "WAS",
@@ -896,6 +1015,13 @@
       "team": "MIN",
       "status": "Sus",
       "body_part": "Suspension"
+    },
+    {
+      "name": "Jimmy Holiday",
+      "position": "WR",
+      "team": "KC",
+      "status": "IR",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Jimmy Kibble",
@@ -1269,6 +1395,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "McCallan Castles",
+      "position": "TE",
+      "team": "GB",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Michael Penix",
       "position": "QB",
       "team": "ATL",
@@ -1402,6 +1535,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Quentin Moore",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Rachaad White",
       "position": "RB",
       "team": "WAS",
@@ -1421,6 +1561,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ray-Ray McCloud",
+      "position": "WR",
+      "team": "CHI",
+      "status": "IR",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Reggie Corbin",
@@ -1507,6 +1654,13 @@
       "body_part": null
     },
     {
+      "name": "Sincere Brown",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Sirgeo Hoffman",
       "position": "RB",
       "team": null,
@@ -1573,6 +1727,13 @@
       "name": "Theo Johnson",
       "position": "TE",
       "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Thomas Yassmin",
+      "position": "TE",
+      "team": "GB",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1748,7 +1909,7 @@
       "name": "Will Mallory",
       "position": "TE",
       "team": "IND",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Thumb"
     },
     {

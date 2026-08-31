@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T00:19:34.478Z",
+  "generated_at": "2026-08-31T08:28:22.922Z",
   "weights": {
     "sleeper": 0.5,
     "fantasypros": 0.35,
@@ -3508,7 +3508,7 @@
       "sources_count": 2,
       "composite_sf_adp": 247.47,
       "fantasypros_sf_adp": 247.47,
-      "injury_status": "Questionable",
+      "injury_status": "IR",
       "bye": 8
     },
     {
@@ -3687,6 +3687,7 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 240.67,
+      "injury_status": "Questionable",
       "bye": 8
     },
     {
@@ -3778,6 +3779,7 @@
       "sources_count": 2,
       "composite_sf_adp": 235.04,
       "fantasypros_sf_adp": 246.23,
+      "injury_status": "IR",
       "bye": 13
     },
     {
@@ -4321,7 +4323,7 @@
       "sources_count": 1,
       "composite_sf_adp": 244.89,
       "fantasypros_sf_adp": 244.89,
-      "injury_status": "Questionable",
+      "injury_status": "IR",
       "bye": 8
     },
     {
@@ -5767,7 +5769,8 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 289.3,
-      "fantasypros_sf_adp": 289.3
+      "fantasypros_sf_adp": 289.3,
+      "injury_status": "Questionable"
     },
     {
       "name": "Deion Burks",
