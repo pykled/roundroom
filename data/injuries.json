@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-31T17:29:02.725Z",
+  "fetched_at": "2026-08-31T22:41:45.573Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -128,6 +128,13 @@
       "body_part": "Oblique"
     },
     {
+      "name": "Ben Skowronek",
+      "position": "WR",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Concussion"
+    },
+    {
       "name": "BenJarvus Green-Ellis",
       "position": "RB",
       "team": null,
@@ -140,13 +147,6 @@
       "team": "SF",
       "status": "DNR",
       "body_part": "Knee - ACL + MCL"
-    },
-    {
-      "name": "Brandon Smith",
-      "position": "WR",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Brayden Willis",
@@ -245,13 +245,6 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Carson Beck",
-      "position": "QB",
-      "team": "ARI",
-      "status": "Questionable",
-      "body_part": "Ribs"
     },
     {
       "name": "Carson Towt",
@@ -765,6 +758,13 @@
       "body_part": "Pectoral"
     },
     {
+      "name": "Isaiah Bond",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Questionable",
+      "body_part": "Concussion"
+    },
+    {
       "name": "Isaiah Crowell",
       "position": "RB",
       "team": null,
@@ -1090,7 +1090,7 @@
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
-      "status": "DNR",
+      "status": "NA",
       "body_part": "Groin"
     },
     {
