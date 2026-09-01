@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-01T13:20:28.436Z",
+  "fetched_at": "2026-09-01T16:22:58.116Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -109,7 +109,7 @@
     {
       "name": "Ben Sauls",
       "position": "K",
-      "team": "NYG",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -221,7 +221,7 @@
     {
       "name": "Bryson Nesbit",
       "position": "TE",
-      "team": "MIN",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -256,7 +256,7 @@
     {
       "name": "Carter Bradley",
       "position": "QB",
-      "team": "JAX",
+      "team": null,
       "status": "IR",
       "body_part": "Thumb"
     },
@@ -291,14 +291,14 @@
     {
       "name": "Chase Curtis",
       "position": "TE",
-      "team": "NYJ",
+      "team": null,
       "status": "IR",
       "body_part": "Knee"
     },
     {
       "name": "Chase Roberts",
       "position": "WR",
-      "team": "LV",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -375,7 +375,7 @@
     {
       "name": "Connor Hulstein",
       "position": "TE",
-      "team": "NYJ",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -515,7 +515,7 @@
     {
       "name": "DJ Rogers",
       "position": "TE",
-      "team": "DAL",
+      "team": null,
       "status": "IR",
       "body_part": "Knee"
     },
@@ -536,7 +536,7 @@
     {
       "name": "Dominic Richardson",
       "position": "RB",
-      "team": "NYJ",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -557,7 +557,7 @@
     {
       "name": "Dontae Fleming",
       "position": "WR",
-      "team": "MIN",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -984,7 +984,7 @@
     {
       "name": "Jermar Jefferson",
       "position": "RB",
-      "team": "MIN",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -1138,7 +1138,7 @@
     {
       "name": "Kalel Mullings",
       "position": "RB",
-      "team": null,
+      "team": "TEN",
       "status": "Questionable",
       "body_part": "Hip"
     },
@@ -1383,7 +1383,7 @@
     {
       "name": "McCallan Castles",
       "position": "TE",
-      "team": "GB",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1719,7 +1719,7 @@
     {
       "name": "Thomas Yassmin",
       "position": "TE",
-      "team": "GB",
+      "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
     },
