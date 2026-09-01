@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01T16:22:58.214Z",
+  "generated_at": "2026-09-01T20:52:11.949Z",
   "weights": {
     "sleeper": 0.5,
     "fantasypros": 0.35,
@@ -472,6 +472,7 @@
       "sources_count": 2,
       "composite_sf_adp": 50.5,
       "fantasypros_sf_adp": 49.23,
+      "injury_status": "Questionable",
       "bye": 6
     },
     {
@@ -881,6 +882,7 @@
       "sources_count": 2,
       "composite_sf_adp": 84.25,
       "fantasypros_sf_adp": 96.94,
+      "injury_status": "Questionable",
       "bye": 9
     },
     {
@@ -1146,6 +1148,7 @@
       "sources_count": 2,
       "composite_sf_adp": 106.22,
       "fantasypros_sf_adp": 101.41,
+      "injury_status": "Questionable",
       "bye": 5
     },
     {
@@ -2350,7 +2353,7 @@
       "sources_count": 2,
       "composite_sf_adp": 172.79,
       "fantasypros_sf_adp": 165.47,
-      "injury_status": "Questionable",
+      "injury_status": "IR",
       "bye": 6
     },
     {
@@ -3960,6 +3963,7 @@
       "sources_count": 2,
       "composite_sf_adp": 234.74,
       "fantasypros_sf_adp": 234.74,
+      "injury_status": "Questionable",
       "bye": 8
     },
     {
@@ -5033,8 +5037,7 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 282.79,
-      "fantasypros_sf_adp": 282.79,
-      "injury_status": "Questionable"
+      "fantasypros_sf_adp": 282.79
     },
     {
       "name": "Hunter Luepke",

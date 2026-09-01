@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-01T16:22:58.116Z",
+  "fetched_at": "2026-09-01T20:52:11.834Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -179,7 +179,7 @@
     {
       "name": "Brevin Jordan",
       "position": "TE",
-      "team": null,
+      "team": "HOU",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -247,6 +247,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Carnell Tate",
+      "position": "WR",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Carson Towt",
       "position": "TE",
       "team": "IND",
@@ -277,7 +284,7 @@
     {
       "name": "Cedric Tillman",
       "position": "WR",
-      "team": null,
+      "team": "NO",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -782,8 +789,8 @@
       "name": "Isiah Pacheco",
       "position": "RB",
       "team": "DET",
-      "status": "Questionable",
-      "body_part": "Knee - MCL"
+      "status": "IR",
+      "body_part": "Back"
     },
     {
       "name": "J.J. McCarthy",
@@ -844,7 +851,7 @@
     {
       "name": "Jacoby Jones",
       "position": "WR",
-      "team": null,
+      "team": "WAS",
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -1073,6 +1080,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Jonathon Brooks",
+      "position": "RB",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
@@ -1169,6 +1183,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Kendre Miller",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Kendrick Law",
@@ -1523,7 +1544,7 @@
     {
       "name": "Quentin Moore",
       "position": "TE",
-      "team": null,
+      "team": "WAS",
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -1694,6 +1715,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Personal"
+    },
+    {
+      "name": "Tee Higgins",
+      "position": "WR",
+      "team": "CIN",
+      "status": "Questionable",
+      "body_part": "Heel"
     },
     {
       "name": "Terrance Ferguson",
