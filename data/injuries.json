@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-01T22:28:43.118Z",
+  "fetched_at": "2026-09-01T23:54:21.919Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -117,7 +117,7 @@
       "name": "Ben Sims",
       "position": "TE",
       "team": "MIA",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Undisclosed"
     },
     {
@@ -522,7 +522,7 @@
     {
       "name": "DJ Rogers",
       "position": "TE",
-      "team": null,
+      "team": "DAL",
       "status": "IR",
       "body_part": "Knee"
     },
@@ -735,6 +735,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Hayden Large",
+      "position": "TE",
+      "team": "CHI",
+      "status": "IR",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Haynes King",
