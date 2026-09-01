@@ -294,28 +294,33 @@
   .home-status-title {
     font-size: 0.88rem; font-weight: 700; color: var(--text-primary);
   }
-  .home-status-group {
+  .home-status-cols {
+    display: flex;
+    align-items: stretch;
+    gap: 0.9rem;
     margin-top: 0.85rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--border);
   }
-  .home-status-group:first-of-type { border-top: none; padding-top: 0; }
-  .home-status-group-label {
-    font-size: 0.62rem; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-bottom: 0.5rem;
-  }
-  .home-status-pills {
-    display: flex; flex-wrap: wrap; gap: 0.4rem;
-  }
-  .home-status-pill {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    font-size: 0.7rem; color: var(--text-secondary);
-    background: rgba(255,255,255,0.04);
+  .home-status-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.25rem 0.65rem;
-    white-space: nowrap;
+    border-radius: 10px;
+    padding: 0.6rem 0.7rem;
+    background: rgba(255,255,255,0.02);
+  }
+  .home-status-format {
+    display: flex; align-items: center; gap: 0.45rem;
+    font-size: 0.72rem; font-weight: 700; color: var(--text-primary);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding-bottom: 0.45rem; margin-bottom: 0.45rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .home-status-row {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    font-size: 0.72rem; color: var(--text-secondary);
+    padding: 0.18rem 0;
   }
   .home-status-dot {
     width: 7px; height: 7px; border-radius: 50%;
@@ -330,6 +335,22 @@
   }
   .home-status-note.warn { color: var(--gold); }
   .home-status-note.no { color: var(--danger); }
+  .home-status-maint {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 0.6rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--danger);
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 6px;
+    padding: 0.25rem 0.55rem;
+    margin-top: 0.15rem;
+  }
+  @media (max-width: 640px) {
+    .home-status-cols { flex-direction: column; }
+    .home-status-format { padding-bottom: 0.3rem; margin-bottom: 0.3rem; }
+  }
 
   .home-right {
     min-width: 0;
@@ -354,6 +375,14 @@
   }
   .home-pos-filter:hover { color: var(--text-primary); border-color: var(--border-bright); }
   .home-pos-filter.active { color: var(--text-primary); border-color: var(--border-bright); background: var(--bg-card); }
+  .home-fmt-toggle {
+    display: flex; gap: 0.3rem;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .home-col-header span[data-hsort] { cursor: pointer; user-select: none; }
+  .home-col-header span[data-hsort]:hover { color: var(--text-primary); }
+  .h-sort-arrow { color: var(--accent); }
 
   #home-player-list { display: flex; flex-direction: column; }
   .home-player-row {
@@ -2367,31 +2396,30 @@
 
       <div class="home-status">
         <div class="home-status-title">📋 Format &amp; Strategy Status</div>
-        <div class="home-status-group">
-          <div class="home-status-group-label">Scoring Format</div>
-          <div class="home-status-pills">
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>PPR</span>
-            <span class="home-status-pill"><span class="home-status-dot warn"></span>Standard <span class="home-status-note warn">Partial support</span></span>
-            <span class="home-status-pill"><span class="home-status-dot no"></span>Half-PPR <span class="home-status-note no">Under Maintenance</span></span>
+        <div class="home-status-cols">
+          <div class="home-status-col">
+            <div class="home-status-format"><span class="home-status-dot ok"></span><span>PPR</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
           </div>
-        </div>
-        <div class="home-status-group">
-          <div class="home-status-group-label">League Type</div>
-          <div class="home-status-pills">
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Standard</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Superflex</span>
+          <div class="home-status-col">
+            <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span> <span class="home-status-note warn">Partial</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
+            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
           </div>
-        </div>
-        <div class="home-status-group">
-          <div class="home-status-group-label">Strategies</div>
-          <div class="home-status-pills">
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>BPA</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Hero RB</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Zero RB</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Robust RB</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>QB Premium (SF)</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>QB Punt (SF)</span>
-            <span class="home-status-pill"><span class="home-status-dot ok"></span>Zero RB (SF)</span>
+          <div class="home-status-col">
+            <div class="home-status-format"><span class="home-status-dot no"></span><span>Half-PPR</span></div>
+            <span class="home-status-maint">Under Maintenance</span>
           </div>
         </div>
       </div>
@@ -2401,7 +2429,7 @@
       <div class="home-right-header">
         <div>
           <span class="home-right-title">Player Rankings</span>
-          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">sorted by ADP · +/- vs expert consensus</div>
+          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">click a column to sort · +/- vs expert consensus</div>
         </div>
         <div class="home-pos-filters">
           <button class="home-pos-filter active" data-hpos="ALL" onclick="setHomePos('ALL')">ALL</button>
@@ -2411,13 +2439,17 @@
           <button class="home-pos-filter" data-hpos="TE" onclick="setHomePos('TE')">TE</button>
         </div>
       </div>
+      <div class="home-fmt-toggle">
+        <button class="home-pos-filter active" data-hfmt="standard" onclick="setHomeFormat('standard')" title="ADP from standard 1-QB leagues">Standard</button>
+        <button class="home-pos-filter" data-hfmt="sf" onclick="setHomeFormat('sf')" title="ADP from Superflex / 2-QB leagues — QBs go much earlier">Superflex</button>
+      </div>
       <div class="home-col-header">
         <span class="h-pos"></span>
-        <span class="h-name">Player</span>
-        <span class="h-team">Team</span>
-        <span class="h-adp" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
-        <span class="h-rank">Rank</span>
-        <span class="h-val" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
+        <span class="h-name" data-hsort="name" data-label="Player" onclick="setHomeSort('name')">Player</span>
+        <span class="h-team" data-hsort="team" data-label="Team" onclick="setHomeSort('team')">Team</span>
+        <span class="h-adp" data-hsort="adp" data-label="ADP" onclick="setHomeSort('adp')" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
+        <span class="h-rank" data-hsort="rank" data-label="Rank" onclick="setHomeSort('rank')">Rank</span>
+        <span class="h-val" data-hsort="val" data-label="Experts" onclick="setHomeSort('val')" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
       </div>
       <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
     </div>
@@ -8829,7 +8861,42 @@ function exitPrepMode() {
 }
 
 // ===== HOME PAGE (setup screen) =====
-const HOME = { pos: 'ALL', lastList: [] };
+const HOME = { pos: 'ALL', format: 'standard', sortCol: 'rank', sortDir: 'asc', lastList: [] };
+
+// Format-aware ADP for the homepage table. Real SF composite data covers the
+// full player pool; the QB compression fallback only fires for players missing it.
+function homeAdp(p) {
+  if (HOME.format === 'sf') {
+    if (p.composite_sf_adp != null) return p.composite_sf_adp;
+    const v = researchAdp(p);
+    if (v == null) return null;
+    return p.position === 'QB' ? Math.max(1.5, v * 0.35) : v;
+  }
+  return researchAdp(p);
+}
+
+function setHomeFormat(fmt) {
+  HOME.format = fmt;
+  document.querySelectorAll('.home-fmt-toggle .home-pos-filter').forEach(b => b.classList.toggle('active', b.dataset.hfmt === fmt));
+  renderHomePlayers();
+}
+
+function setHomeSort(col) {
+  if (HOME.sortCol === col) {
+    HOME.sortDir = HOME.sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    HOME.sortCol = col;
+    HOME.sortDir = 'desc';
+  }
+  renderHomePlayers();
+}
+
+function updateHomeSortArrows() {
+  document.querySelectorAll('.home-col-header span[data-hsort]').forEach(el => {
+    const active = el.dataset.hsort === HOME.sortCol;
+    el.innerHTML = escHtml(el.dataset.label) + (active ? ` <span class="h-sort-arrow">${HOME.sortDir === 'asc' ? '↑' : '↓'}</span>` : '');
+  });
+}
 
 function toggleConnectCard(open) {
   const collapsed = document.getElementById('connect-collapsed');
@@ -8850,7 +8917,7 @@ function toggleConnectCard(open) {
 
 function setHomePos(pos) {
   HOME.pos = pos;
-  document.querySelectorAll('.home-pos-filter').forEach(b => b.classList.toggle('active', b.dataset.hpos === pos));
+  document.querySelectorAll('.home-pos-filters .home-pos-filter').forEach(b => b.classList.toggle('active', b.dataset.hpos === pos));
   renderHomePlayers();
 }
 
@@ -8862,20 +8929,39 @@ function renderHomePlayers() {
     return;
   }
 
-  // Position rank by composite ADP
+  // Position rank by ADP in the active format (standard or SF)
   const posRank = {};
   const byPos = {};
   STATE.mergedPlayers.forEach(p => { (byPos[p.position] = byPos[p.position] || []).push(p); });
   Object.values(byPos).forEach(list => {
-    list.slice().sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999))
+    list.slice().sort((a, b) => (homeAdp(a) ?? 999) - (homeAdp(b) ?? 999))
       .forEach((p, i) => { posRank[p.name] = i + 1; });
   });
 
   let players = STATE.mergedPlayers.slice();
   if (HOME.pos !== 'ALL') players = players.filter(p => p.position === HOME.pos);
-  players.sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999));
+  players.sort((a, b) => (homeAdp(a) ?? 999) - (homeAdp(b) ?? 999));
   players = players.slice(0, 15);
+
+  // Column sort on the displayed list (rank = overall order in the active format)
+  const dir = HOME.sortDir === 'asc' ? 1 : -1;
+  const sortKeys = {
+    name: p => (p.name || '').toLowerCase(),
+    team: p => (p.team || '').toLowerCase() || null,
+    adp: p => homeAdp(p),
+    rank: p => homeAdp(p),
+    val: p => researchValue(p),
+  };
+  const keyFn = sortKeys[HOME.sortCol] || sortKeys.rank;
+  players.sort((a, b) => {
+    const ka = keyFn(a), kb = keyFn(b);
+    if (ka == null && kb == null) return 0;
+    if (ka == null) return 1;
+    if (kb == null) return -1;
+    return ka < kb ? -dir : ka > kb ? dir : 0;
+  });
   HOME.lastList = players;
+  updateHomeSortArrows();
 
   if (!players.length) {
     container.innerHTML = '<div class="home-player-empty">No player data available</div>';
@@ -8884,7 +8970,7 @@ function renderHomePlayers() {
 
   container.innerHTML = players.map((p, i) => {
     const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
-    const adp = researchAdp(p);
+    const adp = homeAdp(p);
     const val = researchValue(p);
     const trend = trendArrowHtml(p);
     const valHtml = val == null
