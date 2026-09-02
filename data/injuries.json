@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-02T14:13:31.948Z",
+  "fetched_at": "2026-09-02T19:18:39.257Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -140,6 +140,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Bhayshul Tuten",
+      "position": "RB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Brandon Aiyuk",
@@ -403,7 +410,7 @@
     {
       "name": "Da'Quan Felton",
       "position": "WR",
-      "team": "NYJ",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -791,13 +798,6 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Back"
-    },
-    {
-      "name": "J.J. McCarthy",
-      "position": "QB",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "J'Mon Moore",
@@ -1197,13 +1197,6 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Kenneth Walker",
-      "position": "RB",
-      "team": "KC",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Kenny Yeboah",
@@ -1647,6 +1640,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Sean Tucker",
+      "position": "RB",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Sergio Bailey II",
       "position": "WR",
       "team": null,
@@ -1936,7 +1936,7 @@
     {
       "name": "Xavier Weaver",
       "position": "WR",
-      "team": "ARI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
     },
