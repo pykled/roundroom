@@ -330,31 +330,32 @@
   .home-status-dot.warn { background: var(--gold); box-shadow: 0 0 5px rgba(251,191,36,0.35); }
   .home-status-dot.no { background: var(--danger); box-shadow: 0 0 5px rgba(239,68,68,0.35); }
   .home-status-note {
-    font-size: 0.55rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    border-radius: 5px;
-    padding: 0.12rem 0.4rem;
+    font-size: 0.6rem; font-weight: 600;
+    text-transform: none; letter-spacing: 0.02em;
     white-space: nowrap;
   }
-  .home-status-note.warn {
-    color: var(--gold);
-    background: rgba(251,191,36,0.1);
-    border: 1px solid rgba(251,191,36,0.3);
-  }
+  .home-status-note.warn { color: rgba(251,191,36,0.75); }
   .home-status-note.no { color: var(--danger); }
   .home-status-maint {
-    display: block;
-    align-self: stretch;
-    text-align: center;
-    font-size: 0.6rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    line-height: 1.5;
-    color: var(--danger);
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.35);
-    border-radius: 6px;
-    padding: 0.28rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    align-self: flex-start;
+    font-size: 0.58rem; font-weight: 600;
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+    color: rgba(239,68,68,0.85);
+    background: rgba(239,68,68,0.08);
+    border-radius: 999px;
+    padding: 0.16rem 0.55rem;
     margin-top: 0.3rem;
+    white-space: nowrap;
+  }
+  .home-status-maint::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 5px rgba(239,68,68,0.35);
   }
   .home-status-maint-sub {
     font-size: 0.62rem; color: var(--text-muted);
@@ -2421,7 +2422,7 @@
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
           </div>
           <div class="home-status-col">
-            <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span> <span class="home-status-note warn">Partial support</span></div>
+            <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span> <span class="home-status-note warn">⚠ Partial support</span></div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
