@@ -5269,32 +5269,38 @@ function getStrategyWeight(player, ctx) {
   let w = 1.0;
 
   if (strategy === 'zero_rb') {
-    if (pos === 'RB')      w = effRound <= 3 ? 0.10 : (effRound <= 6 ? 1.7 : 1.0); // the pivot: attack RB rounds 4–6
-    else if (pos === 'WR') w = effRound <= 4 ? 1.6 : 1.0;
-    else if (pos === 'TE') w = teCount === 0 ? (effRound >= 2 ? 1.5 : 1.0) : 0.3; // boost stays open until a TE lands
-    else if (pos === 'QB') w = qbCount >= 1 ? 0.3 : ((effRound >= 4 && effRound <= 6) ? 1.2 : 1.0); // never a 2nd QB over WR/TE depth
+    if (pos === 'RB') {
+      // De-prioritize RBs early but don't brick obvious elite value.
+      // A top-12 ADP RB slipping 2 rounds still scores well via VORP; the weight
+      // just needs to not zero it out. 0.40 = "prefer WR but won't ignore a steal."
+      if (effRound <= 3)      w = playerAdp <= 15 ? 0.65 : 0.40;
+      else if (effRound <= 6) w = rbCount < 2 ? 1.7 : 1.0;  // pivot: attack RB here
+      else                    w = rbCount < 3 ? 1.1 : 0.8;
+    } else if (pos === 'WR') w = effRound <= 4 ? 1.6 : 1.0;
+    else if (pos === 'TE')   w = teCount === 0 ? (effRound >= 2 ? 1.5 : 1.0) : 0.3;
+    else if (pos === 'QB')   w = qbCount >= 1 ? 0.3 : ((effRound >= 4 && effRound <= 6) ? 1.2 : 1.0);
   } else if (strategy === 'hero_rb') {
     const hasHero = ctx.hasHeroRB;
     if (pos === 'RB') {
       if (effRound <= 3) {
-        // Hunt elite early; hard-pass on everything else
-        w = (!hasHero && rank <= 20) ? 2.5 : 0.15;
+        // Strongly prefer elite RBs (ADP ≤ 24); don't ignore a top-12 ADP RB slipping.
+        // Value picks outside that window still register via VORP — just not boosted.
+        if (!hasHero && playerAdp <= 12) w = 2.5;
+        else if (!hasHero && playerAdp <= 24) w = 1.8;
+        else w = 0.25; // non-elite RB in early rounds: pass but not invisible
       } else if (effRound <= 5) {
-        // WR stacking phase — but if hero is locked and you still only have 1 RB,
-        // don't completely freeze out a 2nd RB
-        w = hasHero && rbCount < 2 ? 0.75 : (rbCount < 2 ? 0.35 : 0.15);
+        w = hasHero && rbCount < 2 ? 0.75 : (rbCount < 2 ? 0.40 : 0.18);
       } else if (effRound <= 9) {
-        // Mid-rounds: secure the 2nd RB (volume back / handcuff), then bench depth
-        w = rbCount < 2 ? 1.35 : (rbCount < 3 ? 0.55 : 0.15);
+        w = rbCount < 2 ? 1.35 : (rbCount < 3 ? 0.55 : 0.18);
       } else {
-        // Late: handcuffs / flex depth
-        w = rbCount < 2 ? 0.85 : (rbCount < 4 ? 0.25 : 0.12);
+        w = rbCount < 2 ? 0.85 : (rbCount < 4 ? 0.28 : 0.15);
       }
     } else if (pos === 'WR') {
       w = hasHero ? (effRound <= 4 ? 1.5 : 1.2) : 1.0;
     } else if (pos === 'QB') {
-      // Suppress QB early to build WR corps; escalate late so you don't go without one
-      if (qbCount === 0) w = effRound <= 7 ? 0.45 : 0.70;
+      // Suppressed early to build WR corps, but don't ignore an obvious falling value.
+      // 0.60 still passes over most QBs; a QB falling 3+ rounds shows via VORP.
+      if (qbCount === 0) w = effRound <= 5 ? 0.60 : (effRound <= 7 ? 0.75 : 1.0);
       else w = 0.2;
     }
     // TE stays at BPA baseline (1.0) for hero_rb.
