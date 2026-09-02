@@ -4599,6 +4599,7 @@ function updateMyList() { /* no-op: list management moved to cv-lists-overlay */
 // ===== RECOMMENDATIONS =====
 
 function setStrategy(strategy) {
+  _utrack('strategy-changed', { strategy });
   STATE.strategy = strategy;
   invalidateScoreCache();
   document.querySelectorAll('.strategy-btn').forEach(btn => {
@@ -7326,7 +7327,12 @@ function updateCompanionStatusBanner() {
   if (_cvBannerKind) setCompanionBanner(null);
 }
 
+function _utrack(event, data) {
+  try { if (typeof umami !== 'undefined') umami.track(event, data || {}); } catch(_) {}
+}
+
 function showCompanionSetup(prefillDraftId) {
+  _utrack('companion-opened');
   // Pre-fill draft from URL param, username from localStorage (returning users skip it).
   let savedUser = '';
   try { savedUser = localStorage.getItem('rr_username') || ''; } catch(_) {}
@@ -7645,7 +7651,7 @@ async function bootCompanionMode(draftId) {
           <div style="display:flex;gap:0.3rem;margin-bottom:0.45rem;">${stratBtns}</div>
           <div id="boot-strat-desc" style="font-size:0.7rem;color:#64748b;min-height:2.2em;margin-bottom:0.8rem;text-align:left;line-height:1.4;">${stratDesc[defaultStrat]}</div>
 
-          <button onclick="STATE.strategy=window._bootStrat||'${defaultStrat}';companionSelectSlot(${autoSlot}, '${draftId}', ${totalTeams}, ${totalRounds})"
+          <button onclick="STATE.strategy=window._bootStrat||'${defaultStrat}';_utrack('boot-strategy-selected',{strategy:STATE.strategy,superflex:STATE.isSuperflex});companionSelectSlot(${autoSlot}, '${draftId}', ${totalTeams}, ${totalRounds})"
             style="width:100%;padding:0.7rem;border-radius:8px;border:none;background:#6366f1;color:#ffffff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">
             That's me — Let's go →
           </button>
@@ -7860,6 +7866,7 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   document.getElementById('ai-fab').style.display = 'none';
   STATE.isMockMode = false;
 
+  _utrack('draft-joined', { strategy: STATE.strategy, superflex: STATE.isSuperflex, teams: totalTeams, rounds: totalRounds });
   startDraftSync();
   startCompanionSSE(STATE.draftId);
   startSleeperWS(STATE.draftId);
@@ -8186,6 +8193,7 @@ function renderCompanionViewDebounced() {
 }
 
 function setCompanionStrategy(strat) {
+  _utrack('strategy-changed', { strategy: strat, context: 'companion' });
   STATE.strategy = strat;
   invalidateScoreCache();
   syncCompanionStrategyBtns();
