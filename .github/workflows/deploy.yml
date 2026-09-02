@@ -3,12 +3,26 @@ name: Deploy to Railway
 on:
   push:
     branches: [main]
+  # Bot data commits are pushed with the default GITHUB_TOKEN, which never
+  # fires `on: push` workflows — so fresh ADP/injury data was landing on main
+  # but never reaching Railway. Chain the deploy off those workflows instead.
+  workflow_run:
+    workflows: ["Update Draft Data", "Update Injuries"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: railway-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
