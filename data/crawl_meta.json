@@ -1,9 +1,9 @@
 {
-  "total_drafts": 170,
-  "total_picks": 28577,
-  "picks_standard": 23602,
+  "total_drafts": 151,
+  "total_picks": 25041,
+  "picks_standard": 20066,
   "picks_sf": 4975,
-  "crawled_at": "2026-09-01T22:28:40.723Z",
+  "crawled_at": "2026-09-02T12:59:00.514Z",
   "seeds_used": [
     "pykle",
     "scott_fish",
@@ -47,6 +47,6 @@
   "skipped_too_old": 0,
   "skipped_auction": 0,
   "date_window_days": 14,
-  "elapsed_seconds": 3545,
+  "elapsed_seconds": 3768,
   "stop_reason": "frontier_exhausted"
 }

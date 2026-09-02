@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-01T22:28:41.016Z",
+  "generated_at": "2026-09-02T12:59:00.776Z",
   "total_raw_drafts": 37,
-  "drafts_after_date_filter": 37,
+  "drafts_after_date_filter": 36,
   "drafts_after_quality_filter": 11,
   "filtered_reasons": {
-    "too_old": 0,
+    "too_old": 1,
     "autopick_heavy": 0,
     "too_fast": 1,
     "wrong_format": 6,
-    "too_small": 16,
+    "too_small": 15,
     "duplicate_owners": 3,
     "sf_contamination": 0
   },
