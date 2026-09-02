@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RoundRoom — Fantasy Draft Assistant</title>
 <meta name="description" content="RoundRoom: Real-time NFL fantasy draft assistant. Live Sleeper sync, VORP-based picks, SuperFlex support.">
+<meta property="og:title" content="RoundRoom — Live Draft Companion for Sleeper">
+<meta property="og:description" content="Real-time pick tracking and VORP-ranked recommendations for Sleeper fantasy drafts. Know who to draft next, instantly.">
+<meta property="og:url" content="https://roundroom.pykled.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RoundRoom — Live Draft Companion for Sleeper">
+<meta name="twitter:description" content="Real-time pick tracking and VORP-ranked recommendations for Sleeper fantasy drafts.">
 <meta name="theme-color" content="#6366f1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script defer data-domain="roundroom.pykled.com" src="https://plausible.io/js/script.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -347,6 +355,15 @@
     font-size: 0.62rem; color: var(--text-muted);
     margin-top: 0.4rem; line-height: 1.4;
   }
+  .home-status-partial-sub {
+    font-size: 0.6rem; color: var(--text-muted);
+    line-height: 1.4; margin-bottom: 0.3rem;
+  }
+  .home-feedback {
+    margin-top: 1rem; font-size: 0.7rem; color: var(--text-muted);
+  }
+  .home-feedback a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
+  .home-feedback a:hover { color: var(--text-primary); }
   @media (max-width: 640px) {
     .home-status-cols { flex-direction: column; }
     .home-status-format { padding-bottom: 0.3rem; margin-bottom: 0.3rem; }
@@ -366,7 +383,7 @@
     border-bottom: 1px solid var(--border);
   }
   .home-right-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
-  .home-pos-filters { display: flex; gap: 0.3rem; }
+  .home-pos-filters { display: flex; gap: 0.3rem; flex-wrap: wrap; }
   .home-pos-filter {
     padding: 0.25rem 0.55rem; border-radius: 6px;
     border: 1px solid var(--border); background: none;
@@ -376,7 +393,7 @@
   .home-pos-filter:hover { color: var(--text-primary); border-color: var(--border-bright); }
   .home-pos-filter.active { color: var(--text-primary); border-color: var(--border-bright); background: var(--bg-card); }
   .home-fmt-toggle {
-    display: flex; gap: 0.3rem;
+    display: flex; gap: 0.3rem; flex-wrap: wrap;
     padding: 0.55rem 1rem;
     border-bottom: 1px solid var(--border);
   }
@@ -2410,6 +2427,7 @@
           <div class="home-status-col">
             <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span></div>
             <div class="home-status-note warn">⚠ Partial support</div>
+            <div class="home-status-partial-sub">Optimized for PPR — Standard scoring weights are not yet tuned.</div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
             <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
@@ -2425,6 +2443,8 @@
           </div>
         </div>
       </div>
+
+      <div class="home-feedback">Found a bug or have feedback? <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report it on GitHub</a></div>
     </div>
 
     <div class="home-right">
@@ -2451,7 +2471,7 @@
         <span class="h-team" data-hsort="team" data-label="Team" onclick="setHomeSort('team')">Team</span>
         <span class="h-adp" data-hsort="adp" data-label="ADP" onclick="setHomeSort('adp')" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
         <span class="h-rank" data-hsort="rank" data-label="Rank" onclick="setHomeSort('rank')">Rank</span>
-        <span class="h-val" data-hsort="val" data-label="Experts" onclick="setHomeSort('val')" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
+        <span class="h-val" data-hsort="val" data-label="Experts" data-label-short="Exp" onclick="setHomeSort('val')" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
       </div>
       <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
     </div>
@@ -5745,6 +5765,7 @@ const SYNC = {
   stopped: true,
   lastPicked: -1,  // last_picked ms from /v1/draft/{id}; -1 forces first full fetch
   hbCount: 0,      // heartbeat counter; every 10th forces a full picks fetch
+  companionStartedAt: null, // when the companion connected — drives the 30s "waiting" banner
 };
 
 const POLL_FAST = 5000;    // drafting, polling only
@@ -6006,6 +6027,7 @@ async function _pollPicksInner() {
       if (SYNC.hbCount % 15 === 0) refreshDraftStatus();
       SYNC.failCount = 0;
       setLiveStatus(true, 'LIVE');
+      updateCompanionStatusBanner();
       // Fast re-poll right after activity: bot/mock picks land back-to-back,
       // so chase them at 50ms until a poll comes back empty, then settle back
       // to the normal safety-net interval.
@@ -6032,6 +6054,7 @@ async function _pollPicksInner() {
       if (banner) banner.classList.add('hidden');
     }
     if (drafting) setLiveStatus(true, companion ? 'LIVE' : 'LIVE · polling');
+    if (companion) updateCompanionStatusBanner();
     if (STATE.draftComplete) return;
     const interval =
       STATE.draftStatus === 'paused' ? (companion ? 2000 : POLL_PAUSED) :
@@ -6048,6 +6071,7 @@ async function _pollPicksInner() {
       // fast with a hard 3s ceiling instead.
       const backoff = Math.min(1000 * SYNC.failCount, 3000);
       setLiveStatus(false, 'Reconnecting…');
+      updateCompanionStatusBanner(); // surfaces the error banner after repeated failures
       schedulePoll(backoff);
       return;
     }
@@ -6183,6 +6207,7 @@ function handleDraftComplete() {
   STATE.draftComplete = true;
   stopDraftSync();
   setLiveStatus(false, '🏁 Draft complete');
+  updateCompanionStatusBanner();
   document.getElementById('your-pick-banner').style.display = 'none';
   document.getElementById('your-pick-in-badge').textContent = 'Draft complete';
   document.getElementById('your-pick-in-badge').classList.remove('active');
@@ -7236,6 +7261,45 @@ function companionRefresh() {
   }
 }
 
+// ── Companion status banner: connection errors / pre-draft waiting / ended ──
+let _cvBannerKind = null;
+function setCompanionBanner(kind, msg, showRetry) {
+  const el = document.getElementById('cv-status-banner');
+  if (!el) return;
+  _cvBannerKind = kind || null;
+  if (!kind) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const styles = {
+    error:   'background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.35);color:#fca5a5;',
+    waiting: 'background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.3);color:#a5b4fc;',
+    ended:   'background:rgba(255,255,255,0.04);border-color:var(--border-bright);color:var(--text-secondary);',
+  };
+  el.style.cssText = `display:block;border:1px solid;border-radius:10px;padding:0.6rem 0.75rem;margin-bottom:0.75rem;font-size:0.78rem;line-height:1.45;text-align:center;${styles[kind] || styles.waiting}`;
+  el.innerHTML = escHtml(msg) + (showRetry
+    ? `<div><button onclick="setCompanionBanner(null);companionRefresh()" style="margin-top:0.5rem;padding:0.4rem 1rem;border-radius:7px;border:1px solid rgba(239,68,68,0.4);background:none;color:#fca5a5;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">Retry</button></div>`
+    : '');
+}
+
+// Central state → banner mapping. Cheap and idempotent, so it's called from
+// every poll outcome (success and failure) plus draft-complete.
+function updateCompanionStatusBanner() {
+  const companion = STATE.isCompanion || document.body.classList.contains('companion-mode');
+  if (!companion) return;
+  if (STATE.draftComplete || STATE.draftStatus === 'complete') {
+    if (_cvBannerKind !== 'ended') setCompanionBanner('ended', 'This draft has ended');
+    return;
+  }
+  if (SYNC.failCount >= 5) {
+    if (_cvBannerKind !== 'error') setCompanionBanner('error', "Couldn't load draft — check your connection or verify the draft is still active", true);
+    return;
+  }
+  if (STATE.draftStatus === 'pre_draft' && !(STATE.picks || []).length
+      && SYNC.companionStartedAt && Date.now() - SYNC.companionStartedAt > 30000) {
+    if (_cvBannerKind !== 'waiting') setCompanionBanner('waiting', 'Waiting for draft to go live…');
+    return;
+  }
+  if (_cvBannerKind) setCompanionBanner(null);
+}
+
 function showCompanionSetup(prefillDraftId) {
   // Pre-fill draft from URL param, username from localStorage (returning users skip it).
   let savedUser = '';
@@ -7482,6 +7546,17 @@ async function bootCompanionMode(draftId) {
     if (!draftResp.ok) throw new Error('Draft not found');
     const draft = await draftResp.json();
 
+    if (draft.status === 'complete') {
+      document.getElementById('setup-screen').innerHTML = `
+        <div style="padding:1.5rem;text-align:center;">
+          <p style="color:var(--text-primary);font-size:0.95rem;font-weight:700;margin-bottom:0.5rem;">This draft has ended</p>
+          <p style="color:var(--text-muted);font-size:0.78rem;">${escHtml(draft.metadata?.name || 'The draft')} is already complete on Sleeper.</p>
+          <button onclick="showCompanionSetup()" style="margin-top:1.25rem;padding:0.55rem 1.1rem;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:0.82rem;">Connect a different draft</button>
+        </div>
+      `;
+      return;
+    }
+
     const totalTeams = draft.settings?.teams || 12;
     const totalRounds = draft.settings?.rounds || 15;
 
@@ -7564,9 +7639,10 @@ async function bootCompanionMode(draftId) {
   } catch(e) {
     document.getElementById('setup-screen').innerHTML = `
       <div style="padding:1.5rem;text-align:center;">
-        <p style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;">Could not connect to draft.</p>
-        <p style="color:var(--text-muted);font-size:0.75rem;">Make sure the draft has started on Sleeper.</p>
-        <button onclick="showCompanionSetup()" style="margin-top:1rem;padding:0.5rem 1rem;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text-primary);cursor:pointer;font-family:inherit;">Try again</button>
+        <p style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;">Couldn't load draft — check your connection or verify the draft is still active.</p>
+        <p style="color:var(--text-muted);font-size:0.75rem;">Sleeper may be unreachable, or the draft ID may be invalid.</p>
+        <button onclick="bootCompanionMode('${escHtml(draftId)}')" style="margin-top:1rem;padding:0.55rem 1.25rem;border-radius:8px;border:none;background:#6366f1;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.82rem;">Retry</button>
+        <button onclick="showCompanionSetup()" style="margin-top:1rem;margin-left:0.5rem;padding:0.55rem 1rem;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:0.82rem;">Back</button>
       </div>
     `;
   }
@@ -7630,6 +7706,7 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
   STATE.myPickNumbers = calcMyPicks(slot, totalTeams, totalRounds);
   STATE.isMockMode = false;
   STATE.isCompanion = true;
+  SYNC.companionStartedAt = Date.now();
   STATE.draftedIds = new Set();
   STATE.draftedNames = new Set();
   STATE.lastPickCount = 0;
@@ -8894,11 +8971,16 @@ function setHomeSort(col) {
 }
 
 function updateHomeSortArrows() {
+  const narrow = window.matchMedia('(max-width: 640px)').matches;
   document.querySelectorAll('.home-col-header span[data-hsort]').forEach(el => {
     const active = el.dataset.hsort === HOME.sortCol;
-    el.innerHTML = escHtml(el.dataset.label) + (active ? ` <span class="h-sort-arrow">${HOME.sortDir === 'asc' ? '↑' : '↓'}</span>` : '');
+    const label = (narrow && el.dataset.labelShort) ? el.dataset.labelShort : el.dataset.label;
+    el.innerHTML = escHtml(label) + (active ? ` <span class="h-sort-arrow">${HOME.sortDir === 'asc' ? '↑' : '↓'}</span>` : '');
   });
 }
+try {
+  window.matchMedia('(max-width: 640px)').addEventListener('change', updateHomeSortArrows);
+} catch(_) {}
 
 function toggleConnectCard(open) {
   const collapsed = document.getElementById('connect-collapsed');
@@ -9053,6 +9135,9 @@ if (!document.body.classList.contains('companion-mode')) {
 
     <!-- YOUR TURN banner (mobile-dominant) -->
     <div id="cv-turn-banner">YOUR TURN — pick now</div>
+
+    <!-- Connection / draft status banner (errors, waiting, ended) -->
+    <div id="cv-status-banner" style="display:none;"></div>
 
     <!-- Top 5 recommendations (same card system as the main panel) -->
     <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.4rem;">Recommendations</div>
