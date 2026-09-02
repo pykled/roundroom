@@ -1,0 +1,14 @@
+{
+  "name": "RoundRoom Draft Assistant",
+  "short_name": "RoundRoom",
+  "description": "Live NFL fantasy draft companion — real-time Sleeper sync, VORP-based pick recommendations.",
+  "start_url": "/?companion=1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#6366f1",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
