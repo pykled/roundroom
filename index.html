@@ -2743,6 +2743,7 @@
     </div>
     <div id="rsch-summary" class="rsch-summary"></div>
     <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
+      <span style="width:28px;flex-shrink:0;"></span>
       <span style="width:32px;flex-shrink:0;"></span>
       <span style="flex:1;">Player</span>
       <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
@@ -8655,15 +8656,16 @@ const RESEARCH = {
   profileName: null,
   lastList: [],       // last rendered list — row onclick indexes into this
   loading: false,
+  loadPromise: null,  // shared in-flight fetch promise
 };
 
 // Pre-draft there's no merged data yet — load the same composite-adp + vorp
 // chain the draft/mock loaders use, into STATE.mergedPlayers.
 async function ensureResearchData() {
   if (STATE.mergedPlayers?.length) return true;
-  if (RESEARCH.loading) return false;
+  if (RESEARCH.loadPromise) return RESEARCH.loadPromise;
   RESEARCH.loading = true;
-  try {
+  RESEARCH.loadPromise = (async () => { try {
     let adpData = null;
     try {
       const resp = await fetch('/api/composite-adp');
@@ -8722,14 +8724,26 @@ async function ensureResearchData() {
     STATE.adpPlayers = sanitizePlayerPool(adpData.players);
     STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
     return true;
-  } finally {
-    RESEARCH.loading = false;
-  }
+  } catch(e) { return false; }
+  finally { RESEARCH.loading = false; RESEARCH.loadPromise = null; }
+  })();
+  return RESEARCH.loadPromise;
 }
 
 function researchAdp(p) {
   const v = p.composite_adp ?? p.adp;
   return (v == null || v >= 999) ? null : v;
+}
+
+function playerHeadshotUrl(p) {
+  const id = p.player_id || p.sleeper_id;
+  return id ? `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg` : null;
+}
+
+function headshotImgHtml(p, size) {
+  const url = playerHeadshotUrl(p);
+  if (!url) return `<span style="width:${size}px;height:${size}px;border-radius:50%;background:var(--bg-hover);flex-shrink:0;display:inline-block;"></span>`;
+  return `<img src="${url}" loading="lazy" width="${size}" height="${size}" style="border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg-hover);" onerror="this.style.display='none'">`;
 }
 
 // Value vs FantasyPros consensus: positive = market drafts them later than FP
@@ -8880,6 +8894,7 @@ function renderResearchList() {
     }
 
     rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}${RESEARCH.profileName === p.name ? ' rsch-selected' : ''}" data-rname="${escHtml(p.name)}" onclick="openResearchProfileByIdx(${i})">
+      ${headshotImgHtml(p, 28)}
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
       <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
@@ -8961,15 +8976,20 @@ function renderResearchProfile(bodyId, barId) {
     ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
   let html = `
     <div class="rsch-head" style="--pos-col:${posCol};">
-      <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-        <span class="rsch-head-name">${escHtml(p.name)}</span>
-        ${injury}
-      </div>
-      <div class="rsch-head-meta">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        ${headshotImgHtml(p, 64)}
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+            <span class="rsch-head-name">${escHtml(p.name)}</span>
+            ${injury}
+          </div>
+          <div class="rsch-head-meta">
         <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};background:color-mix(in srgb, ${posCol} 12%, transparent);">${escHtml(p.position)}</span>
         <span style="font-weight:600;">${escHtml(p.team || 'FA')}</span>
         ${p.bye ? `<span style="color:var(--text-muted);">·</span><span>Bye ${escHtml(p.bye)}</span>` : ''}
         ${p.age ? `<span style="color:var(--text-muted);">·</span><span>Age ${p.age}</span>` : ''}
+          </div>
+        </div>
       </div>
     </div>`;
 
