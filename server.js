@@ -59,6 +59,35 @@ app.get('/api/players', async (req, res) => {
   }
 });
 
+// Slim name→player_id map built from the Sleeper players dict.
+// Returns { "ja'marr chase": "6794", ... } for skill-position players only.
+let playerIdMapCache = null;
+let playerIdMapTime = 0;
+app.get('/api/player-ids', async (req, res) => {
+  const now = Date.now();
+  if (playerIdMapCache && now - playerIdMapTime < PLAYER_CACHE_TTL) {
+    return res.json(playerIdMapCache);
+  }
+  try {
+    const base = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL
+      ? playerCache
+      : await fetch('https://api.sleeper.app/v1/players/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    if (!playerCache) { playerCache = base; playerCacheTime = now; }
+    const SKILL = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
+    const map = {};
+    for (const [id, p] of Object.entries(base)) {
+      if (!p || !p.full_name || !SKILL.has(p.position)) continue;
+      map[p.full_name.toLowerCase()] = id;
+    }
+    playerIdMapCache = map;
+    playerIdMapTime = now;
+    res.json(map);
+  } catch (err) {
+    if (playerIdMapCache) return res.json(playerIdMapCache);
+    res.status(502).json({ error: 'Failed to build player ID map' });
+  }
+});
+
 // Serve live ADP data (updated nightly by GitHub Actions)
 app.get('/api/adp', (req, res) => {
   try {

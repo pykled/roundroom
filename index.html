@@ -8721,8 +8721,18 @@ async function ensureResearchData() {
       }
     } catch(e) {}
 
+    // Fetch name→player_id map to power Sleeper CDN headshots
+    let playerIdMap = {};
+    try {
+      const pidResp = await fetch('/api/player-ids');
+      if (pidResp.ok) playerIdMap = await pidResp.json();
+    } catch(e) {}
+
     STATE.adpPlayers = sanitizePlayerPool(adpData.players);
-    STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => ({ ...p, rank: idx + 1, sleeper_id: p.player_id }));
+    STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => {
+      const pid = playerIdMap[(p.name || '').toLowerCase()] || p.player_id || null;
+      return { ...p, rank: idx + 1, player_id: pid, sleeper_id: pid };
+    });
     return true;
   } catch(e) { return false; }
   finally { RESEARCH.loading = false; RESEARCH.loadPromise = null; }
