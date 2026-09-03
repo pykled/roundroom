@@ -2406,6 +2406,7 @@
       <div class="home-secondary-links">
         <button onclick="openResearchStandalone()">Research Players</button>
         <button onclick="openListsOverlay()">My Targets</button>
+        <button onclick="openReviewFromHome()">Review Past Draft</button>
         <button onclick="openHelp()" style="color:var(--text-muted);">How it works</button>
       </div>
 
@@ -3199,6 +3200,7 @@ async function launchStandaloneMock() {
     closeMockConfig();
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
+    setHash('draft');
     document.getElementById('ai-fab').style.display = 'flex';
 
     initMainView();
@@ -4125,6 +4127,7 @@ async function startDraftAssistant() {
     // Switch to main view
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
+    setHash('draft');
 
     if (STATE.usingOfflineData) {
       document.getElementById('offline-banner').classList.remove('hidden');
@@ -5927,6 +5930,7 @@ function goHome() {
   if (fab) fab.style.display = 'none';
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'flex';
+  setHash('home');
   document.getElementById('draft-info-section').classList.add('hidden');
   document.querySelectorAll('.league-card').forEach(c => c.classList.remove('selected'));
   const sfBadge = document.getElementById('sf-badge');
@@ -6366,6 +6370,7 @@ async function enterReviewRoom(league, draft) {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('review-screen').style.display = 'flex';
+  setHash('review');
   document.getElementById('review-league-name').textContent = league.name || 'League';
   document.getElementById('review-board').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem;">Loading draft data...</p>';
   document.getElementById('review-sidebar').innerHTML = '';
@@ -8949,6 +8954,7 @@ function openResearchStandalone() {
   if (!panel) return;
   if (panel.parentElement !== document.body) document.body.appendChild(panel);
   panel.classList.add('as-overlay');
+  setHash('research');
   renderResearchList();
   ensureResearchData().then(() => renderResearchList());
 }
@@ -8956,6 +8962,7 @@ function openResearchStandalone() {
 function closeResearchStandalone() {
   const panel = document.getElementById('panel-research');
   if (!panel) return;
+  if (panel.classList.contains('as-overlay')) setHash('home');
   panel.classList.remove('as-overlay');
   const layout = document.querySelector('.main-layout');
   if (layout && panel.parentElement !== layout) layout.appendChild(panel);
@@ -9009,6 +9016,24 @@ function exitPrepMode() {
   STATE.isPrepMode = false;
   document.getElementById('app-screen').classList.remove('prep-mode');
   goHome();
+}
+
+// Open review flow from the homepage — pre-fills username if returning user, then
+// routes through the normal connect flow (which auto-detects completed drafts).
+function openReviewFromHome() {
+  const saved = (() => { try { return localStorage.getItem('rr_username') || ''; } catch(_) { return ''; } })();
+  const input = document.getElementById('username-input');
+  const stepHint = document.getElementById('connect-step-hint');
+  if (input && saved) {
+    input.value = saved;
+    if (stepHint) stepHint.textContent = 'Select your league to view the post-draft review.';
+    fetchLeagues();
+  } else {
+    if (input) {
+      input.focus();
+      if (stepHint) stepHint.textContent = 'Enter your Sleeper username to review a past draft.';
+    }
+  }
 }
 
 // ===== HOME PAGE (setup screen) =====
@@ -9172,6 +9197,37 @@ function loadHomeData() {
 if (!document.body.classList.contains('companion-mode')) {
   try { loadHomeData(); } catch (e) {}
 }
+
+// ===== HASH ROUTING =====
+function setHash(h) {
+  history.pushState({ hash: h }, '', h ? '#' + h : location.pathname + location.search);
+}
+
+function handleHash() {
+  const hash = location.hash.replace('#', '');
+  const setupVisible = document.getElementById('setup-screen')?.style.display !== 'none';
+  const appVisible = document.getElementById('app-screen')?.style.display !== 'none';
+  const reviewVisible = document.getElementById('review-screen')?.style.display !== 'none';
+
+  if (hash === 'research') {
+    // Close review if open, ensure setup is visible as backdrop
+    if (reviewVisible) { document.getElementById('review-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
+    openResearchStandalone();
+  } else if (hash === 'review' || hash === 'draft') {
+    // Can't deep-link into draft/review without a session — go home
+    if (!appVisible && !reviewVisible) { document.getElementById('setup-screen').style.display = 'flex'; }
+  } else {
+    // #home or empty — close any overlays and go to setup screen
+    closeResearchStandalone();
+    if (reviewVisible) { document.getElementById('review-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
+  }
+}
+
+window.addEventListener('popstate', handleHash);
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (location.hash) handleHash();
+});
 </script>
 
 <div id="companion-view" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);font-size:13px;">
