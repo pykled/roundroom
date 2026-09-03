@@ -398,11 +398,23 @@
     content: ''; flex: 1; height: 1px; background: var(--border);
   }
 
-  .home-feedback {
-    margin-top: 1rem; font-size: 0.7rem; color: var(--text-muted);
+  .home-bookmarklet-details {
+    margin-top: 1.25rem;
   }
-  .home-feedback a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
-  .home-feedback a:hover { color: var(--text-primary); }
+  .home-bookmarklet-details > summary {
+    list-style: none; cursor: pointer;
+    font-size: 0.72rem; color: var(--text-muted);
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    transition: color 0.15s;
+  }
+  .home-bookmarklet-details > summary::-webkit-details-marker { display: none; }
+  .home-bookmarklet-details > summary:hover { color: var(--text-secondary); }
+
+  .home-feedback {
+    margin-top: 1.25rem; font-size: 0.65rem;
+  }
+  .home-feedback a { text-decoration: none; }
+  .home-feedback a:hover { opacity: 1 !important; }
 
   .home-right {
     min-width: 0;
@@ -2397,10 +2409,8 @@
   <div class="home-layout">
 
     <div class="home-left">
-      <div class="home-pill">Built for Sleeper · 2026</div>
       <div class="home-wordmark">RoundRoom</div>
       <div class="home-tagline">Know who to draft. Every round.</div>
-      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;line-height:1.6;">Real-time pick tracking · VORP-based recommendations · Strategy-aware, not just ADP.</div>
 
       <div class="home-action-cards" style="margin-top:1.75rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
@@ -2454,11 +2464,11 @@
         <button onclick="openResearchStandalone()">Research Players</button>
         <button onclick="openListsOverlay()">My Targets</button>
         <button onclick="openReviewFromHome()">Review Past Draft</button>
-        <button onclick="openHelp()" style="color:var(--text-muted);">How it works</button>
       </div>
 
-      <div class="home-divider">or use on draft day</div>
-      <div class="home-bookmarklet">
+      <details class="home-bookmarklet-details">
+        <summary>Use on draft day →</summary>
+      <div class="home-bookmarklet" style="margin-top:0.75rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
           <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Live Draft Companion</div>
           <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:0.18rem 0.55rem;white-space:nowrap;">Sleeper only</span>
@@ -2485,46 +2495,9 @@
           </div>
         </div>
       </div>
-
-      <details class="home-status-details">
-        <summary>Supported formats &amp; strategies</summary>
-        <div class="home-status-cols">
-          <div class="home-status-col">
-            <div class="home-status-format"><span class="home-status-dot ok"></span><span>PPR</span></div>
-            <div class="home-status-strategies">
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
-            </div>
-          </div>
-          <div class="home-status-col">
-            <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span><span class="home-status-note warn">⚠ Partial</span></div>
-            <div class="home-status-strategies">
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
-              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
-            </div>
-            <div class="home-status-partial-sub">Optimized for PPR — Standard weights not yet tuned.</div>
-          </div>
-          <div class="home-status-col">
-            <div class="home-status-format"><span class="home-status-dot no"></span><span>Half-PPR</span></div>
-            <div class="home-status-maint">Under Maintenance</div>
-            <div class="home-status-maint-sub">Rankings &amp; strategies temporarily offline while we rebuild Half-PPR data.</div>
-          </div>
-        </div>
       </details>
 
-      <div class="home-feedback">Found a bug or have feedback? <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report it on GitHub</a></div>
+      <div class="home-feedback"><a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener" style="color:var(--text-muted);font-size:0.65rem;text-decoration:none;opacity:0.6;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">Report a bug</a></div>
     </div>
 
     <div class="home-right">
