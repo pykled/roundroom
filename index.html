@@ -313,9 +313,9 @@
   }
   .home-status-col {
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0.55rem 0.8rem;
@@ -326,9 +326,12 @@
     font-size: 0.7rem; font-weight: 700; color: var(--text-primary);
     text-transform: uppercase; letter-spacing: 0.08em;
     white-space: nowrap;
-    padding-right: 0.6rem;
-    border-right: 1px solid var(--border);
-    flex-shrink: 0;
+    width: 100%;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .home-status-strategies {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
   }
   .home-status-row {
     display: flex; align-items: center; gap: 0.35rem;
@@ -2418,26 +2421,30 @@
         <div class="home-status-cols">
           <div class="home-status-col">
             <div class="home-status-format"><span class="home-status-dot ok"></span><span>PPR</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
+            <div class="home-status-strategies">
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
+            </div>
           </div>
           <div class="home-status-col">
             <div class="home-status-format"><span class="home-status-dot warn"></span><span>Standard</span></div>
-            <div class="home-status-note warn">⚠ Partial</div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
-            <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
+            <div class="home-status-strategies">
+              <div class="home-status-note warn">⚠ Partial</div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>BPA</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Robust RB</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Premium (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>QB Punt (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Zero RB (SF)</span></div>
+              <div class="home-status-row"><span class="home-status-dot ok"></span><span>Hero RB (SF)</span></div>
+            </div>
             <div class="home-status-partial-sub">Optimized for PPR — Standard weights not yet tuned.</div>
           </div>
           <div class="home-status-col">
