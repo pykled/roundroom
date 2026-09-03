@@ -1842,17 +1842,12 @@
   #panel-research.as-overlay { display: flex; flex-direction: column; }
   #panel-research.as-overlay {
     position: fixed;
-    top: 0; bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 900px;
+    inset: 0;
     z-index: 550;
     background: var(--bg-primary);
     padding: 1rem 1.5rem;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    max-width: 900px;
+    margin: 0 auto;
   }
   #research-standalone-close { display: none; }
   #panel-research.as-overlay #research-standalone-close {
@@ -9053,6 +9048,12 @@ function openResearchStandalone() {
   if (!panel) return;
   if (panel.parentElement !== document.body) document.body.appendChild(panel);
   panel.classList.add('as-overlay');
+  // Hide the home screen so research replaces it instead of floating on top
+  const setupScreen = document.getElementById('setup-screen');
+  if (setupScreen && setupScreen.style.display !== 'none') {
+    panel.dataset.researchHidSetup = '1';
+    setupScreen.style.display = 'none';
+  }
   setHash('research');
   renderResearchList();
   ensureResearchData().then(() => renderResearchList());
@@ -9063,6 +9064,12 @@ function closeResearchStandalone() {
   if (!panel) return;
   if (panel.classList.contains('as-overlay')) setHash('home');
   panel.classList.remove('as-overlay');
+  // Restore the home screen if we hid it
+  if (panel.dataset.researchHidSetup === '1') {
+    delete panel.dataset.researchHidSetup;
+    const setupScreen = document.getElementById('setup-screen');
+    if (setupScreen) setupScreen.style.display = 'flex';
+  }
   const layout = document.querySelector('.main-layout');
   if (layout && panel.parentElement !== layout) layout.appendChild(panel);
 }
@@ -9309,7 +9316,7 @@ function handleHash() {
   const reviewVisible = document.getElementById('review-screen')?.style.display !== 'none';
 
   if (hash === 'research') {
-    // Close review if open, ensure setup is visible as backdrop
+    // Close review if open, then open research as a proper screen
     if (reviewVisible) { document.getElementById('review-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
     openResearchStandalone();
   } else if (hash === 'review' || hash === 'draft') {
