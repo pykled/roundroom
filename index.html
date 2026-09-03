@@ -1849,12 +1849,7 @@
     max-width: 900px;
     margin: 0 auto;
   }
-  #research-standalone-close { display: none; }
-  #panel-research.as-overlay #research-standalone-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
+  #panel-research.as-overlay #research-standalone-close { display: inline-block; }
 
   .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
 
@@ -1875,6 +1870,24 @@
     background: rgba(124,111,247,0.15);
     border-color: rgba(124,111,247,0.5);
     color: #a78bfa;
+  }
+  .rsch-sort-btn {
+    padding: 0.18rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .rsch-sort-btn.active {
+    background: rgba(255,255,255,0.07);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
   }
   .rsch-tier-divider {
     display: flex; align-items: center; gap: 0.5rem;
@@ -2664,10 +2677,9 @@
 
     <!-- RESEARCH: player research panel (mobile tab / standalone overlay) -->
     <div class="panel" id="panel-research">
-      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;flex-shrink:0;">
+        <button id="research-standalone-close" onclick="closeResearchStandalone()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;display:none;">← Home</button>
         <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
-        <button onclick="openListsOverlay()" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:inherit;">⭐ View My Targets</button>
-        <button id="research-standalone-close" onclick="closeResearchStandalone()" title="Close" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-primary);font-size:0.85rem;cursor:pointer;font-family:inherit;">✕</button>
       </div>
       <div class="research-controls">
         <input type="text" class="board-search" id="research-search" placeholder="Search players…" oninput="RESEARCH.search=this.value;renderResearchList()" style="margin-bottom:0.5rem;">
@@ -2678,13 +2690,14 @@
           <button class="rsch-pos-btn" data-rpos="WR" onclick="setResearchPos('WR')">WR</button>
           <button class="rsch-pos-btn" data-rpos="TE" onclick="setResearchPos('TE')">TE</button>
           <button class="rsch-pos-btn" data-rpos="K" onclick="setResearchPos('K')">K</button>
-          <select id="research-sort" onchange="RESEARCH.sort=this.value;renderResearchList()" style="margin-left:auto;font-size:0.7rem;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.4rem;font-family:inherit;cursor:pointer;">
-            <option value="adp">ADP</option>
-            <option value="vorp">VORP</option>
-            <option value="proj">Proj Pts</option>
-            <option value="value">Value</option>
-            <option value="volatility">Volatility</option>
-          </select>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:0.2rem;">
+            <span style="font-size:0.58rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;padding-right:0.1rem;">Sort</span>
+            <button class="rsch-sort-btn active" data-rsort="adp" onclick="setResearchSort('adp')">ADP</button>
+            <button class="rsch-sort-btn" data-rsort="vorp" onclick="setResearchSort('vorp')">VORP</button>
+            <button class="rsch-sort-btn" data-rsort="proj" onclick="setResearchSort('proj')">Proj</button>
+            <button class="rsch-sort-btn" data-rsort="value" onclick="setResearchSort('value')">Value</button>
+            <button class="rsch-sort-btn" data-rsort="volatility" onclick="setResearchSort('volatility')">Vol</button>
+          </span>
         </div>
         <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap;">
           <button class="rsch-filter-btn active" data-rfilt="all" onclick="setResearchFilter('all')">All</button>
@@ -2702,7 +2715,7 @@
         <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
         <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
         <span class="rsch-col-proj" title="Projected fantasy points for 2026 season">Proj</span>
-        <span style="width:40px;flex-shrink:0;" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">vs FP</span>
+        <span style="width:40px;flex-shrink:0;" title="Draft value vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Edge</span>
         <span style="width:18px;flex-shrink:0;"></span>
       </div>
       <div id="research-player-list"></div>
@@ -8756,6 +8769,12 @@ function setResearchFilter(f) {
   renderResearchList();
 }
 
+function setResearchSort(s) {
+  RESEARCH.sort = s;
+  document.querySelectorAll('.rsch-sort-btn').forEach(b => b.classList.toggle('active', b.dataset.rsort === s));
+  renderResearchList();
+}
+
 const RSCH_POS_COLORS = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)', DEF: 'var(--dst)', PK: 'var(--k)' };
 
 function renderResearchList() {
@@ -8810,7 +8829,12 @@ function renderResearchList() {
   }
 
   if (!players.length) {
-    container.innerHTML = '<div class="empty-state">No players found</div>';
+    const hasFilter = RESEARCH.pos !== 'ALL' || q || RESEARCH.filter !== 'all';
+    container.innerHTML = `<div class="empty-state" style="padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+      <span style="font-size:1.4rem;opacity:0.4;">🔍</span>
+      <span style="font-size:0.8rem;color:var(--text-muted);">${q ? `No players match "${escHtml(q)}"` : 'No players match the current filters'}</span>
+      ${hasFilter ? `<button onclick="RESEARCH.pos='ALL';RESEARCH.search='';RESEARCH.filter='all';document.getElementById('research-search').value='';document.querySelectorAll('.rsch-pos-btn').forEach(b=>b.classList.toggle('active',b.dataset.rpos==='ALL'));document.querySelectorAll('.rsch-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.rfilt==='all'));renderResearchList()" style="font-size:0.7rem;padding:0.3rem 0.75rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;font-family:inherit;">Clear filters</button>` : ''}
+    </div>`;
     return;
   }
 
