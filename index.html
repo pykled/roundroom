@@ -2245,9 +2245,11 @@
       border-bottom: none;
       animation: rsch-sheet-up 0.22s ease;
     }
-    /* Hero grid: 5-col is cramped on narrow phones — collapse to 3 */
-    .rsch-hero-grid { grid-template-columns: repeat(3, 1fr) !important; }
-    .rsch-hero-val { font-size: 1.4rem; }
+    /* Hero grid: keep all 5 cols, compress sizing to fit */
+    .rsch-hero-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 0.35rem; }
+    .rsch-hero-val { font-size: 1.05rem; }
+    .rsch-hero-card { padding: 0.55rem 0.2rem 0.5rem; border-radius: 10px; }
+    .rsch-hero-label { font-size: 0.52rem; }
   }
 
   /* ===== MOBILE TAB BAR ===== */
