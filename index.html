@@ -2743,7 +2743,7 @@
     </div>
     <div id="rsch-summary" class="rsch-summary"></div>
     <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
-      <span style="width:28px;flex-shrink:0;"></span>
+      <span style="width:36px;flex-shrink:0;"></span>
       <span style="width:32px;flex-shrink:0;"></span>
       <span style="flex:1;">Player</span>
       <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
@@ -8750,10 +8750,42 @@ function playerHeadshotUrl(p) {
   return id ? `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg` : null;
 }
 
+function playerLargeHeadshotUrl(p) {
+  const id = p.player_id || p.sleeper_id;
+  return id ? `https://sleepercdn.com/content/nfl/players/${id}.jpg` : null;
+}
+
+// Square thumbnail for list rows — trading card mini feel
 function headshotImgHtml(p, size) {
   const url = playerHeadshotUrl(p);
-  if (!url) return `<span style="width:${size}px;height:${size}px;border-radius:50%;background:var(--bg-hover);flex-shrink:0;display:inline-block;"></span>`;
-  return `<img src="${url}" loading="lazy" width="${size}" height="${size}" style="border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg-hover);" onerror="this.style.display='none'">`;
+  if (!url) return '';
+  return `<img src="${url}" loading="lazy" width="${size}" height="${size}" style="border-radius:6px;object-fit:cover;object-position:top center;flex-shrink:0;background:var(--bg-hover);" onerror="this.remove()">`;
+}
+
+// Broadcast-banner header: large photo bleeds in from right with gradient fade
+function broadcastHeaderHtml(p, posCol) {
+  const injury = p.injury_status && p.injury_status !== 'Active'
+    ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
+  const largeUrl = playerLargeHeadshotUrl(p);
+  const photoHtml = largeUrl ? `<img src="${largeUrl}" loading="lazy"
+    style="position:absolute;right:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.4) 45%,transparent 80%);mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.4) 45%,transparent 80%);"
+    onerror="this.remove()">` : '';
+  return `
+    <div class="rsch-head" style="--pos-col:${posCol};position:relative;overflow:hidden;">
+      <div style="position:relative;z-index:1;padding-right:${largeUrl ? '110px' : '0'};">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <span class="rsch-head-name">${escHtml(p.name)}</span>
+          ${injury}
+        </div>
+        <div class="rsch-head-meta">
+          <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};background:color-mix(in srgb, ${posCol} 12%, transparent);">${escHtml(p.position)}</span>
+          <span style="font-weight:600;">${escHtml(p.team || 'FA')}</span>
+          ${p.bye ? `<span style="color:var(--text-muted);">·</span><span>Bye ${escHtml(p.bye)}</span>` : ''}
+          ${p.age ? `<span style="color:var(--text-muted);">·</span><span>Age ${p.age}</span>` : ''}
+        </div>
+      </div>
+      ${photoHtml}
+    </div>`;
 }
 
 // Value vs FantasyPros consensus: positive = market drafts them later than FP
@@ -8904,7 +8936,7 @@ function renderResearchList() {
     }
 
     rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}${RESEARCH.profileName === p.name ? ' rsch-selected' : ''}" data-rname="${escHtml(p.name)}" onclick="openResearchProfileByIdx(${i})">
-      ${headshotImgHtml(p, 28)}
+      ${headshotImgHtml(p, 36)}
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
       <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
@@ -8981,27 +9013,8 @@ function renderResearchProfile(bodyId, barId) {
     .sort((a, b) => researchVorp(b) - researchVorp(a));
   const vorpRank = vorpList.findIndex(x => x.name === p.name) + 1;
 
-  // ── Header: position-tinted band with name + context line ──
-  const injury = p.injury_status && p.injury_status !== 'Active'
-    ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
-  let html = `
-    <div class="rsch-head" style="--pos-col:${posCol};">
-      <div style="display:flex;align-items:center;gap:0.75rem;">
-        ${headshotImgHtml(p, 64)}
-        <div style="min-width:0;">
-          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
-            <span class="rsch-head-name">${escHtml(p.name)}</span>
-            ${injury}
-          </div>
-          <div class="rsch-head-meta">
-        <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};background:color-mix(in srgb, ${posCol} 12%, transparent);">${escHtml(p.position)}</span>
-        <span style="font-weight:600;">${escHtml(p.team || 'FA')}</span>
-        ${p.bye ? `<span style="color:var(--text-muted);">·</span><span>Bye ${escHtml(p.bye)}</span>` : ''}
-        ${p.age ? `<span style="color:var(--text-muted);">·</span><span>Age ${p.age}</span>` : ''}
-          </div>
-        </div>
-      </div>
-    </div>`;
+  // ── Header: broadcast-banner with player photo bleeding in from right ──
+  let html = broadcastHeaderHtml(p, posCol);
 
   // ── Hero: three key facts a drafter needs first ──
   const projPts = getProjectedPts(p, STATE.mergedPlayers);
