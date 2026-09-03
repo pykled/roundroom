@@ -9122,7 +9122,41 @@ function renderResearchProfile(bodyId, barId) {
     html += `<div class="rsch-src-note">Based on ${td} drafts</div>`;
   }
 
+  // ── Comparable picks at similar ADP ──
+  if (adp != null) {
+    const WINDOW = 2.5;
+    const comps = STATE.mergedPlayers
+      .filter(x => x.name !== p.name && Math.abs((researchAdp(x) ?? 999) - adp) <= WINDOW)
+      .sort((a, b) => Math.abs((researchAdp(a) ?? 999) - adp) - Math.abs((researchAdp(b) ?? 999) - adp))
+      .slice(0, 4);
+    if (comps.length) {
+      html += `<div style="margin-top:1.1rem;">
+        <div style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.45rem;">Also in this range</div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          ${comps.map(c => {
+            const cadp = researchAdp(c);
+            const cpos = RSCH_POS_COLORS[c.position] || 'var(--k)';
+            const cval = researchValue(c);
+            const cvalStr = cval != null ? `<span style="font-size:0.62rem;color:${cval >= 1 ? 'var(--success)' : cval <= -1 ? 'var(--danger)' : 'var(--text-muted)'};">${cval >= 0 ? '+' : ''}${cval.toFixed(1)}</span>` : '';
+            return `<div onclick="openResearchProfile('${escHtml(c.name).replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.5rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--bg-secondary);" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='var(--bg-secondary)'">
+              <span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;background:color-mix(in srgb,${cpos} 15%,transparent);color:${cpos};">${escHtml(c.position)}</span>
+              <span style="font-size:0.75rem;font-weight:600;color:var(--text-primary);flex:1;">${escHtml(c.name)}</span>
+              ${cvalStr}
+              <span style="font-size:0.68rem;color:var(--text-muted);font-family:'DM Mono',monospace;">${cadp != null ? cadp.toFixed(1) : '—'}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Async stats placeholder ──
+  html += `<div id="rsch-stats-async" style="margin-top:1.1rem;"></div>`;
+
   body.innerHTML = html;
+
+  // Kick off async stats fetch (fills placeholder after render)
+  if (p.player_id) loadResearchPlayerStats(p, posCol);
 
   // ── Decision bar: compact 3-button row ──
   const t = isTarget(p.name), d = isDND(p.name);
@@ -9144,6 +9178,131 @@ function setResearchDecision(kind) {
   // Keep the main board/recs in sync when the draft view is up
   if (document.getElementById('app-screen')?.style.display !== 'none') {
     try { renderBoard(); renderRecommendations(); } catch(e) {}
+  }
+}
+
+async function loadResearchPlayerStats(p, posCol) {
+  const el = document.getElementById('rsch-stats-async');
+  if (!el) return;
+  el.innerHTML = `<div style="font-size:0.65rem;color:var(--text-muted);padding:0.5rem 0;">Loading career stats…</div>`;
+  try {
+    const res = await fetch(`/api/player-stats/${encodeURIComponent(p.player_id)}`);
+    if (!res.ok) { el.innerHTML = ''; return; }
+    const { seasons } = await res.json();
+    if (!seasons || !seasons.length) { el.innerHTML = ''; return; }
+
+    // Infer position from player data
+    const pos = (p.position || '').toUpperCase();
+    const isQB = pos === 'QB';
+    const isRB = pos === 'RB';
+    const pCol = posCol || 'var(--k)';
+
+    // Projected pts from existing data
+    const projPts = getProjectedPts(p, STATE.mergedPlayers);
+
+    // Build stat cols per position
+    const cols = isQB
+      ? [
+          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
+          { key: 'pass_att', label: 'Att', fmt: v => Math.round(v) },
+          { key: 'pass_cmp', label: 'Cmp%', fmt: (_, s) => s.pass_att ? ((s.pass_cmp || 0) / s.pass_att * 100).toFixed(0) + '%' : '—' },
+          { key: 'pass_yd', label: 'Pass Yd', fmt: v => Math.round(v).toLocaleString() },
+          { key: 'pass_td', label: 'TD', fmt: v => Math.round(v) },
+          { key: 'pass_int', label: 'INT', fmt: v => Math.round(v) },
+          { key: 'rush_yd', label: 'Rush Yd', fmt: v => Math.round(v) },
+          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+        ]
+      : isRB
+      ? [
+          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
+          { key: 'rush_att', label: 'Car', fmt: v => Math.round(v) },
+          { key: 'rush_yd', label: 'Rush Yd', fmt: v => Math.round(v) },
+          { key: 'rush_td', label: 'TD', fmt: v => Math.round(v) },
+          { key: 'rec', label: 'Rec', fmt: v => Math.round(v) },
+          { key: 'rec_yd', label: 'Rec Yd', fmt: v => Math.round(v) },
+          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+        ]
+      : [ // WR / TE
+          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
+          { key: 'targets', label: 'Tgt', fmt: v => Math.round(v) },
+          { key: 'rec', label: 'Rec', fmt: v => Math.round(v) },
+          { key: 'rec_yd', label: 'Rec Yd', fmt: v => Math.round(v) },
+          { key: 'rec_td', label: 'TD', fmt: v => Math.round(v) },
+          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+        ];
+
+    // Trajectory: PPR pts over years
+    const pts = seasons.map(s => ({ year: s.season, val: s.pts_ppr }));
+    if (projPts != null) pts.push({ year: 2025, val: projPts, proj: true });
+    const maxPts = Math.max(...pts.map(x => x.val || 0), 1);
+
+    // Efficiency badges (where available, use most recent season)
+    const latest = seasons[seasons.length - 1] || {};
+    const effBadges = [];
+    if (latest.target_share != null) effBadges.push({ label: 'Target Share', val: (latest.target_share * 100).toFixed(0) + '%', good: latest.target_share >= 0.2 });
+    if (latest.snap_pct != null) effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
+    if (latest.air_yd_share != null) effBadges.push({ label: 'Air Yd Share', val: (latest.air_yd_share * 100).toFixed(0) + '%', good: latest.air_yd_share >= 0.15 });
+
+    // Header divider
+    let statsHtml = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Career Stats</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>`;
+
+    // Efficiency badges
+    if (effBadges.length) {
+      statsHtml += `<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.65rem;">
+        ${effBadges.map(b => `<div style="display:flex;flex-direction:column;align-items:center;padding:0.3rem 0.6rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);min-width:60px;">
+          <span style="font-size:0.78rem;font-weight:700;color:${b.good ? pCol : 'var(--text-secondary)'};">${b.val}</span>
+          <span style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;">${b.label}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    // PPR trajectory sparkline
+    if (pts.length >= 2) {
+      const barWidth = 100 / pts.length;
+      statsHtml += `<div style="margin-bottom:0.7rem;">
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.3rem;">PPR Trajectory</div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:40px;">
+          ${pts.map(({ year, val, proj }) => {
+            const h = Math.max(8, Math.round((val / maxPts) * 38));
+            return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;">
+              <span style="font-size:0.55rem;color:var(--text-muted);">${Math.round(val)}</span>
+              <div style="width:100%;height:${h}px;border-radius:3px 3px 0 0;background:${proj ? `color-mix(in srgb,${pCol} 40%,transparent)` : pCol};${proj ? 'border:1px dashed ' + pCol + ';' : ''}"></div>
+              <span style="font-size:0.55rem;color:var(--text-muted);">${proj ? "'25P" : String(year).slice(2)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    // Stats table
+    statsHtml += `<div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:0.25rem 0.3rem;font-size:0.6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">Year</th>
+            ${cols.map(c => `<th style="text-align:right;padding:0.25rem 0.3rem;font-size:0.6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">${c.label}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${seasons.map((s, i) => `<tr style="${i % 2 === 1 ? 'background:var(--bg-secondary);' : ''}">
+            <td style="padding:0.25rem 0.3rem;color:var(--text-secondary);font-weight:600;">${s.season}</td>
+            ${cols.map(c => {
+              const raw = s[c.key];
+              const display = raw != null ? c.fmt(raw, s) : '—';
+              const isPPR = c.key === 'pts_ppr';
+              return `<td style="text-align:right;padding:0.25rem 0.3rem;color:${isPPR ? pCol : 'var(--text-primary)'};font-weight:${isPPR ? '600' : '400'};">${display}</td>`;
+            }).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+    el.innerHTML = statsHtml;
+  } catch (e) {
+    el.innerHTML = '';
   }
 }
 

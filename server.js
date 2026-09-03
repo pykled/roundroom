@@ -156,6 +156,45 @@ app.get('/api/data-freshness', (req, res) => {
   }
 });
 
+// Historical season stats via Sleeper stats API.
+// Fetches 2023 + 2024 season totals for a given player_id and caches 24h.
+const statsCache = new Map(); // player_id → { data, time }
+app.get('/api/player-stats/:playerId', async (req, res) => {
+  const id = req.params.playerId;
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'Invalid player ID' });
+  const cached = statsCache.get(id);
+  if (cached && Date.now() - cached.time < PLAYER_CACHE_TTL) return res.json(cached.data);
+
+  const STAT_FIELDS = [
+    'gp', 'pts_ppr', 'pts_std',
+    'rec', 'targets', 'rec_yd', 'rec_td', 'rec_lng', 'rec_air_yd',
+    'rush_att', 'rush_yd', 'rush_td',
+    'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_int',
+    'target_share', 'air_yd_share', 'snap_pct',
+  ];
+
+  async function fetchSeasonStats(year) {
+    const url = `https://api.sleeper.app/v1/stats/nfl/player/${id}?season_type=regular&season=${year}&grouping=season`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const raw = await r.json();
+    if (!raw || typeof raw !== 'object') return null;
+    const out = { season: year };
+    for (const f of STAT_FIELDS) { if (raw[f] != null) out[f] = raw[f]; }
+    return Object.keys(out).length > 1 ? out : null;
+  }
+
+  try {
+    const [s2023, s2024] = await Promise.all([fetchSeasonStats(2023), fetchSeasonStats(2024)]);
+    const data = { seasons: [s2023, s2024].filter(Boolean) };
+    statsCache.set(id, { data, time: Date.now() });
+    res.json(data);
+  } catch (err) {
+    console.error('Stats fetch error:', err.message);
+    res.status(502).json({ error: 'Failed to fetch stats' });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // AI Assistant proxy — keeps the Anthropic API key server-side.
 // Simple in-memory rate limit: max 20 requests per IP per minute.
