@@ -1843,6 +1843,14 @@
     to   { opacity: 1; transform: translateX(0); }
   }
 
+  /* Two-pane research layout */
+  #research-detail-pane .rsch-head { border-radius: 0; margin: -1.5rem -2rem 1rem; }
+  .research-row.rsch-selected { background: rgba(124,111,247,0.1) !important; }
+  @media (max-width: 768px) {
+    #research-screen { flex-direction: column !important; }
+    #research-detail-pane { display: none !important; }
+  }
+
   .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
 
   .rsch-filter-btn {
@@ -2702,8 +2710,8 @@
 </div>
 
 <!-- RESEARCH SCREEN -->
-<div id="research-screen" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);">
-  <div class="panel" id="panel-research" style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:1rem 1.5rem;">
+<div id="research-screen" style="display:none;flex-direction:row;height:100vh;overflow:hidden;background:var(--bg-primary);">
+  <div class="panel" id="panel-research" style="display:flex;flex-direction:column;flex:0 0 42%;overflow:hidden;padding:1rem 1rem 1rem 1.5rem;border-right:1px solid var(--border);">
     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;flex-shrink:0;">
       <button onclick="closeResearchStandalone()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;">← Home</button>
       <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
@@ -2745,7 +2753,16 @@
       <span style="width:40px;flex-shrink:0;" title="Draft value vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Edge</span>
       <span style="width:18px;flex-shrink:0;"></span>
     </div>
-    <div id="research-player-list"></div>
+    <div id="research-player-list" style="overflow-y:auto;flex:1;"></div>
+  </div>
+  <!-- RIGHT PANE: persistent player detail -->
+  <div id="research-detail-pane" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="rsch-pane-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;color:var(--text-muted);opacity:0.5;">
+      <span style="font-size:2.5rem;">👤</span>
+      <span style="font-size:0.8rem;font-weight:600;">Select a player</span>
+    </div>
+    <div class="research-sheet-body" id="rsch-pane-body" style="display:none;flex:1;overflow-y:auto;padding:1.5rem 2rem;"></div>
+    <div class="research-decision-bar" id="rsch-pane-bar" style="display:none;border-top:1px solid var(--border);"></div>
   </div>
 </div>
 
@@ -8862,7 +8879,7 @@ function renderResearchList() {
       }
     }
 
-    rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
+    rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}${RESEARCH.profileName === p.name ? ' rsch-selected' : ''}" data-rname="${escHtml(p.name)}" onclick="openResearchProfileByIdx(${i})">
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
       <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
@@ -8884,20 +8901,45 @@ function openResearchProfileByIdx(i) {
 
 function openResearchProfile(name) {
   RESEARCH.profileName = name;
-  renderResearchProfile();
-  document.getElementById('research-profile-overlay').classList.add('open');
+  // Highlight selected row
+  document.querySelectorAll('.research-row').forEach(r => r.classList.remove('rsch-selected'));
+  const sel = document.querySelector(`.research-row[data-rname="${CSS.escape(name)}"]`);
+  if (sel) sel.classList.add('rsch-selected');
+
+  if (window.innerWidth > 768) {
+    renderResearchProfile('rsch-pane-body', 'rsch-pane-bar');
+    const empty = document.getElementById('rsch-pane-empty');
+    const body = document.getElementById('rsch-pane-body');
+    const bar = document.getElementById('rsch-pane-bar');
+    if (empty) empty.style.display = 'none';
+    if (body) body.style.display = '';
+    if (bar) bar.style.display = '';
+  } else {
+    renderResearchProfile('research-profile-body', 'research-decision-bar');
+    document.getElementById('research-profile-overlay').classList.add('open');
+  }
 }
 
 function closeResearchProfile() {
-  document.getElementById('research-profile-overlay').classList.remove('open');
+  if (window.innerWidth > 768) {
+    const empty = document.getElementById('rsch-pane-empty');
+    const body = document.getElementById('rsch-pane-body');
+    const bar = document.getElementById('rsch-pane-bar');
+    if (empty) { empty.style.display = ''; }
+    if (body) { body.style.display = 'none'; body.innerHTML = ''; }
+    if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
+    document.querySelectorAll('.research-row').forEach(r => r.classList.remove('rsch-selected'));
+  } else {
+    document.getElementById('research-profile-overlay').classList.remove('open');
+  }
   RESEARCH.profileName = null;
 }
 
-function renderResearchProfile() {
+function renderResearchProfile(bodyId, barId) {
   const name = RESEARCH.profileName;
   const p = STATE.mergedPlayers.find(x => x.name === name);
-  const body = document.getElementById('research-profile-body');
-  const bar = document.getElementById('research-decision-bar');
+  const body = document.getElementById(bodyId || 'research-profile-body');
+  const bar = document.getElementById(barId || 'research-decision-bar');
   if (!p || !body) return;
 
   const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
@@ -9048,7 +9090,8 @@ function setResearchDecision(kind) {
   if (kind === 'target') { if (!isTarget(name)) toggleTarget(name); }
   else if (kind === 'dnd') { if (!isDND(name)) toggleDND(name); }
   else { if (isTarget(name)) toggleTarget(name); if (isDND(name)) toggleDND(name); }
-  renderResearchProfile();
+  const isDesktop = window.innerWidth > 768;
+  renderResearchProfile(isDesktop ? 'rsch-pane-body' : 'research-profile-body', isDesktop ? 'rsch-pane-bar' : 'research-decision-bar');
   renderResearchList();
   // Keep the main board/recs in sync when the draft view is up
   if (document.getElementById('app-screen')?.style.display !== 'none') {
@@ -9072,7 +9115,12 @@ function openResearchStandalone() {
   screen.style.display = 'flex';
   setHash('research');
   renderResearchList();
-  ensureResearchData().then(() => renderResearchList());
+  ensureResearchData().then(() => {
+    renderResearchList();
+    if (window.innerWidth > 768 && RESEARCH.lastList.length > 0) {
+      openResearchProfile(RESEARCH.lastList[0].name);
+    }
+  });
 }
 
 function closeResearchStandalone() {
