@@ -9016,115 +9016,120 @@ function renderResearchProfile(bodyId, barId) {
   // ── Header: broadcast-banner with player photo bleeding in from right ──
   let html = broadcastHeaderHtml(p, posCol);
 
-  // ── Hero: three key facts a drafter needs first ──
+  // ── Hero grid: 5 key stats ──
   const projPts = getProjectedPts(p, STATE.mergedPlayers);
-  html += `<div class="rsch-hero-grid">
+  const val = researchValue(p);
+  const edgeStr = val != null ? (val >= 0 ? '+' : '') + val.toFixed(1) : null;
+  const edgeCol = val == null ? 'var(--text-muted)' : val >= 1 ? 'var(--success)' : val <= -1 ? 'var(--danger)' : 'var(--text-secondary)';
+  html += `<div class="rsch-hero-grid" style="grid-template-columns:repeat(5,1fr);">
     <div class="rsch-hero-card">
       <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
-      <div class="rsch-hero-label">Avg Draft Position</div>
+      <div class="rsch-hero-label">ADP</div>
     </div>
     <div class="rsch-hero-card">
       <div class="rsch-hero-val" style="color:${posCol};">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
-      <div class="rsch-hero-label">Position Rank</div>
+      <div class="rsch-hero-label">Pos Rank</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</div>
+      <div class="rsch-hero-label">VORP</div>
     </div>
     <div class="rsch-hero-card">
       <div class="rsch-hero-val" style="color:var(--text-secondary);">${projPts != null ? Math.round(projPts) : '—'}</div>
-      <div class="rsch-hero-label">Proj Pts (PPR)</div>
+      <div class="rsch-hero-label">Proj Pts</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:${edgeCol};">${edgeStr ?? '—'}</div>
+      <div class="rsch-hero-label">Edge</div>
     </div>
   </div>`;
 
-  // ── VORP: projected value with position context ──
-  if (vorp != null || p.vorp_sf != null) {
-    // Show both scoring formats only when they meaningfully differ (>5 pts)
-    const isSF = STATE.isSuperflex && p.vorp_sf != null;
-    const altVorp = isSF ? p.vorp_std : p.vorp_sf;
-    const showBoth = vorp != null && altVorp != null && Math.abs(vorp - altVorp) > 5;
-    const mainUnit = showBoth ? `pts · ${isSF ? 'Superflex' : 'Standard'}` : 'pts above replacement';
-    const altUnit = isSF ? 'Standard' : 'Superflex';
-    const vorpContext = vorpRank > 0
-      ? (vorpRank === 1
-        ? `Top ${escHtml(p.position)} by projected value`
-        : `#${vorpRank} ${escHtml(p.position)} of ${vorpList.length} by projected value`)
-      : '';
-    html += `<div class="rsch-vorp-card" title="VORP = projected fantasy points above a replacement-level player at this position">
-      <div class="rsch-vorp-title">Value Over Replacement</div>
-      <div class="rsch-vorp-nums">
-        <span class="rsch-vorp-main">${vorp != null ? Math.round(vorp) : '—'}</span>
-        <span class="rsch-vorp-sub">${mainUnit}</span>
-        ${showBoth ? `<span class="rsch-vorp-sf">${Math.round(altVorp)}</span><span class="rsch-vorp-sub">${altUnit}</span>` : ''}
+  // ── Visual ADP range bar ──
+  const adpForRange = p.adp || p.composite_adp;
+  const stdev = p.stdev;
+  if (adpForRange != null && stdev != null) {
+    const lo = Math.max(1, Math.round(adpForRange - stdev));
+    const hi = Math.round(adpForRange + stdev);
+    const maxPick = 180;
+    const loP = (((lo - 1) / maxPick) * 100).toFixed(1);
+    const hiP = Math.min(100, ((hi / maxPick) * 100)).toFixed(1);
+    const adpP = Math.min(99, (((adpForRange - 1) / maxPick) * 100)).toFixed(1);
+    const consistency = stdev < 0.8 ? 'Consistent' : stdev <= 2.0 ? 'Some variance' : 'Volatile';
+    html += `<div style="margin-top:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">
+        <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Draft Range</span>
+        <span style="font-size:0.68rem;color:var(--text-secondary);">Pick ${lo}–${hi} &nbsp;·&nbsp; ${consistency}</span>
       </div>
-      ${vorpContext ? `<div class="rsch-vorp-context">${vorpContext}</div>` : ''}
+      <div style="position:relative;height:6px;background:var(--bg-hover);border-radius:3px;">
+        <div style="position:absolute;left:${loP}%;width:${parseFloat(hiP)-parseFloat(loP)}%;height:100%;background:color-mix(in srgb,${posCol} 30%,transparent);border-radius:3px;"></div>
+        <div style="position:absolute;left:${adpP}%;transform:translateX(-50%);width:11px;height:11px;top:-2.5px;background:${posCol};border-radius:50%;box-shadow:0 0 0 2px var(--bg-primary);"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);margin-top:0.3rem;">
+        <span>Pick 1</span><span>Pick 90</span><span>Pick 180</span>
+      </div>
     </div>`;
   }
 
-  // ── Demand signal: one row combining consensus gap + trend ──
-  const val = researchValue(p);
+  // ── Source comparison chips ──
+  const srcPairs = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
+    .filter(([, v]) => v != null);
+  if (srcPairs.length > 1) {
+    html += `<div style="margin-top:0.75rem;display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:0.6rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-right:0.1rem;">By source</span>
+      ${srcPairs.map(([l, v]) => `<span style="font-size:0.68rem;padding:0.12rem 0.45rem;border-radius:999px;border:1px solid var(--border);color:var(--text-secondary);font-family:'DM Mono',monospace;">${l}&nbsp;${v.toFixed(1)}</span>`).join('')}
+    </div>`;
+  }
+
+  // ── Demand + trend: compact single card ──
   const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
   if (val != null) {
     let badge, col, text;
     if (val <= -1) {
       badge = '🔴 High Demand'; col = 'var(--danger)';
-      text = `Drafted ${Math.abs(val).toFixed(1)} picks earlier than experts rank this player &mdash; expect to reach`;
+      text = `${Math.abs(val).toFixed(1)} picks earlier than experts`;
     } else if (val >= 1) {
       badge = '🟢 Value Pick'; col = 'var(--success)';
-      text = `Falls ${val.toFixed(1)} picks past where experts rank this player &mdash; potential discount`;
+      text = `${val.toFixed(1)} picks past where experts rank them`;
     } else {
       badge = '⚪ Fair Value'; col = 'var(--text-muted)';
-      text = 'Drafted right about where experts rank this player';
+      text = 'Priced right where experts rank them';
     }
-    let trendSub = '';
+    let trendPart = '';
     if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
-      const earlier = trendDiff < 0;
-      trendSub = `<div class="rsch-demand-sub">${earlier ? '↑' : '↓'} Trending ${earlier ? 'earlier' : 'later'} &mdash; recent drafts at ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} season average</div>`;
+      const dir = trendDiff < 0 ? '↑ Earlier' : '↓ Later';
+      trendPart = `<span style="margin-left:auto;font-size:0.65rem;color:var(--text-muted);">${dir} recently &mdash; ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg</span>`;
     }
-    html += `<div class="rsch-demand">
-      <div class="rsch-demand-row">
-        <span class="rsch-demand-badge" style="color:${col};border-color:color-mix(in srgb, ${col} 40%, transparent);background:color-mix(in srgb, ${col} 10%, transparent);">${badge}</span>
-        <span class="rsch-demand-text">${text}</span>
+    html += `<div style="margin-top:0.75rem;padding:0.55rem 0.75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);">
+      <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+        <span style="font-size:0.66rem;font-weight:700;padding:0.12rem 0.45rem;border-radius:999px;border:1px solid color-mix(in srgb,${col} 35%,transparent);background:color-mix(in srgb,${col} 10%,transparent);color:${col};white-space:nowrap;">${badge}</span>
+        <span style="font-size:0.7rem;color:var(--text-secondary);">${text}</span>
+        ${trendPart}
       </div>
-      ${trendSub}
     </div>`;
   }
 
-  // ── Typical draft slot: plain-English range + source comparison ──
-  const srcParts = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
-    .filter(([, v]) => v != null)
-    .map(([l, v]) => `${l} ${v.toFixed(1)}`);
-  const adpForRange = p.adp || p.composite_adp;
-  const stdevForRange = p.stdev;
-  const rangeHtml = (adpForRange && stdevForRange)
-    ? (() => {
-        const lo = Math.max(1, Math.round(adpForRange - stdevForRange));
-        const hi = Math.round(adpForRange + stdevForRange);
-        return `<div class="rsch-drafted-main">Typically drafted: <b>Pick ${lo}&ndash;${hi}</b></div>`;
-      })()
-    : '';
-  if (rangeHtml || srcParts.length) {
-    html += `<div class="rsch-drafted">
-      ${rangeHtml}
-      ${srcParts.length ? `<div class="rsch-drafted-sub">${srcParts.join(' · ')}</div>` : ''}
-    </div>`;
+  // ── VORP position context ──
+  if (vorp != null && vorpRank > 0) {
+    const vorpCtx = vorpRank === 1
+      ? `Top ${escHtml(p.position)} by projected value over replacement`
+      : `#${vorpRank} ${escHtml(p.position)} of ${vorpList.length} by VORP`;
+    html += `<div style="margin-top:0.45rem;font-size:0.65rem;color:var(--text-muted);">${vorpCtx}</div>`;
   }
 
-  // ── Footer: sample size + plain-English consistency ──
+  // ── Sample size footnote ──
   const td = p.times_drafted || 0;
-  const sd = p.stdev;
-  const sdLabel = sd == null ? null : sd < 0.8 ? 'High consistency' : sd <= 2.0 ? 'Some variance' : 'Volatile pick range';
-  if (td || sdLabel) {
-    const parts = [];
-    if (td) parts.push(`Based on ${td} drafts`);
-    if (sdLabel) parts.push(sdLabel);
-    html += `<div class="rsch-src-note">${parts.join(' · ')}</div>`;
+  if (td) {
+    html += `<div class="rsch-src-note">Based on ${td} drafts</div>`;
   }
 
   body.innerHTML = html;
 
-  // ── Decision bar (sticky) ──
+  // ── Decision bar: compact 3-button row ──
   const t = isTarget(p.name), d = isDND(p.name);
   bar.innerHTML = `
-    <button class="rsch-decision-btn${t ? ' active-target' : ''}" onclick="setResearchDecision('target')">⭐ Target</button>
-    <button class="rsch-decision-btn${!t && !d ? ' active-neutral' : ''}" onclick="setResearchDecision('neutral')">— Neutral</button>
-    <button class="rsch-decision-btn${d ? ' active-dnd' : ''}" onclick="setResearchDecision('dnd')">🚫 Do Not Draft</button>`;
+    <button class="rsch-decision-btn${t ? ' active-target' : ''}" onclick="setResearchDecision('target')" style="font-size:0.72rem;padding:0.4rem 0;">⭐ Target</button>
+    <button class="rsch-decision-btn${!t && !d ? ' active-neutral' : ''}" onclick="setResearchDecision('neutral')" style="font-size:0.72rem;padding:0.4rem 0;">— Neutral</button>
+    <button class="rsch-decision-btn${d ? ' active-dnd' : ''}" onclick="setResearchDecision('dnd')" style="font-size:0.72rem;padding:0.4rem 0;">🚫 DND</button>`;
 }
 
 function setResearchDecision(kind) {
