@@ -9196,167 +9196,137 @@ async function loadResearchPlayerStats(p, posCol) {
   try {
     const res = await fetch(`/api/player-stats/${encodeURIComponent(p.player_id)}`);
     if (!res.ok) { el.innerHTML = ''; return; }
-    const { seasons } = await res.json();
+    const { seasons, nflSeasonLength } = await res.json();
     if (!seasons || !seasons.length) { el.innerHTML = ''; return; }
 
-    // Infer position from player data
     const pos = (p.position || '').toUpperCase();
     const isQB = pos === 'QB';
     const isRB = pos === 'RB';
     const pCol = posCol || 'var(--k)';
+    const seasonLen = nflSeasonLength || 17;
 
-    // Projected pts from existing data
-    const projPts = getProjectedPts(p, STATE.mergedPlayers);
+    // ── Trend helper: compare a key across consecutive seasons ──
+    // Returns arrow + color relative to prior year
+    function trend(curr, prev, key, higherIsBetter = true) {
+      const c = curr[key], pr = prev[key];
+      if (c == null || pr == null) return '';
+      const delta = c - pr;
+      const pct = Math.abs(delta) / (Math.abs(pr) || 1);
+      if (pct < 0.05) return `<span style="color:var(--text-muted);font-size:0.6rem;"> →</span>`;
+      const up = delta > 0 ? higherIsBetter : !higherIsBetter;
+      return `<span style="color:${up ? 'var(--success)' : 'var(--danger)'};font-size:0.6rem;"> ${up ? '↑' : '↓'}</span>`;
+    }
 
-    // Build stat cols per position
+    // ── Position-specific per-game rate columns ──
+    // Each col: { label, key, fmt, higherIsBetter? }
     const cols = isQB
       ? [
-          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
-          { key: 'pass_att', label: 'Att', fmt: v => Math.round(v) },
-          { key: 'pass_cmp', label: 'Cmp%', fmt: (_, s) => s.pass_att ? ((s.pass_cmp || 0) / s.pass_att * 100).toFixed(0) + '%' : '—' },
-          { key: 'pass_yd', label: 'Pass Yd', fmt: v => Math.round(v).toLocaleString() },
-          { key: 'pass_td', label: 'TD', fmt: v => Math.round(v) },
-          { key: 'pass_int', label: 'INT', fmt: v => Math.round(v) },
-          { key: 'rush_yd', label: 'Rush Yd', fmt: v => Math.round(v) },
-          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+          { label: 'Pass Yd/G', key: 'pass_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Cmp %', key: 'cmp_pct', fmt: v => (v * 100).toFixed(0) + '%', hi: true },
+          { label: 'TD:INT', key: '_tdint', fmt: (_, s) => s.pass_td != null && s.pass_int != null ? `${s.pass_td}:${s.pass_int}` : '—', hi: true },
+          { label: 'Yd/Att', key: 'pass_yd_per_att', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
         ]
       : isRB
       ? [
-          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
-          { key: 'rush_att', label: 'Car', fmt: v => Math.round(v) },
-          { key: 'rush_yd', label: 'Rush Yd', fmt: v => Math.round(v) },
-          { key: 'rush_td', label: 'TD', fmt: v => Math.round(v) },
-          { key: 'rec', label: 'Rec', fmt: v => Math.round(v) },
-          { key: 'rec_yd', label: 'Rec Yd', fmt: v => Math.round(v) },
-          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+          { label: 'Car/G', key: 'rush_att_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Yd/Car', key: 'rush_yd_per_carry', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Rush Yd/G', key: 'rush_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Tgt/G', key: 'tgt_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
         ]
       : [ // WR / TE
-          { key: 'gp', label: 'Gm', fmt: v => Math.round(v) },
-          { key: 'targets', label: 'Tgt', fmt: v => Math.round(v) },
-          { key: 'rec', label: 'Rec', fmt: v => Math.round(v) },
-          { key: 'rec_yd', label: 'Rec Yd', fmt: v => Math.round(v) },
-          { key: 'rec_td', label: 'TD', fmt: v => Math.round(v) },
-          { key: 'pts_ppr', label: 'PPR', fmt: v => Math.round(v) },
+          { label: 'Tgt/G', key: 'tgt_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Rec Yd/G', key: 'rec_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Catch %', key: 'catch_pct', fmt: v => (v * 100).toFixed(0) + '%', hi: true },
+          { label: 'Yd/Tgt', key: 'rec_yd_per_tgt', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
         ];
 
-    // Trajectory: PPR pts over years
-    const pts = seasons.map(s => ({ year: s.season, val: s.pts_ppr }));
-    if (projPts != null) pts.push({ year: 2025, val: projPts, proj: true });
-    const maxPts = Math.max(...pts.map(x => x.val || 0), 1);
+    // Projected PPR/G for 2025
+    const projPts = getProjectedPts(p, STATE.mergedPlayers);
+    const projPg = projPts != null ? projPts / 17 : null;
 
-    // Efficiency badges — position-aware, from most recent season
-    const latest = seasons[seasons.length - 1] || {};
-    const effBadges = [];
-
-    if (isQB) {
-      // QB: completion %, yards per attempt, TD:INT ratio
-      if (latest.pass_att && latest.pass_cmp != null) {
-        const cmp = latest.pass_cmp / latest.pass_att;
-        effBadges.push({ label: 'Cmp %', val: (cmp * 100).toFixed(0) + '%', good: cmp >= 0.66 });
-      }
-      if (latest.pass_yd != null && latest.pass_att) {
-        const ypa = latest.pass_yd / latest.pass_att;
-        effBadges.push({ label: 'Yd/Att', val: ypa.toFixed(1), good: ypa >= 7.5 });
-      }
-      if (latest.pass_td != null && latest.pass_int != null && latest.pass_int > 0) {
-        const ratio = latest.pass_td / latest.pass_int;
-        effBadges.push({ label: 'TD:INT', val: ratio.toFixed(1) + ':1', good: ratio >= 2 });
-      }
-      if (latest.snap_pct != null) {
-        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.9 });
-      }
-    } else if (isRB) {
-      // RB: carries/game, yards per carry, targets/game, catch rate
-      if (latest.rush_att != null && latest.gp) {
-        const cpg = latest.rush_att / latest.gp;
-        effBadges.push({ label: 'Car/Game', val: cpg.toFixed(1), good: cpg >= 14 });
-      }
-      if (latest.rush_yd != null && latest.rush_att) {
-        const ypc = latest.rush_yd / latest.rush_att;
-        effBadges.push({ label: 'Yd/Carry', val: ypc.toFixed(1), good: ypc >= 4.5 });
-      }
-      if (latest.targets != null && latest.gp) {
-        const tpg = latest.targets / latest.gp;
-        effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 4 });
-      }
-      if (latest.snap_pct != null) {
-        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.6 });
-      }
-    } else {
-      // WR / TE: targets/game, snap %, catch rate, yards per target
-      if (latest.targets != null && latest.gp) {
-        const tpg = latest.targets / latest.gp;
-        effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 7 });
-      }
-      if (latest.snap_pct != null) {
-        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
-      }
-      if (latest.rec != null && latest.targets) {
-        const cr = latest.rec / latest.targets;
-        effBadges.push({ label: 'Catch %', val: (cr * 100).toFixed(0) + '%', good: cr >= 0.67 });
-      }
-      if (latest.rec_yd != null && latest.targets) {
-        const ypt = latest.rec_yd / latest.targets;
-        effBadges.push({ label: 'Yd/Tgt', val: ypt.toFixed(1), good: ypt >= 8 });
-      }
-    }
-
-    // Header divider
-    let statsHtml = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
-      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Career Stats</span>
+    // ── Header divider ──
+    let statsHtml = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;margin-top:0.2rem;">
+      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Year-by-Year</span>
       <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:0.58rem;color:var(--text-muted);">per game rates</span>
     </div>`;
 
-    // Efficiency badges
-    if (effBadges.length) {
-      statsHtml += `<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.65rem;">
-        ${effBadges.map(b => `<div style="display:flex;flex-direction:column;align-items:center;padding:0.3rem 0.6rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);min-width:60px;">
-          <span style="font-size:0.78rem;font-weight:700;color:${b.good ? pCol : 'var(--text-secondary)'};">${b.val}</span>
-          <span style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;">${b.label}</span>
-        </div>`).join('')}
-      </div>`;
-    }
-
-    // PPR trajectory sparkline
-    if (pts.length >= 2) {
-      const barWidth = 100 / pts.length;
-      statsHtml += `<div style="margin-bottom:0.7rem;">
-        <div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:0.3rem;">PPR Trajectory</div>
-        <div style="display:flex;align-items:flex-end;gap:3px;height:40px;">
-          ${pts.map(({ year, val, proj }) => {
-            const h = Math.max(8, Math.round((val / maxPts) * 38));
-            return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;">
-              <span style="font-size:0.55rem;color:var(--text-muted);">${Math.round(val)}</span>
-              <div style="width:100%;height:${h}px;border-radius:3px 3px 0 0;background:${proj ? `color-mix(in srgb,${pCol} 40%,transparent)` : pCol};${proj ? 'border:1px dashed ' + pCol + ';' : ''}"></div>
-              <span style="font-size:0.55rem;color:var(--text-muted);">${proj ? "'25P" : String(year).slice(2)}</span>
-            </div>`;
-          }).join('')}
+    // ── Health bars — one per season ──
+    statsHtml += `<div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+      ${seasons.map(s => {
+        const gp = s.gp || 0;
+        const pct = Math.min(1, gp / seasonLen);
+        const healthCol = pct >= 0.88 ? 'var(--success)' : pct >= 0.65 ? 'var(--warning, #f59e0b)' : 'var(--danger)';
+        return `<div style="display:flex;flex-direction:column;gap:3px;min-width:60px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);">
+            <span>${s.season}</span><span style="color:${healthCol};font-weight:600;">${gp}/${seasonLen}</span>
+          </div>
+          <div style="height:4px;border-radius:2px;background:var(--bg-hover);">
+            <div style="height:100%;width:${(pct * 100).toFixed(0)}%;background:${healthCol};border-radius:2px;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${projPts != null ? `<div style="display:flex;flex-direction:column;gap:3px;min-width:60px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);">
+          <span>2025</span><span style="color:var(--text-muted);">proj</span>
         </div>
-      </div>`;
-    }
+        <div style="height:4px;border-radius:2px;background:var(--bg-hover);">
+          <div style="height:100%;width:100%;background:color-mix(in srgb,${pCol} 40%,transparent);border-radius:2px;border:1px dashed color-mix(in srgb,${pCol} 60%,transparent);"></div>
+        </div>
+      </div>` : ''}
+    </div>`;
 
-    // Stats table
+    // ── Per-game rate table with trend arrows ──
     statsHtml += `<div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
         <thead>
           <tr>
-            <th style="text-align:left;padding:0.25rem 0.3rem;font-size:0.6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">Year</th>
-            ${cols.map(c => `<th style="text-align:right;padding:0.25rem 0.3rem;font-size:0.6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">${c.label}</th>`).join('')}
+            <th style="text-align:left;padding:0.2rem 0.3rem;font-size:0.58rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">Season</th>
+            ${cols.filter(c => !c.key.startsWith('_')).map(c => `<th style="text-align:right;padding:0.2rem 0.3rem;font-size:0.58rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;">${c.label}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
-          ${seasons.map((s, i) => `<tr style="${i % 2 === 1 ? 'background:var(--bg-secondary);' : ''}">
-            <td style="padding:0.25rem 0.3rem;color:var(--text-secondary);font-weight:600;">${s.season}</td>
-            ${cols.map(c => {
-              const raw = s[c.key];
-              const display = raw != null ? c.fmt(raw, s) : '—';
-              const isPPR = c.key === 'pts_ppr';
-              return `<td style="text-align:right;padding:0.25rem 0.3rem;color:${isPPR ? pCol : 'var(--text-primary)'};font-weight:${isPPR ? '600' : '400'};">${display}</td>`;
-            }).join('')}
-          </tr>`).join('')}
+          ${seasons.map((s, i) => {
+            const prev = seasons[i - 1];
+            return `<tr style="${i % 2 === 1 ? 'background:var(--bg-secondary);' : ''}">
+              <td style="padding:0.22rem 0.3rem;color:var(--text-secondary);font-weight:600;font-size:0.68rem;">${s.season}</td>
+              ${cols.filter(c => !c.key.startsWith('_')).map(c => {
+                const val = s[c.key];
+                const isPPR = c.key === 'pts_ppr_pg';
+                const t = prev ? trend(s, prev, c.key, c.hi !== false) : '';
+                const display = val != null ? c.fmt(val, s) : (c.key === 'cmp_pct' || c.key === 'catch_pct' ? '—' : '—');
+                return `<td style="text-align:right;padding:0.22rem 0.3rem;color:${isPPR ? pCol : 'var(--text-primary)'};font-weight:${isPPR ? '600' : '400'};white-space:nowrap;">${display}${t}</td>`;
+              }).join('')}
+            </tr>`;
+          }).join('')}
+          ${projPg != null ? (() => {
+            const prev = seasons[seasons.length - 1];
+            const fake = { pts_ppr_pg: projPg, tgt_pg: prev?.tgt_pg, rec_yd_pg: prev?.rec_yd_pg, rush_att_pg: prev?.rush_att_pg, rush_yd_pg: prev?.rush_yd_pg, rush_yd_per_carry: prev?.rush_yd_per_carry, pass_yd_pg: prev?.pass_yd_pg, cmp_pct: prev?.cmp_pct, pass_yd_per_att: prev?.pass_yd_per_att, catch_pct: prev?.catch_pct, rec_yd_per_tgt: prev?.rec_yd_per_tgt };
+            return `<tr style="border-top:1px dashed var(--border);">
+              <td style="padding:0.22rem 0.3rem;color:var(--text-muted);font-weight:600;font-size:0.68rem;">2025P</td>
+              ${cols.filter(c => !c.key.startsWith('_')).map(c => {
+                const isPPR = c.key === 'pts_ppr_pg';
+                if (!isPPR) return `<td style="text-align:right;padding:0.22rem 0.3rem;color:var(--text-muted);">—</td>`;
+                const t = trend(fake, prev, c.key, true);
+                return `<td style="text-align:right;padding:0.22rem 0.3rem;color:color-mix(in srgb,${pCol} 70%,var(--text-muted));font-weight:600;">${projPg.toFixed(1)}${t}</td>`;
+              }).join('')}
+            </tr>`;
+          })() : ''}
         </tbody>
       </table>
     </div>`;
+
+    // ── TD:INT note for QBs (table can't fit it cleanly) ──
+    if (isQB) {
+      const latest = seasons[seasons.length - 1];
+      if (latest?.pass_td != null && latest?.pass_int != null) {
+        const ratio = latest.pass_int > 0 ? (latest.pass_td / latest.pass_int).toFixed(1) : '∞';
+        statsHtml += `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.35rem;">${latest.season}: ${latest.pass_td} TD / ${latest.pass_int} INT — ratio ${ratio}:1</div>`;
+      }
+    }
 
     el.innerHTML = statsHtml;
   } catch (e) {
