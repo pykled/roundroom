@@ -9244,27 +9244,61 @@ async function loadResearchPlayerStats(p, posCol) {
     if (projPts != null) pts.push({ year: 2025, val: projPts, proj: true });
     const maxPts = Math.max(...pts.map(x => x.val || 0), 1);
 
-    // Efficiency badges from most recent season
+    // Efficiency badges — position-aware, from most recent season
     const latest = seasons[seasons.length - 1] || {};
     const effBadges = [];
-    // Targets/game (computed from totals)
-    if (latest.targets != null && latest.gp) {
-      const tpg = latest.targets / latest.gp;
-      effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 7 });
-    }
-    // Snap %
-    if (latest.snap_pct != null) {
-      effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
-    }
-    // Catch rate
-    if (latest.rec != null && latest.targets) {
-      const cr = latest.rec / latest.targets;
-      effBadges.push({ label: 'Catch %', val: (cr * 100).toFixed(0) + '%', good: cr >= 0.67 });
-    }
-    // Yards per target (WR/TE efficiency)
-    if (latest.rec_yd != null && latest.targets) {
-      const ypt = latest.rec_yd / latest.targets;
-      effBadges.push({ label: 'Yd/Tgt', val: ypt.toFixed(1), good: ypt >= 8 });
+
+    if (isQB) {
+      // QB: completion %, yards per attempt, TD:INT ratio
+      if (latest.pass_att && latest.pass_cmp != null) {
+        const cmp = latest.pass_cmp / latest.pass_att;
+        effBadges.push({ label: 'Cmp %', val: (cmp * 100).toFixed(0) + '%', good: cmp >= 0.66 });
+      }
+      if (latest.pass_yd != null && latest.pass_att) {
+        const ypa = latest.pass_yd / latest.pass_att;
+        effBadges.push({ label: 'Yd/Att', val: ypa.toFixed(1), good: ypa >= 7.5 });
+      }
+      if (latest.pass_td != null && latest.pass_int != null && latest.pass_int > 0) {
+        const ratio = latest.pass_td / latest.pass_int;
+        effBadges.push({ label: 'TD:INT', val: ratio.toFixed(1) + ':1', good: ratio >= 2 });
+      }
+      if (latest.snap_pct != null) {
+        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.9 });
+      }
+    } else if (isRB) {
+      // RB: carries/game, yards per carry, targets/game, catch rate
+      if (latest.rush_att != null && latest.gp) {
+        const cpg = latest.rush_att / latest.gp;
+        effBadges.push({ label: 'Car/Game', val: cpg.toFixed(1), good: cpg >= 14 });
+      }
+      if (latest.rush_yd != null && latest.rush_att) {
+        const ypc = latest.rush_yd / latest.rush_att;
+        effBadges.push({ label: 'Yd/Carry', val: ypc.toFixed(1), good: ypc >= 4.5 });
+      }
+      if (latest.targets != null && latest.gp) {
+        const tpg = latest.targets / latest.gp;
+        effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 4 });
+      }
+      if (latest.snap_pct != null) {
+        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.6 });
+      }
+    } else {
+      // WR / TE: targets/game, snap %, catch rate, yards per target
+      if (latest.targets != null && latest.gp) {
+        const tpg = latest.targets / latest.gp;
+        effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 7 });
+      }
+      if (latest.snap_pct != null) {
+        effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
+      }
+      if (latest.rec != null && latest.targets) {
+        const cr = latest.rec / latest.targets;
+        effBadges.push({ label: 'Catch %', val: (cr * 100).toFixed(0) + '%', good: cr >= 0.67 });
+      }
+      if (latest.rec_yd != null && latest.targets) {
+        const ypt = latest.rec_yd / latest.targets;
+        effBadges.push({ label: 'Yd/Tgt', val: ypt.toFixed(1), good: ypt >= 8 });
+      }
     }
 
     // Header divider
