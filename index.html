@@ -3575,13 +3575,13 @@ function endMockDraft() {
     <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Your Roster</div>
     ${myPicks.map(p => `
       <div class="mock-insight">
-        <strong>${p.name}</strong> <span style="font-size:0.75rem;color:var(--text-muted);">${p.position} · ${p.team} · ADP ${p.adp.toFixed(1)}</span>
+        <strong>${escHtml(p.name)}</strong> <span style="font-size:0.75rem;color:var(--text-muted);">${escHtml(p.position)} · ${escHtml(p.team)} · ADP ${p.adp.toFixed(1)}</span>
       </div>
     `).join('')}
 
     ${valuePicks.length > 0 ? `
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin:1rem 0 0.5rem;">Key Wins</div>
-      ${valuePicks.filter(p => p.value >= 2).map(p => `<div class="mock-insight">✓ <strong>${p.name}</strong> — fell ${p.value.toFixed(0)} picks past ADP (${p.adp ? p.adp.toFixed(0) : '?'}), drafted at ${p.pickNum}</div>`).join('')}
+      ${valuePicks.filter(p => p.value >= 2).map(p => `<div class="mock-insight">✓ <strong>${escHtml(p.name)}</strong> — fell ${p.value.toFixed(0)} picks past ADP (${p.adp ? p.adp.toFixed(0) : '?'}), drafted at ${p.pickNum}</div>`).join('')}
     ` : ''}
 
     ${thinPos.length > 0 ? `

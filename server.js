@@ -47,11 +47,11 @@ app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline'; " +       // inline JS in the single-file app
+    "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https://sleepercdn.com; " +
-    "connect-src 'self' https://api.sleeper.app; " +
+    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app; " +
     "frame-ancestors 'none';"
   );
   next();
@@ -323,6 +323,13 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000).unref();
 
+// Hardcoded system prompt — client cannot override this. Prevents using the
+// Anthropic key as a general-purpose endpoint.
+const CHAT_SYSTEM_PROMPT =
+  'You are a concise fantasy football draft assistant built into RoundRoom. ' +
+  'Answer questions about NFL players, fantasy strategy, matchups, and draft decisions. ' +
+  'Keep responses brief and actionable. Do not discuss topics unrelated to fantasy football.';
+
 app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
   if (!process.env.ANTHROPIC_API_KEY) {
     return res.status(503).json({ error: 'AI assistant is not configured' });
@@ -331,11 +338,11 @@ app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
     return res.status(429).json({ error: 'Too many requests — slow down a bit' });
   }
 
-  const { messages, system } = req.body || {};
+  const { messages } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
-  // Cap history depth and individual message length to prevent prompt injection and runaway costs
+  // Cap history depth and individual message length
   if (messages.length > 20) {
     return res.status(400).json({ error: 'Too many messages' });
   }
@@ -350,7 +357,7 @@ app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 400,
-      system: typeof system === 'string' ? system.slice(0, 2000) : undefined,
+      system: CHAT_SYSTEM_PROMPT,
       messages: messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: String(m.content || '').slice(0, 4000),
