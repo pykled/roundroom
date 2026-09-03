@@ -9236,12 +9236,28 @@ async function loadResearchPlayerStats(p, posCol) {
     if (projPts != null) pts.push({ year: 2025, val: projPts, proj: true });
     const maxPts = Math.max(...pts.map(x => x.val || 0), 1);
 
-    // Efficiency badges (where available, use most recent season)
+    // Efficiency badges from most recent season
     const latest = seasons[seasons.length - 1] || {};
     const effBadges = [];
-    if (latest.target_share != null) effBadges.push({ label: 'Target Share', val: (latest.target_share * 100).toFixed(0) + '%', good: latest.target_share >= 0.2 });
-    if (latest.snap_pct != null) effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
-    if (latest.air_yd_share != null) effBadges.push({ label: 'Air Yd Share', val: (latest.air_yd_share * 100).toFixed(0) + '%', good: latest.air_yd_share >= 0.15 });
+    // Targets/game (computed from totals)
+    if (latest.targets != null && latest.gp) {
+      const tpg = latest.targets / latest.gp;
+      effBadges.push({ label: 'Tgt/Game', val: tpg.toFixed(1), good: tpg >= 7 });
+    }
+    // Snap %
+    if (latest.snap_pct != null) {
+      effBadges.push({ label: 'Snap %', val: (latest.snap_pct * 100).toFixed(0) + '%', good: latest.snap_pct >= 0.7 });
+    }
+    // Catch rate
+    if (latest.rec != null && latest.targets) {
+      const cr = latest.rec / latest.targets;
+      effBadges.push({ label: 'Catch %', val: (cr * 100).toFixed(0) + '%', good: cr >= 0.67 });
+    }
+    // Yards per target (WR/TE efficiency)
+    if (latest.rec_yd != null && latest.targets) {
+      const ypt = latest.rec_yd / latest.targets;
+      effBadges.push({ label: 'Yd/Tgt', val: ypt.toFixed(1), good: ypt >= 8 });
+    }
 
     // Header divider
     let statsHtml = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">

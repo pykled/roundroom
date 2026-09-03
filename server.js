@@ -156,36 +156,66 @@ app.get('/api/data-freshness', (req, res) => {
   }
 });
 
-// Historical season stats via Sleeper stats API.
-// Fetches 2023 + 2024 season totals for a given player_id and caches 24h.
-const statsCache = new Map(); // player_id → { data, time }
+// Historical season stats via Sleeper weekly stats API.
+// Week-level responses are cached globally (all players) so repeated lookups
+// are free after the first player opens. Per-player season totals are also
+// cached 24h after first computation.
+const weekCache = new Map();   // `${year}-${week}` → { data, time }
+const statsCache = new Map();  // player_id → { data, time }
+const NFL_WEEKS = 18;
+
+async function fetchWeek(year, week) {
+  const key = `${year}-${week}`;
+  const entry = weekCache.get(key);
+  if (entry && Date.now() - entry.time < PLAYER_CACHE_TTL) return entry.data;
+  const url = `https://api.sleeper.app/v1/stats/nfl/regular/${year}/${week}`;
+  const r = await fetch(url);
+  if (!r.ok) return null;
+  const data = await r.json();
+  weekCache.set(key, { data, time: Date.now() });
+  return data;
+}
+
+// SUM fields: counting stats that add across weeks
+const SUM_FIELDS = [
+  'gp', 'pts_ppr', 'pts_std', 'pts_half_ppr',
+  'rec', 'rec_tgt', 'rec_yd', 'rec_td', 'rec_air_yd',
+  'rush_att', 'rush_yd', 'rush_td',
+  'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_int',
+  'off_snp', 'tm_off_snp',
+];
+
+async function buildSeasonStats(playerId, year) {
+  const weeks = Array.from({ length: NFL_WEEKS }, (_, i) => i + 1);
+  const weekData = await Promise.all(weeks.map(w => fetchWeek(year, w)));
+  const totals = { season: year };
+  for (const wd of weekData) {
+    if (!wd) continue;
+    const p = wd[playerId];
+    if (!p) continue;
+    for (const f of SUM_FIELDS) {
+      if (p[f] != null) totals[f] = (totals[f] || 0) + p[f];
+    }
+  }
+  if (!totals.gp) return null;
+  // Derived efficiency metrics from summed raw counts
+  if (totals.off_snp != null && totals.tm_off_snp != null && totals.tm_off_snp > 0) {
+    totals.snap_pct = totals.off_snp / totals.tm_off_snp;
+  }
+  // Rename rec_tgt → targets for UI consistency
+  if (totals.rec_tgt != null) { totals.targets = totals.rec_tgt; delete totals.rec_tgt; }
+  // Air yard share: rough proxy (rec_air_yd / team_air_yards); skip — no team air yards available
+  delete totals.off_snp; delete totals.tm_off_snp; // strip raw snap counts
+  return totals;
+}
+
 app.get('/api/player-stats/:playerId', async (req, res) => {
   const id = req.params.playerId;
   if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'Invalid player ID' });
-  const cached = statsCache.get(id);
-  if (cached && Date.now() - cached.time < PLAYER_CACHE_TTL) return res.json(cached.data);
-
-  const STAT_FIELDS = [
-    'gp', 'pts_ppr', 'pts_std',
-    'rec', 'targets', 'rec_yd', 'rec_td', 'rec_lng', 'rec_air_yd',
-    'rush_att', 'rush_yd', 'rush_td',
-    'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_int',
-    'target_share', 'air_yd_share', 'snap_pct',
-  ];
-
-  async function fetchSeasonStats(year) {
-    const url = `https://api.sleeper.app/v1/stats/nfl/player/${id}?season_type=regular&season=${year}&grouping=season`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    const raw = await r.json();
-    if (!raw || typeof raw !== 'object') return null;
-    const out = { season: year };
-    for (const f of STAT_FIELDS) { if (raw[f] != null) out[f] = raw[f]; }
-    return Object.keys(out).length > 1 ? out : null;
-  }
-
+  const hit = statsCache.get(id);
+  if (hit && Date.now() - hit.time < PLAYER_CACHE_TTL) return res.json(hit.data);
   try {
-    const [s2023, s2024] = await Promise.all([fetchSeasonStats(2023), fetchSeasonStats(2024)]);
+    const [s2023, s2024] = await Promise.all([buildSeasonStats(id, 2023), buildSeasonStats(id, 2024)]);
     const data = { seasons: [s2023, s2024].filter(Boolean) };
     statsCache.set(id, { data, time: Date.now() });
     res.json(data);
