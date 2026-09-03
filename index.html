@@ -8768,7 +8768,7 @@ function broadcastHeaderHtml(p, posCol) {
     ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
   const largeUrl = playerLargeHeadshotUrl(p);
   const photoHtml = largeUrl ? `<img src="${largeUrl}" loading="lazy"
-    style="position:absolute;right:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.4) 45%,transparent 80%);mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.4) 45%,transparent 80%);"
+    style="position:absolute;right:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to left,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);mask-image:linear-gradient(to left,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);"
     onerror="this.remove()">` : '';
   return `
     <div class="rsch-head" style="--pos-col:${posCol};position:relative;overflow:hidden;">
