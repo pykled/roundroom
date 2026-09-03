@@ -9137,12 +9137,20 @@ function renderResearchProfile(bodyId, barId) {
             const cadp = researchAdp(c);
             const cpos = RSCH_POS_COLORS[c.position] || 'var(--k)';
             const cval = researchValue(c);
-            const cvalStr = cval != null ? `<span style="font-size:0.62rem;color:${cval >= 1 ? 'var(--success)' : cval <= -1 ? 'var(--danger)' : 'var(--text-muted)'};">${cval >= 0 ? '+' : ''}${cval.toFixed(1)}</span>` : '';
+            const edgeCol = cval == null ? '' : cval >= 1 ? 'var(--success)' : cval <= -1 ? 'var(--danger)' : 'var(--text-muted)';
+            const edgeBlock = cval != null ? `<div style="display:flex;flex-direction:column;align-items:flex-end;min-width:42px;">
+                <span style="font-size:0.7rem;font-weight:600;color:${edgeCol};">${cval >= 0 ? '+' : ''}${cval.toFixed(1)}</span>
+                <span style="font-size:0.55rem;color:var(--text-muted);margin-top:1px;">edge</span>
+              </div>` : '';
+            const adpBlock = cadp != null ? `<div style="display:flex;flex-direction:column;align-items:flex-end;min-width:36px;">
+                <span style="font-size:0.7rem;color:var(--text-secondary);font-family:'DM Mono',monospace;">${cadp.toFixed(1)}</span>
+                <span style="font-size:0.55rem;color:var(--text-muted);margin-top:1px;">adp</span>
+              </div>` : '';
             return `<div onclick="openResearchProfile('${escHtml(c.name).replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.5rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--bg-secondary);" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='var(--bg-secondary)'">
               <span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;background:color-mix(in srgb,${cpos} 15%,transparent);color:${cpos};">${escHtml(c.position)}</span>
               <span style="font-size:0.75rem;font-weight:600;color:var(--text-primary);flex:1;">${escHtml(c.name)}</span>
-              ${cvalStr}
-              <span style="font-size:0.68rem;color:var(--text-muted);font-family:'DM Mono',monospace;">${cadp != null ? cadp.toFixed(1) : '—'}</span>
+              ${edgeBlock}
+              ${adpBlock}
             </div>`;
           }).join('')}
         </div>
