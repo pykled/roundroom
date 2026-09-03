@@ -1842,10 +1842,17 @@
   #panel-research.as-overlay { display: flex; flex-direction: column; }
   #panel-research.as-overlay {
     position: fixed;
-    inset: 0;
+    top: 0; bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 900px;
     z-index: 550;
     background: var(--bg-primary);
-    padding: 1rem;
+    padding: 1rem 1.5rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
   }
   #research-standalone-close { display: none; }
   #panel-research.as-overlay #research-standalone-close {
@@ -1855,6 +1862,38 @@
   }
 
   .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
+
+  .rsch-filter-btn {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.63rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .rsch-filter-btn.active {
+    background: rgba(124,111,247,0.15);
+    border-color: rgba(124,111,247,0.5);
+    color: #a78bfa;
+  }
+  .rsch-tier-divider {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.4rem 0.2rem;
+    font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-primary);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .rsch-tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .rsch-summary { font-size: 0.65rem; color: var(--text-muted); padding: 0.25rem 0 0.3rem; flex-shrink: 0; }
+  .rsch-col-proj { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-align: right; flex-shrink: 0; width: 38px; }
+  @media (max-width: 600px) { .rsch-col-proj { display: none; } }
 
   .rsch-pos-btn {
     padding: 0.25rem 0.6rem;
@@ -2647,11 +2686,19 @@
           <select id="research-sort" onchange="RESEARCH.sort=this.value;renderResearchList()" style="margin-left:auto;font-size:0.7rem;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.4rem;font-family:inherit;cursor:pointer;">
             <option value="adp">ADP</option>
             <option value="vorp">VORP</option>
+            <option value="proj">Proj Pts</option>
             <option value="value">Value</option>
             <option value="volatility">Volatility</option>
           </select>
         </div>
+        <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap;">
+          <button class="rsch-filter-btn active" data-rfilt="all" onclick="setResearchFilter('all')">All</button>
+          <button class="rsch-filter-btn" data-rfilt="value" onclick="setResearchFilter('value')">Value Picks</button>
+          <button class="rsch-filter-btn" data-rfilt="trending" onclick="setResearchFilter('trending')">Trending ↑</button>
+          <button class="rsch-filter-btn" data-rfilt="targets" onclick="setResearchFilter('targets')">⭐ My Targets</button>
+        </div>
       </div>
+      <div id="rsch-summary" class="rsch-summary"></div>
       <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
         <span style="width:32px;flex-shrink:0;"></span>
         <span style="flex:1;">Player</span>
@@ -2659,6 +2706,7 @@
         <span style="width:42px;flex-shrink:0;" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
         <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
         <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
+        <span class="rsch-col-proj" title="Projected fantasy points for 2026 season">Proj</span>
         <span style="width:40px;flex-shrink:0;" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">vs FP</span>
         <span style="width:18px;flex-shrink:0;"></span>
       </div>
@@ -8586,6 +8634,7 @@ const RESEARCH = {
   search: '',
   pos: 'ALL',
   sort: 'adp',
+  filter: 'all',     // 'all' | 'value' | 'trending' | 'targets'
   profileName: null,
   lastList: [],       // last rendered list — row onclick indexes into this
   loading: false,
@@ -8706,6 +8755,12 @@ function setResearchPos(pos) {
   renderResearchList();
 }
 
+function setResearchFilter(f) {
+  RESEARCH.filter = f;
+  document.querySelectorAll('.rsch-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.rfilt === f));
+  renderResearchList();
+}
+
 const RSCH_POS_COLORS = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)', DEF: 'var(--dst)', PK: 'var(--k)' };
 
 function renderResearchList() {
@@ -8731,45 +8786,84 @@ function renderResearchList() {
   const q = RESEARCH.search.toLowerCase().trim();
   if (q) players = players.filter(p => p.name.toLowerCase().includes(q) || (p.team || '').toLowerCase().includes(q));
 
+  // Quick filters
+  if (RESEARCH.filter === 'value') players = players.filter(p => (researchValue(p) ?? 0) > 1);
+  else if (RESEARCH.filter === 'trending') players = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5);
+  else if (RESEARCH.filter === 'targets') players = players.filter(p => isTarget(p.name));
+
   const sorters = {
     adp: (a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999),
     vorp: (a, b) => (researchVorp(b) ?? -999) - (researchVorp(a) ?? -999),
+    proj: (a, b) => (getProjectedPts(b, STATE.mergedPlayers) ?? 0) - (getProjectedPts(a, STATE.mergedPlayers) ?? 0),
     value: (a, b) => (researchValue(b) ?? -999) - (researchValue(a) ?? -999),
     volatility: (a, b) => (b.stdev ?? -1) - (a.stdev ?? -1),
   };
-  // SF-aware default: when sorting by ADP (the default) in a superflex
-  // league, use the SF-adjusted sort so elite QBs rank where they belong.
-  // Explicit user-chosen sorts (vorp/value/volatility) are respected as-is.
   const sfOverride = STATE.isSuperflex && (!RESEARCH.sort || RESEARCH.sort === 'adp');
   players.sort(sfOverride ? (a, b) => sfSortValue(a) - sfSortValue(b) : (sorters[RESEARCH.sort] || sorters.adp));
 
   RESEARCH.lastList = players;
+
+  // Summary line
+  const summaryEl = document.getElementById('rsch-summary');
+  if (summaryEl) {
+    const valueCt = players.filter(p => (researchValue(p) ?? 0) > 1).length;
+    const trendCt = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5).length;
+    const parts = [`${players.length} players`];
+    if (RESEARCH.filter === 'all' && valueCt > 0) parts.push(`${valueCt} value picks`);
+    if (RESEARCH.filter === 'all' && trendCt > 0) parts.push(`${trendCt} trending up`);
+    summaryEl.textContent = parts.join(' · ');
+  }
 
   if (!players.length) {
     container.innerHTML = '<div class="empty-state">No players found</div>';
     return;
   }
 
-  container.innerHTML = players.map((p, i) => {
+  // Tier thresholds (VORP-based)
+  const TIERS = [
+    { label: 'Elite', min: 85 },
+    { label: 'Strong', min: 60 },
+    { label: 'Solid', min: 38 },
+    { label: 'Depth', min: 15 },
+    { label: 'Flier', min: -999 },
+  ];
+  const showTiers = (RESEARCH.sort === 'adp' || RESEARCH.sort === 'vorp') && !q && RESEARCH.filter === 'all';
+  let currentTierLabel = null;
+
+  const rows = [];
+  players.forEach((p, i) => {
     const adp = researchAdp(p);
     const vorp = researchVorp(p);
     const val = researchValue(p);
+    const proj = getProjectedPts(p, STATE.mergedPlayers);
     const trend = trendArrowHtml(p);
     const valHtml = val == null ? `<span style="color:var(--text-muted);">${trend}—</span>`
       : `<span style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${trend}${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
     const status = isTarget(p.name) ? '⭐' : (isDND(p.name) ? '🚫' : '');
     const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
-    return `<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
+
+    // Tier divider
+    if (showTiers) {
+      const tier = TIERS.find(t => (vorp ?? -999) >= t.min) || TIERS[TIERS.length - 1];
+      if (tier.label !== currentTierLabel) {
+        currentTierLabel = tier.label;
+        rows.push(`<div class="rsch-tier-divider">${tier.label}</div>`);
+      }
+    }
+
+    rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}" onclick="openResearchProfileByIdx(${i})">
       <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
       <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
       <span class="rsch-col" style="width:42px;color:var(--text-primary);">${adp != null ? adp.toFixed(1) : '—'}</span>
       <span class="rsch-col rsch-col-rank" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
       <span class="rsch-col" style="width:34px;color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</span>
+      <span class="rsch-col-proj" style="color:var(--text-muted);">${proj != null ? Math.round(proj) : '—'}</span>
       <span class="rsch-col" style="width:40px;">${valHtml}</span>
       <span style="width:18px;text-align:center;font-size:0.75rem;flex-shrink:0;">${status}</span>
-    </div>`;
-  }).join('');
+    </div>`);
+  });
+  container.innerHTML = rows.join('');
 }
 
 function openResearchProfileByIdx(i) {
@@ -8826,7 +8920,8 @@ function renderResearchProfile() {
       </div>
     </div>`;
 
-  // ── Hero: the two facts a drafter needs first ──
+  // ── Hero: three key facts a drafter needs first ──
+  const projPts = getProjectedPts(p, STATE.mergedPlayers);
   html += `<div class="rsch-hero-grid">
     <div class="rsch-hero-card">
       <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
@@ -8835,6 +8930,10 @@ function renderResearchProfile() {
     <div class="rsch-hero-card">
       <div class="rsch-hero-val" style="color:${posCol};">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
       <div class="rsch-hero-label">Position Rank</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:var(--text-secondary);">${projPts != null ? Math.round(projPts) : '—'}</div>
+      <div class="rsch-hero-label">Proj Pts (PPR)</div>
     </div>
   </div>`;
 
