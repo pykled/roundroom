@@ -8762,17 +8762,17 @@ function headshotImgHtml(p, size) {
   return `<img src="${url}" loading="lazy" width="${size}" height="${size}" style="border-radius:6px;object-fit:cover;object-position:top center;flex-shrink:0;background:var(--bg-hover);" onerror="this.remove()">`;
 }
 
-// Broadcast-banner header: large photo bleeds in from right with gradient fade
+// Broadcast-banner header: large photo bleeds in from left with gradient fade
 function broadcastHeaderHtml(p, posCol) {
   const injury = p.injury_status && p.injury_status !== 'Active'
     ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
   const largeUrl = playerLargeHeadshotUrl(p);
   const photoHtml = largeUrl ? `<img src="${largeUrl}" loading="lazy"
-    style="position:absolute;right:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to left,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);mask-image:linear-gradient(to left,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);"
+    style="position:absolute;left:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to right,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);mask-image:linear-gradient(to right,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);"
     onerror="this.remove()">` : '';
   return `
     <div class="rsch-head" style="--pos-col:${posCol};position:relative;overflow:hidden;">
-      <div style="position:relative;z-index:1;padding-right:${largeUrl ? '110px' : '0'};">
+      <div style="position:relative;z-index:1;padding-left:${largeUrl ? '120px' : '0'};">
         <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
           <span class="rsch-head-name">${escHtml(p.name)}</span>
           ${injury}
