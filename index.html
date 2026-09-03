@@ -2245,6 +2245,9 @@
       border-bottom: none;
       animation: rsch-sheet-up 0.22s ease;
     }
+    /* Hero grid: 5-col is cramped on narrow phones — collapse to 3 */
+    .rsch-hero-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .rsch-hero-val { font-size: 1.4rem; }
   }
 
   /* ===== MOBILE TAB BAR ===== */
@@ -9133,11 +9136,15 @@ function renderResearchProfile(bodyId, barId) {
 
   // ── Async stats placeholder ──
   html += `<div id="rsch-stats-async" style="margin-top:1.1rem;"></div>`;
+  // ── Async news placeholder ──
+  html += `<div id="rsch-news-async" style="margin-top:0.75rem;"></div>`;
 
   body.innerHTML = html;
 
   // Kick off async stats fetch (fills placeholder after render)
   if (p.player_id) loadResearchPlayerStats(p, posCol);
+  // Kick off news fetch in parallel
+  loadResearchPlayerNews(p);
 
   // ── Decision bar: compact 3-button row ──
   const t = isTarget(p.name), d = isDND(p.name);
@@ -9305,6 +9312,49 @@ async function loadResearchPlayerStats(p, posCol) {
   } catch (e) {
     el.innerHTML = '';
   }
+}
+
+async function loadResearchPlayerNews(p) {
+  const el = document.getElementById('rsch-news-async');
+  if (!el) return;
+  const name = encodeURIComponent(p.name || '');
+  if (!name) return;
+  try {
+    const res = await fetch(`/api/player-news/${name}`);
+    if (!res.ok) return;
+    const { items } = await res.json();
+    if (!items || !items.length) return;
+
+    function timeAgo(pubDate) {
+      if (!pubDate) return '';
+      const d = new Date(pubDate);
+      if (isNaN(d)) return '';
+      const mins = Math.round((Date.now() - d) / 60000);
+      if (mins < 60) return `${mins}m ago`;
+      if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+      return `${Math.round(mins / 1440)}d ago`;
+    }
+
+    let html = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">News</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>`;
+
+    for (const item of items) {
+      const ago = timeAgo(item.pubDate);
+      // Strip player name prefix from title (FP format: "Player Name: Headline")
+      const headline = item.title.replace(/^[^:]+:\s*/, '');
+      html += `<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;margin-bottom:0.2rem;">
+          <span style="font-size:0.72rem;font-weight:600;color:var(--text-primary);line-height:1.3;">${escHtml(headline)}</span>
+          ${ago ? `<span style="font-size:0.6rem;color:var(--text-muted);flex-shrink:0;">${ago}</span>` : ''}
+        </div>
+        ${item.blurb ? `<div style="font-size:0.65rem;color:var(--text-muted);line-height:1.5;">${escHtml(item.blurb)}</div>` : ''}
+      </div>`;
+    }
+
+    el.innerHTML = html;
+  } catch (e) { /* fail silently — news is bonus info */ }
 }
 
 // Standalone overlay mode: the setup screen (and desktop header) open the

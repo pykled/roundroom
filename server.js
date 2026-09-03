@@ -173,6 +173,74 @@ app.get('/api/data-freshness', (req, res) => {
   }
 });
 
+// Injury roster — updated every 2h by GH Actions (fetch-injuries.js).
+// Keyed by player name (lowercase) for fast client-side lookup.
+app.get('/api/injuries', (req, res) => {
+  try {
+    const raw = readDataFile('injuries.json');
+    // Index by lowercase name so client can do O(1) lookup
+    const byName = {};
+    for (const p of (raw.players || [])) {
+      if (p.name) byName[p.name.toLowerCase()] = p;
+    }
+    res.json({ fetched_at: raw.fetched_at, players: byName });
+  } catch (e) {
+    res.status(503).json({ error: 'Injury data not yet available' });
+  }
+});
+
+// Player news — proxies FantasyPros RSS and parses items into a clean array.
+// Cached globally for 10 minutes so the RSS is only fetched once per refresh cycle.
+let newsCache = null;
+let newsCacheTime = 0;
+const NEWS_CACHE_TTL = 10 * 60 * 1000;
+const NEWS_RSS_URL = 'https://www.fantasypros.com/nfl/rss/news.php';
+
+async function fetchNews() {
+  if (newsCache && Date.now() - newsCacheTime < NEWS_CACHE_TTL) return newsCache;
+  try {
+    const r = await fetch(NEWS_RSS_URL, {
+      headers: { 'User-Agent': 'RoundRoom/1.0 (fantasy draft assistant)' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return newsCache || [];
+    const xml = await r.text();
+    // Parse <item> blocks without a library — RSS is regular enough for this
+    const items = [];
+    const itemRe = /<item>([\s\S]*?)<\/item>/gi;
+    let m;
+    while ((m = itemRe.exec(xml)) !== null) {
+      const block = m[1];
+      const title = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) || /<title>(.*?)<\/title>/.exec(block) || [])[1]?.trim() || '';
+      const desc  = (/<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) || /<description>(.*?)<\/description>/.exec(block) || [])[1]?.trim() || '';
+      const pub   = (/<pubDate>(.*?)<\/pubDate>/.exec(block) || [])[1]?.trim() || '';
+      if (!title) continue;
+      // Strip HTML tags from description
+      const clean = desc.replace(/<[^>]*>/g, '').trim();
+      items.push({ title, blurb: clean.slice(0, 300), pubDate: pub });
+      if (items.length >= 100) break; // don't over-fetch
+    }
+    newsCache = items;
+    newsCacheTime = Date.now();
+    return items;
+  } catch (e) {
+    return newsCache || [];
+  }
+}
+
+app.get('/api/player-news/:name', async (req, res) => {
+  const name = req.params.name.toLowerCase().trim();
+  if (!name || name.length > 80) return res.status(400).json({ error: 'Invalid name' });
+  const all = await fetchNews();
+  // Match items whose title starts with the player name (FP format: "Name: note")
+  const nameParts = name.split(' ').filter(Boolean);
+  const matches = all.filter(item => {
+    const t = item.title.toLowerCase();
+    return nameParts.every(part => t.includes(part));
+  }).slice(0, 5);
+  res.json({ items: matches });
+});
+
 // Historical season stats via Sleeper weekly stats API.
 // Week-level responses are cached globally (all players) so repeated lookups
 // are free after the first player opens. Per-player season totals are also
