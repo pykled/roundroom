@@ -1,7 +1,7 @@
 name: Update Injuries
 on:
   schedule:
-    - cron: '0 */2 * * *'  # every 2 hours
+    - cron: '30 */2 * * *'  # every 2h, offset 30min to avoid colliding with crawl commit step
   workflow_dispatch:
 jobs:
   injuries:
