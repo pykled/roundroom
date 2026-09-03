@@ -92,7 +92,10 @@
     font-size: 2.6rem;
     font-weight: 800;
     letter-spacing: -0.04em;
-    color: var(--text-primary);
+    background: linear-gradient(135deg, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.5rem;
     line-height: 1;
   }
@@ -191,7 +194,7 @@
     align-items: start;
   }
 
-  .home-left .home-wordmark { font-size: 3.5rem; letter-spacing: -0.05em; }
+  .home-left .home-wordmark { font-size: 3.5rem; letter-spacing: -0.05em; -webkit-text-fill-color: transparent; }
 
   .home-feature-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 1.5rem; }
   .home-feature-chips span {
@@ -2315,16 +2318,16 @@
   <div class="home-layout">
 
     <div class="home-left">
-      <div class="home-pill">NFL Fantasy 2026</div>
+      <div class="home-pill">Built for Sleeper · 2026</div>
       <div class="home-wordmark">RoundRoom</div>
-      <div class="home-tagline">Live draft companion for Sleeper.</div>
-      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;">Tracks every pick in real time · VORP-ranked recommendations · Who to draft next, instantly.</div>
+      <div class="home-tagline">Know who to draft. Every round.</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.35rem;line-height:1.6;">Real-time pick tracking · VORP-based recommendations · Strategy-aware, not just ADP.</div>
 
       <div class="home-action-cards" style="margin-top:1.75rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
           <div id="connect-collapsed">
-            <button class="home-connect-btn" onclick="toggleConnectCard(true)">Connect My Sleeper League →</button>
-            <div class="home-card-sub">Pull in your league settings, then use the live companion bookmark during your draft.</div>
+            <button class="home-connect-btn" onclick="toggleConnectCard(true)">Get your draft recommendations →</button>
+            <div class="home-card-sub">Enter your Sleeper username to pull in league settings and get set up in about 30 seconds.</div>
           </div>
 
           <div id="connect-form" style="display:none;">
@@ -2371,21 +2374,20 @@
         </div>
 
         <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()" style="display:none;">
-          <div class="home-card-icon">⚡</div>
           <div class="home-card-title">Mock Draft</div>
           <div class="home-card-sub">Practice without an account</div>
         </div>
       </div>
 
       <div class="home-secondary-links">
-        <button onclick="openResearchStandalone()">🔍 Research Players</button>
-        <button onclick="openListsOverlay()">⭐ My Targets</button>
-        <button onclick="openHelp()" style="color:var(--text-muted);">❓ How it works</button>
+        <button onclick="openResearchStandalone()">Research Players</button>
+        <button onclick="openListsOverlay()">My Targets</button>
+        <button onclick="openHelp()" style="color:var(--text-muted);">How it works</button>
       </div>
 
       <div class="home-bookmarklet">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
-          <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">🏈 Live Draft Companion</div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Live Draft Companion</div>
           <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:0.18rem 0.55rem;white-space:nowrap;">Sleeper only</span>
         </div>
         <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.45rem;line-height:1.5;">Opens a sidebar on Sleeper.com that tracks picks live and tells you who to draft next — updated after every selection.</div>
@@ -2412,7 +2414,7 @@
       </div>
 
       <div class="home-status">
-        <div class="home-status-title">📋 Format &amp; Strategy Status</div>
+        <div class="home-status-title">Format &amp; Strategy Support</div>
         <div class="home-status-cols">
           <div class="home-status-col">
             <div class="home-status-format"><span class="home-status-dot ok"></span><span>PPR</span></div>
