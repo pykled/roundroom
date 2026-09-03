@@ -2,8 +2,12 @@ const express = require('express');
 const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
+const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
+// Trust Railway's proxy so req.ip is the real client IP (not 127.0.0.1),
+// which makes per-user rate limiting and logging accurate.
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 7890;
 
 // Cache for Sleeper player data (large payload, changes rarely)
@@ -37,6 +41,19 @@ app.use(compression({
 }));
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Tight CSP: no inline eval, scripts only from self + CDN used for fonts/icons
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline'; " +       // inline JS in the single-file app
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https://sleepercdn.com; " +
+    "connect-src 'self' https://api.sleeper.app; " +
+    "frame-ancestors 'none';"
+  );
   next();
 });
 
@@ -160,20 +177,42 @@ app.get('/api/data-freshness', (req, res) => {
 // Week-level responses are cached globally (all players) so repeated lookups
 // are free after the first player opens. Per-player season totals are also
 // cached 24h after first computation.
-const weekCache = new Map();   // `${year}-${week}` → { data, time }
-const statsCache = new Map();  // player_id → { data, time }
+// Max entries to prevent unbounded memory growth under heavy load.
+// 3 seasons × 18 weeks = 54 week entries max; stats cap covers ~300 unique players.
+const WEEK_CACHE_MAX = 60;
+const STATS_CACHE_MAX = 400;
+const weekCache = new Map();    // `${year}-${week}` → { data, time }
+const statsCache = new Map();   // player_id → { data, time }
+const weekInFlight = new Map(); // `${year}-${week}` → Promise — deduplicates concurrent fetches
 const NFL_WEEKS = 18;
+
+function evictOldest(map, max) {
+  if (map.size <= max) return;
+  const oldest = map.keys().next().value; // Map preserves insertion order
+  map.delete(oldest);
+}
 
 async function fetchWeek(year, week) {
   const key = `${year}-${week}`;
   const entry = weekCache.get(key);
   if (entry && Date.now() - entry.time < PLAYER_CACHE_TTL) return entry.data;
-  const url = `https://api.sleeper.app/v1/stats/nfl/regular/${year}/${week}`;
-  const r = await fetch(url);
-  if (!r.ok) return null;
-  const data = await r.json();
-  weekCache.set(key, { data, time: Date.now() });
-  return data;
+  // Coalesce concurrent requests for the same week (e.g. 50 users open same player simultaneously)
+  if (weekInFlight.has(key)) return weekInFlight.get(key);
+  const promise = (async () => {
+    try {
+      const url = `https://api.sleeper.app/v1/stats/nfl/regular/${year}/${week}`;
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      const data = await r.json();
+      evictOldest(weekCache, WEEK_CACHE_MAX);
+      weekCache.set(key, { data, time: Date.now() });
+      return data;
+    } finally {
+      weekInFlight.delete(key);
+    }
+  })();
+  weekInFlight.set(key, promise);
+  return promise;
 }
 
 // SUM fields: counting stats that add across weeks
@@ -185,28 +224,55 @@ const SUM_FIELDS = [
   'off_snp', 'tm_off_snp',
 ];
 
+const NFL_SEASON_LENGTH = 17; // regular-season games (used for health bar, not week count)
+
 async function buildSeasonStats(playerId, year) {
   const weeks = Array.from({ length: NFL_WEEKS }, (_, i) => i + 1);
   const weekData = await Promise.all(weeks.map(w => fetchWeek(year, w)));
-  const totals = { season: year };
+  const raw = { season: year };
   for (const wd of weekData) {
     if (!wd) continue;
     const p = wd[playerId];
     if (!p) continue;
     for (const f of SUM_FIELDS) {
-      if (p[f] != null) totals[f] = (totals[f] || 0) + p[f];
+      if (p[f] != null) raw[f] = (raw[f] || 0) + p[f];
     }
   }
-  if (!totals.gp) return null;
-  // Derived efficiency metrics from summed raw counts
-  if (totals.off_snp != null && totals.tm_off_snp != null && totals.tm_off_snp > 0) {
-    totals.snap_pct = totals.off_snp / totals.tm_off_snp;
+  if (!raw.gp) return null;
+
+  const gp = raw.gp;
+  const s = { season: year, gp };
+
+  // Snap %
+  if (raw.off_snp && raw.tm_off_snp) s.snap_pct = raw.off_snp / raw.tm_off_snp;
+
+  // Per-game rates — what actually matters for fantasy evaluation
+  const pg = (v) => v != null ? +(v / gp).toFixed(2) : null;
+  s.rec_yd_pg   = pg(raw.rec_yd);
+  s.tgt_pg      = raw.rec_tgt != null ? pg(raw.rec_tgt) : null;
+  s.rec_pg      = pg(raw.rec);
+  s.rec_td_pg   = pg(raw.rec_td);
+  s.rush_yd_pg  = pg(raw.rush_yd);
+  s.rush_att_pg = pg(raw.rush_att);
+  s.rush_td_pg  = pg(raw.rush_td);
+  s.pass_yd_pg  = pg(raw.pass_yd);
+  s.pass_td_pg  = pg(raw.pass_td);
+  s.pts_ppr_pg  = pg(raw.pts_ppr);
+
+  // Efficiency rates (not per-game, but per-opportunity)
+  if (raw.rec_tgt) s.catch_pct = +(raw.rec / raw.rec_tgt).toFixed(3);
+  if (raw.rec_tgt) s.rec_yd_per_tgt = +(raw.rec_yd / raw.rec_tgt).toFixed(2);
+  if (raw.rush_att) s.rush_yd_per_carry = +(raw.rush_yd / raw.rush_att).toFixed(2);
+  if (raw.pass_att) {
+    s.cmp_pct = +(raw.pass_cmp / raw.pass_att).toFixed(3);
+    s.pass_yd_per_att = +(raw.pass_yd / raw.pass_att).toFixed(2);
   }
-  // Rename rec_tgt → targets for UI consistency
-  if (totals.rec_tgt != null) { totals.targets = totals.rec_tgt; delete totals.rec_tgt; }
-  // Air yard share: rough proxy (rec_air_yd / team_air_yards); skip — no team air yards available
-  delete totals.off_snp; delete totals.tm_off_snp; // strip raw snap counts
-  return totals;
+  if (raw.pass_td != null && raw.pass_int != null) {
+    s.pass_td = raw.pass_td;
+    s.pass_int = raw.pass_int;
+  }
+
+  return s;
 }
 
 app.get('/api/player-stats/:playerId', async (req, res) => {
@@ -215,8 +281,13 @@ app.get('/api/player-stats/:playerId', async (req, res) => {
   const hit = statsCache.get(id);
   if (hit && Date.now() - hit.time < PLAYER_CACHE_TTL) return res.json(hit.data);
   try {
-    const [s2023, s2024] = await Promise.all([buildSeasonStats(id, 2023), buildSeasonStats(id, 2024)]);
-    const data = { seasons: [s2023, s2024].filter(Boolean) };
+    const [s2022, s2023, s2024] = await Promise.all([
+      buildSeasonStats(id, 2022),
+      buildSeasonStats(id, 2023),
+      buildSeasonStats(id, 2024),
+    ]);
+    const data = { seasons: [s2022, s2023, s2024].filter(Boolean), nflSeasonLength: NFL_SEASON_LENGTH };
+    evictOldest(statsCache, STATS_CACHE_MAX);
     statsCache.set(id, { data, time: Date.now() });
     res.json(data);
   } catch (err) {
@@ -264,17 +335,25 @@ app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
+  // Cap history depth and individual message length to prevent prompt injection and runaway costs
+  if (messages.length > 20) {
+    return res.status(400).json({ error: 'Too many messages' });
+  }
+  for (const m of messages) {
+    if (typeof m.content === 'string' && m.content.length > 4000) {
+      return res.status(400).json({ error: 'Message too long' });
+    }
+  }
 
   try {
-    const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 400,
-      system: typeof system === 'string' ? system : undefined,
+      system: typeof system === 'string' ? system.slice(0, 2000) : undefined,
       messages: messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
-        content: String(m.content || ''),
+        content: String(m.content || '').slice(0, 4000),
       })),
     });
     const reply = response.content?.find(b => b.type === 'text')?.text || '';
