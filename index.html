@@ -1845,9 +1845,12 @@
     inset: 0;
     z-index: 550;
     background: var(--bg-primary);
-    padding: 1rem 1.5rem;
-    max-width: 900px;
-    margin: 0 auto;
+    padding: 1rem min(1.5rem, calc((100vw - 860px) / 2 + 1.5rem));
+    animation: rsch-page-in 0.18s ease;
+  }
+  @keyframes rsch-page-in {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
   }
   #panel-research.as-overlay #research-standalone-close { display: inline-block; }
 
