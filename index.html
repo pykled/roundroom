@@ -369,6 +369,35 @@
     line-height: 1.4; flex-basis: 100%; margin-top: -0.2rem;
     padding-left: calc(0.6rem + 1px);
   }
+  .home-status-details {
+    margin-top: 1rem;
+  }
+  .home-status-details summary {
+    font-size: 0.72rem; color: var(--text-muted);
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; gap: 0.3rem;
+    user-select: none;
+  }
+  .home-status-details summary::-webkit-details-marker { display: none; }
+  .home-status-details summary::before {
+    content: '▶';
+    font-size: 0.5rem; color: var(--text-muted);
+    transition: transform 0.15s;
+    display: inline-block;
+  }
+  .home-status-details[open] summary::before { transform: rotate(90deg); }
+  .home-status-details summary:hover { color: var(--text-secondary); }
+  .home-status-details .home-status-cols { margin-top: 0.75rem; }
+
+  .home-divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 1.25rem 0 0.25rem;
+    color: var(--text-muted); font-size: 0.68rem;
+  }
+  .home-divider::before, .home-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
   .home-feedback {
     margin-top: 1rem; font-size: 0.7rem; color: var(--text-muted);
   }
@@ -2328,51 +2357,43 @@
 
       <div class="home-action-cards" style="margin-top:1.75rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
-          <div id="connect-collapsed">
-            <button class="home-connect-btn" onclick="toggleConnectCard(true)">Get your draft recommendations →</button>
-            <div class="home-card-sub">Enter your Sleeper username to pull in league settings and get set up in about 30 seconds.</div>
+          <div class="home-card-title" style="margin-bottom:0.65rem;">Connect to Sleeper</div>
+          <div id="connect-step-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.9rem;">Enter your username to pull in your leagues and get recommendations in ~30 seconds.</div>
+          <div id="setup-error" class="error-msg hidden"></div>
+
+          <div class="form-group">
+            <label>Sleeper Username</label>
+            <input type="text" id="username-input" placeholder="Enter your Sleeper username">
           </div>
 
-          <div id="connect-form" style="display:none;">
-            <div id="connect-step-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;">Step 1 of 3 — Enter your Sleeper username</div>
-            <div id="setup-error" class="error-msg hidden"></div>
+          <button class="btn btn-primary" id="fetch-leagues-btn" onclick="fetchLeagues()">
+            <span id="fetch-btn-text">Load Leagues</span>
+          </button>
 
-            <div class="form-group">
-              <label>Sleeper Username</label>
-              <input type="text" id="username-input" placeholder="Enter your Sleeper username">
+          <div id="leagues-section" class="hidden" style="margin-top:1.5rem;">
+            <div class="panel-title" style="margin-bottom:0.75rem;">Select League</div>
+            <div id="leagues-list"></div>
+          </div>
+
+          <div id="draft-info-section" class="hidden">
+            <div class="draft-info" id="draft-info-grid"></div>
+
+            <div class="form-group" style="margin-top:1rem;">
+              <label>Your Draft Slot</label>
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="slot-picker"></div>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;" id="slot-auto-note"></div>
             </div>
 
-            <button class="btn btn-primary" id="fetch-leagues-btn" onclick="fetchLeagues()">
-              <span id="fetch-btn-text">Load Leagues</span>
+            <div id="countdown-section" class="hidden">
+              <div class="countdown-box">
+                <div class="countdown-label">Draft starts in</div>
+                <div class="countdown-time" id="countdown-display">--:--:--</div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="start-btn" onclick="startDraftAssistant()">
+              Start Draft Assistant →
             </button>
-
-            <div id="leagues-section" class="hidden" style="margin-top:1.5rem;">
-              <div class="panel-title" style="margin-bottom:0.75rem;">Select League</div>
-              <div id="leagues-list"></div>
-            </div>
-
-            <div id="draft-info-section" class="hidden">
-              <div class="draft-info" id="draft-info-grid"></div>
-
-              <div class="form-group" style="margin-top:1rem;">
-                <label>Your Draft Slot</label>
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="slot-picker"></div>
-                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;" id="slot-auto-note"></div>
-              </div>
-
-              <div id="countdown-section" class="hidden">
-                <div class="countdown-box">
-                  <div class="countdown-label">Draft starts in</div>
-                  <div class="countdown-time" id="countdown-display">--:--:--</div>
-                </div>
-              </div>
-
-              <button class="btn btn-primary" id="start-btn" onclick="startDraftAssistant()">
-                Start Draft Assistant →
-              </button>
-            </div>
-
-            <button class="home-connect-cancel" onclick="toggleConnectCard(false)">← Cancel</button>
           </div>
         </div>
 
@@ -2388,6 +2409,7 @@
         <button onclick="openHelp()" style="color:var(--text-muted);">How it works</button>
       </div>
 
+      <div class="home-divider">or use on draft day</div>
       <div class="home-bookmarklet">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
           <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Live Draft Companion</div>
@@ -2416,8 +2438,8 @@
         </div>
       </div>
 
-      <div class="home-status">
-        <div class="home-status-title">Format &amp; Strategy Support</div>
+      <details class="home-status-details">
+        <summary>Supported formats &amp; strategies</summary>
         <div class="home-status-cols">
           <div class="home-status-col">
             <div class="home-status-format"><span class="home-status-dot ok"></span><span>PPR</span></div>
@@ -2452,7 +2474,7 @@
             <div class="home-status-maint-sub">Rankings &amp; strategies temporarily offline while we rebuild Half-PPR data.</div>
           </div>
         </div>
-      </div>
+      </details>
 
       <div class="home-feedback">Found a bug or have feedback? <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report it on GitHub</a></div>
     </div>
@@ -9032,21 +9054,8 @@ try {
   window.matchMedia('(max-width: 640px)').addEventListener('change', updateHomeSortArrows);
 } catch(_) {}
 
-function toggleConnectCard(open) {
-  const collapsed = document.getElementById('connect-collapsed');
-  const form = document.getElementById('connect-form');
-  const card = document.getElementById('home-card-connect');
-  if (!collapsed || !form) return;
-  collapsed.style.display = open ? 'none' : '';
-  form.style.display = open ? 'block' : 'none';
-  if (card) card.classList.toggle('expanded', open);
-  if (open) {
-    document.getElementById('username-input')?.focus();
-    const stepHint = document.getElementById('connect-step-hint');
-    if (stepHint && document.getElementById('leagues-section')?.classList.contains('hidden')) {
-      stepHint.textContent = 'Step 1 of 3 — Enter your Sleeper username';
-    }
-  }
+function toggleConnectCard() {
+  // Form is always visible; no-op kept for any legacy calls
 }
 
 function setHomePos(pos) {
