@@ -1837,22 +1837,11 @@
   }
 
   /* ===== RESEARCH TAB ===== */
-  #panel-research { display: none; }
-  #panel-research.mobile-active,
-  #panel-research.as-overlay { display: flex; flex-direction: column; }
-  #panel-research.as-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 550;
-    background: var(--bg-primary);
-    padding: 1rem min(1.5rem, calc((100vw - 860px) / 2 + 1.5rem));
-    animation: rsch-page-in 0.18s ease;
-  }
+  #research-screen { animation: rsch-page-in 0.18s ease; }
   @keyframes rsch-page-in {
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
   }
-  #panel-research.as-overlay #research-standalone-close { display: inline-block; }
 
   .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
 
@@ -2678,51 +2667,6 @@
       <div id="my-picks-schedule" style="font-size:0.75rem; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
     </div>
 
-    <!-- RESEARCH: player research panel (mobile tab / standalone overlay) -->
-    <div class="panel" id="panel-research">
-      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;flex-shrink:0;">
-        <button id="research-standalone-close" onclick="closeResearchStandalone()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;display:none;">← Home</button>
-        <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
-      </div>
-      <div class="research-controls">
-        <input type="text" class="board-search" id="research-search" placeholder="Search players…" oninput="RESEARCH.search=this.value;renderResearchList()" style="margin-bottom:0.5rem;">
-        <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
-          <button class="rsch-pos-btn active" data-rpos="ALL" onclick="setResearchPos('ALL')">ALL</button>
-          <button class="rsch-pos-btn" data-rpos="QB" onclick="setResearchPos('QB')">QB</button>
-          <button class="rsch-pos-btn" data-rpos="RB" onclick="setResearchPos('RB')">RB</button>
-          <button class="rsch-pos-btn" data-rpos="WR" onclick="setResearchPos('WR')">WR</button>
-          <button class="rsch-pos-btn" data-rpos="TE" onclick="setResearchPos('TE')">TE</button>
-          <button class="rsch-pos-btn" data-rpos="K" onclick="setResearchPos('K')">K</button>
-          <span style="margin-left:auto;display:flex;align-items:center;gap:0.2rem;">
-            <span style="font-size:0.58rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;padding-right:0.1rem;">Sort</span>
-            <button class="rsch-sort-btn active" data-rsort="adp" onclick="setResearchSort('adp')">ADP</button>
-            <button class="rsch-sort-btn" data-rsort="vorp" onclick="setResearchSort('vorp')">VORP</button>
-            <button class="rsch-sort-btn" data-rsort="proj" onclick="setResearchSort('proj')">Proj</button>
-            <button class="rsch-sort-btn" data-rsort="value" onclick="setResearchSort('value')">Value</button>
-            <button class="rsch-sort-btn" data-rsort="volatility" onclick="setResearchSort('volatility')">Vol</button>
-          </span>
-        </div>
-        <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap;">
-          <button class="rsch-filter-btn active" data-rfilt="all" onclick="setResearchFilter('all')">All</button>
-          <button class="rsch-filter-btn" data-rfilt="value" onclick="setResearchFilter('value')">Value Picks</button>
-          <button class="rsch-filter-btn" data-rfilt="trending" onclick="setResearchFilter('trending')">Trending ↑</button>
-          <button class="rsch-filter-btn" data-rfilt="targets" onclick="setResearchFilter('targets')">⭐ My Targets</button>
-        </div>
-      </div>
-      <div id="rsch-summary" class="rsch-summary"></div>
-      <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
-        <span style="width:32px;flex-shrink:0;"></span>
-        <span style="flex:1;">Player</span>
-        <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
-        <span style="width:42px;flex-shrink:0;" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
-        <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
-        <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
-        <span class="rsch-col-proj" title="Projected fantasy points for 2026 season">Proj</span>
-        <span style="width:40px;flex-shrink:0;" title="Draft value vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Edge</span>
-        <span style="width:18px;flex-shrink:0;"></span>
-      </div>
-      <div id="research-player-list"></div>
-    </div>
 
   </div>
 
@@ -2755,6 +2699,54 @@
     </div>
   </div>
 
+</div>
+
+<!-- RESEARCH SCREEN -->
+<div id="research-screen" style="display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg-primary);">
+  <div class="panel" id="panel-research" style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:1rem 1.5rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;flex-shrink:0;">
+      <button onclick="closeResearchStandalone()" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;cursor:pointer;padding:0.2rem 0.3rem;font-family:inherit;">← Home</button>
+      <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
+    </div>
+    <div class="research-controls">
+      <input type="text" class="board-search" id="research-search" placeholder="Search players…" oninput="RESEARCH.search=this.value;renderResearchList()" style="margin-bottom:0.5rem;">
+      <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+        <button class="rsch-pos-btn active" data-rpos="ALL" onclick="setResearchPos('ALL')">ALL</button>
+        <button class="rsch-pos-btn" data-rpos="QB" onclick="setResearchPos('QB')">QB</button>
+        <button class="rsch-pos-btn" data-rpos="RB" onclick="setResearchPos('RB')">RB</button>
+        <button class="rsch-pos-btn" data-rpos="WR" onclick="setResearchPos('WR')">WR</button>
+        <button class="rsch-pos-btn" data-rpos="TE" onclick="setResearchPos('TE')">TE</button>
+        <button class="rsch-pos-btn" data-rpos="K" onclick="setResearchPos('K')">K</button>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:0.2rem;">
+          <span style="font-size:0.58rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;padding-right:0.1rem;">Sort</span>
+          <button class="rsch-sort-btn active" data-rsort="adp" onclick="setResearchSort('adp')">ADP</button>
+          <button class="rsch-sort-btn" data-rsort="vorp" onclick="setResearchSort('vorp')">VORP</button>
+          <button class="rsch-sort-btn" data-rsort="proj" onclick="setResearchSort('proj')">Proj</button>
+          <button class="rsch-sort-btn" data-rsort="value" onclick="setResearchSort('value')">Value</button>
+          <button class="rsch-sort-btn" data-rsort="volatility" onclick="setResearchSort('volatility')">Vol</button>
+        </span>
+      </div>
+      <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap;">
+        <button class="rsch-filter-btn active" data-rfilt="all" onclick="setResearchFilter('all')">All</button>
+        <button class="rsch-filter-btn" data-rfilt="value" onclick="setResearchFilter('value')">Value Picks</button>
+        <button class="rsch-filter-btn" data-rfilt="trending" onclick="setResearchFilter('trending')">Trending ↑</button>
+        <button class="rsch-filter-btn" data-rfilt="targets" onclick="setResearchFilter('targets')">⭐ My Targets</button>
+      </div>
+    </div>
+    <div id="rsch-summary" class="rsch-summary"></div>
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
+      <span style="width:32px;flex-shrink:0;"></span>
+      <span style="flex:1;">Player</span>
+      <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
+      <span style="width:42px;flex-shrink:0;" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
+      <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
+      <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
+      <span class="rsch-col-proj" title="Projected fantasy points for 2026 season">Proj</span>
+      <span style="width:40px;flex-shrink:0;" title="Draft value vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Edge</span>
+      <span style="width:18px;flex-shrink:0;"></span>
+    </div>
+    <div id="research-player-list"></div>
+  </div>
 </div>
 
 <!-- DRAFT REVIEW ROOM -->
@@ -4502,12 +4494,10 @@ function computeTiers(players) {
 }
 
 function showMobileTab(tab) {
-  if (tab === 'lists') {
-    openListsOverlay();
-    return;
-  }
-  const map = { roster: 'panel-roster', players: 'panel-players', recs: 'panel-recs', research: 'panel-research' };
-  const tabMap = { roster: 'tab-roster', players: 'tab-players', recs: 'tab-recs', research: 'tab-research' };
+  if (tab === 'lists') { openListsOverlay(); return; }
+  if (tab === 'research') { openResearchStandalone(); return; }
+  const map = { roster: 'panel-roster', players: 'panel-players', recs: 'panel-recs' };
+  const tabMap = { roster: 'tab-roster', players: 'tab-players', recs: 'tab-recs' };
   Object.values(map).forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('mobile-active');
@@ -4522,7 +4512,6 @@ function showMobileTab(tab) {
   if (tabBtn) tabBtn.classList.add('active');
   // Switch to players tab automatically when draft is live
   if (tab === 'recs') renderRecommendations();
-  if (tab === 'research') ensureResearchData().then(() => renderResearchList());
 }
 
 function setPosFilter(pos) {
@@ -9071,34 +9060,29 @@ function setResearchDecision(kind) {
 // research panel over everything. app-screen is display:none pre-draft, so the
 // panel is reparented to <body> while in overlay mode.
 function openResearchStandalone() {
-  const panel = document.getElementById('panel-research');
-  if (!panel) return;
-  if (panel.parentElement !== document.body) document.body.appendChild(panel);
-  panel.classList.add('as-overlay');
-  // Hide the home screen so research replaces it instead of floating on top
-  const setupScreen = document.getElementById('setup-screen');
-  if (setupScreen && setupScreen.style.display !== 'none') {
-    panel.dataset.researchHidSetup = '1';
-    setupScreen.style.display = 'none';
-  }
+  const screen = document.getElementById('research-screen');
+  if (!screen) return;
+  // Record which screen was visible so we can restore it on close
+  const prevId = ['setup-screen', 'app-screen', 'review-screen'].find(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  }) || 'setup-screen';
+  screen.dataset.prevScreen = prevId;
+  document.getElementById(prevId).style.display = 'none';
+  screen.style.display = 'flex';
   setHash('research');
   renderResearchList();
   ensureResearchData().then(() => renderResearchList());
 }
 
 function closeResearchStandalone() {
-  const panel = document.getElementById('panel-research');
-  if (!panel) return;
-  if (panel.classList.contains('as-overlay')) setHash('home');
-  panel.classList.remove('as-overlay');
-  // Restore the home screen if we hid it
-  if (panel.dataset.researchHidSetup === '1') {
-    delete panel.dataset.researchHidSetup;
-    const setupScreen = document.getElementById('setup-screen');
-    if (setupScreen) setupScreen.style.display = 'flex';
-  }
-  const layout = document.querySelector('.main-layout');
-  if (layout && panel.parentElement !== layout) layout.appendChild(panel);
+  const screen = document.getElementById('research-screen');
+  if (!screen || screen.style.display === 'none') return;
+  const prevId = screen.dataset.prevScreen || 'setup-screen';
+  screen.style.display = 'none';
+  const prevEl = document.getElementById(prevId);
+  if (prevEl) prevEl.style.display = 'flex';
+  setHash(prevId === 'setup-screen' ? 'home' : prevId === 'app-screen' ? 'draft' : 'review');
 }
 
 // ===== PREP MODE (full draft UI without connecting to Sleeper) =====
@@ -9342,16 +9326,15 @@ function handleHash() {
   const appVisible = document.getElementById('app-screen')?.style.display !== 'none';
   const reviewVisible = document.getElementById('review-screen')?.style.display !== 'none';
 
+  const researchVisible = document.getElementById('research-screen')?.style.display !== 'none';
   if (hash === 'research') {
-    // Close review if open, then open research as a proper screen
-    if (reviewVisible) { document.getElementById('review-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
-    openResearchStandalone();
+    if (!researchVisible) openResearchStandalone();
   } else if (hash === 'review' || hash === 'draft') {
     // Can't deep-link into draft/review without a session — go home
     if (!appVisible && !reviewVisible) { document.getElementById('setup-screen').style.display = 'flex'; }
   } else {
-    // #home or empty — close any overlays and go to setup screen
-    closeResearchStandalone();
+    // #home or empty — close research/review if open, show home
+    if (researchVisible) closeResearchStandalone();
     if (reviewVisible) { document.getElementById('review-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
   }
 }
