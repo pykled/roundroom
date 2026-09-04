@@ -3452,6 +3452,7 @@ async function launchStandaloneMock() {
     if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? '' : 'none';
     if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
     if (sfPuntBtn) sfPuntBtn.style.display = STATE.isSuperflex ? '' : 'none';
+    syncStrategyBtns();
 
     // Close config overlay, show app screen
     closeMockConfig();
@@ -4047,6 +4048,7 @@ async function selectLeague(league, el) {
   if (sfBadge) sfBadge.style.display = STATE.isSuperflex ? '' : 'none';
   if (sfBtn) sfBtn.style.display = STATE.isSuperflex ? '' : 'none';
   if (sfPuntBtn) sfPuntBtn.style.display = STATE.isSuperflex ? '' : 'none';
+  syncStrategyBtns();
   if (STATE.isSuperflex) setStrategy('superflex');
   else if (STATE.strategy === 'superflex' || STATE.strategy === 'superflex_punt') setStrategy('bpa');
 
@@ -4885,10 +4887,42 @@ function updateMyList() { /* no-op: list management moved to cv-lists-overlay */
 
 // ===== RECOMMENDATIONS =====
 
+// Tooltip text per strategy, standard vs SuperFlex. In SF leagues getStrategyWeight
+// auto-adapts hero_rb → hero_rb_sf and applies SF QB logic inside zero_rb/robust_rb,
+// so the SF titles communicate that adapted behavior to the user.
+const STRAT_TOOLTIPS = {
+  bpa: {
+    std: "Best Player Available — pure VORP, take the highest-value player regardless of position",
+    sf:  "Best Player Available — pure VORP, take the highest-value player regardless of position",
+  },
+  zero_rb: {
+    std: "Avoid RBs in rounds 1–5, stack WRs and TE, pick cheap RBs in rounds 6+",
+    sf:  "Zero RB (SF) — Stack WR/TE early; fill both SF QB slots before attacking RBs",
+  },
+  hero_rb: {
+    std: "Land one elite RB anchor in round 1, then fill WR in rounds 2–4",
+    sf:  "Hero RB (SF) — Lock in 2-3 elite RBs in rounds 1-3, then fill 2 QBs before skill positions",
+  },
+  robust_rb: {
+    std: "Secure 4 RBs in the first 6 rounds before filling other positions",
+    sf:  "Robust RB (SF) — Secure 4 RBs in first 6 rounds while maintaining 2-QB requirement",
+  },
+};
+
+// Update strategy-button tooltips to reflect SF-adapted behavior when in a SuperFlex league.
+function syncStrategyBtns() {
+  const sf = !!STATE.isSuperflex;
+  document.querySelectorAll('.strategy-btn').forEach(btn => {
+    const t = STRAT_TOOLTIPS[btn.dataset.strategy];
+    if (t) btn.title = sf ? t.sf : t.std;
+  });
+}
+
 function setStrategy(strategy) {
   _utrack('strategy-changed', { strategy });
   STATE.strategy = strategy;
   invalidateScoreCache();
+  syncStrategyBtns();
   document.querySelectorAll('.strategy-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.strategy === strategy);
   });
