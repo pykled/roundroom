@@ -647,9 +647,13 @@
     color: var(--text-primary); font-family: inherit; font-size: 0.82rem;
     cursor: pointer; text-align: left;
     transition: background 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .home-player-row:last-child { border-bottom: none; }
-  .home-player-row:hover { background: var(--bg-hover); }
+  @media (hover: hover) {
+    .home-player-row:hover { background: var(--bg-hover); }
+  }
   .home-pos-badge {
     font-size: 0.62rem; font-weight: 700; font-family: 'DM Mono', monospace;
     border: 1px solid; border-radius: 5px; padding: 0.15rem 0;
@@ -1295,9 +1299,13 @@
     transition: all 0.1s;
     margin-bottom: 0.2rem;
     position: relative;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
-  .player-card:hover { background: var(--bg-hover); }
+  @media (hover: hover) {
+    .player-card:hover { background: var(--bg-hover); }
+  }
 
   .player-card.drafted {
     opacity: 0.3;
@@ -2200,6 +2208,7 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    overscroll-behavior: contain;
   }
   #research-profile-overlay.open { display: flex; }
 
@@ -2237,8 +2246,12 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
-  .rsch-decision-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+  @media (hover: hover) {
+    .rsch-decision-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+  }
   .rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
   .rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
   .rsch-decision-btn.active-neutral { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text-primary); }
@@ -2456,6 +2469,7 @@
       border-radius: 16px 16px 0 0;
       border-bottom: none;
       animation: rsch-sheet-up 0.22s ease;
+      overscroll-behavior: contain;
     }
     /* Hero grid: keep all 5 cols, compress sizing to fit */
     .rsch-hero-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 0.35rem; }
