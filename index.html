@@ -2409,15 +2409,23 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
 
-  <div class="home-freshness-bar" id="home-freshness-bar"><span id="home-freshness-text">Loading data...</span></div>
-
   <div class="home-layout">
 
     <div class="home-left">
       <div class="home-wordmark">RoundRoom</div>
       <div class="home-tagline">Know who to draft. Every round.</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.55;margin-top:0.5rem;max-width:340px;">Connect your Sleeper league and RoundRoom tells you the best available pick every time you're on the clock — live, updated after every selection.</div>
 
-      <div class="home-action-cards" style="margin-top:1.75rem;">
+      <!-- Companion preview placeholder — swap src when screenshot is ready -->
+      <div id="companion-preview" style="margin-top:1.25rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--bg-secondary);position:relative;">
+        <img id="companion-preview-img" src="" alt="RoundRoom companion sidebar mid-draft" style="width:100%;display:none;border-radius:12px;">
+        <div id="companion-preview-placeholder" style="height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:var(--text-muted);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span style="font-size:0.68rem;opacity:0.5;font-family:'DM Mono',monospace;">companion preview coming soon</span>
+        </div>
+      </div>
+
+      <div class="home-action-cards" style="margin-top:1.25rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
           <div class="home-card-title" style="margin-bottom:0.65rem;">Connect to Sleeper</div>
           <div id="connect-step-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.9rem;">Enter your username to pull in your leagues and get recommendations in ~30 seconds.</div>
@@ -2431,6 +2439,7 @@
           <button class="btn btn-primary" id="fetch-leagues-btn" onclick="fetchLeagues()">
             <span id="fetch-btn-text">Load Leagues</span>
           </button>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.5rem;opacity:0.7;">We only read public Sleeper data — no password or signup required.</div>
 
           <div id="leagues-section" class="hidden" style="margin-top:1.5rem;">
             <div class="panel-title" style="margin-bottom:0.75rem;">Select League</div>
@@ -2510,7 +2519,7 @@
       <div class="home-right-header">
         <div>
           <span class="home-right-title">Player Rankings</span>
-          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">click a column to sort · +/- vs expert consensus</div>
+          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">click a column to sort · +/- vs expert consensus · <span id="home-freshness-text" style="font-style:italic;">loading...</span></div>
         </div>
         <div class="home-pos-filters">
           <button class="home-pos-filter active" data-hpos="ALL" onclick="setHomePos('ALL')">ALL</button>
