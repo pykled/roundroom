@@ -221,20 +221,62 @@
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
-  .preview-lightbox img {
+  /* Stage wraps the image, clips panning at its edges, and carries the entry pop */
+  .preview-lightbox-stage {
+    position: relative;
+    width: -moz-fit-content;
+    width: fit-content;
+    height: -moz-fit-content;
+    height: fit-content;
     max-width: 95vw;
     max-height: 90vh;
-    object-fit: contain;
+    overflow: hidden;
     border-radius: 12px;
     box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     transform: scale(0.85);
     opacity: 0;
     transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    cursor: zoom-in;
+    touch-action: none; /* we handle pinch/pan ourselves */
+    line-height: 0;
   }
-  .preview-lightbox.open img {
+  .preview-lightbox.open .preview-lightbox-stage {
     transform: scale(1);
     opacity: 1;
   }
+  .preview-lightbox-stage img {
+    display: block;
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    transform-origin: 0 0;
+    will-change: transform;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+  }
+  /* Zoom-level pill, top-left */
+  .preview-lightbox-zoom {
+    position: fixed;
+    top: 1.1rem;
+    left: 1.25rem;
+    padding: 0.32rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(20,20,24,0.7);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    color: #f5f5f7;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .preview-lightbox-zoom.visible { opacity: 1; }
   .preview-lightbox-close {
     position: fixed;
     top: 1.1rem;
@@ -9946,29 +9988,219 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <!-- Companion preview lightbox (appended to body so it covers the sticky header) -->
-<div id="preview-lightbox" class="preview-lightbox" onclick="if(event.target===this)closePreviewLightbox()">
+<div id="preview-lightbox" class="preview-lightbox" onclick="onPreviewBackdrop(event)">
   <button type="button" class="preview-lightbox-close" aria-label="Close preview" onclick="closePreviewLightbox()">✕</button>
-  <img src="/companion-preview.png" alt="RoundRoom companion sidebar giving live pick recommendations next to a Sleeper.com draft board">
+  <span id="preview-lightbox-zoom" class="preview-lightbox-zoom" aria-hidden="true">1×</span>
+  <div id="preview-lightbox-stage" class="preview-lightbox-stage">
+    <img id="preview-lightbox-img" src="/companion-preview.png" alt="RoundRoom companion sidebar giving live pick recommendations next to a Sleeper.com draft board" draggable="false">
+  </div>
 </div>
 <script>
-  function openPreviewLightbox() {
-    var lb = document.getElementById('preview-lightbox');
-    if (!lb) return;
-    // force reflow so the transition runs from the initial state
-    lb.style.display = 'flex';
-    void lb.offsetWidth;
-    lb.classList.add('open');
-    document.addEventListener('keydown', _previewLightboxKey);
-  }
-  function closePreviewLightbox() {
-    var lb = document.getElementById('preview-lightbox');
-    if (!lb) return;
-    lb.classList.remove('open');
-    document.removeEventListener('keydown', _previewLightboxKey);
-  }
-  function _previewLightboxKey(e) {
-    if (e.key === 'Escape') closePreviewLightbox();
-  }
+  (function () {
+    var MIN_ZOOM = 1, MAX_ZOOM = 4;
+    var zoom = 1, panX = 0, panY = 0;      // transform state (px pan, applied before scale)
+    var baseW = 0, baseH = 0;              // fit (1x) rendered size of the image, in px
+    var dragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+    var pinchDist = 0;                     // last two-finger distance while pinching
+
+    function el(id) { return document.getElementById(id); }
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+    // Read the current 1x layout size of the image (ignores CSS transform, tracks resize)
+    function refreshBase() {
+      var img = el('preview-lightbox-img');
+      if (!img) return;
+      baseW = img.clientWidth;
+      baseH = img.clientHeight;
+    }
+
+    // Keep the image covering the stage: never expose empty gutters while zoomed
+    function clampPan() {
+      var minX = baseW - baseW * zoom; // <= 0
+      var minY = baseH - baseH * zoom;
+      panX = clamp(panX, minX, 0);
+      panY = clamp(panY, minY, 0);
+    }
+
+    function updateCursor() {
+      var stage = el('preview-lightbox-stage');
+      if (!stage) return;
+      stage.style.cursor = dragging ? 'grabbing' : (zoom > 1.001 ? 'grab' : 'zoom-in');
+    }
+
+    function updateZoomPill() {
+      var pill = el('preview-lightbox-zoom');
+      if (!pill) return;
+      if (zoom > 1.001) {
+        pill.textContent = zoom.toFixed(1).replace(/\.0$/, '') + '×';
+        pill.classList.add('visible');
+      } else {
+        pill.classList.remove('visible');
+      }
+    }
+
+    function apply(animate) {
+      var img = el('preview-lightbox-img');
+      if (!img) return;
+      img.style.transition = animate ? 'transform 0.12s ease-out' : 'none';
+      img.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')';
+      updateCursor();
+      updateZoomPill();
+    }
+
+    // Zoom to newZoom while keeping the stage-local point (cx, cy) fixed on screen
+    function setZoom(newZoom, cx, cy, animate) {
+      refreshBase();
+      newZoom = clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
+      var ratio = newZoom / zoom;
+      panX = cx - (cx - panX) * ratio;
+      panY = cy - (cy - panY) * ratio;
+      zoom = newZoom;
+      clampPan();
+      apply(animate);
+    }
+
+    function stagePoint(clientX, clientY) {
+      var stage = el('preview-lightbox-stage');
+      var r = stage.getBoundingClientRect();
+      return { x: clientX - r.left, y: clientY - r.top };
+    }
+
+    // ── Desktop: wheel to zoom around cursor ──
+    function onWheel(e) {
+      e.preventDefault();
+      var p = stagePoint(e.clientX, e.clientY);
+      var factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      setZoom(zoom * factor, p.x, p.y, true);
+    }
+
+    // ── Double-click toggles 1x <-> 2x centered on the click ──
+    function onDblClick(e) {
+      e.preventDefault();
+      var p = stagePoint(e.clientX, e.clientY);
+      if (zoom > 1.001) setZoom(1, p.x, p.y, true);
+      else setZoom(2, p.x, p.y, true);
+    }
+
+    // ── Desktop drag-to-pan ──
+    function onMouseDown(e) {
+      if (zoom <= 1.001) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startPanX = panX; startPanY = panY;
+      updateCursor();
+      e.preventDefault();
+    }
+    function onMouseMove(e) {
+      if (!dragging) return;
+      panX = startPanX + (e.clientX - startX);
+      panY = startPanY + (e.clientY - startY);
+      clampPan();
+      apply(false);
+    }
+    function onMouseUp() {
+      if (!dragging) return;
+      dragging = false;
+      updateCursor();
+    }
+
+    // ── Touch: pinch-to-zoom + one-finger pan ──
+    function touchDist(t) {
+      var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        pinchDist = touchDist(e.touches);
+      } else if (e.touches.length === 1 && zoom > 1.001) {
+        dragging = true;
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        startPanX = panX; startPanY = panY;
+      }
+    }
+    function onTouchMove(e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        var d = touchDist(e.touches);
+        if (pinchDist > 0) {
+          var midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          var midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+          var p = stagePoint(midX, midY);
+          setZoom(zoom * (d / pinchDist), p.x, p.y, false);
+        }
+        pinchDist = d;
+      } else if (dragging && e.touches.length === 1) {
+        e.preventDefault();
+        panX = startPanX + (e.touches[0].clientX - startX);
+        panY = startPanY + (e.touches[0].clientY - startY);
+        clampPan();
+        apply(false);
+      }
+    }
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) pinchDist = 0;
+      if (e.touches.length === 0) { dragging = false; updateCursor(); }
+    }
+
+    function resetZoom() {
+      zoom = 1; panX = 0; panY = 0; dragging = false; pinchDist = 0;
+      apply(false);
+    }
+
+    window.openPreviewLightbox = function () {
+      var lb = el('preview-lightbox');
+      if (!lb) return;
+      resetZoom();
+      // force reflow so the transition runs from the initial state
+      lb.style.display = 'flex';
+      void lb.offsetWidth;
+      lb.classList.add('open');
+      // base size is only reliable once the stage is laid out
+      requestAnimationFrame(refreshBase);
+      document.addEventListener('keydown', _previewLightboxKey);
+
+      var stage = el('preview-lightbox-stage');
+      stage.addEventListener('wheel', onWheel, { passive: false });
+      stage.addEventListener('dblclick', onDblClick);
+      stage.addEventListener('mousedown', onMouseDown);
+      stage.addEventListener('touchstart', onTouchStart, { passive: false });
+      stage.addEventListener('touchmove', onTouchMove, { passive: false });
+      stage.addEventListener('touchend', onTouchEnd);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+
+    window.closePreviewLightbox = function () {
+      var lb = el('preview-lightbox');
+      if (!lb) return;
+      lb.classList.remove('open');
+      document.removeEventListener('keydown', _previewLightboxKey);
+
+      var stage = el('preview-lightbox-stage');
+      if (stage) {
+        stage.removeEventListener('wheel', onWheel, { passive: false });
+        stage.removeEventListener('dblclick', onDblClick);
+        stage.removeEventListener('mousedown', onMouseDown);
+        stage.removeEventListener('touchstart', onTouchStart, { passive: false });
+        stage.removeEventListener('touchmove', onTouchMove, { passive: false });
+        stage.removeEventListener('touchend', onTouchEnd);
+      }
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      resetZoom();
+    };
+
+    // Backdrop click: reset zoom first if zoomed in, otherwise close
+    window.onPreviewBackdrop = function (e) {
+      if (e.target !== e.currentTarget) return;
+      if (zoom > 1.001) setZoom(1, 0, 0, true);
+      else closePreviewLightbox();
+    };
+
+    function _previewLightboxKey(e) {
+      if (e.key === 'Escape') closePreviewLightbox();
+    }
+  })();
 </script>
 </body>
 </html>
