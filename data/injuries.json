@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-04T12:56:51.476Z",
+  "fetched_at": "2026-09-04T16:30:03.286Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -494,7 +494,7 @@
     {
       "name": "Devin Neal",
       "position": "RB",
-      "team": "NO",
+      "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -536,7 +536,7 @@
     {
       "name": "Dominic Richardson",
       "position": "RB",
-      "team": "NYJ",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -557,7 +557,7 @@
     {
       "name": "Dontae Fleming",
       "position": "WR",
-      "team": "MIN",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1656,7 +1656,7 @@
     {
       "name": "Sincere Brown",
       "position": "WR",
-      "team": "LAC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
