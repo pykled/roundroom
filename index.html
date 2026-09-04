@@ -9197,15 +9197,15 @@ function renderResearchList() {
     return;
   }
 
-  // Tier thresholds (VORP-based)
+  // Tier thresholds (VORP-based) — only shown when a single position is selected
   const TIERS = [
-    { label: 'Elite', min: 85 },
-    { label: 'Strong', min: 60 },
-    { label: 'Solid', min: 38 },
-    { label: 'Depth', min: 15 },
-    { label: 'Flier', min: -999 },
+    { label: 'Tier 1', min: 85 },
+    { label: 'Tier 2', min: 60 },
+    { label: 'Tier 3', min: 38 },
+    { label: 'Tier 4', min: 15 },
+    { label: 'Tier 5', min: -999 },
   ];
-  const showTiers = (RESEARCH.sort === 'adp' || RESEARCH.sort === 'vorp') && !q && RESEARCH.filter === 'all';
+  const showTiers = (RESEARCH.sort === 'adp' || RESEARCH.sort === 'vorp') && !q && RESEARCH.filter === 'all' && RESEARCH.pos !== 'ALL';
   let currentTierLabel = null;
 
   const rows = [];
