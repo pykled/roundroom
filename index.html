@@ -10075,7 +10075,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Double-click toggles 1x <-> 2x centered on the click ──
-    function onDblClick(e) {
+    var didDrag = false;
+
+    function onSingleClick(e) {
+      if (didDrag) return; // suppress click after a pan drag
       e.preventDefault();
       var p = stagePoint(e.clientX, e.clientY);
       if (zoom > 1.001) setZoom(1, p.x, p.y, true);
@@ -10084,6 +10087,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Desktop drag-to-pan ──
     function onMouseDown(e) {
+      didDrag = false;
       if (zoom <= 1.001) return;
       dragging = true;
       startX = e.clientX; startY = e.clientY;
@@ -10093,8 +10097,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function onMouseMove(e) {
       if (!dragging) return;
-      panX = startPanX + (e.clientX - startX);
-      panY = startPanY + (e.clientY - startY);
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag = true;
+      panX = startPanX + dx;
+      panY = startPanY + dy;
       clampPan();
       apply(false);
     }
@@ -10161,7 +10167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       var stage = el('preview-lightbox-stage');
       stage.addEventListener('wheel', onWheel, { passive: false });
-      stage.addEventListener('dblclick', onDblClick);
+      stage.addEventListener('click', onSingleClick);
       stage.addEventListener('mousedown', onMouseDown);
       stage.addEventListener('touchstart', onTouchStart, { passive: false });
       stage.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -10179,7 +10185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       var stage = el('preview-lightbox-stage');
       if (stage) {
         stage.removeEventListener('wheel', onWheel, { passive: false });
-        stage.removeEventListener('dblclick', onDblClick);
+        stage.removeEventListener('click', onSingleClick);
         stage.removeEventListener('mousedown', onMouseDown);
         stage.removeEventListener('touchstart', onTouchStart, { passive: false });
         stage.removeEventListener('touchmove', onTouchMove, { passive: false });
