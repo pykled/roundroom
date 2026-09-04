@@ -684,19 +684,19 @@
     #setup-screen { padding: 0; justify-content: flex-start; }
     .home-freshness-bar { position: relative; top: auto; left: auto; right: auto; }
 
-    /* Companion preview hero — full-bleed band on mobile */
+    /* Companion preview hero — clipped on mobile to keep primary CTA above the fold */
     .home-preview-hero {
       margin: 0.75rem 0.75rem 0;
       border-radius: 12px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      max-height: 155px;
+      overflow: hidden;
     }
     .home-preview-hero:hover { transform: none; }
     .home-preview-bar { padding: 0.45rem 0.7rem; }
     .home-preview-url { display: none; }
-    .home-preview-caption { padding: 1.4rem 0.75rem 0.65rem; }
-    .home-preview-caption .hpc-main { font-size: 0.78rem; }
-    .home-preview-caption .hpc-sub { font-size: 0.6rem; }
-    .home-preview-caption .hpc-tag { display: none; }
+    .home-preview-hero .home-preview-imgwrap img { max-height: 115px; object-fit: cover; object-position: top center; }
+    .home-preview-caption { display: none; }
 
     /* Left column */
     .home-left {
@@ -712,6 +712,8 @@
     /* Feature tiles stack; Companion is desktop-only (bookmarklet drag), so show Research full-width */
     .home-feature-tiles { grid-template-columns: 1fr; margin-top: 1rem; }
     .home-feature-tile-details { display: none; }
+    .home-feature-tile { min-height: 56px; padding: 0.9rem 1rem; }
+    .hft-sub { font-size: 0.73rem; }
 
     /* Right column — player list */
     .home-right {
@@ -2598,8 +2600,10 @@
 
     /* Touch targets: home secondary links and cancel */
     .home-secondary-links button,
-    .home-secondary-links a { min-height: 36px; padding: 0.4rem 0.85rem; }
-    .home-connect-cancel { min-height: 36px; padding: 0.5rem 0; }
+    .home-secondary-links a { min-height: 44px; padding: 0.55rem 0.85rem; }
+    .home-connect-cancel { min-height: 44px; padding: 0.5rem 0; }
+    .home-connect-btn { min-height: 44px; padding: 0.7rem 0.75rem; font-size: 0.88rem; }
+    .home-pos-filter { min-height: 36px; padding: 0.38rem 0.65rem; }
 
     /* AI panel: full width on mobile so it doesn't bleed off the left edge */
     .ai-panel { width: 100%; right: -100%; }
