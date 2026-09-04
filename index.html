@@ -444,11 +444,9 @@
   .home-feature-tile.hft-research:hover { background: rgba(96,165,250,0.13); border-color: rgba(96,165,250,0.6); }
   .home-feature-tile.hft-companion { color: #34d399; border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.06); }
   .home-feature-tile.hft-companion:hover { background: rgba(52,211,153,0.13); border-color: rgba(52,211,153,0.6); }
-  .home-feature-tile-details { min-width: 0; }
-  .home-feature-tile-details > summary { list-style: none; }
-  .home-feature-tile-details > summary::-webkit-details-marker { display: none; }
-  .home-feature-tile-details[open] > summary { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
-  .home-feature-tile-details .home-bookmarklet { margin-top: 0.5rem; }
+  .home-companion-panel { display: none; margin-top: 0.6rem; }
+  .home-companion-panel.open { display: block; }
+  .home-feature-tile.hft-companion.active { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.7); }
 
   .home-bookmarklet {
     margin-top: 1.25rem;
@@ -603,21 +601,6 @@
   .home-divider::before, .home-divider::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
   }
-
-  .home-bookmarklet-details {
-    margin-top: 1.25rem;
-  }
-  .home-bookmarklet-details > summary {
-    list-style: none; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 0.45rem;
-    padding: 0.5rem 1.1rem; border-radius: 999px;
-    background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4);
-    color: #34d399; font-size: 0.78rem; font-weight: 600;
-    transition: background 0.15s, border-color 0.15s;
-    user-select: none;
-  }
-  .home-bookmarklet-details > summary::-webkit-details-marker { display: none; }
-  .home-bookmarklet-details > summary:hover { background: rgba(52,211,153,0.2); border-color: rgba(52,211,153,0.65); }
 
   .home-feedback { display: none; }
   .home-feedback a { text-decoration: none; }
@@ -2709,19 +2692,20 @@
         </div>
       </div>
 
-      <!-- Primary feature tier: the two features Dillon cares most about, elevated to equal-weight tiles -->
+      <!-- Primary feature tier -->
       <div class="home-feature-tiles">
         <button class="home-feature-tile hft-research" onclick="openResearchStandalone()">
           <div class="hft-head"><svg class="hft-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Research Players</div>
           <div class="hft-sub">Rankings, tiers &amp; value vs ADP for every player</div>
         </button>
+        <button class="home-feature-tile hft-companion" id="btn-companion-tile" onclick="toggleCompanionPanel()">
+          <div class="hft-head"><svg class="hft-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Add the Companion</div>
+          <div class="hft-sub">Live pick help in a Sleeper.com sidebar</div>
+        </button>
+      </div>
 
-        <details class="home-feature-tile-details">
-          <summary class="home-feature-tile hft-companion">
-            <div class="hft-head"><svg class="hft-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Add the Companion</div>
-            <div class="hft-sub">Live pick help in a Sleeper.com sidebar</div>
-          </summary>
-      <div class="home-bookmarklet" style="margin-top:0.75rem;">
+      <!-- Companion panel — full width, below both tiles -->
+      <div class="home-companion-panel home-bookmarklet" id="home-companion-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
           <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Live Draft Companion</div>
           <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:0.18rem 0.55rem;white-space:nowrap;">Sleeper only</span>
@@ -2747,8 +2731,6 @@
             <span>Click the bookmark — companion launches instantly</span>
           </div>
         </div>
-      </div>
-        </details>
       </div>
 
       <!-- Tertiary: app utility + social links (Research moved up to the feature tier) -->
@@ -9696,6 +9678,14 @@ async function loadResearchPlayerNews(p) {
 // Standalone overlay mode: the setup screen (and desktop header) open the
 // research panel over everything. app-screen is display:none pre-draft, so the
 // panel is reparented to <body> while in overlay mode.
+function toggleCompanionPanel() {
+  var panel = document.getElementById('home-companion-panel');
+  var btn = document.getElementById('btn-companion-tile');
+  if (!panel) return;
+  var open = panel.classList.toggle('open');
+  if (btn) btn.classList.toggle('active', open);
+}
+
 function openResearchStandalone() {
   const screen = document.getElementById('research-screen');
   if (!screen) return;
