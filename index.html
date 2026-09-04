@@ -9206,7 +9206,7 @@ function renderResearchList() {
     { label: 'Tier 5', min: -999 },
   ];
   const showTiers = (RESEARCH.sort === 'adp' || RESEARCH.sort === 'vorp') && !q && RESEARCH.filter === 'all' && RESEARCH.pos !== 'ALL';
-  let currentTierLabel = null;
+  let currentTierIdx = -1; // only advance forward — never jump back to a better tier
 
   const rows = [];
   players.forEach((p, i) => {
@@ -9220,12 +9220,13 @@ function renderResearchList() {
     const status = isTarget(p.name) ? '⭐' : (isDND(p.name) ? '🚫' : '');
     const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
 
-    // Tier divider
+    // Tier divider — only advances forward so labels never jump backwards when sorted by ADP
     if (showTiers) {
-      const tier = TIERS.find(t => (vorp ?? -999) >= t.min) || TIERS[TIERS.length - 1];
-      if (tier.label !== currentTierLabel) {
-        currentTierLabel = tier.label;
-        rows.push(`<div class="rsch-tier-divider">${tier.label}</div>`);
+      const tierIdx = TIERS.findIndex(t => (vorp ?? -999) >= t.min);
+      const idx = tierIdx < 0 ? TIERS.length - 1 : tierIdx;
+      if (idx > currentTierIdx) {
+        currentTierIdx = idx;
+        rows.push(`<div class="rsch-tier-divider">${TIERS[idx].label}</div>`);
       }
     }
 
