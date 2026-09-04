@@ -1445,6 +1445,36 @@
 
   .rec-card:hover { border-color: var(--accent); }
 
+  /* Top pick card — desktop subtle, mobile prominent */
+  .rec-top-pick {
+    border-color: rgba(245,158,11,0.4);
+  }
+  .rec-top-pick .rec-rank { color: var(--amber); }
+
+  @media (max-width: 768px) {
+    .rec-top-pick {
+      background: rgba(245,158,11,0.08);
+      border-color: rgba(245,158,11,0.6);
+      padding: 1.1rem;
+    }
+    .rec-top-pick .rec-name { font-size: 1.35rem; letter-spacing: -0.02em; }
+    .rec-top-pick .rec-why { font-size: 0.82rem; line-height: 1.5; }
+    .rec-top-pick .rec-rank { font-size: 0.75rem; letter-spacing: 0.08em; }
+    .rec-top-pick-label {
+      display: inline-block;
+      background: rgba(245,158,11,0.2);
+      color: var(--amber);
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+    }
+  }
+  .rec-top-pick-label { display: none; }
+
   .rec-rank {
     font-size: 0.7rem;
     font-weight: 800;
@@ -2611,6 +2641,20 @@
     /* Setup screen */
     #setup-screen { padding: 1rem; }
     .setup-card { padding: 1.5rem 1.25rem; }
+
+    /* Your-pick banner: sticky at top of content area on mobile */
+    #your-pick-banner {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      font-size: 1rem;
+      padding: 0.85rem 1rem;
+      animation: pulse-banner-mobile 1s infinite;
+    }
+    @keyframes pulse-banner-mobile {
+      0%, 100% { opacity: 1; background: linear-gradient(90deg, rgba(245,158,11,0.3), rgba(245,158,11,0.1)); }
+      50% { opacity: 0.85; background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); }
+    }
 
     /* Touch targets: icon buttons (★ / ✕ on player cards) */
     .icon-btn { padding: 0.5rem 0.4rem; min-height: 36px; }
@@ -6075,7 +6119,9 @@ function renderRecommendations() {
     const why = generateWhyText(p, available, item.parts, ctx);
     const vor = calcVOR(p, available);
 
-    html += `<div class="rec-card" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
+    const isTopCard = i === 0;
+    html += `<div class="rec-card${isTopCard ? ' rec-top-pick' : ''}" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
+      ${isTopCard ? '<div class="rec-top-pick-label">⭐ Top Pick</div>' : ''}
       <div class="rec-rank">#${i+1}</div>
       <div class="rec-player">
         <div style="display:flex;align-items:center;gap:0.4rem;">
@@ -6170,6 +6216,7 @@ function updatePickCounter() {
     badge.textContent = '🎯 YOUR PICK NOW';
     badge.classList.add('active');
     banner.style.display = 'block';
+    if (window.innerWidth <= 768) showMobileTab('recs');
   } else {
     const picksUntil = nextMyPick - currentPick;
     badge.textContent = `Your pick in: ${picksUntil}`;
