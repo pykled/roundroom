@@ -193,8 +193,71 @@
     border: 1px solid var(--border);
     background: var(--bg-secondary);
     text-decoration: none;
+    cursor: pointer;
     box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  /* ── Companion preview lightbox ── */
+  .preview-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2vh 2vw;
+    background: rgba(6, 6, 9, 0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+  }
+  .preview-lightbox.open {
+    opacity: 1;
+    pointer-events: all;
+    background: rgba(6, 6, 9, 0.82);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .preview-lightbox img {
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    transform: scale(0.85);
+    opacity: 0;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  }
+  .preview-lightbox.open img {
+    transform: scale(1);
+    opacity: 1;
+  }
+  .preview-lightbox-close {
+    position: fixed;
+    top: 1.1rem;
+    right: 1.25rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(20,20,24,0.65);
+    color: #f5f5f7;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    z-index: 1;
+  }
+  .preview-lightbox-close:hover {
+    background: rgba(40,40,48,0.9);
+    border-color: rgba(255,255,255,0.35);
+    transform: scale(1.06);
   }
   .home-preview-hero:hover {
     border-color: rgba(124,111,247,0.55);
@@ -2484,12 +2547,12 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
 
-  <!-- Companion preview — full-width feature banner (click to open full size) -->
-  <a class="home-preview-hero" href="/companion-preview.png" target="_blank" rel="noopener" title="Click to view full size">
+  <!-- Companion preview — full-width feature banner (click to open in-page lightbox) -->
+  <div class="home-preview-hero" role="button" tabindex="0" aria-label="Expand companion preview screenshot" onclick="openPreviewLightbox()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPreviewLightbox();}" title="Click to expand">
     <div class="home-preview-bar">
       <div class="home-preview-dots"><span></span><span></span><span></span></div>
       <div class="home-preview-url">roundroom + sleeper.com/draft — live</div>
-      <div class="home-preview-expand">⤢ View full size</div>
+      <div class="home-preview-expand">⤢ Click to expand</div>
     </div>
     <div class="home-preview-imgwrap">
       <img src="/companion-preview.png" alt="RoundRoom companion sidebar giving live pick recommendations next to a Sleeper.com draft board">
@@ -2501,7 +2564,7 @@
         <span class="hpc-tag">Live on Sleeper</span>
       </div>
     </div>
-  </a>
+  </div>
 
   <div class="home-layout">
 
@@ -9874,5 +9937,31 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- Companion preview lightbox (appended to body so it covers the sticky header) -->
+<div id="preview-lightbox" class="preview-lightbox" onclick="if(event.target===this)closePreviewLightbox()">
+  <button type="button" class="preview-lightbox-close" aria-label="Close preview" onclick="closePreviewLightbox()">✕</button>
+  <img src="/companion-preview.png" alt="RoundRoom companion sidebar giving live pick recommendations next to a Sleeper.com draft board">
+</div>
+<script>
+  function openPreviewLightbox() {
+    var lb = document.getElementById('preview-lightbox');
+    if (!lb) return;
+    // force reflow so the transition runs from the initial state
+    lb.style.display = 'flex';
+    void lb.offsetWidth;
+    lb.classList.add('open');
+    document.addEventListener('keydown', _previewLightboxKey);
+  }
+  function closePreviewLightbox() {
+    var lb = document.getElementById('preview-lightbox');
+    if (!lb) return;
+    lb.classList.remove('open');
+    document.removeEventListener('keydown', _previewLightboxKey);
+  }
+  function _previewLightboxKey(e) {
+    if (e.key === 'Escape') closePreviewLightbox();
+  }
+</script>
 </body>
 </html>
