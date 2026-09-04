@@ -182,6 +182,67 @@
   }
   .home-freshness-bar.stale { color: var(--amber); }
 
+  /* ── Full-width companion preview hero (above the two-column layout) ── */
+  .home-preview-hero {
+    width: 100%;
+    max-width: 1080px;
+    margin: 2.75rem auto 0;
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    text-decoration: none;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .home-preview-hero:hover {
+    border-color: rgba(124,111,247,0.55);
+    box-shadow: 0 0 34px rgba(124,111,247,0.18), 0 12px 40px rgba(0,0,0,0.4);
+    transform: translateY(-2px);
+  }
+  .home-preview-bar {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0.85rem;
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border);
+  }
+  .home-preview-dots { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .home-preview-dots span { width: 10px; height: 10px; border-radius: 50%; background: #35353b; }
+  .home-preview-url {
+    flex: 1; min-width: 0;
+    font-family: 'DM Mono', monospace; font-size: 0.66rem;
+    color: var(--text-muted); text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .home-preview-expand {
+    flex-shrink: 0;
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--accent); white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+  }
+  .home-preview-imgwrap { position: relative; display: block; }
+  .home-preview-imgwrap img { width: 100%; display: block; }
+  .home-preview-caption {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(9,9,11,0.92));
+    padding: 2.5rem 1.1rem 0.85rem;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem;
+    line-height: 1.4;
+  }
+  .home-preview-caption .hpc-main { font-size: 0.9rem; font-weight: 700; color: #fff; }
+  .home-preview-caption .hpc-sub {
+    font-size: 0.68rem; color: rgba(255,255,255,0.78);
+    font-family: 'DM Mono', monospace; margin-top: 0.2rem;
+  }
+  .home-preview-caption .hpc-tag {
+    flex-shrink: 0;
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #34d399; background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.3); border-radius: 20px;
+    padding: 0.25rem 0.6rem; white-space: nowrap;
+  }
+
   .home-layout {
     display: grid;
     grid-template-columns: 400px 1fr;
@@ -493,6 +554,20 @@
     }
     #setup-screen { padding: 0; justify-content: flex-start; }
     .home-freshness-bar { position: relative; top: auto; left: auto; right: auto; }
+
+    /* Companion preview hero — full-bleed band on mobile */
+    .home-preview-hero {
+      margin: 0.75rem 0.75rem 0;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .home-preview-hero:hover { transform: none; }
+    .home-preview-bar { padding: 0.45rem 0.7rem; }
+    .home-preview-url { display: none; }
+    .home-preview-caption { padding: 1.4rem 0.75rem 0.65rem; }
+    .home-preview-caption .hpc-main { font-size: 0.78rem; }
+    .home-preview-caption .hpc-sub { font-size: 0.6rem; }
+    .home-preview-caption .hpc-tag { display: none; }
 
     /* Left column */
     .home-left {
@@ -2409,20 +2484,31 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
 
+  <!-- Companion preview — full-width feature banner (click to open full size) -->
+  <a class="home-preview-hero" href="/companion-preview.png" target="_blank" rel="noopener" title="Click to view full size">
+    <div class="home-preview-bar">
+      <div class="home-preview-dots"><span></span><span></span><span></span></div>
+      <div class="home-preview-url">roundroom + sleeper.com/draft — live</div>
+      <div class="home-preview-expand">⤢ View full size</div>
+    </div>
+    <div class="home-preview-imgwrap">
+      <img src="/companion-preview.png" alt="RoundRoom companion sidebar giving live pick recommendations next to a Sleeper.com draft board">
+      <div class="home-preview-caption">
+        <div>
+          <div class="hpc-main">Your pick, called before you're on the clock</div>
+          <div class="hpc-sub">RoundRoom's sidebar (left) reads your live Sleeper draft and ranks the best available player — updated after every pick</div>
+        </div>
+        <span class="hpc-tag">Live on Sleeper</span>
+      </div>
+    </div>
+  </a>
+
   <div class="home-layout">
 
     <div class="home-left">
       <div class="home-wordmark">RoundRoom</div>
       <div class="home-tagline">Know who to draft. Every round.</div>
       <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.55;margin-top:0.5rem;max-width:340px;">Connect your Sleeper league and RoundRoom tells you the best available pick every time you're on the clock — live, updated after every selection.</div>
-
-      <!-- Companion preview screenshot -->
-      <div style="margin-top:1.25rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);position:relative;">
-        <img src="/companion-preview.png" alt="RoundRoom companion sidebar mid-draft on Sleeper" style="width:100%;display:block;border-radius:12px;">
-        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(9,9,11,0.85));padding:0.6rem 0.75rem;border-radius:0 0 12px 12px;">
-          <span style="font-size:0.65rem;color:rgba(255,255,255,0.7);font-family:'DM Mono',monospace;letter-spacing:0.02em;">← live sidebar on Sleeper.com · updates after every pick</span>
-        </div>
-      </div>
 
       <div class="home-action-cards" style="margin-top:1.25rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
