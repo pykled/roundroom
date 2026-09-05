@@ -385,6 +385,7 @@
   .home-card-connect.expanded { grid-column: 1 / -1; }
   .home-card-mock { cursor: pointer; }
   .home-card-mock:hover { border-color: var(--border-bright); }
+  .home-card-or { text-align: center; font-size: 0.68rem; color: var(--text-muted); opacity: 0.55; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.1rem 0; }
   .home-card-icon { font-size: 1.2rem; margin-bottom: 0.35rem; }
   .home-card-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
   .home-card-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
@@ -2751,9 +2752,12 @@
           </div>
         </div>
 
-        <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()" style="display:none;">
-          <div class="home-card-title">Mock Draft</div>
-          <div class="home-card-sub">Practice without an account</div>
+        <div class="home-card-or">or</div>
+
+        <div class="home-action-card home-card-mock" id="mock-solo-btn" onclick="openMockConfig()">
+          <div class="home-card-icon">⚡</div>
+          <div class="home-card-title">Try a Mock Draft</div>
+          <div class="home-card-sub">No Sleeper account needed — practice the full draft experience</div>
         </div>
       </div>
 
