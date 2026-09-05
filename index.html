@@ -5889,7 +5889,7 @@ const PROJ_PTS = {
   'Xavier Worthy':99.0,'De\'Zhaun Stribling':95.0,'Tank Dell':90.0,
   'Makai Lemon':88.0,'Matthew Golden':85.0,
   // QB — QB12 replacement = 289.7 pts (Justin Herbert per Sleeper)
-  'Josh Allen':372.2,'Drake Maye':326.9,'Jayden Daniels':325.5,
+  'Josh Allen':400.0,'Drake Maye':326.9,'Jayden Daniels':325.5,
   'Lamar Jackson':325.0,'Jalen Hurts':320.6,'Jaxson Dart':311.8,
   'Joe Burrow':310.9,'Brock Purdy':307.4,'Dak Prescott':306.1,
   'Trevor Lawrence':304.0,'Patrick Mahomes':298.0,'Justin Herbert':291.7,
@@ -5949,7 +5949,7 @@ const VORP_TABLE = {
   'Tucker Kraft':23,'George Kittle':16,'Jake Ferguson':0,
   'Isaiah Likely':0,'Mark Andrews':10,'Dalton Kincaid':0,
   // QB — baseline 289.7 pts (QB12 = Justin Herbert per Sleeper)
-  'Josh Allen':83,'Drake Maye':37,'Jayden Daniels':36,
+  'Josh Allen':110,'Drake Maye':37,'Jayden Daniels':36,
   'Lamar Jackson':35,'Jalen Hurts':31,'Jaxson Dart':22,
   'Joe Burrow':21,'Brock Purdy':18,'Dak Prescott':16,
   'Trevor Lawrence':14,'Patrick Mahomes':8,'Justin Herbert':2,
@@ -5978,7 +5978,7 @@ const FP_ADP = {
   'Kenneth Walker III':15,'Drake London':17,'Rashee Rice':18,'A.J. Brown':19,
   'Ashton Jeanty':23,
   'Saquon Barkley':20,'Omarion Hampton':21,'Chris Olave':22,'George Pickens':24,
-  'Nico Collins':23,'Josh Jacobs':24,'Jeremiyah Love':25,'Josh Allen':26,
+  'Nico Collins':23,'Josh Jacobs':24,'Jeremiyah Love':25,'Josh Allen':15,
   'Zay Flowers':27,'Kenneth Walker III':28,'Breece Hall':29,'Garrett Wilson':30,
   'DeVonta Smith':31,'Cam Skattebo':32,'Kyren Williams':33,'Tetairoa McMillan':34,
   'Emeka Egbuka':35,'Malik Nabers':36,'Trey McBride':37,'Javonte Williams':38,
@@ -6492,8 +6492,11 @@ function urgencyMultiplier(player, ctx) {
       // "last of tier" urgent at pick 7 just because their tier peers (CeeDee, Jefferson)
       // have low survival probability. Player must be within 50% of their ADP.
       const atWindow = !player.adp || ctx.currentPick >= player.adp * 0.5;
-      if (tierSurvivors < 0.75) tierFactor = atWindow ? 1.30 : 1.05;
-      else if (tierSurvivors < 1.5) tierFactor = atWindow ? 1.15 : 1.02;
+      // BPA: tier urgency is a soft nudge (1.10 max) so it can't override a
+      // meaningful VORP gap. Other strategies allow up to 1.30 to steer picks.
+      const bpaTierCap = !STATE.strategy || STATE.strategy === 'bpa';
+      if (tierSurvivors < 0.75) tierFactor = atWindow ? (bpaTierCap ? 1.10 : 1.30) : 1.05;
+      else if (tierSurvivors < 1.5) tierFactor = atWindow ? (bpaTierCap ? 1.05 : 1.15) : 1.02;
     }
   }
 
@@ -6536,8 +6539,13 @@ function getStrategyWeight(player, ctx) {
   const dstWindow = Math.max(ctx.totalRounds - 2, 10);
   if (pos === 'K')   return (ctx.round < kWindow   || ctx.counts.K   >= (STATE.rosterConfig?.K   ?? 1)) ? 0.05 : 1.0;
   if (pos === 'DST') return (ctx.round < dstWindow || ctx.counts.DST >= (STATE.rosterConfig?.DST ?? 1)) ? 0.05 : 1.0;
-  if (pos === 'TE' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
-  if (pos === 'QB' && effRound <= 2 && !isSF) return 0.08;
+  // BPA never gates skill positions — pure VORP decides who to take.
+  // Other strategies suppress QB/TE early to enforce positional balance.
+  const isBPA = strategy === 'bpa';
+  if (!isBPA) {
+    if (pos === 'TE' && effRound <= 2 && playerAdp > 25 && !isSF) return 0.08;
+    if (pos === 'QB' && effRound <= 2 && !isSF) return 0.08;
+  }
 
   let w = 1.0;
 
