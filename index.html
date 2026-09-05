@@ -4370,7 +4370,6 @@ function advanceMockDraft() {
     document.getElementById('your-pick-banner').style.display = 'block';
     const pbr = document.getElementById('pick-banner-round');
     if (pbr) pbr.textContent = ` · R${round}P${MOCK.currentPick}`;
-    showToast(`🎯 MOCK — Your pick! (#${MOCK.currentPick})`, true);
     renderMobileSplitLayout();
     renderBoard();
     broadcastMockState();
