@@ -2510,6 +2510,71 @@
     margin-top: 0.7rem;
   }
 
+  /* ── Profile sheet: scouting report ── */
+  .rsch-scout-section {
+    margin-top: 1.1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    animation: rsch-fade-in 0.28s ease;
+  }
+  .rsch-scout-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.55rem;
+  }
+  .rsch-scout-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ── Profile sheet: health card ── */
+  .rsch-health-card {
+    margin-top: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid;
+    animation: rsch-fade-in 0.22s ease;
+  }
+  .rsch-health-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .rsch-health-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.63rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .rsch-health-note {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 0.4rem;
+  }
+  .rsch-health-timeline {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  @keyframes rsch-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   @keyframes rsch-sheet-up {
     from { transform: translateY(40px); opacity: 0.4; }
     to { transform: translateY(0); opacity: 1; }
@@ -10486,6 +10551,107 @@ function closeResearchProfile() {
   RESEARCH.profileName = null;
 }
 
+function getInjuryRisk(injuryStatus) {
+  const s = String(injuryStatus || '').toLowerCase();
+  if (['ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
+  if (s.startsWith('out')) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
+  if (s.startsWith('doubtful')) return { label: 'Elevated Risk', col: '#f97316', bg: 'rgba(249,115,22,0.07)', border: 'rgba(249,115,22,0.28)' };
+  if (s.startsWith('questionable')) return { label: 'Moderate Risk', col: '#eab308', bg: 'rgba(234,179,8,0.07)', border: 'rgba(234,179,8,0.28)' };
+  return { label: 'Monitor', col: '#94a3b8', bg: 'rgba(148,163,184,0.05)', border: 'rgba(148,163,184,0.2)' };
+}
+
+function injuryTimeline(injuryStatus) {
+  const s = String(injuryStatus || '').toLowerCase();
+  if (s.startsWith('ir') || s.startsWith('pup')) return 'Out for extended period — significant time expected to be missed';
+  if (s.startsWith('out')) return 'Expected to miss upcoming game(s)';
+  if (s.startsWith('doubtful')) return 'Unlikely to play — roughly 25% chance active';
+  if (s.startsWith('questionable')) return 'Game-time decision — ~50/50 active status';
+  return null;
+}
+
+function generateScoutingReport(p, adp, vorp, projPts, posRank, val) {
+  const name = p.name;
+  const pos = p.position;
+  const lines = [];
+  const pts = projPts != null ? Math.round(projPts) : null;
+  const adpRounded = adp != null ? Math.round(adp) : null;
+
+  // Sentence 1: role and projection context
+  if (pos === 'QB') {
+    if (pts > 380) lines.push(`Elite arm with rushing upside — ${name} projects as a true QB1 ceiling starter at ${pts ?? '—'} PPR points, capable of winning your week outright on any given Sunday.`);
+    else if (pts > 310) lines.push(`Solid QB1 projection of ${pts ?? '—'} points makes ${name} a reliable weekly starter in single-QB formats, with enough rushing floor to prevent blowup games.`);
+    else if (pts > 260) lines.push(`${name} is a fringe QB1 at ${pts ?? '—'} projected points — enough to start in single-QB formats, but weaker in superflex where you want a clear elite option.`);
+    else lines.push(`${name} projects as a QB2/streamer at ${pts ?? '—'} points — best used in superflex or as a matchup-based spot start in single-QB leagues.`);
+  } else if (pos === 'RB') {
+    if (pts > 300) lines.push(`Premium workhorse — ${name} projects at ${pts ?? '—'} PPR points as a top-tier every-week starter with the volume and efficiency to anchor any backfield.`);
+    else if (pts > 220) lines.push(`Solid RB1 at ${pts ?? '—'} projected PPR points — ${name} benefits from a clear lead role on an offense that commits to the run game.`);
+    else if (pts > 155) lines.push(`${name} profiles as a reliable RB2/flex option at ${pts ?? '—'} projected PPR points — consistent floor with ceiling tied to game script and passing-down usage.`);
+    else lines.push(`${name} is a depth/handcuff option projecting ${pts ?? '—'} PPR points — start-worthy only if the lead back ahead of them misses time.`);
+  } else if (pos === 'WR') {
+    if (pts > 280) lines.push(`Alpha receiver — ${name} is one of the premier WR1s in the game, projecting ${pts ?? '—'} PPR points as the unquestioned top target on their offense.`);
+    else if (pts > 210) lines.push(`Reliable WR1 at ${pts ?? '—'} PPR points — ${name} has the target share and quarterback connection to be a weekly must-start in most formats.`);
+    else if (pts > 155) lines.push(`${name} profiles as a solid WR2/PPR asset at ${pts ?? '—'} projected points — strong floor to start most weeks, with ceiling tied to target volume.`);
+    else lines.push(`${name} is a WR3/flex option at ${pts ?? '—'} projected PPR points — best reserved for favorable matchups or deeper leagues.`);
+  } else if (pos === 'TE') {
+    if (pts > 220) lines.push(`Elite tight end — ${name} projects at ${pts ?? '—'} PPR points, providing a genuine weekly position advantage at fantasy's most scarce spot.`);
+    else if (pts > 160) lines.push(`Premium TE option projecting ${pts ?? '—'} points — ${name} is in the top tier at the position with a weekly start-worthy floor in PPR formats.`);
+    else if (pts > 110) lines.push(`${name} is a TE2/streamer at ${pts ?? '—'} projected points — viable in favorable matchups but doesn't guarantee the advantage of a top-shelf TE every week.`);
+    else lines.push(`${name} projects as a deep TE at ${pts ?? '—'} points — only worth rostering in deep leagues or when waiver options are exhausted.`);
+  } else {
+    lines.push(`${name} projects at ${pts ?? '—'} PPR points this season.`);
+  }
+
+  // Sentence 2: ADP value signal
+  if (val != null) {
+    if (val >= 5) lines.push(`The market is significantly undervaluing ${name} by ${val.toFixed(1)} picks vs expert consensus — this kind of gap is rare and tends to close as the draft season matures.`);
+    else if (val >= 2) lines.push(`Going ${val.toFixed(1)} picks later than FantasyPros ranks them — genuine value here for the patient drafter who trusts the consensus.`);
+    else if (val >= 0.5) lines.push(`A slight discount at current ADP — priced just past expert consensus, giving the patient drafter a small but real edge.`);
+    else if (val <= -5) lines.push(`Heavy market premium — managers are reaching ${Math.abs(val).toFixed(1)} picks early vs expert consensus. The hype is real but the overpay is too.`);
+    else if (val <= -2) lines.push(`Currently a ${Math.abs(val).toFixed(1)}-pick reach vs expert ranking — only pull the trigger if the roster fit is perfect and no comparable value exists later.`);
+    else lines.push(`Priced in line with expert consensus — fair market value with no edge or penalty either way.`);
+  }
+
+  // Sentence 3: positional context and scarcity
+  if (pos === 'TE' && adp != null && adp < 65) {
+    lines.push(`Elite TEs are fantasy's scarcest resource — spending a top-65 pick here is only justified when the player is firmly in the top 3 at the position, where the weekly advantage over opponents is tangible.`);
+  } else if (pos === 'QB' && adp != null && adp < 55) {
+    lines.push(`Taking a QB at pick ${adpRounded} is a deliberate strategy — it works when you land a true elite option with rushing upside, but it compresses value at other positions so plan your board accordingly.`);
+  } else if (pos === 'RB' && posRank <= 4) {
+    lines.push(`As a top-4 RB by ADP, ${name} commands first- or second-round capital — and the steep value cliff below the elite tier makes the early investment worthwhile.`);
+  } else if (pos === 'WR' && posRank <= 3) {
+    lines.push(`In the top-3 WRs by ADP — this is the rarefied tier where weekly dominance is the expectation, and the target ceiling separates them from every other receiver on the board.`);
+  } else if (pos === 'RB' && posRank >= 15) {
+    lines.push(`Deep in the RB rankings, ${name}'s value is highly situation-dependent — a role change or injury to a teammate could unlock significant upside mid-season, making them a worthwhile handcuff or stash.`);
+  } else if (pos === 'WR' && posRank >= 20) {
+    lines.push(`In the mid-tier of receivers, ${name}'s upside is tied to target volume and offensive efficiency — quarterback health and game script are the key variables to monitor heading into the season.`);
+  }
+
+  // Sentence 4: risk or variance signal
+  if (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy') {
+    const note = p.injury_note ? ` (${p.injury_note})` : '';
+    lines.push(`Current injury status is ${p.injury_status}${note} — factor this real risk into your draft-day valuation and track beat reporter updates closely before committing.`);
+  } else if (p.stdev > 4) {
+    lines.push(`High draft variance (stdev ${p.stdev.toFixed(1)}) — the fantasy community is divided on this one, which can work in your favor if you're patient or burn you if the board moves up early.`);
+  } else if (p.stdev < 1.2 && adp != null && adp < 80) {
+    lines.push(`Very low draft variance — the market has strong consensus on their value, so expect to pay near ADP and plan your board around it rather than hoping they fall.`);
+  }
+
+  // Sentence 5: bottom-line recommendation
+  if (adpRounded != null) {
+    const isValue = val != null && val >= 1.5;
+    const isReach = val != null && val <= -2;
+    if (isValue && pts > 150) {
+      lines.push(`Bottom line: ${name} is worth actively targeting at ADP ${adpRounded} — the projection supports the investment and the market discount is real.`);
+    } else if (isReach) {
+      lines.push(`Bottom line: At ADP ${adpRounded} you're paying a market premium — commit only if the roster construction demands it and you've exhausted comparable value options.`);
+    } else {
+      lines.push(`Bottom line: ${name} is fairly priced at ADP ${adpRounded} — draft with confidence when they fall to your spot.`);
+    }
+  }
+
+  return lines.join(' ');
+}
+
 function renderResearchProfile(bodyId, barId) {
   const name = RESEARCH.profileName;
   const p = STATE.mergedPlayers.find(x => x.name === name);
@@ -10602,6 +10768,21 @@ function renderResearchProfile(bodyId, barId) {
     </div>`;
   }
 
+  // ── Injury health card ──
+  if (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy') {
+    const risk = getInjuryRisk(p.injury_status);
+    const timeline = injuryTimeline(p.injury_status);
+    html += `<div class="rsch-health-card" style="background:${risk.bg};border-color:${risk.border};">
+      <div class="rsch-health-row">
+        <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Health</span>
+        <span class="rsch-health-chip" style="color:${risk.col};border-color:${risk.border};background:${risk.bg};">⚠ ${escHtml(p.injury_status)}</span>
+        <span style="margin-left:auto;font-size:0.62rem;font-weight:700;color:${risk.col};">${risk.label}</span>
+      </div>
+      ${p.injury_note ? `<div class="rsch-health-note">${escHtml(p.injury_note)}</div>` : ''}
+      ${timeline ? `<div class="rsch-health-timeline">${timeline}</div>` : ''}
+    </div>`;
+  }
+
   // ── VORP position context ──
   if (vorp != null && vorpRank > 0) {
     const vorpCtx = vorpRank === 1
@@ -10650,6 +10831,15 @@ function renderResearchProfile(bodyId, barId) {
         </div>
       </div>`;
     }
+  }
+
+  // ── Scouting report ──
+  const scoutText = generateScoutingReport(p, adp, vorp, projPts, posRank, val);
+  if (scoutText) {
+    html += `<div class="rsch-scout-section">
+      <div class="rsch-scout-label">📋 Scouting Report</div>
+      <div class="rsch-scout-text">${scoutText}</div>
+    </div>`;
   }
 
   // ── Async stats placeholder ──
