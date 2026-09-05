@@ -781,15 +781,20 @@
   }
   .cv-scroll { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
 
-  /* Big impossible-to-miss YOUR TURN banner */
+  /* Slim ON THE CLOCK pill — replaces the big green banner */
   #cv-turn-banner {
     display: none;
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: #fff; text-align: center;
-    font-weight: 800; letter-spacing: 0.04em;
-    padding: 0.7rem; border-radius: 12px;
-    margin-bottom: 0.75rem; font-size: 1.05rem;
-    animation: turnGlow 1.6s ease-in-out infinite;
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.3);
+    color: #34d399;
+    border-radius: 20px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: center;
+    margin-bottom: 0.6rem;
+    flex-shrink: 0;
   }
   #cv-turn-banner.on { display: block; }
 
@@ -807,10 +812,25 @@
     border-color: rgba(124,111,247,0.5); background: rgba(124,111,247,0.15);
     color: #a78bfa;
   }
-  #cv-recs .rec-card { padding: 0.65rem 0.75rem; margin-bottom: 0.5rem; }
+  #cv-recs .rec-card { padding: 0.65rem 0.75rem; margin-bottom: 0.5rem; border-radius: 10px; }
   #cv-recs .rec-name { font-size: 0.88rem; }
   #cv-recs .rec-why { font-size: 0.7rem; margin-bottom: 0.35rem; }
   #cv-recs .rec-survival { font-size: 0.66rem; }
+  /* Position-colored chips in companion rec cards */
+  #cv-recs .pos-tag-QB { background: rgba(245,158,11,0.15); color: var(--qb); }
+  #cv-recs .pos-tag-RB { background: rgba(16,185,129,0.15); color: var(--rb); }
+  #cv-recs .pos-tag-WR { background: rgba(59,130,246,0.15); color: var(--wr); }
+  #cv-recs .pos-tag-TE { background: rgba(168,85,247,0.15); color: var(--te); }
+  #cv-recs .pos-tag-K, #cv-recs .pos-tag-DST { background: rgba(107,114,128,0.12); color: var(--k); }
+  /* Slim pick notification bar — replaces the overlaying toast in companion mode */
+  #cv-pick-flash {
+    display: none; background: rgba(10,10,15,0.96);
+    border: 1px solid rgba(255,255,255,0.09); border-radius: 8px;
+    padding: 0.3rem 0.65rem; font-size: 0.68rem; color: rgba(255,255,255,0.7);
+    font-family: 'DM Mono', monospace; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; margin-bottom: 0.5rem; flex-shrink: 0;
+    transition: opacity 0.3s;
+  }
 
   /* Phone-sized: scale up the primary glance targets */
   @media (max-width: 640px) {
@@ -824,7 +844,7 @@
     .cv-avail-row .cv-avail-sub { font-size: 0.72rem !important; }
     #cv-pick-status { font-size: 0.82rem !important; }
     .cv-header .cv-logo { font-size: 1rem !important; }
-    #cv-turn-banner { font-size: 1.25rem; padding: 0.85rem; }
+    #cv-turn-banner { font-size: 0.85rem; padding: 0.4rem 1rem; }
     /* Touch targets: setup buttons/inputs at least 48px */
     .cv-setup-input { min-height: 50px; font-size: 1rem !important; }
     .cv-setup-btn { min-height: 52px; font-size: 1.05rem !important; }
@@ -8468,10 +8488,13 @@ function processNewPicks(picks, silent = false) {
         const pos = pick.metadata?.position || '';
         const round = pick.round;
         const pickInRound = pick.pick_no - (round - 1) * STATE.totalTeams;
-        showToast(
-          `Pick ${pick.pick_no} (R${round}.${pickInRound}) — ${pos} ${name}`,
-          isMyPick
-        );
+        const pickMsg = `Pick ${pick.pick_no} (R${round}.${pickInRound}) — ${pos} ${name}`;
+        const inComp = STATE.isCompanion || document.body.classList.contains('companion-mode');
+        if (inComp) {
+          flashCompanionPick(isMyPick ? `🎯 YOUR PICK: ${pickMsg}` : `● ${pickMsg}`);
+        } else {
+          showToast(pickMsg, isMyPick);
+        }
       }
     } catch (e) {
       console.error('processNewPicks: failed to process pick', pick?.pick_no, e);
@@ -8674,6 +8697,19 @@ function showPickToast(playerName) {
     t.style.animation = 'pick-toast-out 0.3s ease forwards';
     setTimeout(() => t.remove(), 300);
   }, 1200);
+}
+
+function flashCompanionPick(text) {
+  const el = document.getElementById('cv-pick-flash');
+  if (!el) return;
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { if (el.style.opacity === '0') el.style.display = 'none'; }, 300);
+  }, 3000);
 }
 
 // ===== UTILS =====
@@ -9976,12 +10012,14 @@ function renderCompanionView() {
   const qrBtn = document.getElementById('cv-qr-btn');
   if (qrBtn) qrBtn.style.display = (!isMock && STATE.draftId && window.innerWidth > 640) ? 'block' : 'none';
 
+  const totalTeams = isMock ? (MOCK_CFG?.totalTeams || STATE.totalTeams || 12) : (STATE.totalTeams || 12);
+  const currentRound = Math.ceil(currentPick / totalTeams);
   if (isMyTurn) {
     pickStatusEl.textContent = `Pick #${currentPick} — YOUR TURN`;
     pickStatusEl.style.color = 'var(--accent)';
     if (turnBanner) {
       turnBanner.classList.add('on');
-      turnBanner.textContent = `YOUR TURN — Pick #${currentPick}`;
+      turnBanner.textContent = `● ON THE CLOCK · R${currentRound} · Pick #${currentPick}`;
     }
   } else {
     const nextMine = myPickNumbers.find(n => n >= currentPick);
@@ -10052,8 +10090,8 @@ function renderCompanionView() {
                 ${injDot(p)}${trendArrow(p)}
               </div>
               <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
-                <span class="pos-tag">${p.position}</span>
-                ${vorp != null ? `<span style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--text-muted);">VORP +${vorp.toFixed(0)}</span>` : ''}
+                <span class="pos-tag pos-tag-${p.position}">${p.position}</span>
+                ${vorp != null ? `<span style="font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--text-muted);opacity:0.7;">+${vorp.toFixed(0)}</span>` : ''}
               </div>
             </div>
             <div class="rec-why">${escHtml(whyFor(p))}</div>
@@ -10067,7 +10105,7 @@ function renderCompanionView() {
                 ${byeConflict ? '<span title="Bye week conflict" style="font-size:0.6rem;color:#f87171;margin-left:1px;">⚠</span>' : ''}
               </span>
               <div style="display:flex;gap:0.4rem;">
-                <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
+                <button onclick='event.stopPropagation();toggleDND(${nameArg})' style="padding:0.15rem 0.45rem;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35);font-size:0.62rem;font-weight:600;cursor:pointer;font-family:inherit;">✕ Avoid</button>
               </div>
             </div>
           </div>`;
@@ -11470,6 +11508,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="cv-strat-herorb" onclick="setCompanionStrategy('hero_rb')" class="cv-strat-btn" style="display:none;">Hero RB</button>
       <button id="cv-strat-robustrb" onclick="setCompanionStrategy('robust_rb')" class="cv-strat-btn" style="display:none;">Robust RB</button>
     </div>
+    <!-- Slim pick notification (auto-hides after 3s, never covers cards) -->
+    <div id="cv-pick-flash"></div>
     <div id="cv-recs" style="margin-bottom:0.75rem;"></div>
 
     <!-- Next best available list -->
