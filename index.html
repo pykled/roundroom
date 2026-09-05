@@ -3642,6 +3642,21 @@ function scoreMockAIPick(player, teamNum, round) {
   // Strategy nudges must not override a large ADP gap.
   let score = 1000 / adp;
 
+  // Scoring-format ADP bias: ADP data is PPR-consensus; adjust CPU preference for
+  // non-PPR formats so CPU teams draft like real drafters in each format.
+  // Multipliers are mild by design — shift within a tier, not across tiers.
+  const scoringFmt = STATE.scoringType || MOCK_CFG.scoring || 'ppr';
+  if (scoringFmt === 'standard') {
+    if (pos === 'RB') score *= 1.12;
+    else if (pos === 'WR') score *= 0.88;
+    else if (pos === 'TE') score *= 0.90;
+  } else if (scoringFmt === 'half_ppr') {
+    if (pos === 'RB') score *= 1.06;
+    else if (pos === 'WR') score *= 0.95;
+    else if (pos === 'TE') score *= 0.96;
+  }
+  // ppr = no adjustment (ADP baseline is PPR)
+
   // Strategy multipliers are intentionally mild (0.6x–1.5x) so they shift picks
   // within a tier, not across tiers. Real drafters don't skip obvious value.
   if (strategy === 'zero_rb') {
@@ -5175,10 +5190,24 @@ const PROJ_PTS_BY_RANK = {
 };
 
 // ---- Value Over Replacement (VOR) ----
-// Replacement depth from Sleeper 2026 projections (12-team PPR):
+// Replacement depth for 12-team PPR (default baseline):
 // QB12 (Herbert, LAC) = 289.7 pts; RB36 (Aaron Jones, MIN) = 132.3 pts
 // WR48 (Jauan Jennings, MIN) = 156.7 pts; TE12 (Kittle, SF) = 151.9 pts
+// These are overridden dynamically in calcVOR based on actual league size.
 const VOR_BASELINES = { QB: 12, RB: 36, WR: 48, TE: 12, K: 14, DST: 12 };
+
+// Compute replacement rank for a position based on actual team count.
+// Formula: QB/TE = 1 per team; RB = 3 per team (2 starters + ~1 flex share);
+// WR = 4 per team (2 starters + ~1.5 flex share ≈ 4). Matches the 12-team
+// defaults exactly (QB=12, RB=36, WR=48, TE=12) and scales correctly for 8/10/14.
+function vorReplacementDepth(pos, teams) {
+  const n = teams || STATE.totalTeams || 12;
+  if (pos === 'QB') return Math.round(n * 1);
+  if (pos === 'RB') return Math.round(n * 3);
+  if (pos === 'WR') return Math.round(n * 4);
+  if (pos === 'TE') return Math.round(n * 1);
+  return VOR_BASELINES[pos] || 12;
+}
 
 function getProjectedPts(player, allPlayers) {
   const name = player.name || '';
@@ -5299,9 +5328,11 @@ function calcVOR(player, available) {
   // FantasyPros consensus VORP = primary source (cross-position comparable, 12-team PPR)
   const direct = lookupVorp(player.name, player.position);
   if (direct !== null) return direct;
-  // Fallback: points-based VOR for players not in VORP_TABLE
+  // Fallback: points-based VOR for players not in VORP_TABLE.
+  // Replacement depth scales with actual league size so fringe players are valued
+  // correctly in 8/10/14-team leagues, not locked to 12-team defaults.
   const pos = player.position;
-  const depth = VOR_BASELINES[pos] || 12;
+  const depth = vorReplacementDepth(pos, STATE.totalTeams);
   const byPos = available.filter(p => p.position === pos).sort((a, b) => (a.rank||999) - (b.rank||999));
   const baseline = byPos[depth - 1] || byPos[byPos.length - 1];
   const allP = STATE.mergedPlayers || available;
