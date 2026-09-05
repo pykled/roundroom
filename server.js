@@ -195,9 +195,20 @@ async function fetchLiveInjuries() {
       playerCacheTime = now;
     }
     const byName = {};
+    // Non-medical injury_status values indicate availability issues, not physical injuries.
+    const AVAIL_ISSUE_STATUSES = new Set(['na', 'suspended', 'nfi-r', 'pup-r', 'pup-p']);
     for (const p of Object.values(base)) {
-      if (!p || !p.full_name || !p.injury_status) continue;
+      if (!p || !p.full_name || p.active === false) continue;
       if (!SKILL_POS.has(p.position)) continue;
+      const injStr = (p.injury_status || '').toLowerCase();
+      // Treat "NA" and non-medical injury_status values as availability issues, not injuries.
+      const injIsAvailIssue = injStr && AVAIL_ISSUE_STATUSES.has(injStr);
+      const hasInjury = p.injury_status != null && !injIsAvailIssue;
+      // p.status is the player-level field: "Active", "Inactive", "Suspended", "NA", etc.
+      const playerStatus = p.status || '';
+      const statusIsAvailIssue = playerStatus && !['Active', ''].includes(playerStatus);
+      const hasAvailabilityIssue = injIsAvailIssue || statusIsAvailIssue;
+      if (!hasInjury && !hasAvailabilityIssue) continue;
       // Prefer injury_notes field; fall back to first news item analysis/content
       let note = p.injury_notes || null;
       if (!note && Array.isArray(p.news) && p.news.length > 0) {
@@ -205,12 +216,15 @@ async function fetchLiveInjuries() {
         const text = first.analysis || first.content;
         if (text) note = String(text).slice(0, 200);
       }
+      // Canonical availability status: prefer the player-level status field; fall back to injury_status if it's an availability value.
+      const canonAvail = statusIsAvailIssue ? playerStatus : (injIsAvailIssue ? p.injury_status : null);
       byName[p.full_name.toLowerCase()] = {
         name: p.full_name,
-        status: p.injury_status,
+        status: hasInjury ? p.injury_status : null,
         body_part: p.injury_body_part || null,
         note,
         start_date: p.injury_start_date || null,
+        availabilityStatus: canonAvail,
       };
     }
     liveInjuryCache = { data: byName, lastFetch: now };

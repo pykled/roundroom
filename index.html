@@ -4327,7 +4327,7 @@ function startMockDraft() {
 
 function getAvailableMockPlayers() {
   return STATE.mergedPlayers
-    .filter(p => !MOCK.draftedIds.has(p.player_id || p.name))
+    .filter(p => !MOCK.draftedIds.has(p.player_id || p.name) && !isPlayerUnavailable(p))
     .sort((a, b) => (a.adp || 999) - (b.adp || 999));
 }
 
@@ -9993,6 +9993,7 @@ function renderCompanionView() {
 
   // ── Available players ──────────────────────────────────────────────────
   const available = (STATE.mergedPlayers || []).filter(p => {
+    if (isPlayerUnavailable(p)) return false;
     if (isMock) {
       return !MOCK.draftedIds.has(p.player_id || p.name) && !MOCK.draftedIds.has(p.name) && p.adp < 250;
     }
@@ -10566,6 +10567,11 @@ function getInjuryForPlayer(name) {
   return STATE.injuryData[name.toLowerCase()] || null;
 }
 
+function isPlayerUnavailable(p) {
+  const inj = STATE.injuryData && STATE.injuryData[(p.name || '').toLowerCase()];
+  return !!(inj && inj.availabilityStatus);
+}
+
 function getInjuryRisk(injuryStatus) {
   const s = String(injuryStatus || '').toLowerCase();
   if (['ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
@@ -10812,6 +10818,26 @@ function renderResearchProfile(bodyId, barId) {
         ${timeline ? `<div class="rsch-health-timeline" style="margin-top:0;">${timeline}</div>` : '<div></div>'}
         ${reportedStr ? `<span style="font-size:0.6rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;">${escHtml(reportedStr)}</span>` : ''}
       </div>
+    </div>`;
+  }
+
+  // ── Availability alert card (non-medical: Suspended, Inactive, NA, etc.) ──
+  const availStatus = liveInj && liveInj.availabilityStatus;
+  if (availStatus) {
+    const statusLabel = availStatus === 'NA' ? 'Not Available' : escHtml(availStatus);
+    const availDescMap = {
+      'Suspended': 'Player is serving a league suspension. Timeline unknown — check official NFL reports.',
+      'Inactive':  'Player has been deactivated. May be on practice squad or waived.',
+      'NA':        'Player availability is unknown. Status may indicate suspension, holdout, or personal leave.',
+      'PUP-R':     'On Physically Unable to Perform list. Out until at least Week 5.',
+    };
+    const availDesc = availDescMap[availStatus] || `Player listed as ${escHtml(availStatus)}. Verify availability before drafting.`;
+    html += `<div class="rsch-health-card" style="background:rgba(139,92,246,0.07);border-color:rgba(139,92,246,0.28);margin-top:0.55rem;">
+      <div class="rsch-health-row">
+        <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Availability Alert</span>
+        <span class="rsch-health-chip" style="color:#a855f7;border-color:rgba(139,92,246,0.28);background:rgba(139,92,246,0.12);">🚫 ${statusLabel}</span>
+      </div>
+      <div class="rsch-health-note">${availDesc}</div>
     </div>`;
   }
 
