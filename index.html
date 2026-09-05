@@ -2706,6 +2706,157 @@
       50% { opacity: 0.85; background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); }
     }
 
+    /* ── Premium mobile RECS pick screen ─────────────────────────────── */
+
+    /* Position color system */
+    .rec-card[data-pos="WR"] { --pos-color: #60a5fa; --pos-bg: rgba(96,165,250,0.06); }
+    .rec-card[data-pos="RB"] { --pos-color: #34d399; --pos-bg: rgba(52,211,153,0.06); }
+    .rec-card[data-pos="QB"] { --pos-color: #f87171; --pos-bg: rgba(248,113,113,0.06); }
+    .rec-card[data-pos="TE"] { --pos-color: #fb923c; --pos-bg: rgba(251,146,60,0.06); }
+    .rec-card[data-pos="K"],
+    .rec-card[data-pos="DST"],
+    .rec-card[data-pos="DEF"] { --pos-color: #a78bfa; --pos-bg: rgba(167,139,250,0.06); }
+
+    /* Card entry animation */
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #recommendations .rec-card {
+      animation: slide-up 0.25s ease forwards;
+      opacity: 0;
+    }
+    #recommendations .rec-card:nth-child(1) { animation-delay: 0s; }
+    #recommendations .rec-card:nth-child(2) { animation-delay: 0.06s; }
+    #recommendations .rec-card:nth-child(3) { animation-delay: 0.12s; }
+    #recommendations .rec-card:nth-child(4) { animation-delay: 0.18s; }
+    #recommendations .rec-card:nth-child(5) { animation-delay: 0.22s; }
+
+    /* Base card overrides — more breathing room */
+    #recommendations .rec-card {
+      margin-bottom: 0.75rem;
+      border-left: 2px solid var(--pos-color, var(--border));
+    }
+
+    /* #2/#3 cards — clearly secondary */
+    #recommendations .rec-card:not(.rec-top-pick) .rec-name {
+      font-size: 1rem;
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-rank {
+      color: rgba(255,255,255,0.35);
+      font-weight: 600;
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-draft-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.4);
+      font-weight: 500;
+      padding: 0.4rem;
+    }
+
+    /* Hero top card */
+    #recommendations .rec-top-pick {
+      padding: 1.1rem 1rem;
+      background: rgba(245,158,11,0.04);
+      border-color: rgba(245,158,11,0.5);
+      border-left: 2px solid var(--pos-color, #34d399);
+      box-shadow: 0 0 0 1px rgba(52,211,153,0.18), 0 4px 20px rgba(52,211,153,0.07);
+    }
+    #recommendations .rec-top-pick .rec-name {
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    #recommendations .rec-top-pick .rec-rank {
+      color: #fbbf24;
+      font-weight: 700;
+      font-size: 0.72rem;
+    }
+    #recommendations .rec-top-pick .rec-draft-btn-primary {
+      background: rgba(52,211,153,0.15);
+      border: 1px solid #34d399;
+      color: #34d399;
+      font-weight: 600;
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Position pill — pos-tag colors per position */
+    #recommendations .rec-card[data-pos="WR"] .pos-tag { color: #60a5fa; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.2); }
+    #recommendations .rec-card[data-pos="RB"] .pos-tag { color: #34d399; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); }
+    #recommendations .rec-card[data-pos="QB"] .pos-tag { color: #f87171; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); }
+    #recommendations .rec-card[data-pos="TE"] .pos-tag { color: #fb923c; background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.2); }
+    #recommendations .rec-card[data-pos="K"] .pos-tag,
+    #recommendations .rec-card[data-pos="DST"] .pos-tag,
+    #recommendations .rec-card[data-pos="DEF"] .pos-tag { color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); }
+
+    /* VORP pill redesign */
+    #recommendations .rec-card .rec-vorp-pill {
+      font-size: 0.68rem;
+      font-family: 'DM Mono', monospace;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 0.1rem 0.5rem;
+      color: var(--text-muted);
+    }
+    #recommendations .rec-top-pick .rec-vorp-pill {
+      background: rgba(52,211,153,0.1);
+      border-color: rgba(52,211,153,0.25);
+      color: #34d399;
+    }
+
+    /* Reason / why string — editorial italic */
+    #recommendations .rec-why {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
+      font-style: italic;
+      margin: 0.25rem 0 0.5rem;
+      line-height: 1.45;
+    }
+
+    /* Survive % chip */
+    #recommendations .survival-pct {
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 0.1rem 0.35rem;
+    }
+    #recommendations .survival-low {
+      color: #fbbf24;
+      background: rgba(251,191,36,0.08);
+    }
+    #recommendations .survival-mid {
+      color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.04);
+    }
+    #recommendations .survival-high {
+      color: #34d399;
+      background: rgba(52,211,153,0.08);
+    }
+
+    /* YOUR PICK NOW banner polish */
+    #your-pick-banner {
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      justify-content: space-between !important;
+      padding: 0.7rem 1rem;
+    }
+    #your-pick-banner #pick-banner-round {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(245,158,11,0.35);
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      opacity: 1 !important;
+      letter-spacing: 0.06em;
+      color: #fbbf24;
+    }
+
+    /* ── End premium RECS design ──────────────────────────────────────── */
+
     /* Touch targets: icon buttons (★ / ✕ on player cards) */
     .icon-btn { padding: 0.5rem 0.4rem; min-height: 36px; }
 
@@ -6335,12 +6486,12 @@ function renderRecommendations() {
     const p = item.player;
     const survival = calcSurvivalProbability(p, nextMyPick);
     const survPct = Math.round(survival * 100);
-    const survClass = survPct < 25 ? 'survival-low' : survPct < 60 ? 'survival-mid' : 'survival-high';
+    const survClass = survPct < 70 ? 'survival-low' : survPct < 85 ? 'survival-mid' : 'survival-high';
     const why = generateWhyText(p, available, item.parts, ctx);
     const vor = calcVOR(p, available);
 
     const isTopCard = i === 0;
-    html += `<div class="rec-card${isTopCard ? ' rec-top-pick' : ''}" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
+    html += `<div class="rec-card${isTopCard ? ' rec-top-pick' : ''}" data-pos="${escAttr(p.position)}" onclick="openPlayerModal(${escAttr(JSON.stringify(p))})">
       ${isTopCard ? '<div class="rec-top-pick-label">⭐ Top Pick</div>' : ''}
       <div class="rec-rank">#${i+1}</div>
       <div class="rec-player">
@@ -6350,7 +6501,7 @@ function renderRecommendations() {
         </div>
         <div style="display:flex;align-items:center;gap:0.4rem;">
           <span class="pos-tag">${p.position}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:${vor > 50 ? '#ffffff' : 'var(--text-muted)'};">${lookupVorp(p.name,p.position)!==null?`VORP +${vor.toFixed(0)}`:'+'+vor.toFixed(0)+' pts'}</span>
+          <span class="rec-vorp-pill">${lookupVorp(p.name,p.position)!==null?`VORP +${vor.toFixed(0)}`:'+'+vor.toFixed(0)+' pts'}</span>
         </div>
       </div>
       <div class="rec-why">${escHtml(why)}</div>
