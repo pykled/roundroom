@@ -3106,6 +3106,152 @@
   .drift-action button { font-size: 0.68rem; padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid; cursor: pointer; font-family: inherit; background: none; }
   .drift-action button:first-child { color: #fbbf24; border-color: rgba(251,191,36,0.5); }
   .drift-action button:last-child { color: var(--text-muted); border-color: var(--border); }
+
+  /* ===== MOBILE SPLIT-SCREEN DRAFT LAYOUT ===== */
+  #m-split-layout {
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    background: #0d0d0d;
+  }
+  @media (max-width: 768px) {
+    body.mock-draft-active .main-layout { display: none !important; }
+    body.mock-draft-active .bottom-section { display: none !important; }
+    body.mock-draft-active .mobile-tab-bar { display: none !important; }
+    body.mock-draft-active #m-split-layout { display: flex !important; }
+
+    .m-slim-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      background: #111;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    .m-round-info { font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.5); white-space: nowrap; }
+    .m-otc-chip {
+      flex: 1; text-align: center;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+      color: #34d399; display: none;
+    }
+    .m-otc-chip.visible { display: block; }
+    .m-slim-gear { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 1rem; cursor: pointer; padding: 0.15rem 0.3rem; flex-shrink: 0; }
+
+    .m-board-scroll {
+      height: 50vh; flex-shrink: 0;
+      overflow-x: auto; overflow-y: auto;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      background: #0d0d0d;
+      border-bottom: 2px solid rgba(255,255,255,0.08);
+    }
+    .m-board-scroll::-webkit-scrollbar { display: none; }
+    .m-board-grid { display: grid; min-width: max-content; }
+
+    .m-col-corner {
+      background: #0d0d0d; position: sticky; top: 0; left: 0; z-index: 4;
+      width: 32px; min-height: 36px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .m-team-col {
+      width: 88px; padding: 0.35rem 0.25rem; box-sizing: border-box;
+      font-size: 0.58rem; font-weight: 700;
+      color: rgba(255,255,255,0.4); text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      background: #0d0d0d; position: sticky; top: 0; z-index: 2;
+    }
+    .m-team-col.m-your-col { color: #60a5fa; background: rgba(96,165,250,0.08); }
+
+    .m-round-label {
+      width: 32px; min-height: 52px; box-sizing: border-box;
+      font-size: 0.52rem; font-weight: 600; color: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      background: #0d0d0d; position: sticky; left: 0; z-index: 1;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .m-pick-cell {
+      width: 88px; min-height: 52px; box-sizing: border-box;
+      padding: 0.35rem 0.3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-right: 1px solid rgba(255,255,255,0.04);
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .m-pick-cell.m-your-pick { outline: 1px solid rgba(96,165,250,0.15); outline-offset: -1px; }
+    .m-pick-cell.m-pick-empty.m-your-pick { background: rgba(96,165,250,0.04); }
+    .m-pick-cell.m-pick-current { box-shadow: inset 0 0 0 2px rgba(52,211,153,0.5); background: rgba(52,211,153,0.1) !important; }
+
+    .m-pick-pos {
+      font-size: 0.5rem; font-weight: 700;
+      margin-bottom: 0.12rem; padding: 0.04rem 0.18rem;
+      border-radius: 2px; display: inline-block; align-self: flex-start;
+    }
+    .m-pick-name {
+      font-size: 0.68rem; font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .m-pick-cell.pos-RB { background: rgba(52,211,153,0.1); }
+    .m-pick-cell.pos-RB .m-pick-pos { background: rgba(52,211,153,0.25); color: #34d399; }
+    .m-pick-cell.pos-WR { background: rgba(96,165,250,0.08); }
+    .m-pick-cell.pos-WR .m-pick-pos { background: rgba(96,165,250,0.25); color: #60a5fa; }
+    .m-pick-cell.pos-QB { background: rgba(248,113,113,0.08); }
+    .m-pick-cell.pos-QB .m-pick-pos { background: rgba(248,113,113,0.25); color: #f87171; }
+    .m-pick-cell.pos-TE { background: rgba(251,146,60,0.08); }
+    .m-pick-cell.pos-TE .m-pick-pos { background: rgba(251,146,60,0.25); color: #fb923c; }
+    .m-pick-cell.pos-K, .m-pick-cell.pos-DEF, .m-pick-cell.pos-DST { background: rgba(167,139,250,0.06); }
+    .m-pick-cell.pos-K .m-pick-pos,
+    .m-pick-cell.pos-DEF .m-pick-pos,
+    .m-pick-cell.pos-DST .m-pick-pos { background: rgba(167,139,250,0.18); color: #a78bfa; }
+
+    .m-bottom-section {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; background: #111;
+    }
+    .m-roster-pills {
+      display: flex; gap: 0.4rem;
+      padding: 0.45rem 0.75rem;
+      overflow-x: auto; scrollbar-width: none;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    .m-roster-pills::-webkit-scrollbar { display: none; }
+    .m-pos-pill {
+      padding: 0.22rem 0.55rem; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1); background: none;
+      color: rgba(255,255,255,0.4); font-size: 0.68rem; font-weight: 600;
+      white-space: nowrap; cursor: pointer; font-family: inherit; flex-shrink: 0;
+    }
+    .m-pos-pill.active { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
+    .m-pos-pill span { color: rgba(255,255,255,0.32); margin-left: 0.18rem; }
+
+    .m-avail-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .m-avail-row {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .m-avail-row:active { background: rgba(255,255,255,0.03); }
+    .m-draft-btn {
+      padding: 0.22rem 0.45rem; border-radius: 6px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6); font-size: 0.63rem; font-weight: 700;
+      letter-spacing: 0.04em; cursor: pointer; font-family: inherit; flex-shrink: 0;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .m-draft-btn:disabled { opacity: 0.25; cursor: default; }
+    .m-draft-btn:not(:disabled):active { background: rgba(52,211,153,0.2); border-color: #34d399; color: #34d399; }
+    .m-avail-info { flex: 1; min-width: 0; }
+    .m-avail-name { display: block; font-size: 0.87rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .m-avail-meta { display: block; font-size: 0.67rem; color: rgba(255,255,255,0.35); margin-top: 0.04rem; }
+    .m-avail-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; gap: 0.1rem; }
+    .m-avail-adp { font-size: 0.73rem; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .m-avail-vorp { font-size: 0.61rem; color: rgba(255,255,255,0.28); }
+    .m-avail-row.m-rec { background: rgba(251,191,36,0.03); }
+    .m-rec .m-avail-name::after { content: ' ★'; color: #fbbf24; font-size: 0.62rem; }
+  }
 </style>
 </head>
 <body>
@@ -3408,6 +3554,22 @@
     </div>
 
 
+  </div>
+
+  <!-- Mobile split-screen draft layout (shown during mock on mobile via body.mock-draft-active CSS) -->
+  <div id="m-split-layout">
+    <div class="m-slim-header">
+      <span class="m-round-info" id="m-slim-round">Round 1 · Pick —</span>
+      <span class="m-otc-chip" id="m-slim-otc">● ON THE CLOCK</span>
+      <button class="m-slim-gear" onclick="resetMockDraft()" title="Reset draft">↺</button>
+    </div>
+    <div class="m-board-scroll" id="m-board-scroll">
+      <div class="m-board-grid" id="m-board-grid"></div>
+    </div>
+    <div class="m-bottom-section">
+      <div class="m-roster-pills" id="m-roster-pills"></div>
+      <div class="m-avail-list" id="m-avail-list"></div>
+    </div>
   </div>
 
   <!-- Pick Log (desktop only) -->
@@ -4068,6 +4230,8 @@ function startMockDraft() {
   renderBoard();
   renderRosterSlots();
   advanceMockDraft();
+  STATE.mPosFilter = 'ALL';
+  renderMobileSplitLayout();
 }
 
 function getAvailableMockPlayers() {
@@ -4185,7 +4349,7 @@ function advanceMockDraft() {
     const pbr = document.getElementById('pick-banner-round');
     if (pbr) pbr.textContent = ` · R${round}P${MOCK.currentPick}`;
     showToast(`🎯 MOCK — Your pick! (#${MOCK.currentPick})`, true);
-    if (window.innerWidth <= 768) showMobileTab('recs');
+    if (window.innerWidth <= 768) renderMobileSplitLayout(); else showMobileTab('recs');
     renderBoard();
     broadcastMockState();
   } else {
@@ -4212,6 +4376,7 @@ function advanceMockDraft() {
 
       renderRecentPicks();
       renderBoard();
+      renderMobileSplitLayout();
       if (document.getElementById('draft-board-overlay').style.display !== 'none') renderDraftBoard();
       if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
       broadcastMockState();
@@ -4237,6 +4402,7 @@ function mockUserPick(player) {
   showToast(`✅ Mock pick: ${player.name}`, true);
   renderRecentPicks();
   renderBoard();
+  renderMobileSplitLayout();
   renderRosterSlots();
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   broadcastMockState();
@@ -4380,7 +4546,163 @@ function resetMockDraft() {
   document.getElementById('m-recent-picks') && (document.getElementById('m-recent-picks').innerHTML = '');
   renderBoard();
   renderRosterSlots();
+  STATE.mPosFilter = 'ALL';
   showToast('Mock draft reset', false);
+}
+
+// ===== MOBILE SPLIT-SCREEN LAYOUT =====
+
+function renderMobileDraftBoard() {
+  if (window.innerWidth > 768) return;
+  const grid = document.getElementById('m-board-grid');
+  if (!grid) return;
+
+  const teams = STATE.totalTeams || 12;
+  const rounds = STATE.totalRounds || 15;
+  const mySlot = STATE.mySlot || 5;
+  const currentPick = MOCK.currentPick;
+  const currentRound = currentPick > 0 ? Math.ceil(currentPick / teams) : 1;
+
+  grid.style.gridTemplateColumns = `32px repeat(${teams}, 88px)`;
+
+  // Build pick lookup board[teamNum][round] = pick
+  const board = {};
+  for (let t = 1; t <= teams; t++) board[t] = {};
+  MOCK.picks.forEach(p => { if (p.teamNum && p.round) board[p.teamNum][p.round] = p; });
+
+  let html = '';
+
+  // Header row: sticky corner + team columns
+  html += `<div class="m-col-corner"></div>`;
+  for (let t = 1; t <= teams; t++) {
+    const isMe = t === mySlot;
+    html += `<div class="m-team-col${isMe ? ' m-your-col' : ''}">${isMe ? 'YOU' : `T${t}`}</div>`;
+  }
+
+  // Round rows — show all completed rounds plus current + 2 ahead (minimum 3)
+  const showRounds = Math.min(rounds, Math.max(3, currentRound + 2));
+  for (let r = 1; r <= showRounds; r++) {
+    html += `<div class="m-round-label">R${r}</div>`;
+    for (let t = 1; t <= teams; t++) {
+      const pick = board[t][r];
+      const isMe = t === mySlot;
+      if (pick) {
+        const pos = pick.player.position || '';
+        const lastName = pick.player.name ? pick.player.name.split(' ').slice(-1)[0] : '?';
+        html += `<div class="m-pick-cell pos-${pos}${isMe ? ' m-your-pick' : ''}">
+          <div class="m-pick-pos">${escHtml(pos)}</div>
+          <div class="m-pick-name">${escHtml(lastName)}</div>
+        </div>`;
+      } else {
+        // Determine if this is the current "on the clock" cell
+        const pickNum = r % 2 === 1 ? (r - 1) * teams + t : (r - 1) * teams + (teams + 1 - t);
+        const isCurrent = pickNum === currentPick && MOCK.waitingForUser && isMe;
+        html += `<div class="m-pick-cell m-pick-empty${isMe ? ' m-your-pick' : ''}${isCurrent ? ' m-pick-current' : ''}"></div>`;
+      }
+    }
+  }
+
+  grid.innerHTML = html;
+
+  // Update slim header
+  const slimRound = document.getElementById('m-slim-round');
+  if (slimRound) slimRound.textContent = currentPick > 0
+    ? `Round ${currentRound} · Pick ${currentPick}`
+    : 'Starting…';
+  const otcEl = document.getElementById('m-slim-otc');
+  if (otcEl) otcEl.classList.toggle('visible', !!MOCK.waitingForUser);
+
+  // Auto-scroll to show user's column and the current round
+  setTimeout(() => {
+    const scroll = document.getElementById('m-board-scroll');
+    if (!scroll) return;
+    const yourCells = grid.querySelectorAll('.m-your-col, .m-your-pick');
+    if (yourCells.length > 0) {
+      yourCells[0].scrollIntoView({ inline: 'center', block: 'nearest' });
+    }
+    // Also scroll vertically near the current round
+    const roundRows = grid.querySelectorAll('.m-round-label');
+    if (roundRows.length >= currentRound) {
+      roundRows[currentRound - 1]?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }
+  }, 30);
+}
+
+function renderMobilePlayerList() {
+  if (window.innerWidth > 768) return;
+
+  const draftedSet = MOCK.draftedIds;
+  const allPlayers = STATE.mergedPlayers || [];
+  const posFilter = STATE.mPosFilter || 'ALL';
+
+  const myPicks = MOCK.picks.filter(p => p.isUser).map(p => p.player);
+  const totalPicked = myPicks.length;
+  const totalSlots = STATE.totalRounds || 15;
+  const qbCount = myPicks.filter(p => p.position === 'QB').length;
+  const rbCount = myPicks.filter(p => p.position === 'RB').length;
+  const wrCount = myPicks.filter(p => p.position === 'WR').length;
+  const teCount = myPicks.filter(p => p.position === 'TE').length;
+  const qbSlots = MOCK_CFG.slots_qb || 1;
+  const rbSlots = MOCK_CFG.slots_rb || 2;
+  const wrSlots = MOCK_CFG.slots_wr || 2;
+  const teSlots = MOCK_CFG.slots_te || 1;
+
+  // Position pills
+  const pillsEl = document.getElementById('m-roster-pills');
+  if (pillsEl) {
+    const pills = [
+      { key: 'ALL', label: 'ALL', count: `${totalPicked}/${totalSlots}` },
+      { key: 'QB',  label: 'QB',  count: `${qbCount}/${qbSlots}` },
+      { key: 'RB',  label: 'RB',  count: `${rbCount}/${rbSlots}` },
+      { key: 'WR',  label: 'WR',  count: `${wrCount}/${wrSlots}` },
+      { key: 'TE',  label: 'TE',  count: `${teCount}/${teSlots}` },
+    ];
+    pillsEl.innerHTML = pills.map(p =>
+      `<button class="m-pos-pill${posFilter === p.key ? ' active' : ''}"
+        onclick="STATE.mPosFilter='${p.key}';renderMobilePlayerList()">
+        ${p.label}<span>${p.count}</span>
+      </button>`
+    ).join('');
+  }
+
+  // Available player list
+  const listEl = document.getElementById('m-avail-list');
+  if (!listEl) return;
+
+  const available = allPlayers.filter(p => !draftedSet.has(p.player_id || p.name) && !draftedSet.has(p.sleeper_id || p.name));
+  const filtered = posFilter === 'ALL' ? available : available.filter(p => p.position === posFilter);
+  const display = filtered.slice(0, 100);
+
+  const canDraft = MOCK.waitingForUser;
+  const isSuperflex = STATE.isSuperflex;
+
+  listEl.innerHTML = display.map(p => {
+    const pos = p.position || '';
+    const adp = (isSuperflex && p.composite_sf_adp != null ? p.composite_sf_adp : (p.composite_adp || p.adp));
+    const adpStr = adp ? parseFloat(adp).toFixed(1) : '—';
+    const vorp = isSuperflex && p.vorp_sf != null ? p.vorp_sf : p.vorp_std;
+    const vorpStr = vorp != null ? (vorp >= 0 ? '+' : '') + vorp.toFixed(1) : '';
+    const bye = p.bye ? `Bye ${p.bye}` : '';
+    const meta = [pos, p.team, bye].filter(Boolean).join(' · ');
+    const playerJson = escAttr(JSON.stringify(p));
+    return `<div class="m-avail-row">
+      <button class="m-draft-btn" onclick="mockUserPick(${playerJson})" ${canDraft ? '' : 'disabled'}>DRAFT</button>
+      <div class="m-avail-info">
+        <span class="m-avail-name">${escHtml(p.name || '')}</span>
+        <span class="m-avail-meta">${escHtml(meta)}</span>
+      </div>
+      <div class="m-avail-right">
+        <span class="m-avail-adp">${adpStr}</span>
+        ${vorpStr ? `<span class="m-avail-vorp">${vorpStr} VORP</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMobileSplitLayout() {
+  if (window.innerWidth > 768) return;
+  renderMobileDraftBoard();
+  renderMobilePlayerList();
 }
 
 // ===== AI ASSISTANT =====
