@@ -2706,23 +2706,22 @@
       50% { opacity: 0.85; background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); }
     }
 
-    /* ── Premium mobile RECS pick screen ─────────────────────────────── */
-
-    /* Position color system */
-    .rec-card[data-pos="WR"] { --pos-color: #60a5fa; --pos-bg: rgba(96,165,250,0.06); }
-    .rec-card[data-pos="RB"] { --pos-color: #34d399; --pos-bg: rgba(52,211,153,0.06); }
-    .rec-card[data-pos="QB"] { --pos-color: #f87171; --pos-bg: rgba(248,113,113,0.06); }
-    .rec-card[data-pos="TE"] { --pos-color: #fb923c; --pos-bg: rgba(251,146,60,0.06); }
-    .rec-card[data-pos="K"],
-    .rec-card[data-pos="DST"],
-    .rec-card[data-pos="DEF"] { --pos-color: #a78bfa; --pos-bg: rgba(167,139,250,0.06); }
+    /* ── Clean-slate mobile RECS design ───────────────────────────────── */
 
     /* Card entry animation */
     @keyframes slide-up {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* All cards: flat dark tiles, no rainbow borders */
     #recommendations .rec-card {
+      border-left: none;
+      margin-bottom: 0.6rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
       animation: slide-up 0.25s ease forwards;
       opacity: 0;
     }
@@ -2732,111 +2731,143 @@
     #recommendations .rec-card:nth-child(4) { animation-delay: 0.18s; }
     #recommendations .rec-card:nth-child(5) { animation-delay: 0.22s; }
 
-    /* Base card overrides — more breathing room */
-    #recommendations .rec-card {
-      margin-bottom: 0.75rem;
-      border-left: 2px solid var(--pos-color, var(--border));
-    }
-
-    /* #2/#3 cards — clearly secondary */
-    #recommendations .rec-card:not(.rec-top-pick) .rec-name {
-      font-size: 1rem;
-    }
-    #recommendations .rec-card:not(.rec-top-pick) .rec-rank {
+    /* All pos-tags: neutral gray (kill rainbow) */
+    #recommendations .rec-card .pos-tag {
       color: rgba(255,255,255,0.35);
-      font-weight: 600;
-    }
-    #recommendations .rec-card:not(.rec-top-pick) .rec-draft-btn {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.4);
-      font-weight: 500;
-      padding: 0.4rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.68rem;
     }
 
-    /* Hero top card */
-    #recommendations .rec-top-pick {
-      padding: 1.1rem 1rem;
-      background: rgba(245,158,11,0.04);
-      border-color: rgba(245,158,11,0.5);
-      border-left: 2px solid var(--pos-color, #34d399);
-      box-shadow: 0 0 0 1px rgba(52,211,153,0.18), 0 4px 20px rgba(52,211,153,0.07);
-    }
-    #recommendations .rec-top-pick .rec-name {
-      font-size: 1.25rem;
-      letter-spacing: -0.02em;
-    }
-    #recommendations .rec-top-pick .rec-rank {
-      color: #fbbf24;
-      font-weight: 700;
-      font-size: 0.72rem;
-    }
-    #recommendations .rec-top-pick .rec-draft-btn-primary {
-      background: rgba(52,211,153,0.15);
-      border: 1px solid #34d399;
-      color: #34d399;
-      font-weight: 600;
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 0.8rem;
-      letter-spacing: 0.02em;
-    }
-
-    /* Position pill — pos-tag colors per position */
-    #recommendations .rec-card[data-pos="WR"] .pos-tag { color: #60a5fa; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.2); }
-    #recommendations .rec-card[data-pos="RB"] .pos-tag { color: #34d399; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); }
-    #recommendations .rec-card[data-pos="QB"] .pos-tag { color: #f87171; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); }
-    #recommendations .rec-card[data-pos="TE"] .pos-tag { color: #fb923c; background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.2); }
-    #recommendations .rec-card[data-pos="K"] .pos-tag,
-    #recommendations .rec-card[data-pos="DST"] .pos-tag,
-    #recommendations .rec-card[data-pos="DEF"] .pos-tag { color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); }
-
-    /* VORP pill redesign */
+    /* All VORP pills: plain gray text, no capsule */
     #recommendations .rec-card .rec-vorp-pill {
       font-size: 0.68rem;
       font-family: 'DM Mono', monospace;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px;
-      padding: 0.1rem 0.5rem;
-      color: var(--text-muted);
-    }
-    #recommendations .rec-top-pick .rec-vorp-pill {
-      background: rgba(52,211,153,0.1);
-      border-color: rgba(52,211,153,0.25);
-      color: #34d399;
-    }
-
-    /* Reason / why string — editorial italic */
-    #recommendations .rec-why {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.55);
-      font-style: italic;
-      margin: 0.25rem 0 0.5rem;
-      line-height: 1.45;
+      color: rgba(255,255,255,0.35);
+      background: none;
+      border: none;
+      border-radius: 0;
+      padding: 0;
     }
 
     /* Survive % chip */
     #recommendations .survival-pct {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
       border-radius: 4px;
       padding: 0.1rem 0.35rem;
     }
-    #recommendations .survival-low {
-      color: #fbbf24;
-      background: rgba(251,191,36,0.08);
+    #recommendations .survival-low  { color: #fbbf24; background: rgba(251,191,36,0.08); }
+    #recommendations .survival-mid  { color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04); }
+    #recommendations .survival-high { color: #34d399; background: rgba(52,211,153,0.08); }
+
+    /* ─ Hero card (#1) ─────────────────────────────────────────────────── */
+    #recommendations .rec-top-pick {
+      padding: 1.2rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      box-shadow: none;
+      margin-bottom: 0.6rem;
     }
-    #recommendations .survival-mid {
+    #recommendations .rec-top-pick .rec-rank {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+    #recommendations .rec-top-pick .rec-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+    #recommendations .rec-top-pick .pos-tag {
+      color: rgba(255,255,255,0.4);
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      padding: 0;
+    }
+    #recommendations .rec-top-pick .rec-vorp-pill {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.75rem;
+    }
+    #recommendations .rec-top-pick .rec-why {
+      font-size: 0.75rem;
       color: rgba(255,255,255,0.5);
-      background: rgba(255,255,255,0.04);
+      font-style: normal;
+      margin: 0.4rem 0 0.5rem;
+      line-height: 1.4;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
-    #recommendations .survival-high {
+    #recommendations .rec-top-pick .rec-adp-meta {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.22);
+    }
+    #recommendations .rec-top-pick .rec-draft-btn-primary {
+      width: 100%;
+      padding: 0.65rem;
+      border-radius: 8px;
+      font-weight: 600;
+      background: rgba(52,211,153,0.12);
+      border: 1.5px solid rgba(52,211,153,0.5);
       color: #34d399;
-      background: rgba(52,211,153,0.08);
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      letter-spacing: 0.01em;
+    }
+    /* Hide the ⭐ Top Pick label — visual noise */
+    #recommendations .rec-top-pick-label { display: none; }
+
+    /* ─ Secondary cards (#2–#5) ────────────────────────────────────────── */
+    #recommendations .rec-card:not(.rec-top-pick) .rec-rank {
+      color: rgba(255,255,255,0.22);
+      font-size: 0.6rem;
+      font-weight: 600;
+      margin-bottom: 0.1rem;
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-why {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.35);
+      font-style: normal;
+      margin: 0.15rem 0 0.25rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-adp-meta { display: none; }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-survival {
+      font-size: 0.68rem;
+    }
+    #recommendations .rec-card:not(.rec-top-pick) .rec-draft-btn {
+      float: right;
+      clear: none;
+      width: auto;
+      margin-top: -0.1rem;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    #recommendations .rec-card:not(.rec-top-pick)::after {
+      content: '';
+      display: block;
+      clear: both;
     }
 
-    /* YOUR PICK NOW banner polish */
+    /* YOUR PICK NOW banner */
     #your-pick-banner {
       letter-spacing: 0.04em;
       font-weight: 700;
@@ -2855,7 +2886,7 @@
       color: #fbbf24;
     }
 
-    /* ── End premium RECS design ──────────────────────────────────────── */
+    /* ── End clean-slate RECS design ──────────────────────────────────── */
 
     /* Touch targets: icon buttons (★ / ✕ on player cards) */
     .icon-btn { padding: 0.5rem 0.4rem; min-height: 36px; }
