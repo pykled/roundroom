@@ -2665,6 +2665,29 @@
     /* Hide strategy bar when it's the user's pick — rec cards are the focus */
     body.user-pick-active .strategy-bar { display: none; }
 
+    /* Attribution bar: always hidden on mobile — too small to be useful */
+    #data-attribution { display: none; }
+
+    /* During pick: collapse the pick-counter row (redundant with YOUR PICK banner) */
+    body.user-pick-active .header-pick { display: none; }
+
+    /* During pick: hide mock-banner entirely — round info is in your-pick-banner, controls too */
+    body.user-pick-active #mock-banner { display: none !important; }
+
+    /* During pick: hide FAB so it doesn't overlap rec cards */
+    body.user-pick-active .ai-fab { display: none !important; }
+
+    /* During pick: hide ADP/team/bye row on rec cards — survive% stays */
+    body.user-pick-active .rec-adp-meta { display: none; }
+
+    /* During pick: hide RECOMMENDATIONS panel title — obvious from context */
+    body.user-pick-active #panel-recs .panel-title { display: none; }
+
+    /* pick-banner-mock-controls: only show on mobile (desktop mock-banner handles this) */
+    .pick-banner-mock-controls { display: none; }
+    body.user-pick-active #your-pick-banner { display: flex !important; align-items: center; justify-content: center; gap: 0.3rem; }
+    body.user-pick-active .pick-banner-mock-controls { display: inline-flex; align-items: center; margin-left: 0.5rem; }
+
     /* Setup screen */
     #setup-screen { padding: 1rem; }
     .setup-card { padding: 1.5rem 1.25rem; }
@@ -2918,7 +2941,7 @@
   </div>
 
   <!-- Data attribution -->
-  <div style="font-size:0.62rem;color:var(--text-muted);text-align:center;padding:0.1rem 0.5rem;background:var(--bg-secondary);border-bottom:1px solid var(--border);">
+  <div id="data-attribution" style="font-size:0.62rem;color:var(--text-muted);text-align:center;padding:0.1rem 0.5rem;background:var(--bg-secondary);border-bottom:1px solid var(--border);">
     <span class="data-source-line">Rankings: FantasyPros consensus · 12-team PPR · Aug 2026</span> &nbsp;|&nbsp; <span title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span> methodology via FantasyPros/4for4
   </div>
 
@@ -2948,7 +2971,7 @@
   </div>
 
   <!-- Your pick banner -->
-  <div id="your-pick-banner">🎯 YOUR PICK NOW — Make your selection!</div>
+  <div id="your-pick-banner">🎯 YOUR PICK NOW <span id="pick-banner-round" style="opacity:0.7;font-weight:500;"></span><span class="pick-banner-mock-controls"><button onclick="MOCK.fastForward=!MOCK.fastForward;" title="Fast-forward" style="background:none;border:none;color:inherit;cursor:pointer;padding:0.1rem 0.3rem;font-size:0.9em;opacity:0.8;">⏩</button><button onclick="toggleDraftBoard()" title="Draft board" style="background:none;border:none;color:inherit;cursor:pointer;padding:0.1rem 0.3rem;font-size:0.9em;opacity:0.8;">📋</button><button onclick="resetMockDraft()" title="Reset mock" style="background:none;border:none;color:inherit;cursor:pointer;padding:0.1rem 0.3rem;font-size:0.9em;opacity:0.8;">↺</button></span></div>
 
   <!-- Countdown banner for pre-draft -->
   <div id="countdown-banner" class="countdown-banner hidden">
@@ -3768,6 +3791,8 @@ function advanceMockDraft() {
     MOCK.waitingForUser = true;
     document.body.classList.add('user-pick-active');
     document.getElementById('your-pick-banner').style.display = 'block';
+    const pbr = document.getElementById('pick-banner-round');
+    if (pbr) pbr.textContent = ` · R${round}P${MOCK.currentPick}`;
     showToast(`🎯 MOCK — Your pick! (#${MOCK.currentPick})`, true);
     if (window.innerWidth <= 768) showMobileTab('recs');
     renderBoard();
@@ -6330,7 +6355,7 @@ function renderRecommendations() {
       </div>
       <div class="rec-why">${escHtml(why)}</div>
       <div class="rec-survival">
-        <span style="font-family:'DM Mono',monospace;">ADP #${p.rank} · ${escHtml(p.team||'FA')} · Bye ${p.bye||'?'}</span>
+        <span class="rec-adp-meta" style="font-family:'DM Mono',monospace;">ADP #${p.rank} · ${escHtml(p.team||'FA')} · Bye ${p.bye||'?'}</span>
         <div style="display:flex;align-items:center;gap:0.4rem;">
           ${(()=>{const fpA=FP_ADP[p.name];const gap=fpA&&p.adp?Math.round(p.adp-fpA):0;return gap>3?`<span style="font-size:0.65rem;color:#4ade80;font-family:'DM Mono',monospace;font-weight:600;">+${gap} val</span>`:gap<-3?`<span style="font-size:0.65rem;color:#f87171;font-family:'DM Mono',monospace;">reach</span>`:'';})()}
           ${STATE.isPrepMode ? '' : `<span class="survival-pct ${survClass}" title="Probability this player is still available when your next pick comes">${survPct}% survive</span>`}
