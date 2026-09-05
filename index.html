@@ -2676,6 +2676,18 @@
     /* Research rows: hide Team and Rank columns on narrow screens */
     .rsch-col-team, .rsch-col-rank { display: none; }
   }
+  .drift-callout {
+    display: flex; gap: 0.6rem; align-items: flex-start;
+    padding: 0.7rem 0.85rem; border-radius: 10px; margin-bottom: 0.6rem;
+    background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3);
+  }
+  .drift-icon { font-size: 1rem; line-height: 1.4; flex-shrink: 0; }
+  .drift-title { font-size: 0.75rem; font-weight: 700; color: #fbbf24; }
+  .drift-reason { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; line-height: 1.4; }
+  .drift-action { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+  .drift-action button { font-size: 0.68rem; padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid; cursor: pointer; font-family: inherit; background: none; }
+  .drift-action button:first-child { color: #fbbf24; border-color: rgba(251,191,36,0.5); }
+  .drift-action button:last-child { color: var(--text-muted); border-color: var(--border); }
 </style>
 </head>
 <body>
@@ -3269,6 +3281,9 @@ const STATE = {
   reviewTotalTeams: 12,
   reviewTotalRounds: 15,
   reviewLeague: null,
+  // ===== Adaptive strategy drift =====
+  driftSuggestion: null,   // { fromStrategy, toStrategy, reason }
+  driftDismissedAt: -99,   // pick number when user last dismissed a callout
 };
 
 // ===== MOCK DRAFT STATE =====
@@ -6064,6 +6079,105 @@ function getNextNextMyPick() {
   return future.length > 1 ? future[1] : null;
 }
 
+// ===== ADAPTIVE STRATEGY DRIFT =====
+
+// ADP-expected positional distribution at each pick count (12-team PPR baseline).
+// Pre-computed: top N picks by ADP should contain roughly these many of each position.
+// Format: [qb, rb, wr, te] expected in the top N overall picks.
+const DRIFT_EXPECTED = {
+  //   pick:  QB  RB  WR  TE
+  12:  [0,  5,  6,  1],
+  24:  [1,  9, 11,  3],
+  36:  [2, 12, 17,  5],
+  48:  [4, 16, 22,  6],
+};
+
+function analyzeDraftDrift() {
+  // Only fire during live drafts (not mock, not prep)
+  if (MOCK.active || STATE.isPrepMode || STATE.isSuperflex) return null;
+
+  const pickCount = STATE.lastPickCount;
+  if (pickCount < 10) return null; // not enough signal yet
+
+  // Only fire in rounds 1-4 (pick 48 max for 12-team)
+  const round = Math.ceil(pickCount / (STATE.totalTeams || 12));
+  if (round > 4) return null;
+
+  // Suppress if dismissed within last 5 picks
+  if (pickCount - STATE.driftDismissedAt < 5) return null;
+
+  // Don't repeat the same suggestion as what's already showing
+  const already = STATE.driftSuggestion;
+
+  // Count actual picks by position from the pick log
+  const actual = { QB: 0, RB: 0, WR: 0, TE: 0 };
+  (STATE.picks || []).forEach(pick => {
+    const pos = (pick.metadata?.position || '').replace('DEF', 'DST');
+    if (actual[pos] !== undefined) actual[pos]++;
+  });
+
+  // Find the nearest bracket in DRIFT_EXPECTED at or below pickCount
+  const brackets = [12, 24, 36, 48];
+  const bracket = brackets.reduce((best, b) => b <= pickCount ? b : best, 12);
+  const [expQB, expRB, expWR, expTE] = DRIFT_EXPECTED[bracket];
+  // Scale expected to actual pick count (linear interpolation between brackets)
+  const scale = pickCount / bracket;
+  const expected = {
+    QB: expQB * scale,
+    RB: expRB * scale,
+    WR: expWR * scale,
+    TE: expTE * scale,
+  };
+
+  const drift = {
+    QB: actual.QB - expected.QB,
+    RB: actual.RB - expected.RB,
+    WR: actual.WR - expected.WR,
+    TE: actual.TE - expected.TE,
+  };
+
+  const strategy = STATE.strategy || 'bpa';
+  let toStrategy = null;
+  let reason = null;
+
+  if (drift.WR >= 3 && (strategy === 'zero_rb' || strategy === 'bpa')) {
+    toStrategy = 'hero_rb';
+    reason = `${actual.WR} WRs taken in first ${pickCount} picks — WR supply compressed, RBs now at relative value`;
+  } else if (drift.WR >= 4 && strategy === 'hero_rb') {
+    toStrategy = 'robust_rb';
+    reason = `${actual.WR} WRs gone early — more RBs still available, load up while supply lasts`;
+  } else if (drift.RB >= 3 && strategy === 'robust_rb') {
+    toStrategy = 'zero_rb';
+    reason = `${actual.RB} RBs off the board in ${pickCount} picks — pivot WR-heavy while value remains`;
+  } else if (drift.RB >= 4 && strategy === 'bpa') {
+    toStrategy = 'zero_rb';
+    reason = `RBs running ${Math.round(drift.RB)} ahead of pace — scarce supply, consider going WR-heavy`;
+  }
+
+  if (!toStrategy || toStrategy === strategy) return null;
+  if (already && already.toStrategy === toStrategy) return null; // don't re-fire same rec
+
+  return { fromStrategy: strategy, toStrategy, reason };
+}
+
+const STRATEGY_LABELS = { bpa: 'BPA', zero_rb: 'Zero RB', hero_rb: 'Hero RB', robust_rb: 'Robust RB' };
+
+function applyDriftSuggestion(strategy) {
+  setStrategy(strategy);
+  STATE.driftSuggestion = null;
+  const el = document.getElementById('drift-callout');
+  if (el) el.remove();
+}
+
+function dismissDrift() {
+  STATE.driftDismissedAt = STATE.lastPickCount;
+  STATE.driftSuggestion = null;
+  const el = document.getElementById('drift-callout');
+  if (el) el.remove();
+}
+
+// ===== RECOMMENDATIONS =====
+
 function renderRecommendations() {
   const container = document.getElementById('recommendations');
   const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
@@ -6141,6 +6255,23 @@ function renderRecommendations() {
   const danger = getDangerAlert();
 
   let html = '';
+
+  // Adaptive drift callout
+  if (STATE.driftSuggestion) {
+    const ds = STATE.driftSuggestion;
+    const label = STRATEGY_LABELS[ds.toStrategy] || ds.toStrategy;
+    html += `<div class="drift-callout" id="drift-callout">
+      <div class="drift-icon">📊</div>
+      <div class="drift-body">
+        <div class="drift-title">Board shift detected</div>
+        <div class="drift-reason">${escHtml(ds.reason)}</div>
+        <div class="drift-action">
+          <button onclick="applyDriftSuggestion('${escAttr(ds.toStrategy)}')">Switch to ${escHtml(label)}</button>
+          <button onclick="dismissDrift()">Ignore</button>
+        </div>
+      </div>
+    </div>`;
+  }
 
   if (STATE.isSuperflex) {
     html += `<div class="recs-sf-note" style="font-size:0.65rem;color:#a78bfa;margin-bottom:0.5rem;font-weight:600;letter-spacing:0.04em;">SUPERFLEX — QB value elevated</div>`;
@@ -7336,6 +7467,10 @@ function processNewPicks(picks, silent = false) {
 
   STATE.lastPickCount = picks.reduce((m, p) => Math.max(m, p.pick_no || 0), STATE.lastPickCount);
   invalidateScoreCache(); // picks changed → scores stale
+
+  // Adaptive strategy drift — update suggestion after each pick batch
+  const drift = analyzeDraftDrift();
+  if (drift) STATE.driftSuggestion = drift;
 
   // ── Update UI ──────────────────────────────────────────────────────────
   // Companion popup mode has its own compact render path and never shows the
