@@ -2906,7 +2906,67 @@
 
     /* Research rows: hide Team and Rank columns on narrow screens */
     .rsch-col-team, .rsch-col-rank { display: none; }
+
+    /* ── Sleeper-style mobile RECS ─────────────────────────────────────── */
+
+    /* Hide old big rec cards on mobile — replaced by compact row list */
+    #recommendations .rec-card { display: none; }
+    #recommendations .recs-sf-note { display: none; }
+    #recommendations .drift-callout { display: none; }
+    #recommendations .recs-watchlist { display: none; }
+
+    /* Position filter header */
+    .m-pick-header { position: sticky; top: 0; z-index: 10; background: var(--bg-primary); padding-top: 0.25rem; }
+    .m-pos-filters { display: flex; gap: 0.4rem; padding: 0.4rem 1rem 0.5rem; overflow-x: auto; scrollbar-width: none; }
+    .m-pos-filters::-webkit-scrollbar { display: none; }
+    .m-pos-btn { padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: none; color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .m-pos-btn.active { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+    /* Player rows */
+    .m-player-list { display: block; }
+    .m-player-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .m-player-row:active { background: rgba(255,255,255,0.06); }
+    .m-player-row.m-row-rec { background: rgba(255,255,255,0.03); }
+
+    /* Position dot (circle badge) */
+    .m-pos-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+    .m-pos-dot.pos-RB { background: rgba(16,185,129,0.2); color: #10b981; }
+    .m-pos-dot.pos-WR { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .m-pos-dot.pos-QB { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .m-pos-dot.pos-TE { background: rgba(168,85,247,0.2); color: #a855f7; }
+    .m-pos-dot.pos-K  { background: rgba(107,114,128,0.2); color: #9ca3af; }
+    .m-pos-dot.pos-DST, .m-pos-dot.pos-DEF { background: rgba(107,114,128,0.2); color: #9ca3af; }
+
+    /* Row content */
+    .m-row-info { flex: 1; min-width: 0; }
+    .m-row-name { display: block; font-size: 0.95rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .m-row-meta { display: block; font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.05rem; }
+    .m-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; flex-shrink: 0; }
+    .m-row-vorp { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.6); }
+    .m-row-rec-star { font-size: 0.65rem; color: #fbbf24; }
+
+    /* ── End Sleeper-style mobile RECS ──────────────────────────────────── */
   }
+
+  /* Bottom sheet — fixed overlay; only opened from mobile player rows */
+  .m-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s; display: flex; align-items: flex-end; }
+  .m-sheet-overlay.open { opacity: 1; pointer-events: all; }
+  .m-sheet { background: #1a1a1a; border-radius: 20px 20px 0 0; padding: 1rem 1.25rem 2rem; width: 100%; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); }
+  .m-sheet-overlay.open .m-sheet { transform: translateY(0); }
+  .m-sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 0 auto 1.25rem; }
+  .m-sheet-pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.6rem; }
+  .m-sheet-name { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+  .m-sheet-meta { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 0.75rem; }
+  .m-sheet-stats { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .m-sheet-vorp, .m-sheet-survive { font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 6px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); }
+  .m-sheet-insight { font-size: 0.82rem; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 1.25rem; line-height: 1.4; }
+  .m-sheet-draft-btn { width: 100%; padding: 0.85rem; border-radius: 10px; background: rgba(52,211,153,0.15); border: 1.5px solid rgba(52,211,153,0.5); color: #34d399; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 0.5rem; display: block; }
+  .m-sheet-draft-btn:disabled { opacity: 0.4; cursor: default; }
+  .m-sheet-cancel { width: 100%; padding: 0.65rem; border-radius: 10px; background: none; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.35); font-size: 0.85rem; cursor: pointer; font-family: inherit; display: block; }
+
+  /* Hide mobile list on desktop */
+  @media (min-width: 769px) { .m-player-list { display: none !important; } }
+
   .drift-callout {
     display: flex; gap: 0.6rem; align-items: flex-start;
     padding: 0.7rem 0.85rem; border-radius: 10px; margin-bottom: 0.6rem;
@@ -6414,6 +6474,120 @@ function dismissDrift() {
 
 // ===== RECOMMENDATIONS =====
 
+// ===== MOBILE RECS (Sleeper-style) =====
+
+window._mobilePosFilter = 'ALL';
+let _sheetPlayer = null;
+
+function setMobilePosFilter(pos) {
+  window._mobilePosFilter = pos;
+  document.querySelectorAll('.m-pos-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.pos === pos);
+  });
+  renderRecommendations();
+}
+
+function openPlayerSheet(player) {
+  _sheetPlayer = player;
+  const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
+  const available = STATE.mergedPlayers.filter(p => {
+    const id = p.sleeper_id || p.player_id || p.name;
+    return !draftedSet.has(id) && !isDND(p.name);
+  });
+  const vor = calcVOR(player, available);
+  const ctx = buildScoringContext(available);
+  const survPct = Math.round(calcSurvivalProbability(player, ctx.decisionPick) * 100);
+  const parts = computeScoreBreakdown(player, ctx, available);
+  const why = generateWhyText(player, available, parts, ctx);
+
+  const badge = document.getElementById('m-sheet-pos-badge');
+  badge.textContent = player.position;
+  badge.className = 'm-sheet-pos-badge m-pos-dot pos-' + (player.position || '');
+
+  document.getElementById('m-sheet-name').textContent = player.name;
+  document.getElementById('m-sheet-meta').textContent = [
+    player.team || 'FA',
+    player.bye ? `Bye ${player.bye}` : '',
+    player.rank ? `ADP #${player.rank}` : ''
+  ].filter(Boolean).join(' · ');
+  document.getElementById('m-sheet-vorp').textContent = `VORP ${vor >= 0 ? '+' : ''}${vor.toFixed(0)}`;
+  document.getElementById('m-sheet-survive').textContent = `${survPct}% survive`;
+  document.getElementById('m-sheet-insight').textContent = why || '';
+
+  const draftBtn = document.getElementById('m-sheet-draft-btn');
+  const lastName = player.name.split(' ').slice(-1)[0];
+  draftBtn.textContent = `Draft ${lastName}`;
+  draftBtn.disabled = !(MOCK.active && MOCK.waitingForUser);
+
+  document.getElementById('m-player-sheet').classList.add('open');
+}
+
+function closePlayerSheet() {
+  document.getElementById('m-player-sheet').classList.remove('open');
+  _sheetPlayer = null;
+}
+
+function confirmDraft() {
+  if (_sheetPlayer && MOCK.active && MOCK.waitingForUser) {
+    mockUserPick(_sheetPlayer);
+    closePlayerSheet();
+  }
+}
+
+function _renderMobileRecs(container, scored, top5, available, ctx) {
+  const posFilter = window._mobilePosFilter || 'ALL';
+  const topIds = new Set(top5.map(t => {
+    const p = t.player;
+    return p.sleeper_id || p.player_id || p.name;
+  }));
+
+  // Build list: top recs first (with star), then remaining scored players
+  const displayList = [];
+  top5.forEach(item => {
+    if (posFilter === 'ALL' || item.player.position === posFilter) {
+      displayList.push({ ...item, isRec: true });
+    }
+  });
+  scored.forEach(item => {
+    const p = item.player;
+    const id = p.sleeper_id || p.player_id || p.name;
+    if (topIds.has(id)) return;
+    if (posFilter !== 'ALL' && p.position !== posFilter) return;
+    displayList.push({ ...item, isRec: false });
+  });
+  const shown = displayList.slice(0, 30);
+
+  const pos = ['ALL','QB','RB','WR','TE','K','DEF'];
+  let html = `<div class="m-pick-header"><div class="m-pos-filters">`;
+  pos.forEach(p => {
+    html += `<button class="m-pos-btn${posFilter === p ? ' active' : ''}" data-pos="${p}" onclick="setMobilePosFilter('${p}')">${p}</button>`;
+  });
+  html += `</div></div><div class="m-player-list">`;
+
+  if (shown.length === 0) {
+    html += `<div style="padding:2rem 1rem;text-align:center;color:rgba(255,255,255,0.3);font-size:0.85rem;">No players available</div>`;
+  } else {
+    shown.forEach(item => {
+      const p = item.player;
+      const vor = calcVOR(p, available);
+      const vorStr = (vor >= 0 ? '+' : '') + vor.toFixed(0);
+      html += `<div class="m-player-row${item.isRec ? ' m-row-rec' : ''}" onclick="openPlayerSheet(${escAttr(JSON.stringify(p))})">
+        <div class="m-pos-dot pos-${escAttr(p.position)}">${escHtml(p.position)}</div>
+        <div class="m-row-info">
+          <span class="m-row-name">${escHtml(p.name)}</span>
+          <span class="m-row-meta">${escHtml(p.team || 'FA')}${p.bye ? ` · Bye ${p.bye}` : ''}${p.rank ? ` · ADP #${p.rank}` : ''}</span>
+        </div>
+        <div class="m-row-right">
+          <span class="m-row-vorp">${escHtml(vorStr)}</span>
+          ${item.isRec ? '<span class="m-row-rec-star">★ Rec</span>' : ''}
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 function renderRecommendations() {
   const container = document.getElementById('recommendations');
   const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
@@ -6473,6 +6647,12 @@ function renderRecommendations() {
     ? uncapped
     : uncapped.concat(scored.filter(s => isFinite(s.score) && s.parts.capped));
   const top5 = recPool.slice(0, 5);
+
+  // Mobile: render Sleeper-style compact list instead of big rec cards
+  if (window.innerWidth <= 768) {
+    _renderMobileRecs(container, scored, top5, available, ctx);
+    return;
+  }
 
   // Bye week conflict check — warn if drafting this player creates a bye-heavy week
   function getByeConflictNote(topPick, rosterPlayers) {
@@ -10758,5 +10938,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 </script>
+
+<!-- Mobile player bottom sheet -->
+<div id="m-player-sheet" class="m-sheet-overlay" onclick="closePlayerSheet()">
+  <div class="m-sheet" onclick="event.stopPropagation()">
+    <div class="m-sheet-handle"></div>
+    <div id="m-sheet-pos-badge" class="m-sheet-pos-badge"></div>
+    <div id="m-sheet-name" class="m-sheet-name"></div>
+    <div id="m-sheet-meta" class="m-sheet-meta"></div>
+    <div class="m-sheet-stats">
+      <span id="m-sheet-vorp" class="m-sheet-vorp"></span>
+      <span id="m-sheet-survive" class="m-sheet-survive"></span>
+    </div>
+    <div id="m-sheet-insight" class="m-sheet-insight"></div>
+    <button class="m-sheet-draft-btn" id="m-sheet-draft-btn" onclick="confirmDraft()"></button>
+    <button class="m-sheet-cancel" onclick="closePlayerSheet()">Cancel</button>
+  </div>
+</div>
 </body>
 </html>
