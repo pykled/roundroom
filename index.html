@@ -2946,6 +2946,133 @@
     .m-row-rec-star { font-size: 0.65rem; color: #fbbf24; }
 
     /* ── End Sleeper-style mobile RECS ──────────────────────────────────── */
+
+    /* ── Sleeper-style mobile draft header ───────────────────────────────── */
+
+    /* Hide old banners replaced by m-draft-header on mobile during mock */
+    body.mock-draft-active #your-pick-banner,
+    body.user-pick-active #your-pick-banner { display: none !important; }
+    body.mock-draft-active .mock-banner { display: none !important; }
+    body.mock-draft-active .pick-counter { display: none !important; }
+    body.mock-draft-active .draft-subtitle { display: none !important; }
+
+    /* During mock: panel-recs becomes a flex column so header is outside scroll */
+    body.mock-draft-active #panel-recs {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    body.mock-draft-active #panel-recs .m-panel-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+    }
+    /* Default panel scroll: normal block, inherits panel's own overflow */
+    .m-panel-scroll { display: block; }
+
+    /* New draft header */
+    .m-draft-header {
+      display: none;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      background: #111;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+      gap: 0.5rem;
+    }
+    .m-draft-header.active { display: flex; }
+    .m-draft-round {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      flex-shrink: 0;
+    }
+    .m-clock-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #34d399;
+      flex: 1;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .m-clock-badge.visible { opacity: 1; }
+    .m-clock-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      animation: clock-pulse 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes clock-pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+    .m-draft-controls {
+      display: flex;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+    .m-draft-controls button {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.9rem;
+      padding: 0.2rem 0.3rem;
+      cursor: pointer;
+    }
+
+    /* Recent picks strip */
+    .m-recent-picks {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: #0d0d0d;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .m-recent-picks::-webkit-scrollbar { display: none; }
+    .m-recent-picks:empty { display: none; }
+    .m-recent-pick {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+    }
+    .m-pick-pos {
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+    }
+    .m-pick-pos.pos-WR { background: rgba(96,165,250,0.2); color: #60a5fa; }
+    .m-pick-pos.pos-RB { background: rgba(52,211,153,0.2); color: #34d399; }
+    .m-pick-pos.pos-QB { background: rgba(248,113,113,0.2); color: #f87171; }
+    .m-pick-pos.pos-TE { background: rgba(251,146,60,0.2); color: #fb923c; }
+    .m-pick-pos.pos-K  { background: rgba(107,114,128,0.2); color: #9ca3af; }
+    .m-pick-pos.pos-DEF, .m-pick-pos.pos-DST { background: rgba(107,114,128,0.2); color: #9ca3af; }
+    .m-pick-name {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.6);
+      white-space: nowrap;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── End Sleeper-style mobile draft header ──────────────────────────── */
   }
 
   /* Bottom sheet — fixed overlay; only opened from mobile player rows */
@@ -3255,12 +3382,29 @@
 
     <!-- RIGHT: Recommendations -->
     <div class="panel panel-right" id="panel-recs">
-      <div class="panel-title">Recommendations</div>
-      <div id="recommendations"></div>
+      <!-- Mobile draft header (shown during mock draft only) -->
+      <div class="m-draft-header" id="m-draft-header">
+        <div class="m-draft-round" id="m-draft-round">Round 1 · Pick 1</div>
+        <div class="m-clock-badge" id="m-clock-badge">
+          <span class="m-clock-dot"></span>
+          ON THE CLOCK
+        </div>
+        <div class="m-draft-controls">
+          <button onclick="MOCK.fastForward=!MOCK.fastForward;" title="Fast-forward">⏩</button>
+          <button onclick="resetMockDraft()" title="Reset">↺</button>
+        </div>
+      </div>
+      <!-- Mobile recent picks strip (shown during mock draft only) -->
+      <div class="m-recent-picks" id="m-recent-picks"></div>
+      <!-- Scrollable content area (flex child in mock mode) -->
+      <div class="m-panel-scroll">
+        <div class="panel-title">Recommendations</div>
+        <div id="recommendations"></div>
 
-      <hr class="section-divider">
-      <div class="panel-title">Your Picks (Snake)</div>
-      <div id="my-picks-schedule" style="font-size:0.75rem; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
+        <hr class="section-divider">
+        <div class="panel-title">Your Picks (Snake)</div>
+        <div id="my-picks-schedule" style="font-size:0.75rem; color:var(--text-secondary); display:flex; flex-wrap:wrap; gap:0.3rem;"></div>
+      </div>
     </div>
 
 
@@ -3915,6 +4059,8 @@ function startMockDraft() {
   }
 
   document.getElementById('mock-banner').classList.remove('hidden');
+  document.body.classList.add('mock-draft-active');
+  document.getElementById('m-draft-header')?.classList.add('active');
   showToast('⚡ Mock draft started! Simulating picks...', false);
 
   initMockBroadcastChannel(); // listen for companion request_state from moment mock begins
@@ -4028,10 +4174,13 @@ function advanceMockDraft() {
   const round = Math.ceil(MOCK.currentPick / _teams);
   const teamNum = getTeamForMockPick(MOCK.currentPick, _teams);
   document.getElementById('mock-banner-round').textContent = `Round ${round} · Pick ${MOCK.currentPick}`;
+  const _mDraftRound = document.getElementById('m-draft-round');
+  if (_mDraftRound) _mDraftRound.textContent = `Round ${round} · Pick ${MOCK.currentPick}`;
 
   if (isMyPick) {
     MOCK.waitingForUser = true;
     document.body.classList.add('user-pick-active');
+    document.getElementById('m-clock-badge')?.classList.add('visible');
     document.getElementById('your-pick-banner').style.display = 'block';
     const pbr = document.getElementById('pick-banner-round');
     if (pbr) pbr.textContent = ` · R${round}P${MOCK.currentPick}`;
@@ -4061,6 +4210,7 @@ function advanceMockDraft() {
       MOCK.draftedIds.add(picked.player_id || picked.name);
       if (MOCK.teamRosters[teamNum]) MOCK.teamRosters[teamNum][picked.position] = (MOCK.teamRosters[teamNum][picked.position] || 0) + 1;
 
+      renderRecentPicks();
       renderBoard();
       if (document.getElementById('draft-board-overlay').style.display !== 'none') renderDraftBoard();
       if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
@@ -4076,6 +4226,7 @@ function mockUserPick(player) {
 
   MOCK.waitingForUser = false;
   document.body.classList.remove('user-pick-active');
+  document.getElementById('m-clock-badge')?.classList.remove('visible');
   document.getElementById('your-pick-banner').style.display = 'none';
 
   const _mt = STATE.totalTeams || 12;
@@ -4084,6 +4235,7 @@ function mockUserPick(player) {
   addToMyRoster(player);
 
   showToast(`✅ Mock pick: ${player.name}`, true);
+  renderRecentPicks();
   renderBoard();
   renderRosterSlots();
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
@@ -4148,6 +4300,10 @@ function endMockDraft() {
   stopMockHeartbeat();
   if (MOCK.timer) clearTimeout(MOCK.timer);
   document.getElementById('mock-banner').classList.add('hidden');
+  document.body.classList.remove('mock-draft-active');
+  document.getElementById('m-draft-header')?.classList.remove('active');
+  document.getElementById('m-clock-badge')?.classList.remove('visible');
+  document.getElementById('m-recent-picks') && (document.getElementById('m-recent-picks').innerHTML = '');
 
   const myPicks = MOCK.picks.filter(p => p.isUser).map(p => p.player);
 
@@ -4213,11 +4369,15 @@ function resetMockDraft() {
   MOCK.currentPick = 0;
   MOCK.waitingForUser = false;
   document.body.classList.remove('user-pick-active');
+  document.body.classList.remove('mock-draft-active');
   STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
   document.getElementById('mock-banner').classList.add('hidden');
   document.getElementById('mock-results-overlay').style.display = 'none';
   document.getElementById('draft-board-overlay').style.display = 'none';
   document.getElementById('your-pick-banner').style.display = 'none';
+  document.getElementById('m-draft-header')?.classList.remove('active');
+  document.getElementById('m-clock-badge')?.classList.remove('visible');
+  document.getElementById('m-recent-picks') && (document.getElementById('m-recent-picks').innerHTML = '');
   renderBoard();
   renderRosterSlots();
   showToast('Mock draft reset', false);
@@ -6588,6 +6748,22 @@ function _renderMobileRecs(container, scored, top5, available, ctx) {
   container.innerHTML = html;
 }
 
+function renderRecentPicks() {
+  if (!MOCK.active) return;
+  const el = document.getElementById('m-recent-picks');
+  if (!el) return;
+  const picks = MOCK.picks.slice(-8).reverse();
+  if (picks.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = picks.map(pick => {
+    const pos = pick.player.position || '';
+    const posClass = pos === 'DST' ? 'DEF' : pos;
+    return `<div class="m-recent-pick">` +
+      `<span class="m-pick-pos pos-${escAttr(posClass)}">${escHtml(pos || '?')}</span>` +
+      `<span class="m-pick-name">${escHtml(pick.player.name)}</span>` +
+      `</div>`;
+  }).join('');
+}
+
 function renderRecommendations() {
   const container = document.getElementById('recommendations');
   const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
@@ -6921,6 +7097,10 @@ function goHome() {
   STATE.scoringType = 'ppr';
   STATE.isCompanion = false;
   document.body.classList.remove('companion-mode');
+  document.body.classList.remove('mock-draft-active');
+  document.getElementById('m-draft-header')?.classList.remove('active');
+  document.getElementById('m-clock-badge')?.classList.remove('visible');
+  document.getElementById('m-recent-picks') && (document.getElementById('m-recent-picks').innerHTML = '');
   STATE.rosterConfig = null;
   STATE.mySlot = 1;
   STATE.totalTeams = 12;
