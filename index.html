@@ -1476,6 +1476,27 @@
   }
   .rec-top-pick-label { display: none; }
 
+  .rec-draft-btn {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    background: none;
+    font-family: inherit;
+    width: 100%;
+    margin-top: 0.5rem;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .rec-draft-btn:hover { opacity: 0.8; }
+  .rec-draft-btn-primary {
+    background: rgba(52,211,153,0.15);
+    border: 1px solid rgba(52,211,153,0.5);
+    color: #34d399;
+  }
+
   .rec-rank {
     font-size: 0.7rem;
     font-weight: 800;
@@ -2636,8 +2657,12 @@
     /* Pos filter wraps */
     .pos-filter { flex-wrap: wrap; gap: 0.25rem; }
 
-    /* Mock banner smaller */
+    /* Mock banner smaller — hide button labels, show icons only */
     .mock-banner { font-size: 0.75rem; padding: 0.35rem 0.75rem; gap: 0.4rem; }
+    .mock-banner .mock-label { display: none; }
+
+    /* Hide strategy bar when it's the user's pick — rec cards are the focus */
+    body.user-pick-active .strategy-bar { display: none; }
 
     /* Setup screen */
     #setup-screen { padding: 1rem; }
@@ -2916,9 +2941,9 @@
   <!-- Mock draft banner -->
   <div id="mock-banner" class="mock-banner hidden">
     ⚡ MOCK DRAFT IN PROGRESS — <span id="mock-banner-round">Round 1</span>
-    <button onclick="MOCK.fastForward = !MOCK.fastForward; this.textContent = MOCK.fastForward ? '⏩ FF On' : '⏩ Fast-forward'; this.style.opacity = MOCK.fastForward ? '1' : '0.6';" style="padding:0.25rem 0.6rem;font-size:0.7rem;border:1px solid var(--border);background:none;color:var(--text-muted);border-radius:5px;cursor:pointer;font-family:inherit;opacity:0.6;">⏩ Fast-forward</button>
-    <button class="btn btn-ghost btn-sm" onclick="toggleDraftBoard()" style="font-size:0.7rem;">View Board</button>
-    <button class="btn btn-ghost btn-sm" onclick="resetMockDraft()" style="font-size:0.7rem;">Reset</button>
+    <button onclick="MOCK.fastForward = !MOCK.fastForward; this.querySelector('.mock-label').textContent = MOCK.fastForward ? ' FF On' : ' Fast-forward'; this.style.opacity = MOCK.fastForward ? '1' : '0.6';" style="padding:0.25rem 0.6rem;font-size:0.7rem;border:1px solid var(--border);background:none;color:var(--text-muted);border-radius:5px;cursor:pointer;font-family:inherit;opacity:0.6;">⏩<span class="mock-label"> Fast-forward</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="toggleDraftBoard()" style="font-size:0.7rem;">📋<span class="mock-label"> Board</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="resetMockDraft()" style="font-size:0.7rem;">↺<span class="mock-label"> Reset</span></button>
   </div>
 
   <!-- Your pick banner -->
@@ -3740,6 +3765,7 @@ function advanceMockDraft() {
 
   if (isMyPick) {
     MOCK.waitingForUser = true;
+    document.body.classList.add('user-pick-active');
     document.getElementById('your-pick-banner').style.display = 'block';
     showToast(`🎯 MOCK — Your pick! (#${MOCK.currentPick})`, true);
     if (window.innerWidth <= 768) showMobileTab('recs');
@@ -3781,6 +3807,7 @@ function mockUserPick(player) {
   if (MOCK.draftedIds.has(player.player_id || player.name)) return;
 
   MOCK.waitingForUser = false;
+  document.body.classList.remove('user-pick-active');
   document.getElementById('your-pick-banner').style.display = 'none';
 
   const _mt = STATE.totalTeams || 12;
@@ -3917,6 +3944,7 @@ function resetMockDraft() {
   MOCK.draftedIds = new Set();
   MOCK.currentPick = 0;
   MOCK.waitingForUser = false;
+  document.body.classList.remove('user-pick-active');
   STATE.rosterSlots = { QB:null,RB1:null,RB2:null,WR1:null,WR2:null,TE:null,FLEX:null,K:null,DST:null,BN1:null,BN2:null,BN3:null,BN4:null,BN5:null };
   document.getElementById('mock-banner').classList.add('hidden');
   document.getElementById('mock-results-overlay').style.display = 'none';
@@ -6307,6 +6335,7 @@ function renderRecommendations() {
           ${STATE.isPrepMode ? '' : `<span class="survival-pct ${survClass}" title="Probability this player is still available when your next pick comes">${survPct}% survive</span>`}
         </div>
       </div>
+      ${MOCK.waitingForUser ? `<button class="rec-draft-btn${isTopCard ? ' rec-draft-btn-primary' : ''}" onclick="event.stopPropagation();mockUserPick(${escAttr(JSON.stringify(p))})">Draft →</button>` : ''}
     </div>`;
   });
 
@@ -6478,6 +6507,7 @@ function goHome() {
   MOCK.draftedIds = new Set();
   MOCK.currentPick = 0;
   MOCK.waitingForUser = false;
+  document.body.classList.remove('user-pick-active');
   STATE.isMockMode = false;
   STATE.isPrepMode = false;
   document.getElementById('app-screen').classList.remove('prep-mode');
