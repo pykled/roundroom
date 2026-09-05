@@ -6677,12 +6677,10 @@ function getStrategyWeight(player, ctx) {
     }
   } else { // bpa (default)
     if (pos === 'QB') {
-      // First QB: suppressed early, ramps through the realistic QB window (~R6-8),
-      // then slightly boosted so BPA teams never limp to R9-10 without one.
-      if (qbCount >= 1)         w = 0.3;
-      else if (effRound <= 5)   w = 0.45;
-      else if (effRound <= 8)   w = 0.9;
-      else                      w = 1.15;
+      // BPA = pure VORP — first QB is never suppressed. Josh Allen at VORP 110
+      // beats any WR at VORP < 110, in any round. Only de-prioritize a backup QB
+      // (standard leagues start one QB; a second is deadweight on the roster).
+      if (qbCount >= 1) w = 0.3;
     } else if (pos === 'TE' && teCount >= 1) w = 0.25;
   }
 
