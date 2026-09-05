@@ -15,6 +15,11 @@ let playerCache = null;
 let playerCacheTime = 0;
 const PLAYER_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+// In-memory live injury cache — refreshed every 4 hours from Sleeper.
+// Falls back to data/injuries.json when Sleeper is unreachable.
+let liveInjuryCache = { data: null, lastFetch: 0 };
+const INJURY_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
+
 // Data files only change on deploy (GHA commits → Railway redeploys), so a
 // 1-hour TTL is just a safety net against long-lived containers going stale.
 const FILE_CACHE_TTL = 60 * 60 * 1000;
@@ -173,12 +178,65 @@ app.get('/api/data-freshness', (req, res) => {
   }
 });
 
-// Injury roster — updated every 2h by GH Actions (fetch-injuries.js).
-// Keyed by player name (lowercase) for fast client-side lookup.
-app.get('/api/injuries', (req, res) => {
+// Fetch live injury data from Sleeper. Reuses playerCache when still fresh to
+// avoid a duplicate fetch of the large payload. Returns null on failure.
+const SKILL_POS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
+async function fetchLiveInjuries() {
+  const now = Date.now();
+  try {
+    let base = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL ? playerCache : null;
+    if (!base) {
+      const r = await fetch('https://api.sleeper.app/v1/players/nfl', {
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) throw new Error(`Sleeper ${r.status}`);
+      base = await r.json();
+      playerCache = base;
+      playerCacheTime = now;
+    }
+    const byName = {};
+    for (const p of Object.values(base)) {
+      if (!p || !p.full_name || !p.injury_status) continue;
+      if (!SKILL_POS.has(p.position)) continue;
+      // Prefer injury_notes field; fall back to first news item analysis/content
+      let note = p.injury_notes || null;
+      if (!note && Array.isArray(p.news) && p.news.length > 0) {
+        const first = p.news[0] || {};
+        const text = first.analysis || first.content;
+        if (text) note = String(text).slice(0, 200);
+      }
+      byName[p.full_name.toLowerCase()] = {
+        name: p.full_name,
+        status: p.injury_status,
+        body_part: p.injury_body_part || null,
+        note,
+        start_date: p.injury_start_date || null,
+      };
+    }
+    liveInjuryCache = { data: byName, lastFetch: now };
+    console.log(`Injury cache refreshed: ${Object.keys(byName).length} injured players`);
+    return byName;
+  } catch (err) {
+    console.error('fetchLiveInjuries error:', err.message);
+    return null;
+  }
+}
+
+// Injury data — served from the live Sleeper cache (4h TTL).
+// Falls back to data/injuries.json (updated every 2h by GH Actions) when Sleeper is unreachable.
+// Response is keyed by lowercase player name for O(1) client-side lookup.
+app.get('/api/injuries', async (req, res) => {
+  const now = Date.now();
+  if (liveInjuryCache.data && now - liveInjuryCache.lastFetch < INJURY_CACHE_TTL) {
+    return res.json({ fetched_at: new Date(liveInjuryCache.lastFetch).toISOString(), players: liveInjuryCache.data });
+  }
+  const live = await fetchLiveInjuries();
+  if (live) {
+    return res.json({ fetched_at: new Date(liveInjuryCache.lastFetch).toISOString(), players: live });
+  }
+  // Static file fallback
   try {
     const raw = readDataFile('injuries.json');
-    // Index by lowercase name so client can do O(1) lookup
     const byName = {};
     for (const p of (raw.players || [])) {
       if (p.name) byName[p.name.toLowerCase()] = p;
@@ -639,6 +697,13 @@ app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// Warm injury cache on startup so the first request is fast, then refresh every 4h
+fetchLiveInjuries().catch(err => console.error('Startup injury fetch failed:', err.message));
+setInterval(
+  () => fetchLiveInjuries().catch(err => console.error('Injury refresh failed:', err.message)),
+  INJURY_CACHE_TTL
+).unref();
 
 const server = app.listen(PORT, () => {
   console.log(`Fantasy Draft Assistant running on port ${PORT}`);

@@ -3961,6 +3961,7 @@ const STATE = {
   isMockMode: false,   // standalone mock draft (no Sleeper sync)
   isPrepMode: false,   // pre-draft prep: full draft UI, no Sleeper, no draft
   vorpData: {},        // live VORP from /api/vorp, keyed by lowercase name
+  injuryData: {},      // live injury data from /api/injuries, keyed by lowercase name
   // ===== Draft Review Room state =====
   reviewDraft: null,
   reviewPicks: null,
@@ -10551,6 +10552,20 @@ function closeResearchProfile() {
   RESEARCH.profileName = null;
 }
 
+async function loadInjuryData() {
+  try {
+    const resp = await fetch('/api/injuries');
+    if (!resp.ok) return;
+    const json = await resp.json();
+    STATE.injuryData = json.players || {};
+  } catch (e) {}
+}
+
+function getInjuryForPlayer(name) {
+  if (!name || !STATE.injuryData) return null;
+  return STATE.injuryData[name.toLowerCase()] || null;
+}
+
 function getInjuryRisk(injuryStatus) {
   const s = String(injuryStatus || '').toLowerCase();
   if (['ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
@@ -10769,17 +10784,34 @@ function renderResearchProfile(bodyId, barId) {
   }
 
   // ── Injury health card ──
-  if (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy') {
-    const risk = getInjuryRisk(p.injury_status);
-    const timeline = injuryTimeline(p.injury_status);
+  // Live data from /api/injuries takes priority; falls back to player object fields
+  const liveInj = getInjuryForPlayer(p.name);
+  const injStatus = (liveInj && liveInj.status) ||
+    (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy' ? p.injury_status : null);
+  if (injStatus) {
+    const risk = getInjuryRisk(injStatus);
+    const timeline = injuryTimeline(injStatus);
+    const bodyPart = (liveInj && liveInj.body_part) || null;
+    const note = (liveInj && liveInj.note) || p.injury_note || null;
+    let reportedStr = null;
+    if (liveInj && liveInj.start_date) {
+      try {
+        const d = new Date(liveInj.start_date);
+        reportedStr = 'Reported: ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      } catch (e) {}
+    }
     html += `<div class="rsch-health-card" style="background:${risk.bg};border-color:${risk.border};">
       <div class="rsch-health-row">
         <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Health</span>
-        <span class="rsch-health-chip" style="color:${risk.col};border-color:${risk.border};background:${risk.bg};">⚠ ${escHtml(p.injury_status)}</span>
-        <span style="margin-left:auto;font-size:0.62rem;font-weight:700;color:${risk.col};">${risk.label}</span>
+        <span class="rsch-health-chip" style="color:${risk.col};border-color:${risk.border};background:${risk.bg};">⚠ ${escHtml(injStatus)}</span>
+        ${bodyPart ? `<span style="font-size:0.65rem;color:var(--text-secondary);font-weight:500;">${escHtml(bodyPart)}</span>` : ''}
+        <span style="margin-left:auto;font-size:0.6rem;font-weight:700;color:${risk.col};">${risk.label}</span>
       </div>
-      ${p.injury_note ? `<div class="rsch-health-note">${escHtml(p.injury_note)}</div>` : ''}
-      ${timeline ? `<div class="rsch-health-timeline">${timeline}</div>` : ''}
+      ${note ? `<div class="rsch-health-note">${escHtml(note)}</div>` : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-top:${note ? '0.35rem' : '0.25rem'};">
+        ${timeline ? `<div class="rsch-health-timeline" style="margin-top:0;">${timeline}</div>` : '<div></div>'}
+        ${reportedStr ? `<span style="font-size:0.6rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;">${escHtml(reportedStr)}</span>` : ''}
+      </div>
     </div>`;
   }
 
@@ -11365,6 +11397,7 @@ window.addEventListener('popstate', handleHash);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (location.hash) handleHash();
+  loadInjuryData(); // background load — non-blocking
 });
 </script>
 
