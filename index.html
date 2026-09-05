@@ -10369,9 +10369,14 @@ function trendArrowHtml(p) {
   return '';
 }
 
-// Tiny colored injury-status dot for list rows. Red = out-ish, orange =
-// doubtful, yellow = questionable, gray = anything else (e.g. "NA").
+// Tiny colored injury-status dot for list rows. Red = out-ish / unavailable,
+// orange = doubtful, yellow = questionable, gray = anything else.
 function injuryDotHtml(p) {
+  const liveInj = STATE.injuryData && STATE.injuryData[(p.name || '').toLowerCase()];
+  if (liveInj && liveInj.availabilityStatus) {
+    const label = liveInj.availabilityStatus === 'NA' ? 'Not Available' : liveInj.availabilityStatus;
+    return `<span class="inj-dot" style="color:var(--danger);" title="${escHtml(label)}">●</span>`;
+  }
   if (!p.injury_status) return '';
   const s = String(p.injury_status).toLowerCase();
   let col = 'var(--text-muted)';
