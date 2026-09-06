@@ -2940,12 +2940,24 @@
     .mobile-tab-bar { display: block; }
     .bottom-section { display: none; }
 
-    /* Header: two-row layout on mobile */
+    /* iOS: 100vh is taller than the visible viewport (browser chrome), which
+       pushes the tab bar off-screen and clips panel bottoms. Inline style sets
+       100vh, so this needs !important. */
+    @supports (height: 100dvh) {
+      #app-screen, #research-screen { height: 100dvh !important; }
+    }
+
+    /* Header: two-row layout on mobile.
+       Base rule pins height:40px — with flex-wrap the second row (pick counter)
+       overflowed the box and painted over the strategy bar. Let it grow. */
     .app-header {
       flex-wrap: wrap;
+      height: auto;
+      min-height: 40px;
       padding: 0.4rem 0.75rem;
       gap: 0.3rem 0;
     }
+    .app-header > .header-right-group { gap: 0.5rem !important; }
     /* left group: stays on row 1 */
     .app-header > div:first-child {
       order: 1;
@@ -2976,10 +2988,29 @@
     /* Collapse mock draft button text on mobile */
     #mock-draft-header-btn { font-size: 0.72rem; padding: 0.3rem 0.5rem; }
 
-    /* Strategy bar: wrap, no label */
-    .strategy-bar { padding: 0.35rem 0.75rem; gap: 0.3rem; }
+    /* Strategy bar: single row, horizontal scroll (6 pills don't fit a phone) */
+    .strategy-bar {
+      padding: 0.35rem 0.75rem; gap: 0.3rem;
+      flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
     .strategy-label { display: none; }
-    .strategy-btn { padding: 0.25rem 0.55rem; font-size: 0.72rem; min-height: 36px; }
+    .strategy-btn { padding: 0.25rem 0.55rem; font-size: 0.72rem; min-height: 36px; flex-shrink: 0; }
+
+    /* Players tab controls: search on its own row, position filters scroll
+       horizontally beneath it instead of wrapping beside the search box. */
+    .board-controls { flex-wrap: wrap; gap: 0.4rem; }
+    .board-search { flex: 1 1 100%; min-height: 40px; font-size: 16px; /* 16px stops iOS focus-zoom */ }
+    .board-controls .pos-filter {
+      flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; gap: 0.3rem;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .board-controls .pos-filter::-webkit-scrollbar { display: none; }
+    .pos-btn { flex-shrink: 0; min-height: 32px; padding: 0.3rem 0.7rem; }
+
+    /* Compact the status banners so they don't eat the viewport */
+    .countdown-banner { font-size: 0.75rem; padding: 0.4rem 0.75rem; gap: 0.5rem; flex-wrap: wrap; text-align: center; }
+    .offline-banner { font-size: 0.72rem; padding: 0.35rem 0.75rem; gap: 0.5rem; text-align: left; }
 
     /* 3-column → stacked, tab-driven */
     .main-layout {
@@ -2993,7 +3024,9 @@
       position: absolute;
       inset: 0;
       overflow-y: auto;
-      padding: 0.75rem;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 0.75rem 0.75rem 1.5rem;
     }
 
     .panel.mobile-active {
@@ -3013,19 +3046,17 @@
     #slot-edit-panel {
       left: 0.75rem !important;
       right: 0.75rem !important;
+      top: calc(100% + 4px) !important; /* header is 2 rows on mobile; 48px sat on top of row 2 */
       transform: none !important;
       max-width: unset;
     }
-
-    /* Pos filter wraps */
-    .pos-filter { flex-wrap: wrap; gap: 0.25rem; }
 
     /* Mock banner smaller — hide button labels, show icons only */
     .mock-banner { font-size: 0.75rem; padding: 0.35rem 0.75rem; gap: 0.4rem; }
     .mock-banner .mock-label { display: none; }
 
     /* Hide strategy bar when it's the user's pick — rec cards are the focus */
-    body.user-pick-active .strategy-bar { height: 0; overflow: hidden; padding: 0; transition: height 0.2s ease, padding 0.2s ease; }
+    body.user-pick-active .strategy-bar { height: 0; overflow: hidden; padding: 0; border-bottom: none; transition: height 0.2s ease, padding 0.2s ease; }
 
     /* Attribution bar: always hidden on mobile — too small to be useful */
     #data-attribution { display: none; }
@@ -3323,6 +3354,16 @@
     body.mock-draft-active .mock-banner { display: none !important; }
     body.mock-draft-active .pick-counter { display: none !important; }
     body.mock-draft-active .draft-subtitle { display: none !important; }
+    /* During mock the split layout's slim header already shows round/pick/OTC,
+       so the header's second row is redundant. Hiding it keeps the header a
+       stable single row (it used to toggle between 1 and 2 rows every pick). */
+    body.mock-draft-active .header-pick { display: none !important; }
+    /* Keep the strategy bar visible and stable during a mock — collapsing it
+       on the user's pick made the whole split layout jump each turn. */
+    body.mock-draft-active .strategy-bar {
+      height: auto; padding: 0.35rem 0.75rem; overflow-x: auto; overflow-y: hidden;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
 
     /* During mock: panel-recs becomes a flex column so header is outside scroll */
     body.mock-draft-active #panel-recs {
@@ -3462,7 +3503,9 @@
     border-radius: 20px; padding: 0.2rem 0.55rem;
   }
   .m-otc-chip.visible { display: flex; }
-  .m-slim-gear { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 1rem; cursor: pointer; padding: 0.15rem 0.3rem; flex-shrink: 0; }
+  .m-round-info { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .m-otc-chip { flex-shrink: 0; white-space: nowrap; }
+  .m-slim-gear { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 1rem; cursor: pointer; padding: 0.15rem 0.3rem; flex-shrink: 0; margin-left: auto; min-width: 36px; min-height: 32px; }
 
   .m-board-scroll {
     height: 44vh; flex-shrink: 0;
@@ -3557,7 +3600,7 @@
     flex: 1; display: flex; flex-direction: column;
     overflow: hidden; background: #111;
   }
-  .m-roster-pills { display: flex; gap: 0.35rem; padding: 0.45rem 0.75rem; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
+  .m-roster-pills { display: flex; gap: 0.35rem; padding: 0.45rem 0.75rem; overflow-x: auto; overflow-y: hidden; flex-shrink: 0; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .m-roster-pills::-webkit-scrollbar { display: none; }
   .m-pos-pill {
     display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0;
@@ -3626,9 +3669,17 @@
     .m-pick-cell { width: 110px; }
     .m-board-scroll { height: 60vh; }
   }
-  /* Small phones: narrower pick cells */
+  /* Small phones: header row 1 is crowded — the live dot alone conveys status */
   @media (max-width: 430px) {
-    .m-pick-cell { width: 68px; }
+    #live-label { display: none; }
+  }
+  /* Small phones (SE / 375-390px): 44vh board left almost no room for the
+     player list. Shrink the board and drop the drag hint row.
+     (The old 68px .m-pick-cell override was removed — renderMobileBoard()
+     sets 88px grid tracks, so 68px cells left ragged 20px gaps in every column.) */
+  @media (max-width: 390px) {
+    .m-board-scroll { height: 36vh; }
+    .m-board-drag-hint { display: none; }
   }
   /* Sticky YOU column */
   .m-team-col.m-your-col { position: sticky; right: 0; z-index: 4; }
