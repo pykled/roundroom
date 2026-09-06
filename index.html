@@ -924,18 +924,18 @@
   }
 
   .btn-sm {
-    padding: 0.4rem 0.9rem;
-    font-size: 0.8rem;
-    border-radius: 6px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.72rem;
+    border-radius: 20px;
   }
 
   .btn-ghost {
     background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
   }
 
-  .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
 
   .league-card {
     background: var(--bg-primary);
@@ -1007,9 +1007,10 @@
 
   /* Header */
   .app-header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 0.55rem 1.25rem;
+    background: rgba(10,10,10,0.98);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 0 1.25rem;
+    height: 44px;
     display: flex;
     align-items: center;
     gap: 0;
@@ -1019,35 +1020,37 @@
   }
 
   .header-league {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 220px;
+    max-width: 200px;
+    letter-spacing: -0.01em;
   }
 
   .header-pick {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     flex-shrink: 0;
   }
 
   .pick-counter {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    font-variant-numeric: tabular-nums;
   }
 
-  .pick-counter strong { color: var(--text-primary); font-size: 1rem; }
+  .pick-counter strong { color: rgba(255,255,255,0.75); font-size: 0.78rem; font-weight: 700; }
 
   .your-pick-in {
-    background: rgba(245,158,11,0.15);
-    border: 1px solid rgba(245,158,11,0.3);
-    border-radius: 8px;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.8rem;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 20px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.68rem;
     font-weight: 600;
     color: var(--amber);
     white-space: nowrap;
@@ -1066,9 +1069,9 @@
   .live-indicator {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    gap: 0.35rem;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.25);
     margin-left: auto;
   }
 
@@ -1089,31 +1092,31 @@
 
   /* Strategy buttons */
   .strategy-bar {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.68rem;
+    overflow-x: auto; scrollbar-width: none;
     flex-shrink: 0;
   }
+  .strategy-bar::-webkit-scrollbar { display: none; }
 
-  .strategy-label { font-size: 0.75rem; color: var(--text-muted); margin-right: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .strategy-label { font-size: 0.62rem; color: var(--text-muted); margin-right: 0.15rem; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; flex-shrink: 0; }
 
   .strategy-btn {
-    padding: 0.35rem 0.9rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
+    padding: 0.25rem 0.7rem; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
 
-  .strategy-btn:hover { border-color: rgba(255,255,255,0.4); color: var(--text-primary); }
-  .strategy-btn.active { background: #ffffff; border-color: #ffffff; color: #000000; font-weight: 700; }
+  .strategy-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  .strategy-btn.active {
+    background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5);
+    color: #a5b4fc;
+  }
 
   /* Your pick banner */
   #your-pick-banner {
@@ -1254,16 +1257,18 @@
 
   .board-search {
     flex: 1;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.5rem 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.85rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 0.45rem 0.7rem;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.78rem;
     outline: none;
+    font-family: inherit;
   }
 
-  .board-search:focus { border-color: var(--accent); }
+  .board-search:focus { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
+  .board-search::placeholder { color: rgba(255,255,255,0.2); }
 
   .pos-filter {
     display: flex;
@@ -1271,24 +1276,20 @@
   }
 
   .pos-btn {
-    padding: 0.35rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
+    padding: 0.22rem 0.6rem; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.4);
+    font-size: 0.62rem; font-weight: 700; cursor: pointer; transition: all 0.1s;
+    white-space: nowrap;
   }
 
-  .pos-btn.active { border-color: currentColor; }
-  .pos-btn[data-pos="ALL"].active { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border); }
-  .pos-btn[data-pos="RB"].active { color: var(--rb); border-color: var(--rb); background: rgba(34,197,94,0.1); }
-  .pos-btn[data-pos="WR"].active { color: var(--wr); border-color: var(--wr); background: rgba(59,130,246,0.1); }
-  .pos-btn[data-pos="QB"].active { color: var(--qb); border-color: var(--qb); background: rgba(249,115,22,0.1); }
-  .pos-btn[data-pos="TE"].active { color: var(--te); border-color: var(--te); background: rgba(168,85,247,0.1); }
-  .pos-btn[data-pos="K"].active { color: var(--k); border-color: var(--k); background: rgba(107,114,128,0.1); }
+  .pos-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.65); }
+  .pos-btn.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.85); }
+  .pos-btn[data-pos="RB"].active { color: var(--rb); border-color: var(--rb); background: rgba(16,185,129,0.12); }
+  .pos-btn[data-pos="WR"].active { color: var(--wr); border-color: var(--wr); background: rgba(59,130,246,0.12); }
+  .pos-btn[data-pos="QB"].active { color: var(--qb); border-color: var(--qb); background: rgba(239,68,68,0.12); }
+  .pos-btn[data-pos="TE"].active { color: var(--te); border-color: var(--te); background: rgba(168,85,247,0.12); }
+  .pos-btn[data-pos="K"].active { color: var(--k); border-color: var(--k); background: rgba(107,114,128,0.12); }
 
   /* Tier divider */
   .tier-divider {
@@ -1312,23 +1313,29 @@
 
   /* Player card */
   .player-card {
-    display: grid;
-    grid-template-columns: 32px 1fr auto;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid transparent;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-left: 3px solid transparent;
+    background: rgba(255,255,255,0.02);
     cursor: pointer;
-    transition: all 0.1s;
-    margin-bottom: 0.2rem;
+    transition: background 0.1s;
+    margin-bottom: 2px;
     position: relative;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
 
+  .player-card.pos-WR { border-left-color: #3b82f6; }
+  .player-card.pos-RB { border-left-color: #10b981; }
+  .player-card.pos-QB { border-left-color: #ef4444; }
+  .player-card.pos-TE { border-left-color: #f97316; }
+  .player-card.pos-K  { border-left-color: #6b7280; }
+  .player-card.pos-DEF, .player-card.pos-DST { border-left-color: #6b7280; }
+
   @media (hover: hover) {
-    .player-card:hover { background: var(--bg-hover); }
+    .player-card:hover { background: rgba(255,255,255,0.04); }
   }
 
   .player-card.drafted {
@@ -1338,59 +1345,88 @@
   }
 
   .player-card.targeted {
-    border-color: var(--gold);
+    border-left-color: var(--gold) !important;
+    border-top-color: rgba(251,191,36,0.2);
+    border-right-color: rgba(251,191,36,0.2);
+    border-bottom-color: rgba(251,191,36,0.2);
     background: rgba(251,191,36,0.06);
   }
 
   .player-card.avoided {
-    border-color: var(--danger);
+    border-left-color: var(--danger) !important;
+    border-top-color: rgba(239,68,68,0.15);
+    border-right-color: rgba(239,68,68,0.15);
+    border-bottom-color: rgba(239,68,68,0.15);
     background: rgba(239,68,68,0.04);
     opacity: 0.6;
   }
 
   .player-rank {
-    font-size: 0.72rem;
-    font-weight: 400;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-muted);
-    text-align: center;
-    min-width: 24px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.25);
+    min-width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
   }
 
-  .player-main { overflow: hidden; }
+  .player-main { overflow: hidden; flex: 1; min-width: 0; }
 
   .player-name {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #ffffff;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.2;
   }
 
   .player-meta {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.15rem;
+    gap: 0.35rem;
+    margin-top: 0.05rem;
+    font-size: 0.62rem;
   }
 
-  /* Position dot — the ONLY place color appears */
+  /* Position dot — circular badge with position text */
   .pos-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.58rem; font-weight: 800; letter-spacing: 0.03em;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.5);
+  }
+  .pos-dot-RB { background: rgba(16,185,129,0.2); color: #34d399; }
+  .pos-dot-WR { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .pos-dot-QB { background: rgba(239,68,68,0.2); color: #f87171; }
+  .pos-dot-TE { background: rgba(168,85,247,0.2); color: #c084fc; }
+  .pos-dot-K  { background: rgba(107,114,128,0.2); color: #9ca3af; }
+  .pos-dot-DST { background: rgba(107,114,128,0.2); color: #9ca3af; }
+  .pos-dot-DEF { background: rgba(107,114,128,0.2); color: #9ca3af; }
+
+  /* The 28px lettered badge is only for player-board cards (which put the
+     position text inside it). Elsewhere the markup uses an EMPTY .pos-dot as a
+     small color chip, so render those as an 8px solid dot instead of a big
+     empty circle. Covers desktop rec cards and the scarcity bars.
+     (Mobile hides #recommendations .rec-card entirely.) */
+  #recommendations .rec-card .pos-dot,
+  #scarcity-bars .pos-dot {
+    width: 8px; height: 8px; border-radius: 50%; padding: 0; font-size: 0;
     flex-shrink: 0;
   }
-  .pos-dot-RB { background: var(--rb); }
-  .pos-dot-WR { background: var(--wr); }
-  .pos-dot-QB { background: var(--qb); }
-  .pos-dot-TE { background: var(--te); }
-  .pos-dot-K  { background: var(--k); }
-  .pos-dot-DST { background: var(--dst); }
-  .pos-dot-DEF { background: var(--dst); }
+  #recommendations .rec-card .pos-dot-RB,  #scarcity-bars .pos-dot-RB  { background: #10b981; }
+  #recommendations .rec-card .pos-dot-WR,  #scarcity-bars .pos-dot-WR  { background: #3b82f6; }
+  #recommendations .rec-card .pos-dot-QB,  #scarcity-bars .pos-dot-QB  { background: #ef4444; }
+  #recommendations .rec-card .pos-dot-TE,  #scarcity-bars .pos-dot-TE  { background: #a855f7; }
+  #recommendations .rec-card .pos-dot-K,   #scarcity-bars .pos-dot-K   { background: #6b7280; }
+  #recommendations .rec-card .pos-dot-DST, #scarcity-bars .pos-dot-DST { background: #6b7280; }
+  #recommendations .rec-card .pos-dot-DEF, #scarcity-bars .pos-dot-DEF { background: #6b7280; }
 
-  /* Position label — white text, dark bg */
+  /* Position label */
   .pos-tag {
     font-size: 0.6rem;
     font-weight: 700;
@@ -1401,11 +1437,12 @@
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
   }
+  /* In player board cards, pos-dot circle shows position — hide the redundant text tag */
+  .player-card .pos-tag { display: none; }
 
   .player-team-bye {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.3);
   }
 
   .injury-badge {
@@ -1422,56 +1459,57 @@
   .player-right {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
     flex-shrink: 0;
   }
 
   .player-adp {
     font-size: 0.72rem;
-    color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    font-variant-numeric: tabular-nums;
   }
   .card-val-good {
-    font-size: 0.58rem; font-family: 'DM Mono', monospace; font-weight: 700;
+    font-size: 0.65rem; font-variant-numeric: tabular-nums; font-weight: 700;
     color: var(--success); flex-shrink: 0; white-space: nowrap;
   }
   .card-val-reach {
-    font-size: 0.58rem; font-family: 'DM Mono', monospace; font-weight: 600;
+    font-size: 0.65rem; font-variant-numeric: tabular-nums; font-weight: 600;
     color: var(--danger); opacity: 0.8; flex-shrink: 0; white-space: nowrap;
   }
 
   .icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.2rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    width: 22px; height: 22px; border-radius: 3px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; cursor: pointer; flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.25);
     line-height: 1;
-    opacity: 0.4;
-    transition: all 0.1s;
-    color: var(--text-secondary);
   }
 
-  .icon-btn:hover { opacity: 1; }
-  .icon-btn.star-active { color: var(--gold); opacity: 1; }
-  .icon-btn.avoid-active { color: var(--danger); opacity: 1; }
+  .icon-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+  .icon-btn.star-active { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .icon-btn.avoid-active { background: rgba(239,68,68,0.2); color: #f87171; }
 
   /* Recommendations */
   .rec-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.9rem;
-    margin-bottom: 0.75rem;
-    transition: border-color 0.15s;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0.4rem;
+    transition: border-color 0.15s, background 0.15s;
   }
+  /* Contain the floated compact draft button */
+  .rec-card::after { content: ''; display: block; clear: both; }
 
-  .rec-card:hover { border-color: var(--accent); }
+  .rec-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.03); }
 
   /* Top pick card — desktop subtle, mobile prominent */
   .rec-top-pick {
     border-color: rgba(245,158,11,0.4);
+    background: rgba(245,158,11,0.04);
+    padding: 0.75rem 0.8rem;
   }
   .rec-top-pick .rec-rank { color: var(--amber); }
 
@@ -1500,25 +1538,29 @@
   .rec-top-pick-label { display: none; }
 
   .rec-draft-btn {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 6px;
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
     cursor: pointer;
     background: none;
     font-family: inherit;
-    width: 100%;
-    margin-top: 0.5rem;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    font-weight: 600;
-    transition: opacity 0.15s;
+    width: auto;
+    float: right;
+    margin-top: 0.35rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5);
+    font-weight: 700;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
-  .rec-draft-btn:hover { opacity: 0.8; }
+  .rec-draft-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
   .rec-draft-btn-primary {
     background: rgba(52,211,153,0.15);
     border: 1px solid rgba(52,211,153,0.5);
     color: #34d399;
+    padding: 0.28rem 0.9rem;
   }
+  .rec-draft-btn-primary:hover { background: rgba(52,211,153,0.25); color: #6ee7b7; }
 
   .rec-rank {
     font-size: 0.7rem;
@@ -1536,15 +1578,20 @@
     margin-bottom: 0.35rem;
   }
 
-  .rec-name { font-size: 1rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em; }
+  .rec-name { font-size: 0.92rem; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; }
   .rec-adp { font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
 
   .rec-why {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
-    line-height: 1.4;
-    margin-bottom: 0.5rem;
+    line-height: 1.35;
+    margin-bottom: 0.4rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
+  .rec-top-pick .rec-why { -webkit-line-clamp: 3; }
 
   .rec-survival {
     display: flex;
@@ -1827,15 +1874,12 @@
 
   /* Mock draft banner */
   .mock-banner {
-    background: rgba(255,255,255,0.04);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding: 0.4rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    font-size: 0.78rem;
-    color: var(--text-primary);
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.45rem 1rem;
+    background: rgba(52,211,153,0.06);
+    border-bottom: 1px solid rgba(52,211,153,0.15);
+    font-size: 0.72rem;
+    color: rgba(52,211,153,0.9);
     font-weight: 600;
     flex-shrink: 0;
   }
@@ -3214,6 +3258,14 @@
   @media (max-width: 768px) {
     body.mock-draft-active .mobile-tab-bar { display: none !important; }
   }
+  /* Desktop mock draft keeps the full 3-column tool (roster · full player board ·
+     recommendations). The board-grid + squeezed avail-list split view is a
+     phone pattern; on a wide screen it hid all but ~2 players. The draft-board
+     grid stays reachable via the "Board" button in the mock banner. */
+  @media (min-width: 769px) {
+    body.mock-draft-active .main-layout { display: grid !important; }
+    body.mock-draft-active #m-split-layout { display: none !important; }
+  }
 
   .m-slim-header {
     display: flex; align-items: center; gap: 0.5rem;
@@ -3367,6 +3419,14 @@
   }
   .m-draft-btn:not(:disabled):active { background: rgba(52,211,153,0.25); border-color: #34d399; }
   .m-draft-btn:disabled { opacity: 0.2; cursor: default; }
+  /* Desktop player-board draft button — compact override (mobile keeps 48px touch target) */
+  #player-board .m-draft-btn {
+    padding: 0.22rem 0.55rem;
+    font-size: 0.65rem;
+    min-height: 28px;
+    min-width: unset;
+    border-radius: 4px;
+  }
   .m-avail-info { flex: 1; min-width: 0; }
   .m-avail-name { display: block; font-size: 0.88rem; font-weight: 600; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
   .m-avail-meta { display: block; font-size: 0.65rem; color: rgba(255,255,255,0.35); margin-top: 0.08rem; white-space: nowrap; }
@@ -3596,7 +3656,7 @@
       <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem;">Change Draft Slot</div>
       <div style="display:flex;gap:0.3rem;flex-wrap:wrap;max-width:220px;" id="slot-edit-picker"></div>
     </div>
-    <div class="header-right-group" style="display:flex;align-items:center;gap:0.75rem;margin-left:auto;">
+    <div class="header-right-group" style="display:flex;align-items:center;gap:0.75rem;">
       <button id="research-header-btn" class="btn btn-ghost btn-sm" onclick="openResearchStandalone()">Research</button>
       <button id="mock-draft-header-btn" class="btn btn-ghost btn-sm" onclick="openMockModal()" style="display:none;">Mock Draft</button>
       <button onclick="openHelp()" title="How it works" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">?</button>
@@ -4523,6 +4583,7 @@ function advanceMockDraft() {
     if (pbr) pbr.textContent = ` · R${round}P${MOCK.currentPick}`;
     renderMobileSplitLayout();
     renderBoard();
+    refreshMockDesktopRecs();
     broadcastMockState();
   } else {
     MOCK.timer = setTimeout(() => {
@@ -4550,6 +4611,7 @@ function advanceMockDraft() {
       renderRecentPicks();
       renderBoard();
       renderMobileSplitLayout();
+      refreshMockDesktopRecs();
       if (document.getElementById('draft-board-overlay').style.display !== 'none') renderDraftBoard();
       if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
       broadcastMockState();
@@ -4577,6 +4639,7 @@ function mockUserPick(player) {
   renderBoard();
   renderMobileSplitLayout();
   renderRosterSlots();
+  refreshMockDesktopRecs();
   if (document.getElementById('companion-view')?.style.display !== 'none') renderCompanionView();
   broadcastMockState();
 
@@ -4878,6 +4941,15 @@ function renderMobilePlayerList() {
 function renderMobileSplitLayout() {
   renderMobileDraftBoard();
   renderMobilePlayerList();
+}
+
+// On desktop the mock draft uses the full 3-column layout, whose right-hand
+// recommendations panel isn't touched by the mobile split-layout renderers.
+// Refresh it as picks come in so the recs (and their Draft buttons) stay
+// current. No-op on mobile, where renderMobileSplitLayout owns the UI.
+function refreshMockDesktopRecs() {
+  if (window.innerWidth <= 768) return;
+  try { renderRecommendations(); } catch (e) {}
 }
 
 // ===== AI ASSISTANT =====
@@ -5911,7 +5983,7 @@ function createPlayerCard(player) {
   const key = player.sleeper_id || player.name;
 
   const div = document.createElement('div');
-  div.className = `player-card${isDrafted ? ' drafted' : ''}${isTargeted ? ' targeted' : ''}${isAvoided ? ' avoided' : ''}`;
+  div.className = `player-card pos-${player.position}${isDrafted ? ' drafted' : ''}${isTargeted ? ' targeted' : ''}${isAvoided ? ' avoided' : ''}`;
   div.dataset.key = key;
 
   const injuryHtml = player.injury_status && player.injury_status !== 'Active'
@@ -5936,11 +6008,10 @@ function createPlayerCard(player) {
 
   div.innerHTML = `
     <div class="player-rank" title="Overall rank by composite ADP">${player.rank}</div>
+    <span class="pos-dot pos-dot-${player.position}">${player.position}</span>
     <div class="player-main">
       <div class="player-name">${escHtml(player.name)}</div>
       <div class="player-meta">
-        <span class="pos-dot pos-dot-${player.position}"></span>
-        <span class="pos-tag">${player.position}</span>
         <span class="player-team-bye">${escHtml(player.team||'FA')} · Bye ${player.bye||'?'}</span>
         ${injuryHtml}
       </div>
