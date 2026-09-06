@@ -7692,9 +7692,13 @@ function renderRecommendations() {
   // depth just because late-round skill VORP goes negative. They reappear
   // only if there's literally nothing else left to show.
   const uncapped = scored.filter(s => isFinite(s.score) && !s.parts.capped);
-  const recPool = uncapped.length >= 5
+  let recPool = uncapped.length >= 5
     ? uncapped
     : uncapped.concat(scored.filter(s => isFinite(s.score) && s.parts.capped));
+  // In superflex, suppress QB recommendations once user has 2 QBs
+  if (ctx.isSuperflex && (ctx.counts.QB || 0) >= 2) {
+    recPool = recPool.filter(s => s.player.position !== 'QB');
+  }
   const top5 = recPool.slice(0, 5);
 
   // Mobile: render Sleeper-style compact list instead of big rec cards
