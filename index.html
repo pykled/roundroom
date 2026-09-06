@@ -39,7 +39,7 @@
     --accent-glow: rgba(255,255,255,0.06);
     --rb: #10b981;
     --wr: #3b82f6;
-    --qb: #f59e0b;
+    --qb: #ef4444;
     --te: #a855f7;
     --k: #6b7280;
     --dst: #6b7280;
@@ -826,8 +826,8 @@
   #cv-pick-flash {
     display: none; background: rgba(10,10,15,0.96);
     border: 1px solid rgba(255,255,255,0.09); border-radius: 8px;
-    padding: 0.3rem 0.65rem; font-size: 0.68rem; color: rgba(255,255,255,0.7);
-    font-family: 'DM Mono', monospace; white-space: nowrap; overflow: hidden;
+    padding: 0.4rem 0.75rem; font-size: 0.8rem; color: rgba(255,255,255,0.7);
+    font-family: inherit; white-space: nowrap; overflow: hidden;
     text-overflow: ellipsis; margin-bottom: 0.5rem; flex-shrink: 0;
     transition: opacity 0.3s;
   }
@@ -2631,6 +2631,7 @@
   .mobile-tab-bar-inner {
     display: flex;
     width: 100%;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .mobile-tab {
@@ -2751,7 +2752,7 @@
     .mock-banner .mock-label { display: none; }
 
     /* Hide strategy bar when it's the user's pick — rec cards are the focus */
-    body.user-pick-active .strategy-bar { display: none; }
+    body.user-pick-active .strategy-bar { height: 0; overflow: hidden; padding: 0; transition: height 0.2s ease, padding 0.2s ease; }
 
     /* Attribution bar: always hidden on mobile — too small to be useful */
     #data-attribution { display: none; }
@@ -2787,11 +2788,12 @@
       z-index: 50;
       font-size: 1rem;
       padding: 0.85rem 1rem;
-      animation: pulse-banner-mobile 1s infinite;
+      animation: pulse-banner-mobile 0.2s ease forwards;
+      border: 1.5px solid #fbbf24;
     }
     @keyframes pulse-banner-mobile {
-      0%, 100% { opacity: 1; background: linear-gradient(90deg, rgba(245,158,11,0.3), rgba(245,158,11,0.1)); }
-      50% { opacity: 0.85; background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); }
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ── Clean-slate mobile RECS design ───────────────────────────────── */
@@ -2889,8 +2891,10 @@
       margin: 0.4rem 0 0.5rem;
       line-height: 1.4;
       overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
     }
     #recommendations .rec-top-pick .rec-adp-meta {
       font-size: 0.65rem;
@@ -3031,7 +3035,7 @@
     .m-row-meta { display: block; font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.05rem; }
     .m-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; flex-shrink: 0; }
     .m-row-vorp { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.6); }
-    .m-row-rec-star { font-size: 0.65rem; color: #fbbf24; }
+    .m-row-rec-star { font-size: 0.78rem; color: #fbbf24; font-weight: 700; }
 
     /* ── End Sleeper-style mobile RECS ──────────────────────────────────── */
 
@@ -3137,7 +3141,7 @@
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.07);
       border-radius: 6px;
-      padding: 0.25rem 0.5rem;
+      padding: 0.35rem 0.6rem;
     }
     .m-pick-pos {
       font-size: 0.6rem;
@@ -3152,7 +3156,7 @@
     .m-pick-pos.pos-K  { background: rgba(168,85,247,0.25); color: #c084fc; }
     .m-pick-pos.pos-DEF, .m-pick-pos.pos-DST { background: rgba(107,114,128,0.25); color: #9ca3af; }
     .m-pick-name {
-      font-size: 0.72rem;
+      font-size: 0.78rem;
       color: rgba(255,255,255,0.6);
       white-space: nowrap;
       max-width: 90px;
@@ -3166,7 +3170,7 @@
   /* Bottom sheet — fixed overlay; only opened from mobile player rows */
   .m-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s; display: flex; align-items: flex-end; }
   .m-sheet-overlay.open { opacity: 1; pointer-events: all; }
-  .m-sheet { background: #1a1a1a; border-radius: 20px 20px 0 0; padding: 1rem 1.25rem 2rem; width: 100%; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); }
+  .m-sheet { background: #1a1a1a; border-radius: 20px 20px 0 0; padding: 1rem 1.25rem 2rem; width: 100%; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
   .m-sheet-overlay.open .m-sheet { transform: translateY(0); }
   .m-sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 0 auto 1.25rem; }
   .m-sheet-pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.6rem; }
@@ -3228,13 +3232,14 @@
   .m-slim-gear { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 1rem; cursor: pointer; padding: 0.15rem 0.3rem; flex-shrink: 0; }
 
   .m-board-scroll {
-    height: 50vh; flex-shrink: 0;
+    height: 32vh; flex-shrink: 0;
     overflow-x: auto; overflow-y: auto;
     scrollbar-width: none; -webkit-overflow-scrolling: touch;
     background: #0d0d0d;
     border-bottom: 2px solid rgba(255,255,255,0.08);
     border-radius: 12px;
   }
+  .m-board-drag-hint { text-align: center; font-size: 0.65rem; color: rgba(255,255,255,0.2); padding: 0.2rem 0; letter-spacing: 0.05em; user-select: none; }
   .m-board-scroll::-webkit-scrollbar { display: none; }
   .m-board-grid { display: grid; min-width: max-content; }
 
@@ -3265,7 +3270,7 @@
   }
   .m-pick-cell {
     width: 88px; min-height: 52px; box-sizing: border-box;
-    padding: 0.35rem 0.3rem;
+    padding: 0.35rem 0.6rem;
     margin: 2px;
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 6px;
@@ -3281,7 +3286,7 @@
     border-radius: 2px; display: inline-block; align-self: flex-start;
   }
   .m-pick-name {
-    font-size: 0.68rem; font-weight: 600;
+    font-size: 0.78rem; font-weight: 600;
     color: rgba(255,255,255,0.85);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
@@ -3332,9 +3337,10 @@
   .m-draft-btn {
     padding: 0.22rem 0.45rem; border-radius: 6px;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.6); font-size: 0.63rem; font-weight: 700;
+    color: rgba(255,255,255,0.6); font-size: 0.72rem; font-weight: 700;
     letter-spacing: 0.04em; cursor: pointer; font-family: inherit; flex-shrink: 0;
     transition: background 0.1s, border-color 0.1s, color 0.1s;
+    min-height: 48px; min-width: 72px;
   }
   .m-draft-btn:disabled { opacity: 0.25; cursor: default; }
   .m-draft-btn:not(:disabled):active { background: rgba(52,211,153,0.2); border-color: #34d399; color: #34d399; }
@@ -3344,8 +3350,8 @@
   .m-avail-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; gap: 0.1rem; }
   .m-avail-adp { font-size: 0.73rem; color: rgba(255,255,255,0.5); font-weight: 600; }
   .m-avail-vorp { font-size: 0.61rem; color: rgba(255,255,255,0.28); }
-  .m-avail-row.m-rec { background: rgba(251,191,36,0.03); }
-  .m-rec .m-avail-name::after { content: ' ★'; color: #fbbf24; font-size: 0.62rem; }
+  .m-avail-row.m-rec { background: rgba(251,191,36,0.03); border-left-color: #fbbf24 !important; }
+  .m-rec .m-avail-name::after { content: ' REC'; color: #fbbf24; font-size: 0.78rem; font-weight: 700; }
   .m-avail-row { border-left: 3px solid transparent; }
   .m-avail-row.pos-RB  { border-left-color: #4ade80; background: rgba(34,197,94,0.04); }
   .m-avail-row.pos-WR  { border-left-color: #60a5fa; background: rgba(59,130,246,0.04); }
@@ -3360,6 +3366,13 @@
     .m-pick-cell { width: 110px; }
     .m-board-scroll { height: 60vh; }
   }
+  /* Small phones: narrower pick cells */
+  @media (max-width: 430px) {
+    .m-pick-cell { width: 68px; }
+  }
+  /* Sticky YOU column */
+  .m-team-col.m-your-col { position: sticky; right: 0; z-index: 2; background: rgba(59,130,246,0.2); }
+  .m-pick-cell.m-your-pick { position: sticky; right: 0; z-index: 2; background: inherit; }
 
   /* Pick confirmation toast animations */
   @keyframes pick-toast-in {
@@ -3683,6 +3696,7 @@
     <div class="m-board-scroll" id="m-board-scroll">
       <div class="m-board-grid" id="m-board-grid"></div>
     </div>
+    <div class="m-board-drag-hint">↕</div>
     <div class="m-bottom-section">
       <div class="m-roster-pills" id="m-roster-pills"></div>
       <div class="m-avail-list" id="m-avail-list"></div>
@@ -3701,16 +3715,16 @@
   <div class="mobile-tab-bar">
     <div class="mobile-tab-bar-inner">
       <button class="mobile-tab active" id="tab-roster" onclick="showMobileTab('roster')">
-        <span class="tab-icon">📋</span>Roster
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="13" height="13" rx="2"/><path d="M5 7H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></span>Roster
       </button>
       <button class="mobile-tab" id="tab-players" onclick="showMobileTab('players')">
-        <span class="tab-icon">👥</span>Players
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Players
       </button>
       <button class="mobile-tab" id="tab-recs" onclick="showMobileTab('recs')">
-        <span class="tab-icon">⭐</span>Recs
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>Recs
       </button>
       <button class="mobile-tab" id="tab-research" onclick="showMobileTab('research')">
-        <span class="tab-icon">🔍</span>Research
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Research
       </button>
       <button class="mobile-tab" id="tab-mock" onclick="openMockModal()" style="display:none;">
         <span class="tab-icon">⚡</span>Mock
@@ -5722,7 +5736,25 @@ function computeTiers(players) {
 
 function showMobileTab(tab) {
   if (tab === 'lists') { openListsOverlay(); return; }
-  if (tab === 'research') { openResearchStandalone(); return; }
+  if (tab === 'research') {
+    const draftInProgress = (typeof MOCK !== 'undefined' && MOCK.active) || (STATE && STATE.draftId);
+    if (draftInProgress) {
+      const overlay = document.getElementById('m-player-sheet');
+      if (overlay) {
+        const sheet = overlay.querySelector('.m-sheet');
+        if (sheet) {
+          sheet.innerHTML = '<div class="m-sheet-handle"></div><div style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:1rem;">Research</div><div id="m-research-sheet-body" style="overflow-y:auto;max-height:60vh;"></div><button class="m-sheet-cancel" onclick="closePlayerSheet()" style="margin-top:1rem;">Close</button>';
+          overlay.classList.add('open');
+          const body = document.getElementById('m-research-sheet-body');
+          if (body) {
+            ensureResearchData().then(() => { body.innerHTML = document.getElementById('rsch-pane-body') ? document.getElementById('rsch-pane-body').innerHTML : '<p style="color:rgba(255,255,255,0.4);font-size:0.85rem;">Research data loading…</p>'; });
+          }
+          return;
+        }
+      }
+    }
+    openResearchStandalone(); return;
+  }
   const map = { roster: 'panel-roster', players: 'panel-players', recs: 'panel-recs' };
   const tabMap = { roster: 'tab-roster', players: 'tab-players', recs: 'tab-recs' };
   Object.values(map).forEach(id => {
@@ -7181,7 +7213,7 @@ function _renderMobileRecs(container, scored, top5, available, ctx) {
         </div>
         <div class="m-row-right">
           <span class="m-row-vorp">${escHtml(vorStr)}</span>
-          ${item.isRec ? '<span class="m-row-rec-star">★ Rec</span>' : ''}
+          ${item.isRec ? '<span class="m-row-rec-star">REC</span>' : ''}
         </div>
       </div>`;
     });
@@ -8698,7 +8730,7 @@ function showPickToast(playerName) {
   const t = document.createElement('div');
   t.id = 'pick-toast';
   t.textContent = `✅ ${playerName}`;
-  t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(12,12,12,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;color:rgba(255,255,255,0.88);z-index:2000;pointer-events:none;white-space:nowrap;animation:pick-toast-in 0.2s ease;';
+  t.style.cssText = 'position:fixed;bottom:calc(1.5rem + 52px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(12,12,12,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;color:rgba(255,255,255,0.88);z-index:2000;pointer-events:none;white-space:nowrap;animation:pick-toast-in 0.2s ease;';
   document.body.appendChild(t);
   setTimeout(() => {
     t.style.animation = 'pick-toast-out 0.3s ease forwards';
@@ -10419,17 +10451,24 @@ function trendArrowHtml(p) {
 function injuryDotHtml(p) {
   const liveInj = STATE.injuryData && STATE.injuryData[(p.name || '').toLowerCase()];
   if (liveInj && liveInj.availabilityStatus) {
-    const label = liveInj.availabilityStatus === 'NA' ? 'Not Available' : liveInj.availabilityStatus;
-    return `<span class="inj-dot" style="color:var(--danger);" title="${escHtml(label)}">●</span>`;
+    const raw = liveInj.availabilityStatus;
+    const abbr = raw === 'NA' ? 'NA' : raw.substring(0, 3).toUpperCase();
+    return `<span class="inj-dot" style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.3rem;border-radius:3px;background:rgba(239,68,68,0.15);color:#f87171;margin-left:0.25rem;">${abbr}</span>`;
   }
   if (!p.injury_status) return '';
   const s = String(p.injury_status).toLowerCase();
-  let col = 'var(--text-muted)';
-  if (['out', 'ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) col = 'var(--danger)';
-  else if (s.startsWith('doubtful')) col = '#f97316';
-  else if (s.startsWith('questionable')) col = '#eab308';
-  const full = p.injury_status + (p.injury_note ? ` — ${p.injury_note}` : '');
-  return `<span class="inj-dot" style="color:${col};" title="${escHtml(full)}">●</span>`;
+  const abbr = p.injury_status.substring(0, 3).toUpperCase();
+  let bg, col;
+  if (['out', 'ir', 'pup', 'sus', 'dnr', 'na'].some(k => s.startsWith(k))) {
+    bg = 'rgba(239,68,68,0.15)'; col = '#f87171';
+  } else if (s.startsWith('doubtful')) {
+    bg = 'rgba(251,191,36,0.15)'; col = '#fbbf24';
+  } else if (s.startsWith('questionable')) {
+    bg = 'rgba(251,191,36,0.15)'; col = '#fbbf24';
+  } else {
+    bg = 'rgba(156,163,175,0.15)'; col = '#9ca3af';
+  }
+  return `<span class="inj-dot" style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.3rem;border-radius:3px;background:${bg};color:${col};margin-left:0.25rem;">${abbr}</span>`;
 }
 
 function setResearchPos(pos) {
