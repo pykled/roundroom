@@ -1949,26 +1949,39 @@
   .draft-board-pick {
     background: var(--bg-card);
     border-radius: 5px;
+    border-left: 3px solid #475569;
     padding: 0.25rem 0.35rem;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
     min-height: 34px;
     overflow: hidden;
   }
   .draft-board-pick.is-you {
     background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
   }
-  .draft-board-pick-photo {
-    width: 26px;
-    height: 26px;
-    border-radius: 4px;
-    object-fit: cover;
-    object-position: top center;
+  .draft-board-pick.pos-QB { border-left-color: #ef4444; background: rgba(239,68,68,0.06); }
+  .draft-board-pick.pos-RB { border-left-color: #10b981; background: rgba(16,185,129,0.06); }
+  .draft-board-pick.pos-WR { border-left-color: #3b82f6; background: rgba(59,130,246,0.06); }
+  .draft-board-pick.pos-TE { border-left-color: #f59e0b; background: rgba(245,158,11,0.06); }
+  .draft-board-pick.pos-K  { border-left-color: #94a3b8; background: rgba(148,163,184,0.06); }
+  .draft-board-pick.pos-DST,
+  .draft-board-pick.pos-DEF { border-left-color: #8b5cf6; background: rgba(139,92,246,0.06); }
+  .draft-board-pick-pos {
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     flex-shrink: 0;
-    background: var(--bg-hover);
+    opacity: 0.75;
+    color: var(--text-muted);
   }
+  .draft-board-pick.pos-QB .draft-board-pick-pos { color: #f87171; }
+  .draft-board-pick.pos-RB .draft-board-pick-pos { color: #34d399; }
+  .draft-board-pick.pos-WR .draft-board-pick-pos { color: #60a5fa; }
+  .draft-board-pick.pos-TE .draft-board-pick-pos { color: #fbbf24; }
+  .draft-board-pick.pos-K  .draft-board-pick-pos { color: #94a3b8; }
+  .draft-board-pick.pos-DST .draft-board-pick-pos,
+  .draft-board-pick.pos-DEF .draft-board-pick-pos { color: #a78bfa; }
   .draft-board-pick-name {
     font-size: 0.63rem;
     font-weight: 600;
@@ -4263,13 +4276,10 @@ function renderDraftBoard() {
       const pick = board[t][r];
       if (pick) {
         const p = pick.player;
-        const photoUrl = playerHeadshotUrl(p);
-        const photoHtml = photoUrl
-          ? `<img src="${photoUrl}" class="draft-board-pick-photo" loading="lazy" onerror="this.style.display='none'">`
-          : `<span class="pos-dot pos-dot-${p.position}" style="flex-shrink:0;"></span>`;
+        const pos = p.position || '';
         const lastName = p.name ? p.name.split(' ').slice(-1)[0] : p.name;
-        html += `<div class="draft-board-pick ${isYou ? 'is-you' : ''}">
-          ${photoHtml}
+        html += `<div class="draft-board-pick pos-${pos}${isYou ? ' is-you' : ''}">
+          <span class="draft-board-pick-pos">${escHtml(pos)}</span>
           <span class="draft-board-pick-name">${escHtml(lastName)}</span>
         </div>`;
       } else {
