@@ -2114,15 +2114,15 @@
 
   .draft-board-table {
     display: grid;
-    grid-template-columns: repeat(12, minmax(110px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 4px;
     padding-bottom: 4px;
   }
   .draft-board-team {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    min-width: 110px;
+    min-width: 0;
   }
   .draft-board-team-header {
     font-size: 0.58rem;
@@ -2146,13 +2146,13 @@
   }
   .draft-board-pick {
     background: var(--bg-card);
-    border-radius: 5px;
+    border-radius: 4px;
     border-left: 3px solid #475569;
-    padding: 0.25rem 0.35rem;
+    padding: 0.2rem 0.25rem;
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    min-height: 34px;
+    gap: 0.2rem;
+    min-height: 30px;
     overflow: hidden;
   }
   .draft-board-pick.is-you {
@@ -4467,6 +4467,7 @@ function renderDraftBoard() {
 
   const tableEl = document.getElementById('draft-board-table');
   if (!tableEl) return;
+  tableEl.style.gridTemplateColumns = `repeat(${teams}, 1fr)`;
   tableEl.innerHTML = html;
   // Keep the current round in view inside the pinned inline board.
   const wrap = document.getElementById('inline-board');
