@@ -4809,10 +4809,13 @@ function advanceMockDraft() {
       // This keeps CPU picks close to consensus ADP while allowing natural variance.
       const pickNum = MOCK.currentPick;
       const getAdp = p => (STATE.isSuperflex && p.composite_sf_adp != null) ? p.composite_sf_adp : (p.adp || 999);
-      let pool = available.filter(p => { const a = getAdp(p); return a >= pickNum - 3 && a <= pickNum + 3; });
+      // Enforce 2-QB max: if team already has 2 QBs, remove QBs from candidate pool
+      const teamQbCount = (MOCK.teamRosters[teamNum] || {}).QB || 0;
+      const candidates = (STATE.isSuperflex && teamQbCount >= 2) ? available.filter(p => p.position !== 'QB') : available;
+      let pool = candidates.filter(p => { const a = getAdp(p); return a >= pickNum - 3 && a <= pickNum + 3; });
       // Widen window if too few candidates (late rounds where ADP is sparse)
-      if (pool.length < 2) pool = available.filter(p => { const a = getAdp(p); return a >= pickNum - 6 && a <= pickNum + 6; });
-      if (pool.length === 0) pool = available.slice(0, 3);
+      if (pool.length < 2) pool = candidates.filter(p => { const a = getAdp(p); return a >= pickNum - 6 && a <= pickNum + 6; });
+      if (pool.length === 0) pool = candidates.slice(0, 3);
       // Uniform random within window — pure ADP variability, no strategy overrides
       const picked = pool[Math.floor(Math.random() * pool.length)];
 
@@ -4835,6 +4838,12 @@ function advanceMockDraft() {
 function mockUserPick(player) {
   if (!MOCK.active || !MOCK.waitingForUser) return;
   if (MOCK.draftedIds.has(player.player_id || player.name)) return;
+  // Enforce 2-QB max in superflex
+  if (STATE.isSuperflex && player.position === 'QB') {
+    const myTeam = getTeamForMockPick(MOCK.currentPick, STATE.totalTeams || 12);
+    const myQbs = (MOCK.teamRosters[myTeam] || {}).QB || 0;
+    if (myQbs >= 2) { alert('You already have 2 QBs — the max allowed in superflex.'); return; }
+  }
 
   MOCK.waitingForUser = false;
   document.body.classList.remove('user-pick-active');
