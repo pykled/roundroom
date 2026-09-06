@@ -7569,6 +7569,10 @@ function confirmDraft() {
 
 function _renderMobileRecs(container, scored, top5, available, ctx) {
   const posFilter = window._mobilePosFilter || 'ALL';
+  const rc = STATE.rosterConfig;
+  const hasK = !rc || rc.hasKicker !== false;
+  const hasDST = !rc || rc.hasDST !== false;
+
   const topIds = new Set(top5.map(t => {
     const p = t.player;
     return p.sleeper_id || p.player_id || p.name;
@@ -7585,12 +7589,17 @@ function _renderMobileRecs(container, scored, top5, available, ctx) {
     const p = item.player;
     const id = p.sleeper_id || p.player_id || p.name;
     if (topIds.has(id)) return;
+    if (!hasK && (p.position === 'K')) return;
+    if (!hasDST && (p.position === 'DST' || p.position === 'DEF')) return;
     if (posFilter !== 'ALL' && p.position !== posFilter) return;
     displayList.push({ ...item, isRec: false });
   });
   const shown = displayList.slice(0, 30);
 
-  const pos = ['ALL','QB','RB','WR','TE','K','DEF'];
+  const allPos = ['ALL','QB','RB','WR','TE'];
+  if (hasK) allPos.push('K');
+  if (hasDST) allPos.push('DEF');
+  const pos = allPos;
   let html = `<div class="m-pick-header"><div class="m-pos-filters">`;
   pos.forEach(p => {
     html += `<button class="m-pos-btn${posFilter === p ? ' active' : ''}" data-pos="${p}" onclick="setMobilePosFilter('${p}')">${p}</button>`;
@@ -7699,6 +7708,10 @@ function renderRecommendations() {
   if (ctx.isSuperflex && (ctx.counts.QB || 0) >= 2) {
     recPool = recPool.filter(s => s.player.position !== 'QB');
   }
+  // Suppress K/DST recs if the league format doesn't use them
+  const rc = STATE.rosterConfig;
+  if (rc && !rc.hasKicker) recPool = recPool.filter(s => s.player.position !== 'K');
+  if (rc && !rc.hasDST) recPool = recPool.filter(s => s.player.position !== 'DST' && s.player.position !== 'DEF');
   const top5 = recPool.slice(0, 5);
 
   // Mobile: render Sleeper-style compact list instead of big rec cards
