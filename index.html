@@ -3258,7 +3258,12 @@
     background: #0d0d0d; position: sticky; top: 0; z-index: 2;
     border-radius: 6px;
   }
-  .m-team-col.m-your-col { color: #60a5fa; background: rgba(59,130,246,0.2); }
+  .m-team-col.m-your-col {
+    color: #93c5fd;
+    background: rgba(59,130,246,0.28);
+    border-bottom: 2px solid rgba(96,165,250,0.5);
+    position: sticky; right: 0; z-index: 2;
+  }
 
   .m-round-label {
     width: 32px; min-height: 52px; box-sizing: border-box;
@@ -3276,20 +3281,29 @@
     border-radius: 6px;
     display: flex; flex-direction: column; justify-content: flex-end;
   }
-  .m-pick-cell.m-your-pick { outline: 1px solid rgba(96,165,250,0.15); outline-offset: -1px; }
-  .m-pick-cell.m-pick-empty.m-your-pick { background: rgba(96,165,250,0.04); }
+  .m-pick-cell.m-your-pick {
+    outline: 1px solid rgba(96,165,250,0.35); outline-offset: -1px;
+    position: sticky; right: 0; z-index: 2;
+    background: rgba(96,165,250,0.08);
+  }
+  .m-pick-cell.m-your-pick.pos-WR { background: rgba(59,130,246,0.22); }
+  .m-pick-cell.m-your-pick.pos-RB { background: rgba(34,197,94,0.18); }
+  .m-pick-cell.m-your-pick.pos-QB { background: rgba(239,68,68,0.18); }
+  .m-pick-cell.m-your-pick.pos-TE { background: rgba(249,115,22,0.18); }
+  .m-pick-cell.m-pick-empty.m-your-pick { background: rgba(96,165,250,0.06); }
   .m-pick-cell.m-pick-current { box-shadow: inset 0 0 0 2px rgba(52,211,153,0.5); background: rgba(52,211,153,0.1) !important; }
 
   .m-pick-pos {
-    font-size: 0.5rem; font-weight: 700;
-    margin-bottom: 0.12rem; padding: 0.04rem 0.18rem;
-    border-radius: 2px; display: inline-block; align-self: flex-start;
+    font-size: 0.58rem; font-weight: 700;
+    margin-bottom: 0.12rem; padding: 0.06rem 0.22rem;
+    border-radius: 3px; display: inline-block; align-self: flex-start;
   }
   .m-pick-name {
     font-size: 0.78rem; font-weight: 600;
     color: rgba(255,255,255,0.85);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .m-empty-you { font-size: 0.42rem; font-weight: 700; letter-spacing: 0.08em; color: rgba(96,165,250,0.35); text-transform: uppercase; }
 
   .m-pick-cell.pos-WR { background: rgba(59,130,246,0.25); }
   .m-pick-cell.pos-WR .m-pick-pos { background: rgba(59,130,246,0.25); color: #60a5fa; }
@@ -4719,16 +4733,21 @@ function renderMobileDraftBoard() {
       const isMe = t === mySlot;
       if (pick) {
         const pos = pick.player.position || '';
-        const lastName = pick.player.name ? pick.player.name.split(' ').slice(-1)[0] : '?';
-        html += `<div class="m-pick-cell pos-${pos}${isMe ? ' m-your-pick' : ''}">
+        const nameParts = (pick.player.name || '?').split(' ');
+        const displayName = nameParts.length >= 2
+          ? `${nameParts[0][0]}. ${nameParts.slice(1).join(' ')}`
+          : nameParts[0];
+        const pickJson = escAttr(JSON.stringify({ player: { name: pick.player.name, position: pick.player.position, team: pick.player.team, bye: pick.player.bye, composite_adp: pick.player.composite_adp, adp: pick.player.adp, rank: pick.player.rank, vorp_std: pick.player.vorp_std }, pickNum: pick.pickNum, round: pick.round, isUser: pick.isUser }));
+        html += `<div class="m-pick-cell pos-${pos}${isMe ? ' m-your-pick' : ''}" onclick="openDraftedPlayerSheet(${pickJson})" style="cursor:pointer;">
           <div class="m-pick-pos">${escHtml(pos)}</div>
-          <div class="m-pick-name">${escHtml(lastName)}</div>
+          <div class="m-pick-name">${escHtml(displayName)}</div>
         </div>`;
       } else {
         // Determine if this is the current "on the clock" cell
         const pickNum = r % 2 === 1 ? (r - 1) * teams + t : (r - 1) * teams + (teams + 1 - t);
         const isCurrent = pickNum === currentPick && MOCK.waitingForUser && isMe;
-        html += `<div class="m-pick-cell m-pick-empty${isMe ? ' m-your-pick' : ''}${isCurrent ? ' m-pick-current' : ''}"></div>`;
+        const emptyLabel = isMe ? `<span class="m-empty-you">YOU</span>` : '';
+        html += `<div class="m-pick-cell m-pick-empty${isMe ? ' m-your-pick' : ''}${isCurrent ? ' m-pick-current' : ''}">${emptyLabel}</div>`;
       }
     }
   }
@@ -4814,7 +4833,7 @@ function renderMobilePlayerList() {
     const bye = p.bye ? `Bye ${p.bye}` : '';
     const meta = [pos, p.team, bye].filter(Boolean).join(' · ');
     const playerJson = escAttr(JSON.stringify(p));
-    return `<div class="m-avail-row pos-${escHtml(pos)}">
+    return `<div class="m-avail-row pos-${escHtml(pos)}" onclick="if(event.target.tagName!=='BUTTON'){openPlayerSheet(${playerJson})}">
       <button class="m-draft-btn" onclick="mockUserPick(${playerJson})" ${canDraft ? '' : 'disabled'}>DRAFT</button>
       <div class="m-avail-info">
         <span class="m-avail-name">${escHtml(p.name || '')}</span>
@@ -7119,6 +7138,62 @@ function setMobilePosFilter(pos) {
     btn.classList.toggle('active', btn.dataset.pos === pos);
   });
   renderRecommendations();
+}
+
+function openDraftedPlayerSheet(pickObj) {
+  const player = pickObj.player;
+  if (!player) return;
+  const overlay = document.getElementById('m-player-sheet');
+  if (!overlay) return;
+  const pos = (player.position || '').toUpperCase();
+  const team = player.team || '';
+  const bye = player.bye || '?';
+  const adp = player.composite_adp || player.adp || player.rank || '?';
+  const adpDisp = typeof adp === 'number' ? adp.toFixed(1) : adp;
+  const available = getAvailableMockPlayers ? getAvailableMockPlayers() : [];
+  const vor = (typeof calcVOR === 'function') ? calcVOR(player, available) : null;
+  const vorStr = vor !== null ? (vor >= 0 ? '+' : '') + vor.toFixed(1) : '—';
+  const round = pickObj.round || '?';
+  const pickNum = pickObj.pickNum || '?';
+  const isMine = pickObj.isUser;
+
+  const posColors = { WR:'rgba(59,130,246,0.3)', RB:'rgba(34,197,94,0.3)', QB:'rgba(239,68,68,0.3)', TE:'rgba(249,115,22,0.3)', K:'rgba(168,85,247,0.3)', DST:'rgba(107,114,128,0.3)', DEF:'rgba(107,114,128,0.3)' };
+  const posTextColors = { WR:'#60a5fa', RB:'#4ade80', QB:'#f87171', TE:'#fb923c', K:'#c084fc', DST:'#9ca3af', DEF:'#9ca3af' };
+  const posCol = posColors[pos] || 'rgba(255,255,255,0.1)';
+  const posText = posTextColors[pos] || '#fff';
+
+  const sheet = overlay.querySelector('.m-sheet');
+  if (!sheet) return;
+  sheet.innerHTML = `
+    <div class="m-sheet-handle"></div>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+      <div class="m-sheet-pos-badge" style="background:${posCol};color:${posText};">${pos}</div>
+      <div>
+        <div style="font-size:1.05rem;font-weight:700;color:#fff;">${escHtml(player.name || '?')}</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);margin-top:0.15rem;">${escHtml(team)} · Bye ${bye} · ADP #${adpDisp}</div>
+      </div>
+      ${isMine ? '<span style="margin-left:auto;font-size:0.65rem;font-weight:700;color:#93c5fd;background:rgba(59,130,246,0.15);padding:0.2rem 0.5rem;border-radius:4px;">YOUR PICK</span>' : ''}
+    </div>
+    <div style="display:flex;gap:1rem;margin-bottom:0.75rem;">
+      <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:0.6rem 0.75rem;text-align:center;">
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.25rem;">VORP</div>
+        <div style="font-size:1rem;font-weight:700;color:${vor >= 0 ? '#4ade80' : '#f87171'};">${vorStr}</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:0.6rem 0.75rem;text-align:center;">
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.25rem;">ROUND</div>
+        <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">${round}</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:0.6rem 0.75rem;text-align:center;">
+        <div style="font-size:0.62rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.25rem;">PICK #</div>
+        <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.8);">${pickNum}</div>
+      </div>
+    </div>
+    <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);text-align:center;padding-top:0.5rem;">
+      ${isMine ? 'This player is on your team.' : 'Already drafted — not available.'}
+    </div>
+    <button class="m-sheet-cancel" onclick="closePlayerSheet()" style="margin-top:1rem;width:100%;padding:0.7rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);font-size:0.8rem;cursor:pointer;">Close</button>
+  `;
+  overlay.classList.add('open');
 }
 
 function openPlayerSheet(player) {
