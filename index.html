@@ -4431,14 +4431,14 @@ function scoreMockAIPick(player, teamNum, round) {
   if (strategy === 'hero_rb') {
     const teamPicks = (MOCK.picks || []).filter(p => p.teamNum === teamNum);
     const hasHero = teamPicks.some(p => p.player.position === 'RB' && (p.player.adp || 99) <= 12);
-    if (!hasHero && pos === 'RB' && adp <= 12) score *= 1.5;   // actively hunt elite RB
-    if (!hasHero && pos === 'RB' && adp > 15 && adp <= 35) score *= 0.7; // pass on mid-tier until hero
-    if (hasHero && pos === 'WR' && roster.WR < 4) score *= 1.3;
+    if (!hasHero && pos === 'RB' && adp <= 12) score *= 1.3;   // actively hunt elite RB
+    if (!hasHero && pos === 'RB' && adp > 15 && adp <= 35) score *= 0.75; // pass on mid-tier until hero
+    if (hasHero && pos === 'WR' && roster.WR < 4) score *= 1.2;
     if (pos === 'QB' && roster.QB >= 1 && round < 8) score *= 0.4;
   }
 
   if (strategy === 'robust_rb') {
-    if (pos === 'RB' && roster.RB < 4) score *= 1.45;
+    if (pos === 'RB' && roster.RB < 4) score *= 1.25;
     if (pos === 'WR' && roster.RB >= 2 && roster.WR < 3) score *= 1.2;
     if (pos === 'TE' && roster.TE === 0 && picksMade >= 5) score *= 1.2;
   }
@@ -4512,8 +4512,9 @@ function advanceMockDraft() {
       const basePool = round === 1 ? 2 : round === 2 ? 3 : round <= 4 ? 4 : round <= 7 ? 6 : 9;
       const rand = Math.random();
       const wildcard = round >= 5 && rand < 0.03 ? 10 : round >= 5 && rand < 0.16 ? 4 : 0;
-      const pool = scored.slice(0, Math.min(basePool + wildcard, scored.length));
-      const picked = weightedSampleMock(pool.map(x => x.p), pool.map(x => Math.max(x.s, 0.001)));
+      const pool = scored.filter(x => x.s > 0).slice(0, Math.min(basePool + wildcard, scored.length));
+      if (!pool.length) { advanceMockDraft(); return; }
+      const picked = weightedSampleMock(pool.map(x => x.p), pool.map(x => x.s));
 
       MOCK.picks.push({ player: picked, pickNum: MOCK.currentPick, isUser: false, teamNum, round });
       MOCK.draftedIds.add(picked.player_id || picked.name);
