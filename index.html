@@ -4805,19 +4805,16 @@ function advanceMockDraft() {
       const available = getAvailableMockPlayers();
       if (available.length === 0) { endMockDraft(); return; }
 
-      // Score all available players for this team's strategy
-      const scored = available.map(p => ({ p, s: scoreMockAIPick(p, teamNum, round) }));
-      scored.sort((a, b) => b.s - a.s);
-
-      // Base pool shrinks in early rounds — round 1 is nearly deterministic,
-      // variance grows in later rounds where sleeper hunting is realistic.
-      // Wild card (occasional reach) only in rounds 5+.
-      const basePool = round === 1 ? 2 : round === 2 ? 3 : round <= 4 ? 4 : round <= 7 ? 6 : 9;
-      const rand = Math.random();
-      const wildcard = round >= 5 && rand < 0.03 ? 10 : round >= 5 && rand < 0.16 ? 4 : 0;
-      const pool = scored.filter(x => x.s > 0).slice(0, Math.min(basePool + wildcard, scored.length));
-      if (!pool.length) { advanceMockDraft(); return; }
-      const picked = weightedSampleMock(pool.map(x => x.p), pool.map(x => x.s));
+      // ADP-anchored pick: select from players whose ADP falls within ±3 of current pick number.
+      // This keeps CPU picks close to consensus ADP while allowing natural variance.
+      const pickNum = MOCK.currentPick;
+      const getAdp = p => (STATE.isSuperflex && p.composite_sf_adp != null) ? p.composite_sf_adp : (p.adp || 999);
+      let pool = available.filter(p => { const a = getAdp(p); return a >= pickNum - 3 && a <= pickNum + 3; });
+      // Widen window if too few candidates (late rounds where ADP is sparse)
+      if (pool.length < 2) pool = available.filter(p => { const a = getAdp(p); return a >= pickNum - 6 && a <= pickNum + 6; });
+      if (pool.length === 0) pool = available.slice(0, 3);
+      // Uniform random within window — pure ADP variability, no strategy overrides
+      const picked = pool[Math.floor(Math.random() * pool.length)];
 
       MOCK.picks.push({ player: picked, pickNum: MOCK.currentPick, isUser: false, teamNum, round });
       MOCK.draftedIds.add(picked.player_id || picked.name);
