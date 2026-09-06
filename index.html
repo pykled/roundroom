@@ -2088,7 +2088,7 @@
      during a mock draft (Sleeper-style). Hidden outside mock mode. */
   #inline-board {
     display: none;
-    max-height: 200px;
+    max-height: 220px;
     overflow-x: auto;
     /* Vertical scrolling is required so rounds beyond the first ~5 stay
        reachable; renderDraftBoard() auto-scrolls to the current round. */
@@ -2191,10 +2191,10 @@
     min-width: 0;
   }
   .draft-board-pick-empty {
-    background: var(--bg-secondary);
     border-radius: 5px;
     min-height: 34px;
-    opacity: 0.3;
+    border: 1px dashed rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
   }
 
   /* Mock draft results */
@@ -4445,7 +4445,10 @@ function renderDraftBoard() {
         ${isYou ? '★ YOU' : `Team ${t}`}
       </div>`;
 
-    for (let r = 1; r <= Math.max(currentRound, 1); r++) {
+    // Always show at least 4 rounds (and 2 beyond the current one) so users
+    // can see upcoming empty slots; never exceed the draft's total rounds.
+    const roundsToShow = Math.min(rounds, Math.max(currentRound + 2, 4));
+    for (let r = 1; r <= roundsToShow; r++) {
       const pick = board[t][r];
       if (pick) {
         const p = pick.player;
@@ -6139,8 +6142,10 @@ function renderBoard() {
     );
   }
 
-  // Filter out drafted players — they're on the board, not in the available list
-  players = players.filter(p => !STATE.draftedIds.has(p.sleeper_id || p.name) && !STATE.draftedIds.has(p.player_id || p.name));
+  // Filter out drafted players — they're on the board, not in the available list.
+  // During a mock draft picks go to MOCK.draftedIds, not STATE.draftedIds.
+  const draftedSet = MOCK.active ? MOCK.draftedIds : STATE.draftedIds;
+  players = players.filter(p => !draftedSet.has(p.sleeper_id || p.name) && !draftedSet.has(p.player_id || p.name));
 
   // Sort: targeted first within tier, avoided last
   const targeted = players.filter(p => isTarget(p.name));
