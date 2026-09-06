@@ -2216,8 +2216,9 @@
 
   .mock-insight strong { color: var(--text-primary); }
 
-  /* AI Assistant */
-  .ai-fab {
+  /* AI Assistant — hidden */
+  .ai-fab { display: none !important; }
+  .ai-fab-styles {
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
@@ -6138,14 +6139,15 @@ function renderBoard() {
     );
   }
 
-  // Sort: targeted first within tier, avoided last
-  // Keep rank order, just re-sort targeted/avoided within groups
-  const targeted = players.filter(p => isTarget(p.name) && !STATE.draftedIds.has(p.sleeper_id || p.name));
-  const normal = players.filter(p => !isTarget(p.name) && !isDND(p.name));
-  const avoided = players.filter(p => isDND(p.name) && !STATE.draftedIds.has(p.sleeper_id || p.name));
-  const drafted = players.filter(p => STATE.draftedIds.has(p.sleeper_id || p.name));
+  // Filter out drafted players — they're on the board, not in the available list
+  players = players.filter(p => !STATE.draftedIds.has(p.sleeper_id || p.name) && !STATE.draftedIds.has(p.player_id || p.name));
 
-  const sortedPlayers = [...targeted, ...normal, ...avoided, ...drafted];
+  // Sort: targeted first within tier, avoided last
+  const targeted = players.filter(p => isTarget(p.name));
+  const normal = players.filter(p => !isTarget(p.name) && !isDND(p.name));
+  const avoided = players.filter(p => isDND(p.name));
+
+  const sortedPlayers = [...targeted, ...normal, ...avoided];
 
   if (sortedPlayers.length === 0) {
     board.innerHTML = '<div class="empty-state">No players found</div>';
