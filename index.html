@@ -10516,12 +10516,11 @@ function renderCompanionView() {
             <div class="rec-rank">#${i + 1}</div>
             <div class="rec-player">
               <div style="display:flex;align-items:center;gap:0.4rem;min-width:0;">
-                <span class="pos-dot pos-dot-${p.position}"></span>
+                <span class="pos-tag pos-tag-${p.position}">${p.position}</span>
                 <span class="rec-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}</span>
                 ${injDot(p)}${trendArrow(p)}
               </div>
               <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
-                <span class="pos-tag pos-tag-${p.position}">${p.position}</span>
                 ${vorp != null ? `<span style="font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--text-muted);opacity:0.7;">+${vorp.toFixed(0)}</span>` : ''}
               </div>
             </div>
