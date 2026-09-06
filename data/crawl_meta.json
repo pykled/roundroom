@@ -1,9 +1,9 @@
 {
-  "total_drafts": 61,
-  "total_picks": 8822,
-  "picks_standard": 7259,
-  "picks_sf": 1563,
-  "crawled_at": "2026-09-05T21:48:04.142Z",
+  "total_drafts": 299,
+  "total_picks": 49796,
+  "picks_standard": 41767,
+  "picks_sf": 8029,
+  "crawled_at": "2026-09-06T12:44:46.234Z",
   "seeds_used": [
     "pykle",
     "scott_fish",
@@ -40,13 +40,13 @@
     "mikeclayff",
     "nateabrams"
   ],
-  "users_explored": 50102,
-  "leagues_seen": 7448,
-  "known_leagues": 7033,
-  "completed_drafts_seen": 0,
-  "skipped_too_old": 0,
-  "skipped_auction": 0,
+  "users_explored": 54025,
+  "leagues_seen": 7994,
+  "known_leagues": 7568,
+  "completed_drafts_seen": 448,
+  "skipped_too_old": 184,
+  "skipped_auction": 9,
   "date_window_days": 14,
-  "elapsed_seconds": 3544,
-  "stop_reason": "frontier_exhausted"
+  "elapsed_seconds": 4502,
+  "stop_reason": "time_budget"
 }
