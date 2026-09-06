@@ -1092,9 +1092,8 @@
 
   /* Strategy buttons */
   .strategy-bar {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.45rem 1rem;
-    background: rgba(255,255,255,0.02);
+    display: flex; align-items: center; gap: 6px;
+    padding: 0.35rem 1rem;
     border-bottom: 1px solid rgba(255,255,255,0.06);
     font-size: 0.68rem;
     overflow-x: auto; scrollbar-width: none;
@@ -1105,17 +1104,17 @@
   .strategy-label { font-size: 0.62rem; color: var(--text-muted); margin-right: 0.15rem; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; flex-shrink: 0; }
 
   .strategy-btn {
-    padding: 0.25rem 0.7rem; border-radius: 20px;
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45);
+    padding: 0.25rem 0.65rem; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em;
+    border: 1px solid rgba(100,116,139,0.3);
+    background: transparent; color: #64748b;
     cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
 
-  .strategy-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  .strategy-btn:hover { background: rgba(100,116,139,0.15); color: rgba(255,255,255,0.7); }
   .strategy-btn.active {
-    background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5);
-    color: #a5b4fc;
+    background: #3b82f6; border-color: #3b82f6;
+    color: #fff;
   }
 
   /* Your pick banner */
@@ -1150,7 +1149,7 @@
 
   .panel {
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0.75rem;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
@@ -1875,11 +1874,11 @@
   /* Mock draft banner */
   .mock-banner {
     display: flex; align-items: center; gap: 0.75rem;
-    padding: 0.45rem 1rem;
-    background: rgba(52,211,153,0.06);
-    border-bottom: 1px solid rgba(52,211,153,0.15);
+    padding: 0.35rem 1rem;
+    background: rgba(15,23,42,0.6);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     font-size: 0.72rem;
-    color: rgba(52,211,153,0.9);
+    color: rgba(255,255,255,0.85);
     font-weight: 600;
     flex-shrink: 0;
   }
