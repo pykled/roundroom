@@ -4,10 +4,15 @@ const path = require('path');
 const fs = require('fs');
 const Anthropic = require('@anthropic-ai/sdk');
 
+const { clerkMiddleware, getAuth, requireAuth } = require("@clerk/express");
+const { Pool } = require('pg');
+const { pool: db, migrate } = require('./db/migrate');
+
 const app = express();
 // Trust Railway's proxy so req.ip is the real client IP (not 127.0.0.1),
 // which makes per-user rate limiting and logging accurate.
 app.set('trust proxy', 1);
+app.use(clerkMiddleware());
 const PORT = process.env.PORT || 7890;
 
 // Cache for Sleeper player data (large payload, changes rarely)
@@ -39,6 +44,30 @@ function readDataFile(name) {
   );
 }
 
+// Async TTL cache for proxied Sleeper API calls with in-flight dedup
+const apiCacheMap = new Map();
+const apiInFlight = new Map();
+
+async function apiCached(key, ttlMs, fetcher) {
+  const entry = apiCacheMap.get(key);
+  if (entry && Date.now() < entry.expires) return entry.value;
+  if (apiInFlight.has(key)) return apiInFlight.get(key);
+  const promise = fetcher()
+    .then(value => {
+      apiCacheMap.set(key, { value, expires: Date.now() + ttlMs });
+      apiInFlight.delete(key);
+      return value;
+    })
+    .catch(err => {
+      apiInFlight.delete(key);
+      const stale = apiCacheMap.get(key);
+      if (stale) return stale.value;
+      throw err;
+    });
+  apiInFlight.set(key, promise);
+  return promise;
+}
+
 // SSE must be excluded — compression buffers the stream and breaks real-time delivery
 app.use(compression({
   filter: (req, res) =>
@@ -49,14 +78,17 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   // Tight CSP: no inline eval, scripts only from self + CDN used for fonts/icons
+  const clerkFapi = process.env.CLERK_FRONTEND_API || '*.clerk.accounts.dev';
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app; " +
+    "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app https://cdn.jsdelivr.net https://" + clerkFapi + " https://clerk.pykled.com https://challenges.cloudflare.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data: https://sleepercdn.com; " +
-    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app; " +
+    "img-src 'self' data: https://sleepercdn.com https://img.clerk.com; " +
+    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app https://" + clerkFapi + " https://clerk.pykled.com; " +
+    "worker-src 'self' blob:; " +
+    "frame-src 'self' https://challenges.cloudflare.com https://" + clerkFapi + "; " +
     "frame-ancestors 'none';"
   );
   next();
@@ -706,6 +738,257 @@ app.get('/api/draft-stream', (req, res) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+app.get('/api/config', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({ clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || '', season: 2026 });
+});
+
+// ---------------------------------------------------------------------------
+// Sleeper proxy endpoints — gated through apiCached
+// ---------------------------------------------------------------------------
+app.get('/api/nfl-state', async (req, res) => {
+  try {
+    const data = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    );
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch NFL state' });
+  }
+});
+
+app.get('/api/league/:id', async (req, res) => {
+  const { id } = req.params;
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'Invalid league ID' });
+  try {
+    const data = await apiCached(`league:${id}`, 60 * 1000, async () => {
+      const [lr, rr, ur] = await Promise.all([
+        fetch(`https://api.sleeper.app/v1/league/${id}`),
+        fetch(`https://api.sleeper.app/v1/league/${id}/rosters`),
+        fetch(`https://api.sleeper.app/v1/league/${id}/users`),
+      ]);
+      if (!lr.ok) throw new Error(`Sleeper league ${lr.status}`);
+      const [league, rosters, users] = await Promise.all([
+        lr.json(),
+        rr.ok ? rr.json() : [],
+        ur.ok ? ur.json() : [],
+      ]);
+      return { ...league, rosters, users, fetched_at: new Date().toISOString() };
+    });
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch league data' });
+  }
+});
+
+app.get('/api/projections/:week', async (req, res) => {
+  const week = parseInt(req.params.week, 10);
+  if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
+  try {
+    const data = await apiCached(`proj:2026:${week}`, 60 * 60 * 1000, async () => {
+      const url = `https://api.sleeper.app/v1/projections/nfl/2026/${week}?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Sleeper projections ${r.status}`);
+      const raw = await r.json();
+      const slim = {};
+      for (const item of (Array.isArray(raw) ? raw : [])) {
+        if (item && item.player_id) slim[item.player_id] = item.stats || {};
+      }
+      return slim;
+    });
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch projections' });
+  }
+});
+
+// Slim players dict for trade UI — only name/pos/team for skill positions
+app.get('/api/players/slim', async (req, res) => {
+  const now = Date.now();
+  let dict = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL ? playerCache : null;
+  if (!dict) {
+    try {
+      const r = await fetch('https://api.sleeper.app/v1/players/nfl', { signal: AbortSignal.timeout(15000) });
+      if (!r.ok) throw new Error(r.status);
+      dict = await r.json();
+      playerCache = dict; playerCacheTime = now;
+    } catch (err) {
+      if (playerCache) dict = playerCache;
+      else return res.status(502).json({ error: 'Failed to fetch players' });
+    }
+  }
+  const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
+  const slim = {};
+  for (const [id, p] of Object.entries(dict)) {
+    if (!p || !p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
+    slim[id] = [p.full_name, p.position, p.team || 'FA'];
+  }
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json(slim);
+});
+
+// ---------------------------------------------------------------------------
+// Account routes (Clerk auth required)
+// ---------------------------------------------------------------------------
+const auth = requireAuth();
+
+app.get('/api/me', auth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  try {
+    const { rows } = await db.query(
+      'SELECT clerk_user_id, sleeper_username, sleeper_user_id, primary_league_id FROM users WHERE clerk_user_id = $1',
+      [userId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    const u = rows[0];
+    res.json({ clerkUserId: u.clerk_user_id, sleeperUsername: u.sleeper_username, sleeperUserId: u.sleeper_user_id, primaryLeagueId: u.primary_league_id });
+  } catch (err) {
+    console.error('/api/me error:', err.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/me/sleeper', auth, express.json({ limit: '10kb' }), async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  const { sleeperUsername } = req.body || {};
+  if (!sleeperUsername || typeof sleeperUsername !== 'string' || sleeperUsername.length > 60) {
+    return res.status(400).json({ error: 'sleeperUsername required' });
+  }
+  try {
+    const r = await fetch(`https://api.sleeper.app/v1/user/${encodeURIComponent(sleeperUsername.trim())}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return res.status(404).json({ error: 'Sleeper user not found' });
+    const su = await r.json();
+    if (!su || !su.user_id) return res.status(404).json({ error: 'Sleeper user not found' });
+    const { rows } = await db.query(
+      `INSERT INTO users (clerk_user_id, sleeper_username, sleeper_user_id)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (clerk_user_id) DO UPDATE SET sleeper_username = EXCLUDED.sleeper_username, sleeper_user_id = EXCLUDED.sleeper_user_id
+       RETURNING clerk_user_id, sleeper_username, sleeper_user_id, primary_league_id`,
+      [userId, su.username || sleeperUsername.trim(), su.user_id]
+    );
+    const u = rows[0];
+    res.json({ clerkUserId: u.clerk_user_id, sleeperUsername: u.sleeper_username, sleeperUserId: u.sleeper_user_id, primaryLeagueId: u.primary_league_id });
+  } catch (err) {
+    if (err.message === '404') return res.status(404).json({ error: 'Sleeper user not found' });
+    console.error('/api/me/sleeper error:', err.message);
+    res.status(500).json({ error: 'Failed to link Sleeper account' });
+  }
+});
+
+app.get('/api/me/leagues', auth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  try {
+    const { rows } = await db.query('SELECT sleeper_user_id FROM users WHERE clerk_user_id = $1', [userId]);
+    if (!rows.length || !rows[0].sleeper_user_id) return res.status(404).json({ error: 'Sleeper account not linked' });
+    const r = await fetch(`https://api.sleeper.app/v1/user/${rows[0].sleeper_user_id}/leagues/nfl/2026`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return res.status(502).json({ error: 'Failed to fetch leagues from Sleeper' });
+    const leagues = await r.json();
+    res.json((leagues || []).map(l => ({
+      league_id: l.league_id, name: l.name, roster_positions: l.roster_positions,
+      scoring_settings: l.scoring_settings, total_rosters: l.total_rosters,
+    })));
+  } catch (err) {
+    console.error('/api/me/leagues error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch leagues' });
+  }
+});
+
+app.post('/api/me/leagues/:leagueId/primary', auth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  const { leagueId } = req.params;
+  const client = await db.connect();
+  try {
+    const { rows: uRows } = await client.query('SELECT id FROM users WHERE clerk_user_id = $1', [userId]);
+    if (!uRows.length) return res.status(404).json({ error: 'User not found' });
+    const uid = uRows[0].id;
+    await client.query('BEGIN');
+    await client.query('UPDATE user_leagues SET is_primary = false WHERE user_id = $1', [uid]);
+    await client.query(
+      `INSERT INTO user_leagues (user_id, league_id, is_primary) VALUES ($1, $2, true)
+       ON CONFLICT (user_id, league_id) DO UPDATE SET is_primary = true`,
+      [uid, leagueId]
+    );
+    await client.query('UPDATE users SET primary_league_id = $1 WHERE id = $2', [leagueId, uid]);
+    await client.query('COMMIT');
+    res.json({ ok: true, primaryLeagueId: leagueId });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('/api/me/leagues/:id/primary error:', err.message);
+    res.status(500).json({ error: 'Failed to set primary league' });
+  } finally {
+    client.release();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Trades — save + retrieve
+// ---------------------------------------------------------------------------
+app.post('/api/trades', express.json({ limit: '50kb' }), async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { give, recv, result, preset, leagueId } = req.body || {};
+  if (!Array.isArray(give) || !Array.isArray(recv)) return res.status(400).json({ error: 'give and recv arrays required' });
+  const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  const shareToken = token.slice(0, 12);
+  try {
+    await db.query('INSERT INTO trades (share_token, payload_json) VALUES ($1, $2)', [shareToken, JSON.stringify({ give, recv, result, preset, leagueId })]);
+    res.json({ shareToken });
+  } catch (err) {
+    console.error('/api/trades POST error:', err.message);
+    res.status(500).json({ error: 'Failed to save trade' });
+  }
+});
+
+app.get('/api/trades/:token', async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  try {
+    const { rows } = await db.query('SELECT payload_json, created_at FROM trades WHERE share_token = $1', [req.params.token]);
+    if (!rows.length) return res.status(404).json({ error: 'Trade not found' });
+    res.json({ ...rows[0].payload_json, createdAt: rows[0].created_at });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Static serving — deny sensitive server-side files first
+// ---------------------------------------------------------------------------
+app.use((req, res, next) => {
+  const p = req.path;
+  if (
+    /^\/server\.js$/i.test(p) ||
+    /^\/package(-lock)?\.json$/i.test(p) ||
+    /^\/\.env/i.test(p) ||
+    /^\/node_modules\//i.test(p) ||
+    /^\/db\//i.test(p) ||
+    /^\/routes\//i.test(p) ||
+    /^\/scripts\//i.test(p) ||
+    /^\/trade\.html$/i.test(p)
+  ) return res.status(404).end();
+  next();
+});
+
+// /trade served with server-injected Clerk publishable key
+app.get('/trade', (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'trade.html'), 'utf8');
+    html = html.replace('PUBLISHABLE_KEY_PLACEHOLDER', process.env.CLERK_PUBLISHABLE_KEY || '');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Failed to load trade page');
+  }
+});
+
 // Serve the app
 app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {
@@ -718,6 +1001,9 @@ setInterval(
   () => fetchLiveInjuries().catch(err => console.error('Injury refresh failed:', err.message)),
   INJURY_CACHE_TTL
 ).unref();
+
+// Run DB migrations before accepting traffic
+migrate().catch(err => console.error('Migration failed:', err.message));
 
 const server = app.listen(PORT, () => {
   console.log(`Fantasy Draft Assistant running on port ${PORT}`);

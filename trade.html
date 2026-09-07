@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Calculator — RoundRoom</title>
+<link rel="stylesheet" href="/shared/theme.css">
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+#app { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+#loading { text-align: center; padding: 5rem; color: var(--text-secondary); font-size: 0.85rem; }
+
+/* setup cards */
+.setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.setup-card h2 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
+.setup-card p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.9rem; line-height: 1.5; }
+.form-row { display: flex; gap: 0.5rem; }
+.form-row input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; color: var(--text-primary); font-size: 0.82rem; }
+.form-row input:focus { outline: none; border-color: var(--border-bright); }
+.btn-primary { background: var(--text-primary); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-primary:disabled { opacity: 0.45; cursor: default; }
+.btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.error-msg { font-size: 0.76rem; color: var(--danger); margin-top: 0.4rem; }
+
+/* preset bar */
+#preset-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.1rem; }
+#preset-bar .pb-label { font-size: 0.7rem; color: var(--text-muted); }
+.pg { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.pg button { font-size: 0.72rem; padding: 0.28rem 0.6rem; background: none; border: none; border-right: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; }
+.pg button:last-child { border-right: none; }
+.pg button.on { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+
+/* league bar */
+#league-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.1rem; font-size: 0.78rem; color: var(--text-secondary); }
+#league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: 0.78rem; }
+#league-bar select:focus { outline: none; border-color: var(--border-bright); }
+
+/* trade grid */
+.trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 560px) { .trade-grid { grid-template-columns: 1fr; } }
+.trade-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+.col-hdr { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
+
+/* search */
+.srch-wrap { position: relative; margin-bottom: 0.65rem; }
+.srch-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.42rem 0.7rem; color: var(--text-primary); font-size: 0.8rem; }
+.srch-input:focus { outline: none; border-color: var(--border-bright); }
+.srch-drop { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: 6px; z-index: 60; max-height: 200px; overflow-y: auto; }
+.srch-item { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.7rem; cursor: pointer; font-size: 0.8rem; }
+.srch-item:hover { background: var(--bg-hover); }
+.pos-badge { font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 4px; white-space: nowrap; }
+.QB { background: rgba(239,68,68,.18); color: var(--qb); }
+.RB { background: rgba(16,185,129,.18); color: var(--rb); }
+.WR { background: rgba(59,130,246,.18); color: var(--wr); }
+.TE { background: rgba(168,85,247,.18); color: var(--te); }
+.K  { background: rgba(107,114,128,.18); color: var(--k); }
+
+/* player rows */
+.pl-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.38rem 0; border-bottom: 1px solid var(--border); }
+.pl-row:last-child { border-bottom: none; }
+.pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; }
+.pl-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
+.rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; }
+.rm-btn:hover { color: var(--danger); }
+.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
+
+/* value bar */
+.vbar-wrap { height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 0.6rem; }
+.vbar { height: 100%; border-radius: 3px; transition: width 0.25s; min-width: 2px; }
+.vbar-give { background: var(--danger); }
+.vbar-recv { background: var(--rb); }
+
+/* verdict */
+#verdict { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; text-align: center; margin-bottom: 0.9rem; }
+.vd-empty { font-size: 0.8rem; color: var(--text-muted); }
+.vd-sides { display: flex; gap: 1rem; justify-content: center; margin-bottom: 0.75rem; }
+.vd-side { flex: 1; max-width: 180px; }
+.vd-side-lbl { font-size: 0.68rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.vd-side-num { font-size: 1.35rem; font-weight: 700; }
+.vd-badge { display: inline-block; padding: 0.35rem 1.4rem; border-radius: 999px; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.04em; margin: 0.3rem 0; }
+.vd-WIN  { background: rgba(16,185,129,.12); color: var(--rb); border: 1px solid rgba(16,185,129,.28); }
+.vd-FAIR { background: rgba(251,191,36,.08); color: var(--gold); border: 1px solid rgba(251,191,36,.22); }
+.vd-LOSE { background: rgba(239,68,68,.08); color: var(--danger); border: 1px solid rgba(239,68,68,.22); }
+.vd-delta { font-size: 0.76rem; color: var(--text-secondary); }
+.share-row { text-align: center; }
+.share-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.9rem; font-size: 0.76rem; color: var(--text-secondary); cursor: pointer; }
+.share-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+.share-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/" class="rr-logo">RoundRoom</a>
+  <div class="rr-links">
+    <a href="/" class="rr-link">Draft</a>
+    <a href="/trade" class="rr-link active">Trade</a>
+    <span class="rr-link dim">Lineup</span>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+</nav>
+
+<div id="app">
+  <div id="loading">Loading…</div>
+
+  <!-- Signed in but no Sleeper linked -->
+  <div id="sleeper-card" class="setup-card" hidden>
+    <h2>Connect Your Sleeper Account</h2>
+    <p>Enter your Sleeper username to auto-load your league and roster.</p>
+    <div class="form-row">
+      <input id="sleeper-input" type="text" placeholder="Sleeper username" autocomplete="off">
+      <button class="btn-primary" id="sleeper-btn">Connect</button>
+    </div>
+    <div id="sleeper-err" class="error-msg" hidden></div>
+  </div>
+
+  <!-- Main trade UI -->
+  <div id="trade-ui" hidden>
+    <!-- Preset controls (manual mode) -->
+    <div id="preset-bar">
+      <span class="pb-label">Scoring</span>
+      <div class="pg">
+        <button class="on" data-g="scoring" data-v="1">PPR</button>
+        <button data-g="scoring" data-v="0.5">Half</button>
+        <button data-g="scoring" data-v="0">Std</button>
+      </div>
+      <span class="pb-label">QBs</span>
+      <div class="pg">
+        <button class="on" data-g="qbs" data-v="1">1 QB</button>
+        <button data-g="qbs" data-v="2">SF</button>
+      </div>
+      <span class="pb-label">Teams</span>
+      <div class="pg">
+        <button data-g="teams" data-v="10">10</button>
+        <button class="on" data-g="teams" data-v="12">12</button>
+        <button data-g="teams" data-v="14">14</button>
+      </div>
+    </div>
+
+    <!-- League selector (connected mode) -->
+    <div id="league-bar" hidden>
+      <span>League:</span>
+      <select id="league-sel"></select>
+    </div>
+
+    <div class="trade-grid">
+      <div class="trade-col">
+        <div class="col-hdr">You Give</div>
+        <div class="srch-wrap">
+          <input class="srch-input" id="srch-give" type="text" placeholder="Search players…" autocomplete="off">
+          <div class="srch-drop" id="drop-give" hidden></div>
+        </div>
+        <div id="give-list"><div class="empty-hint">No players added</div></div>
+        <div class="vbar-wrap"><div class="vbar vbar-give" id="vbar-give" style="width:50%"></div></div>
+      </div>
+      <div class="trade-col">
+        <div class="col-hdr">You Receive</div>
+        <div class="srch-wrap">
+          <input class="srch-input" id="srch-recv" type="text" placeholder="Search players…" autocomplete="off">
+          <div class="srch-drop" id="drop-recv" hidden></div>
+        </div>
+        <div id="recv-list"><div class="empty-hint">No players added</div></div>
+        <div class="vbar-wrap"><div class="vbar vbar-recv" id="vbar-recv" style="width:50%"></div></div>
+      </div>
+    </div>
+
+    <div id="verdict">
+      <div class="vd-empty" id="vd-empty">Add players to both sides to see the trade value</div>
+      <div id="vd-content" hidden>
+        <div class="vd-sides">
+          <div class="vd-side">
+            <div class="vd-side-lbl">You Give</div>
+            <div class="vd-side-num" id="vd-give-num">0</div>
+          </div>
+          <div class="vd-side">
+            <div class="vd-side-lbl">You Receive</div>
+            <div class="vd-side-num" id="vd-recv-num">0</div>
+          </div>
+        </div>
+        <div id="vd-badge" class="vd-badge vd-FAIR">FAIR</div>
+        <div class="vd-delta" id="vd-delta"></div>
+      </div>
+    </div>
+
+    <div class="share-row">
+      <button class="share-btn" id="share-btn">Share Trade Link</button>
+      <div class="share-note" id="share-note" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script src="/shared/scoring.js"></script>
+<script>
+var S = {
+  clerk: null,
+  me: null,
+  proj: {},
+  players: {},
+  league: null,
+  give: [],
+  recv: [],
+  vorp: new Map(),
+  preset: { scoring: 1, qbs: 1, teams: 12 },
+  week: 1,
+  mode: 'manual',
+};
+
+async function boot() {
+  try {
+    var cfgP = fetch('/api/config').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var stateP = fetch('/api/nfl-state').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var cfg = await cfgP;
+    var nfl = await stateP;
+    S.week = nfl.week || 1;
+
+    // Init Clerk
+    var key = window.__clerk_publishable_key || (cfg && cfg.clerkPublishableKey);
+    if (key) {
+      try {
+        var clerk = new window.Clerk(key);
+        await clerk.load();
+        S.clerk = clerk;
+        mountNav(clerk);
+        if (clerk.user) {
+          var me = await fetch('/api/me').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+          S.me = me;
+        }
+      } catch(e) { console.warn('Clerk init failed', e); }
+    }
+    if (!S.clerk || !S.clerk.user) {
+      document.getElementById('rr-sign-in').hidden = false;
+    }
+
+    // Fetch projections + slim players in parallel
+    var projP = fetch('/api/projections/' + S.week).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var plP = fetch('/api/players/slim').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var results = await Promise.all([projP, plP]);
+    S.proj = results[0] || {};
+    S.players = results[1] || {};
+
+    document.getElementById('loading').hidden = true;
+
+    if (S.me && S.me.sleeperUserId) {
+      await enterConnected();
+    } else if (S.clerk && S.clerk.user) {
+      document.getElementById('sleeper-card').hidden = false;
+      enterManual();
+    } else {
+      enterManual();
+    }
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Failed to load — please refresh.';
+    console.error('boot error', e);
+  }
+}
+
+function mountNav(clerk) {
+  var wrap = document.getElementById('user-btn-mount');
+  var btn = document.getElementById('rr-sign-in');
+  if (clerk.user) {
+    clerk.mountUserButton(wrap);
+    btn.hidden = true;
+  } else {
+    btn.hidden = false;
+    btn.onclick = function() { clerk.openSignIn(); };
+  }
+}
+
+function enterManual() {
+  S.mode = 'manual';
+  document.getElementById('trade-ui').hidden = false;
+  document.getElementById('preset-bar').hidden = false;
+  document.getElementById('league-bar').hidden = true;
+  recompute();
+}
+
+async function enterConnected() {
+  S.mode = 'connected';
+  var lid = S.me && S.me.primaryLeagueId;
+  if (lid) {
+    try {
+      S.league = await fetch('/api/league/' + lid).then(function(r){ return r.json(); });
+    } catch(e) {}
+  }
+  document.getElementById('trade-ui').hidden = false;
+  document.getElementById('preset-bar').hidden = true;
+  document.getElementById('league-bar').hidden = false;
+  if (S.league) {
+    var sel = document.getElementById('league-sel');
+    var opt = document.createElement('option');
+    opt.value = S.league.league_id || lid;
+    opt.textContent = S.league.name || ('League ' + lid);
+    sel.appendChild(opt);
+  }
+  recompute();
+}
+
+function getScoringSettings() {
+  if (S.mode === 'connected' && S.league && S.league.scoring_settings) return S.league.scoring_settings;
+  return { rec: S.preset.scoring, rec_yd: 0.1, rec_td: 6, rush_yd: 0.1, rush_td: 6, pass_yd: 0.04, pass_td: 4, pass_int: -2 };
+}
+
+function getRosterPositions() {
+  if (S.mode === 'connected' && S.league && S.league.roster_positions) return S.league.roster_positions;
+  var base = [];
+  for (var i = 0; i < S.preset.qbs; i++) base.push('QB');
+  base = base.concat(['RB','RB','WR','WR','WR','TE','FLEX','K']);
+  if (S.preset.qbs >= 2) base.push('SUPER_FLEX');
+  return base;
+}
+
+function getTeams() {
+  if (S.mode === 'connected' && S.league && S.league.total_rosters) return S.league.total_rosters;
+  return S.preset.teams;
+}
+
+function recompute() {
+  var players = Object.keys(S.players).map(function(id) {
+    return { player_id: id, position: S.players[id][1] };
+  });
+  var raw = ScoringEngine.computeVORP(players, S.proj, getScoringSettings(), getRosterPositions(), getTeams());
+  S.vorp = ScoringEngine.rescaleVORP(raw);
+  renderSide('give');
+  renderSide('recv');
+  renderVerdict();
+}
+
+function addPlayer(side, id) {
+  var list = side === 'give' ? S.give : S.recv;
+  if (list.indexOf(id) >= 0) return;
+  list.push(id);
+  renderSide(side);
+  renderVerdict();
+}
+
+function removePlayer(side, id) {
+  if (side === 'give') S.give = S.give.filter(function(x){ return x !== id; });
+  else S.recv = S.recv.filter(function(x){ return x !== id; });
+  renderSide(side);
+  renderVerdict();
+}
+
+function renderSide(side) {
+  var list = side === 'give' ? S.give : S.recv;
+  var el = document.getElementById(side + '-list');
+  if (!list.length) { el.innerHTML = '<div class="empty-hint">No players added</div>'; return; }
+  el.innerHTML = list.map(function(id) {
+    var info = S.players[id] || [id, '?', '?'];
+    var val = S.vorp.get(id) || 0;
+    var pos = info[1] || '?';
+    return '<div class="pl-row">' +
+      '<span class="pos-badge ' + pos + '">' + pos + '</span>' +
+      '<span class="pl-name">' + info[0] + '</span>' +
+      '<span class="pl-val">' + val.toLocaleString() + '</span>' +
+      '<button class="rm-btn" onclick="removePlayer(\'' + side + '\',\'' + id + '\')">×</button>' +
+      '</div>';
+  }).join('');
+}
+
+function renderVerdict() {
+  var emptyEl = document.getElementById('vd-empty');
+  var contentEl = document.getElementById('vd-content');
+  if (!S.give.length && !S.recv.length) {
+    emptyEl.hidden = false; contentEl.hidden = true;
+    document.getElementById('vbar-give').style.width = '50%';
+    document.getElementById('vbar-recv').style.width = '50%';
+    return;
+  }
+  var r = ScoringEngine.evaluateTrade(S.give, S.recv, S.vorp, getRosterPositions());
+  emptyEl.hidden = true; contentEl.hidden = false;
+  document.getElementById('vd-give-num').textContent = r.giverValue.toLocaleString();
+  document.getElementById('vd-recv-num').textContent = r.receiverValue.toLocaleString();
+  var badge = document.getElementById('vd-badge');
+  badge.textContent = r.verdict;
+  badge.className = 'vd-badge vd-' + r.verdict;
+  var pct = Math.abs(r.deltaPct * 100).toFixed(1);
+  document.getElementById('vd-delta').textContent =
+    r.verdict === 'WIN'  ? 'You gain ' + pct + '% in value' :
+    r.verdict === 'LOSE' ? 'You give up ' + pct + '% in value' :
+    'Within ' + pct + '% — fair';
+  var maxV = Math.max(r.giverValue, r.receiverValue, 1);
+  document.getElementById('vbar-give').style.width = Math.max(2, r.giverValue / maxV * 100).toFixed(1) + '%';
+  document.getElementById('vbar-recv').style.width = Math.max(2, r.receiverValue / maxV * 100).toFixed(1) + '%';
+}
+
+// Player search
+function setupSearch(side, inputId, dropId) {
+  var input = document.getElementById(inputId);
+  var drop = document.getElementById(dropId);
+  input.addEventListener('input', function() {
+    var q = input.value.trim().toLowerCase();
+    if (q.length < 2) { drop.hidden = true; return; }
+    var hits = [];
+    var keys = Object.keys(S.players);
+    for (var i = 0; i < keys.length; i++) {
+      var id = keys[i];
+      if (S.players[id][0].toLowerCase().indexOf(q) >= 0) hits.push(id);
+    }
+    hits.sort(function(a, b) { return (S.vorp.get(b) || 0) - (S.vorp.get(a) || 0); });
+    hits = hits.slice(0, 10);
+    if (!hits.length) { drop.hidden = true; return; }
+    drop.innerHTML = hits.map(function(id) {
+      var info = S.players[id];
+      var val = S.vorp.get(id) || 0;
+      return '<div class="srch-item" onclick="pick(\'' + side + '\',\'' + id + '\')">' +
+        '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
+        '<span style="flex:1">' + info[0] + ' <span style="color:var(--text-muted);font-size:0.7rem">' + (info[2] || 'FA') + '</span></span>' +
+        '<span style="font-size:0.7rem;color:var(--text-secondary)">' + val.toLocaleString() + '</span>' +
+        '</div>';
+    }).join('');
+    drop.hidden = false;
+  });
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !drop.contains(e.target)) drop.hidden = true;
+  });
+}
+
+function pick(side, id) {
+  addPlayer(side, id);
+  var inputId = side === 'give' ? 'srch-give' : 'srch-recv';
+  var dropId  = side === 'give' ? 'drop-give' : 'drop-recv';
+  document.getElementById(inputId).value = '';
+  document.getElementById(dropId).hidden = true;
+}
+
+// Preset button clicks
+document.querySelectorAll('.pg button').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var g = btn.dataset.g;
+    document.querySelectorAll('[data-g="' + g + '"]').forEach(function(b) { b.classList.remove('on'); });
+    btn.classList.add('on');
+    S.preset[g] = Number(btn.dataset.v);
+    recompute();
+  });
+});
+
+// Sleeper link
+document.getElementById('sleeper-btn').addEventListener('click', async function() {
+  var btn = document.getElementById('sleeper-btn');
+  var inp = document.getElementById('sleeper-input');
+  var err = document.getElementById('sleeper-err');
+  var u = inp.value.trim();
+  if (!u) return;
+  btn.disabled = true; btn.textContent = 'Connecting…'; err.hidden = true;
+  try {
+    var res = await fetch('/api/me/sleeper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sleeperUsername: u }),
+    });
+    if (!res.ok) {
+      var e = await res.json().catch(function(){ return {}; });
+      err.textContent = e.error || 'Sleeper user not found';
+      err.hidden = false;
+      return;
+    }
+    S.me = await res.json();
+    document.getElementById('sleeper-card').hidden = true;
+    await enterConnected();
+  } catch(e) {
+    err.textContent = 'Network error — try again'; err.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Connect';
+  }
+});
+
+// Share
+document.getElementById('share-btn').addEventListener('click', async function() {
+  if (!S.give.length && !S.recv.length) return;
+  var result = ScoringEngine.evaluateTrade(S.give, S.recv, S.vorp, getRosterPositions());
+  try {
+    var res = await fetch('/api/trades', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ give: S.give, recv: S.recv, result: result, preset: S.preset }),
+    });
+    if (!res.ok) throw new Error();
+    var data = await res.json();
+    var url = location.origin + '/trade?t=' + data.shareToken;
+    await navigator.clipboard.writeText(url).catch(function(){});
+    var note = document.getElementById('share-note');
+    note.textContent = 'Link copied: ' + url;
+    note.hidden = false;
+    setTimeout(function(){ note.hidden = true; }, 4000);
+  } catch(e) {
+    alert('Failed to save trade');
+  }
+});
+
+// Init
+setupSearch('give', 'srch-give', 'drop-give');
+setupSearch('recv', 'srch-recv', 'drop-recv');
+boot();
+</script>
+</body>
+</html>

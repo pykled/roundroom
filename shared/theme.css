@@ -1,0 +1,25 @@
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-hover: #181818;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.14);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.45);
+  --text-muted: rgba(255,255,255,0.22);
+  --accent: #ffffff;
+  --accent-glow: rgba(255,255,255,0.06);
+  --rb: #10b981;
+  --wr: #3b82f6;
+  --qb: #ef4444;
+  --te: #a855f7;
+  --k: #6b7280;
+  --dst: #6b7280;
+  --gold: #fbbf24;
+  --silver: #94a3b8;
+  --bronze: #cd7f32;
+  --danger: #ef4444;
+  --success: #10b981;
+  --amber: #f59e0b;
+}
