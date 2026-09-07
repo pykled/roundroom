@@ -38,6 +38,8 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 #league-bar select:focus { outline: none; border-color: var(--border-bright); }
 #league-bar #league-hint { font-size: 0.72rem; color: var(--text-muted); }
 #league-bar #league-hint.warn { color: var(--danger); }
+#league-settings-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; margin-top: -0.6rem; }
+#league-settings-strip .ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
 
 /* trade grid */
 .trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -150,6 +152,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
       <select id="league-sel"></select>
       <span id="league-hint" hidden></span>
     </div>
+    <div id="league-settings-strip" hidden></div>
 
     <div class="trade-grid">
       <div class="trade-col">
@@ -425,12 +428,35 @@ function getTeams() {
   return S.preset.teams;
 }
 
+function renderLeagueStrip() {
+  var strip = document.getElementById('league-settings-strip');
+  if (!strip) return;
+  if (S.mode !== 'connected' || !S.league) { strip.hidden = true; return; }
+  var sc = S.league.scoring_settings || {};
+  var rec = sc.rec != null ? parseFloat(sc.rec) : null;
+  var scoringLabel = rec === 1 ? 'PPR' : rec === 0.5 ? 'Half-PPR' : rec === 0 ? 'Std' : null;
+  var positions = S.league.roster_positions || [];
+  var hasSF = positions.indexOf('SUPER_FLEX') >= 0;
+  var has2QB = positions.filter(function(p){ return p === 'QB'; }).length >= 2;
+  var teCount = S.league.total_rosters;
+  var tags = [];
+  if (scoringLabel) tags.push(scoringLabel);
+  if (hasSF) tags.push('Superflex');
+  else if (has2QB) tags.push('2QB');
+  if (teCount) tags.push(teCount + ' teams');
+  var tePrem = sc.bonus_rec_te || sc.rec_te_bonus;
+  if (tePrem) tags.push('TE+' + tePrem);
+  strip.innerHTML = tags.map(function(t){ return '<span class="ls-tag">' + t + '</span>'; }).join('');
+  strip.hidden = tags.length === 0;
+}
+
 function recompute() {
   var players = Object.keys(S.players).map(function(id) {
     return { player_id: id, position: S.players[id][1] };
   });
   var raw = ScoringEngine.computeVORP(players, S.proj, getScoringSettings(), getRosterPositions(), getTeams());
   S.vorp = ScoringEngine.rescaleVORP(raw);
+  renderLeagueStrip();
   renderSide('give');
   renderSide('recv');
   renderVerdict();
