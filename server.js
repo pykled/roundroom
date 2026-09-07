@@ -79,16 +79,19 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   // Tight CSP: no inline eval, scripts only from self + CDN used for fonts/icons
   const clerkFapi = process.env.CLERK_FRONTEND_API || '*.clerk.accounts.dev';
+  // Clerk origins: env-configured FAPI, dev-instance wildcard, explicit dev instance, prod custom domain
+  const clerkOrigins = 'https://' + clerkFapi +
+    ' https://*.clerk.accounts.dev https://clerk.ready-kingfish-8657.accounts.dev https://ready-kingfish-8657.clerk.accounts.dev https://clerk.pykled.com';
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app https://cdn.jsdelivr.net https://" + clerkFapi + " https://clerk.pykled.com https://challenges.cloudflare.com; " +
+    "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app https://cdn.jsdelivr.net " + clerkOrigins + " https://challenges.cloudflare.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https://sleepercdn.com https://img.clerk.com; " +
-    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app https://" + clerkFapi + " https://clerk.pykled.com; " +
+    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
     "worker-src 'self' blob:; " +
-    "frame-src 'self' https://challenges.cloudflare.com https://" + clerkFapi + "; " +
+    "frame-src 'self' https://challenges.cloudflare.com " + clerkOrigins + "; " +
     "frame-ancestors 'none';"
   );
   next();
@@ -972,7 +975,8 @@ app.use((req, res, next) => {
     /^\/db\//i.test(p) ||
     /^\/routes\//i.test(p) ||
     /^\/scripts\//i.test(p) ||
-    /^\/trade\.html$/i.test(p)
+    /^\/trade\.html$/i.test(p) ||
+    /^\/home\.html$/i.test(p)
   ) return res.status(404).end();
   next();
 });
@@ -987,6 +991,24 @@ app.get('/trade', (req, res) => {
   } catch (err) {
     res.status(500).send('Failed to load trade page');
   }
+});
+
+// Home page: bare / only — any query param (?companion=1, ?league_id=…) hits the draft tool
+app.get('/', (req, res) => {
+  const hasDraftParam = Object.keys(req.query).length > 0;
+  if (hasDraftParam) return res.sendFile(path.join(__dirname, 'index.html'));
+  try {
+    const html = fs.readFileSync(path.join(__dirname, 'home.html'), 'utf8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  }
+});
+
+// Clean URL alias for the draft tool
+app.get('/draft', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve the app

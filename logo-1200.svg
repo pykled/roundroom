@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs>
+    <radialGradient id="activeglow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#a78bfa" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bg-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="pick-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4f46e5" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="trail2" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#4f46e5" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#09090b"/>
+  <!-- Ambient glow centered on active pick -->
+  <circle cx="740" cy="600" r="380" fill="url(#bg-glow)"/>
+
+  <!-- ─── Snake path lines (connecting all picks in draft order) ─── -->
+  <!-- Row 1: left → right -->
+  <line x1="230" y1="400" x2="970" y2="400" stroke="url(#trail)" stroke-width="6" stroke-linecap="round"/>
+  <!-- Curve R1→R2 (right side) -->
+  <path d="M 970 400 C 1050 400 1050 600 970 600" fill="none" stroke="#4f46e5" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round"/>
+  <!-- Row 2: right → left (picks 5,6,7,8 — active is pick 6 at x=740) -->
+  <line x1="970" y1="600" x2="740" y2="600" stroke="url(#trail2)" stroke-width="6" stroke-linecap="round"/>
+  <!-- After active pick: faint future path -->
+  <line x1="740" y1="600" x2="230" y2="600" stroke="#1e1b4b" stroke-width="6" stroke-linecap="round"/>
+  <!-- Curve R2→R3 (left side) — future, faint -->
+  <path d="M 230 600 C 150 600 150 800 230 800" fill="none" stroke="#1e1b4b" stroke-width="6" stroke-linecap="round"/>
+  <!-- Row 3: left → right — future, faint -->
+  <line x1="230" y1="800" x2="970" y2="800" stroke="#1e1b4b" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- ─── Pick dots — Row 1 (drafted: picks 1-4) ─── -->
+  <circle cx="230" cy="400" r="50" fill="#1e1b4b" stroke="#4f46e5" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="230" cy="400" r="22" fill="#4f46e5" fill-opacity="0.7"/>
+
+  <circle cx="460" cy="400" r="50" fill="#1e1b4b" stroke="#4f46e5" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="460" cy="400" r="22" fill="#4f46e5" fill-opacity="0.7"/>
+
+  <circle cx="740" cy="400" r="50" fill="#1e1b4b" stroke="#4f46e5" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="740" cy="400" r="22" fill="#4f46e5" fill-opacity="0.7"/>
+
+  <circle cx="970" cy="400" r="50" fill="#1e1b4b" stroke="#4f46e5" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="970" cy="400" r="22" fill="#4f46e5" fill-opacity="0.7"/>
+
+  <!-- ─── Row 2 (pick 5 drafted, pick 6 ACTIVE, picks 7-8 future) ─── -->
+  <!-- Pick 5: drafted -->
+  <circle cx="970" cy="600" r="50" fill="#1e1b4b" stroke="#4f46e5" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="970" cy="600" r="22" fill="#4f46e5" fill-opacity="0.7"/>
+
+  <!-- Pick 6: ACTIVE — YOUR TURN -->
+  <!-- Outer glow ring -->
+  <circle cx="740" cy="600" r="110" fill="url(#activeglow)" opacity="0.5"/>
+  <!-- Main dot -->
+  <circle cx="740" cy="600" r="68" fill="#6366f1" filter="url(#pick-glow)"/>
+  <circle cx="740" cy="600" r="60" fill="#818cf8"/>
+  <!-- Inner bright core -->
+  <circle cx="740" cy="600" r="32" fill="#ffffff" opacity="0.95"/>
+  <!-- Highlight shimmer -->
+  <circle cx="722" cy="583" r="12" fill="#ffffff" opacity="0.4"/>
+
+  <!-- Pick 7: future (very dim) -->
+  <circle cx="460" cy="600" r="50" fill="#0f0f14" stroke="#2d2b55" stroke-width="2"/>
+  <circle cx="460" cy="600" r="18" fill="#1e1b4b" opacity="0.5"/>
+
+  <!-- Pick 8: future (very dim) -->
+  <circle cx="230" cy="600" r="50" fill="#0f0f14" stroke="#2d2b55" stroke-width="2"/>
+  <circle cx="230" cy="600" r="18" fill="#1e1b4b" opacity="0.5"/>
+
+  <!-- ─── Row 3 — all future (dimmest) ─── -->
+  <circle cx="230" cy="800" r="50" fill="#0a0a0e" stroke="#1a1840" stroke-width="2"/>
+  <circle cx="460" cy="800" r="50" fill="#0a0a0e" stroke="#1a1840" stroke-width="2"/>
+  <circle cx="740" cy="800" r="50" fill="#0a0a0e" stroke="#1a1840" stroke-width="2"/>
+  <circle cx="970" cy="800" r="50" fill="#0a0a0e" stroke="#1a1840" stroke-width="2"/>
+</svg>

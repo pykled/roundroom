@@ -95,7 +95,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 <nav id="rr-nav">
   <a href="/" class="rr-logo">RoundRoom</a>
   <div class="rr-links">
-    <a href="/" class="rr-link">Draft</a>
+    <a href="/draft" class="rr-link">Draft</a>
     <a href="/trade" class="rr-link active">Trade</a>
     <span class="rr-link dim">Lineup</span>
   </div>
@@ -195,7 +195,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 </div>
 
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
-<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script src="/shared/scoring.js"></script>
 <script>
 var S = {
@@ -224,7 +224,8 @@ async function boot() {
     var key = window.__clerk_publishable_key || (cfg && cfg.clerkPublishableKey);
     if (key) {
       try {
-        var clerk = new window.Clerk(key);
+        // The script-tag clerk-js build exposes a ready instance on window.Clerk (not a class)
+        var clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
         await clerk.load();
         S.clerk = clerk;
         mountNav(clerk);
