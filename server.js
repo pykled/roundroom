@@ -879,7 +879,9 @@ app.get('/api/projections/:week', async (req, res) => {
   }
 });
 
-// Slim players dict for trade/lineup UI — only name/pos/team for skill positions.
+// Slim players dict for trade/lineup UI — [name, pos, team, injury_status] for
+// skill positions. injury_status is Sleeper's raw value (Out, IR, Doubtful,
+// Questionable, …) or null, so pages can flag injuries without a name join.
 // ?def=1 also includes team defenses (keyed by team abbreviation, e.g. "SF"),
 // which rosters reference but the trade search doesn't want.
 app.get('/api/players/slim', async (req, res) => {
@@ -903,11 +905,11 @@ app.get('/api/players/slim', async (req, res) => {
     if (!p) continue;
     if (includeDef && p.position === 'DEF') {
       const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || id;
-      slim[id] = [name, 'DEF', p.team || id];
+      slim[id] = [name, 'DEF', p.team || id, null];
       continue;
     }
     if (!p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
-    slim[id] = [p.full_name, p.position, p.team || 'FA'];
+    slim[id] = [p.full_name, p.position, p.team || 'FA', p.injury_status || null];
   }
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.json(slim);
@@ -1198,6 +1200,7 @@ app.use((req, res, next) => {
     /^\/trade\.html$/i.test(p) ||
     /^\/research\.html$/i.test(p) ||
     /^\/lineup\.html$/i.test(p) ||
+    /^\/team\.html$/i.test(p) ||
     /^\/home\.html$/i.test(p)
   ) return res.status(404).end();
   next();
@@ -1212,6 +1215,18 @@ app.get('/lineup', (req, res) => {
     res.send(html);
   } catch (err) {
     res.status(500).send('Failed to load lineup page');
+  }
+});
+
+// /team — league comparison table + your-team summary (server-injected Clerk publishable key)
+app.get('/team', (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'team.html'), 'utf8');
+    html = html.replace('PUBLISHABLE_KEY_PLACEHOLDER', process.env.CLERK_PUBLISHABLE_KEY || '');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Failed to load team page');
   }
 });
 
