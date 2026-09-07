@@ -341,7 +341,31 @@ async function loadLeague(lid) {
   try {
     S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
   } catch(e) {}
-  if (!S.league) setLeagueHint('Could not load league settings — using defaults', true);
+  if (!S.league) { setLeagueHint('Could not load league settings — using defaults', true); return; }
+  syncPresetButtons();
+}
+
+function syncPresetButtons() {
+  if (!S.league) return;
+  var sc = S.league.scoring_settings || {};
+  var positions = S.league.roster_positions || [];
+  var rec = sc.rec != null ? parseFloat(sc.rec) : 1;
+  var isSF = positions.indexOf('SUPER_FLEX') >= 0 || positions.filter(function(p){ return p === 'QB'; }).length >= 2;
+  var teams = S.league.total_rosters || 12;
+
+  // Snap to nearest preset value for scoring (1 = PPR, 0.5 = Half, 0 = Std)
+  var scoringSnap = rec >= 0.9 ? 1 : rec >= 0.3 ? 0.5 : 0;
+  var qbsSnap = isSF ? 2 : 1;
+  // Snap teams to 10/12/14
+  var teamsSnap = teams <= 11 ? 10 : teams <= 13 ? 12 : 14;
+
+  [['scoring', scoringSnap], ['qbs', qbsSnap], ['teams', teamsSnap]].forEach(function(pair) {
+    var g = pair[0], v = pair[1];
+    document.querySelectorAll('[data-g="' + g + '"]').forEach(function(b) {
+      b.classList.toggle('on', Number(b.dataset.v) === v);
+    });
+    S.preset[g] = v;
+  });
 }
 
 async function setPrimaryLeague(lid) {
