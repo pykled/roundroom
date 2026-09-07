@@ -32,6 +32,14 @@ async function migrate() {
       payload_json JSONB NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS user_lists (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      list_type TEXT NOT NULL CHECK (list_type IN ('target','avoid')),
+      player_name TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(user_id, list_type, player_name)
+    );
   `);
   console.log('DB migrations applied');
 }

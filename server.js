@@ -1039,6 +1039,100 @@ app.post('/api/me/leagues/:leagueId/primary', auth, async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// Target / avoid lists — account-persisted (research page)
+// ---------------------------------------------------------------------------
+const LIST_MAX_ENTRIES = 500;
+const LIST_NAME_MAX = 80;
+
+// Normalize a client-supplied list into unique, trimmed, bounded player names.
+// Returns null if the payload isn't an array of strings.
+function cleanNameList(arr) {
+  if (!Array.isArray(arr)) return null;
+  const seen = new Set();
+  const out = [];
+  for (const raw of arr) {
+    if (typeof raw !== 'string') return null;
+    const name = raw.trim();
+    if (!name || name.length > LIST_NAME_MAX) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(name);
+    if (out.length > LIST_MAX_ENTRIES) return null;
+  }
+  return out;
+}
+
+app.get('/api/me/lists', auth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  try {
+    const { rows } = await db.query(
+      `SELECT l.list_type, l.player_name
+         FROM user_lists l JOIN users u ON u.id = l.user_id
+        WHERE u.clerk_user_id = $1
+        ORDER BY l.created_at, l.id`,
+      [userId]
+    );
+    const targets = [], avoids = [];
+    for (const r of rows) (r.list_type === 'target' ? targets : avoids).push(r.player_name);
+    res.json({ targets, avoids });
+  } catch (err) {
+    console.error('/api/me/lists GET error:', err.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Full replacement: the body's lists become the user's lists. A name present in
+// both is kept as a target (mirrors the client rule that a player can't be both).
+app.put('/api/me/lists', auth, express.json({ limit: '100kb' }), async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  const targets = cleanNameList((req.body || {}).targets);
+  const avoids = cleanNameList((req.body || {}).avoids);
+  if (!targets || !avoids) {
+    return res.status(400).json({ error: `targets and avoids must be arrays of up to ${LIST_MAX_ENTRIES} player names` });
+  }
+  const targetKeys = new Set(targets.map(n => n.toLowerCase()));
+  const avoidsOnly = avoids.filter(n => !targetKeys.has(n.toLowerCase()));
+  const client = await db.connect();
+  try {
+    await client.query('BEGIN');
+    // Ensure a users row exists — lists can be saved before Sleeper is linked.
+    const { rows } = await client.query(
+      `INSERT INTO users (clerk_user_id) VALUES ($1)
+       ON CONFLICT (clerk_user_id) DO UPDATE SET clerk_user_id = EXCLUDED.clerk_user_id
+       RETURNING id`,
+      [userId]
+    );
+    const uid = rows[0].id;
+    await client.query('DELETE FROM user_lists WHERE user_id = $1', [uid]);
+    if (targets.length) {
+      await client.query(
+        `INSERT INTO user_lists (user_id, list_type, player_name)
+         SELECT $1, 'target', unnest($2::text[]) ON CONFLICT DO NOTHING`,
+        [uid, targets]
+      );
+    }
+    if (avoidsOnly.length) {
+      await client.query(
+        `INSERT INTO user_lists (user_id, list_type, player_name)
+         SELECT $1, 'avoid', unnest($2::text[]) ON CONFLICT DO NOTHING`,
+        [uid, avoidsOnly]
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('/api/me/lists PUT error:', err.message);
+    res.status(500).json({ error: 'Failed to save lists' });
+  } finally {
+    client.release();
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Trades — save + retrieve
 // ---------------------------------------------------------------------------
 // Anonymous saves are allowed (share links work without an account), so the
@@ -1093,9 +1187,22 @@ app.use((req, res, next) => {
     /^\/routes\//i.test(p) ||
     /^\/scripts\//i.test(p) ||
     /^\/trade\.html$/i.test(p) ||
+    /^\/research\.html$/i.test(p) ||
     /^\/home\.html$/i.test(p)
   ) return res.status(404).end();
   next();
+});
+
+// /research — standalone player research page (server-injected Clerk publishable key)
+app.get('/research', (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'research.html'), 'utf8');
+    html = html.replace('PUBLISHABLE_KEY_PLACEHOLDER', process.env.CLERK_PUBLISHABLE_KEY || '');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Failed to load research page');
+  }
 });
 
 // /trade served with server-injected Clerk publishable key

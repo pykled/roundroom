@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Player Research — RoundRoom</title>
+<meta name="description" content="RoundRoom player research: composite ADP, VORP, projections, injury news and value picks. Save your targets and do-not-draft list to your account.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111'/><text x='16' y='22' font-family='system-ui,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'>RR</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/theme.css">
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  @supports (height: 100dvh) { body { height: 100dvh; } }
+  #rr-nav { flex-shrink: 0; }
+  button { font-family: inherit; }
+
+  /* Sync status pill (nav) */
+  #lists-status {
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    margin-right: 0.75rem;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  #lists-status.saving { color: var(--amber); }
+  #lists-status.saved { color: var(--success); }
+  #lists-status.error { color: var(--danger); }
+  @media (max-width: 480px) { #lists-status { display: none; } }
+
+  /* Shared primitives borrowed from the draft app */
+  .panel {
+    overflow-y: auto;
+    padding: 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .panel-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .board-search {
+    flex: 1;
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 0.45rem 0.7rem;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.78rem;
+    outline: none;
+    font-family: inherit;
+  }
+  .board-search:focus { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
+  .board-search::placeholder { color: rgba(255,255,255,0.2); }
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* ===== RESEARCH TAB ===== */
+  @keyframes rsch-page-in {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Two-pane research layout */
+  #research-detail-pane .rsch-head { border-radius: 0; margin: -1.5rem -2rem 1rem; }
+  .research-row.rsch-selected { background: rgba(124,111,247,0.1) !important; }
+  @media (max-width: 768px) {
+    #research-screen { flex-direction: column !important; }
+    #research-detail-pane { display: none !important; }
+  }
+
+  .research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
+
+  .rsch-filter-btn {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.63rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .rsch-filter-btn.active {
+    background: rgba(124,111,247,0.15);
+    border-color: rgba(124,111,247,0.5);
+    color: #a78bfa;
+  }
+  .rsch-sort-btn {
+    padding: 0.18rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .rsch-sort-btn.active {
+    background: rgba(255,255,255,0.07);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
+  }
+  .rsch-tier-divider {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.4rem 0.2rem;
+    font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-primary);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .rsch-tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .rsch-summary { font-size: 0.65rem; color: var(--text-muted); padding: 0.25rem 0 0.3rem; flex-shrink: 0; }
+  .rsch-col-proj { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-align: right; flex-shrink: 0; width: 38px; }
+  @media (max-width: 600px) { .rsch-col-proj { display: none; } }
+
+  .rsch-pos-btn {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .rsch-pos-btn.active {
+    background: var(--bg-hover);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
+  }
+
+  #research-player-list { flex: 1; overflow-y: auto; }
+
+  /* Roster needs summary bar */
+  #roster-needs {
+    margin-top: 0.4rem; padding: 0.3rem 0.5rem;
+    font-size: 0.7rem; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    line-height: 1.4;
+  }
+  #roster-needs:empty { display: none; }
+  #roster-needs .rn-pos { font-weight: 700; }
+  .rn-QB { color: #f87171; }
+  .rn-RB { color: #4ade80; }
+  .rn-WR { color: #60a5fa; }
+  .rn-TE { color: #fb923c; }
+  .rn-FLEX { color: var(--text-secondary); }
+  .rn-K, .rn-DST { color: var(--text-muted); }
+
+  /* Trend arrow in player lists */
+  .trend-arrow { font-size: 0.7rem; cursor: help; margin-right: 2px; display: inline-block; }
+
+  .research-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .research-row:hover { background: var(--bg-hover); }
+  .research-row.rsch-dnd { opacity: 0.45; }
+
+  .rsch-pos-pill {
+    border-radius: 999px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .rsch-col { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-align: right; flex-shrink: 0; }
+
+  /* Player profile sheet */
+  #research-profile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 860;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overscroll-behavior: contain;
+  }
+  #research-profile-overlay.open { display: flex; }
+
+  .research-sheet {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .research-sheet-body { overflow-y: auto; padding: 1.25rem 1.25rem 1rem; -webkit-overflow-scrolling: touch; }
+
+  .research-decision-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+  }
+  .rsch-decision-btn {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  @media (hover: hover) {
+    .rsch-decision-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+  }
+  .rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
+  .rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
+  .rsch-decision-btn.active-neutral { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text-primary); }
+
+  /* ── Profile sheet: header ── */
+  .rsch-head {
+    position: relative;
+    margin: -1.25rem -1.25rem 0;
+    padding: 1.4rem 3.25rem 1.1rem 1.4rem;
+    background:
+      radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--pos-col) 15%, transparent), transparent 55%);
+    border-bottom: 1px solid var(--border);
+  }
+  .rsch-head::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--pos-col), transparent 75%);
+  }
+  .rsch-head-name {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .rsch-head-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+  }
+  .rsch-injury {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(239,68,68,0.12);
+    color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
+  }
+  /* Injury status dot (list rows) */
+  .inj-dot {
+    font-size: 0.55rem;
+    margin-left: 3px;
+    vertical-align: middle;
+    cursor: help;
+  }
+  /* Injury pill (research profile header) */
+  .rsch-inj-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(234,179,8,0.12);
+    color: #eab308;
+    border: 1px solid rgba(234,179,8,0.35);
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* ── Prep Mode: full draft UI without a live draft ── */
+  #exit-prep-btn { display: none; }
+  #app-screen.prep-mode #exit-prep-btn { display: inline-flex; }
+  #app-screen.prep-mode .header-pick,
+  #app-screen.prep-mode .live-indicator,
+  #app-screen.prep-mode #mock-banner,
+  #app-screen.prep-mode #panel-roster,
+  #app-screen.prep-mode #tab-roster { display: none !important; }
+  @media (min-width: 769px) {
+    #app-screen.prep-mode .main-layout { grid-template-columns: 1fr 290px; }
+  }
+
+  /* ── Profile sheet: hero stats ── */
+  .rsch-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-top: 1.15rem;
+  }
+  .rsch-hero-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.8rem 0.5rem 0.7rem;
+    text-align: center;
+  }
+  .rsch-hero-val {
+    font-size: 1.8rem;
+    font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .rsch-hero-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Profile sheet: VORP section ── */
+  .rsch-vorp-card { margin-top: 1rem; }
+  .rsch-vorp-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .rsch-vorp-nums {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin-top: 0.4rem;
+  }
+  .rsch-vorp-main {
+    font-size: 1.9rem;
+    font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .rsch-vorp-sub {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rsch-vorp-sf {
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-primary);
+    margin-left: 0.75rem;
+  }
+  .rsch-vorp-context {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 0.35rem;
+  }
+
+  /* ── Profile sheet: demand signal ── */
+  .rsch-demand { margin-top: 1.1rem; }
+  .rsch-demand-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .rsch-demand-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.22rem 0.6rem;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+  .rsch-demand-text {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .rsch-demand-sub {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    line-height: 1.4;
+  }
+
+  /* ── Profile sheet: typical draft slot ── */
+  .rsch-drafted {
+    margin-top: 1.1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+  .rsch-drafted-main {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .rsch-drafted-main b { color: var(--text-primary); font-weight: 700; }
+  .rsch-drafted-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.64rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  /* ── Profile sheet: sources footer ── */
+  .rsch-src-note {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.7rem;
+  }
+
+  /* ── Profile sheet: scouting report ── */
+  .rsch-scout-section {
+    margin-top: 1.1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    animation: rsch-fade-in 0.28s ease;
+  }
+  .rsch-scout-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.55rem;
+  }
+  .rsch-scout-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ── Profile sheet: health card ── */
+  .rsch-health-card {
+    margin-top: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid;
+    animation: rsch-fade-in 0.22s ease;
+  }
+  .rsch-health-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .rsch-health-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.63rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .rsch-health-note {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 0.4rem;
+  }
+  .rsch-health-timeline {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  @keyframes rsch-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes rsch-sheet-up {
+    from { transform: translateY(40px); opacity: 0.4; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+
+  @media (max-width: 768px) {
+    #panel-research { flex: 1 1 auto !important; padding: 0.75rem !important; border-right: none !important; }
+    #research-profile-overlay { padding: 0; align-items: flex-end; }
+    .research-sheet {
+      max-width: none;
+      max-height: 92vh;
+      border-radius: 16px 16px 0 0;
+      border-bottom: none;
+      animation: rsch-sheet-up 0.22s ease;
+      overscroll-behavior: contain;
+    }
+    .rsch-col-team, .rsch-col-rank { display: none; }
+    .board-search { min-height: 40px; font-size: 16px; /* 16px stops iOS focus-zoom */ }
+    /* Five hero stats don't fit at phone width with the inline column template */
+    .rsch-hero-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 0.35rem; }
+    .rsch-hero-card { padding: 0.6rem 0.2rem 0.5rem; border-radius: 10px; }
+    .rsch-hero-val { font-size: 1.25rem; }
+    .rsch-hero-label { font-size: 0.52rem; letter-spacing: 0.06em; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/" class="rr-logo">RoundRoom</a>
+  <div class="rr-links">
+    <a href="/draft" class="rr-link">Draft</a>
+    <a href="/research" class="rr-link active">Research</a>
+    <a href="/trade" class="rr-link">Trade</a>
+    <span class="rr-link dim">Lineup</span>
+  </div>
+  <div class="rr-auth">
+    <span id="lists-status" title="Targets and avoids save to your account when signed in"></span>
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+</nav>
+
+<!-- RESEARCH SCREEN -->
+<div id="research-screen" style="display:flex;flex-direction:row;flex:1;min-height:0;overflow:hidden;background:var(--bg-primary);">
+  <div class="panel" id="panel-research" style="display:flex;flex-direction:column;flex:0 0 42%;overflow:hidden;padding:1rem 1rem 1rem 1.5rem;border-right:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;flex-shrink:0;">
+      <div class="panel-title" style="margin-bottom:0;flex:1;">Player Research</div>
+    </div>
+    <div class="research-controls">
+      <input type="text" class="board-search" id="research-search" placeholder="Search players…" oninput="RESEARCH.search=this.value;renderResearchList()" style="margin-bottom:0.5rem;">
+      <div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">
+        <button class="rsch-pos-btn active" data-rpos="ALL" onclick="setResearchPos('ALL')">ALL</button>
+        <button class="rsch-pos-btn" data-rpos="QB" onclick="setResearchPos('QB')">QB</button>
+        <button class="rsch-pos-btn" data-rpos="RB" onclick="setResearchPos('RB')">RB</button>
+        <button class="rsch-pos-btn" data-rpos="WR" onclick="setResearchPos('WR')">WR</button>
+        <button class="rsch-pos-btn" data-rpos="TE" onclick="setResearchPos('TE')">TE</button>
+        <button class="rsch-pos-btn" data-rpos="K" onclick="setResearchPos('K')">K</button>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:0.2rem;">
+          <span style="font-size:0.58rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;padding-right:0.1rem;">Sort</span>
+          <button class="rsch-sort-btn active" data-rsort="adp" onclick="setResearchSort('adp')">ADP</button>
+          <button class="rsch-sort-btn" data-rsort="vorp" onclick="setResearchSort('vorp')">VORP</button>
+          <button class="rsch-sort-btn" data-rsort="proj" onclick="setResearchSort('proj')">Proj</button>
+          <button class="rsch-sort-btn" data-rsort="value" onclick="setResearchSort('value')">Value</button>
+          <button class="rsch-sort-btn" data-rsort="volatility" onclick="setResearchSort('volatility')">Vol</button>
+        </span>
+      </div>
+      <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap;">
+        <button class="rsch-filter-btn active" data-rfilt="all" onclick="setResearchFilter('all')">All</button>
+        <button class="rsch-filter-btn" data-rfilt="value" onclick="setResearchFilter('value')">Value Picks</button>
+        <button class="rsch-filter-btn" data-rfilt="trending" onclick="setResearchFilter('trending')">Trending ↑</button>
+        <button class="rsch-filter-btn" data-rfilt="targets" onclick="setResearchFilter('targets')">⭐ My Targets</button>
+      </div>
+    </div>
+    <div id="rsch-summary" class="rsch-summary"></div>
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.5rem 0.2rem 0.4rem;border-bottom:1px solid var(--border);font-size:0.59rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-family:'DM Mono',monospace;flex-shrink:0;">
+      <span style="width:36px;flex-shrink:0;"></span>
+      <span style="width:32px;flex-shrink:0;"></span>
+      <span style="flex:1;">Player</span>
+      <span class="rsch-col-team" style="width:30px;flex-shrink:0;">Team</span>
+      <span style="width:42px;flex-shrink:0;" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
+      <span class="rsch-col-rank" style="width:36px;flex-shrink:0;">Rank</span>
+      <span style="width:34px;flex-shrink:0;" title="Value Over Replacement Player — how many more points this player scores vs a freely available replacement">VORP</span>
+      <span class="rsch-col-proj" title="Projected fantasy points for 2026 season">Proj</span>
+      <span style="width:40px;flex-shrink:0;" title="Draft value vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Edge</span>
+      <span style="width:18px;flex-shrink:0;"></span>
+    </div>
+    <div id="research-player-list" style="overflow-y:auto;flex:1;"></div>
+  </div>
+  <!-- RIGHT PANE: persistent player detail -->
+  <div id="research-detail-pane" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="rsch-pane-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;color:var(--text-muted);opacity:0.5;">
+      <span style="font-size:2.5rem;">👤</span>
+      <span style="font-size:0.8rem;font-weight:600;">Select a player</span>
+    </div>
+    <div class="research-sheet-body" id="rsch-pane-body" style="display:none;flex:1;overflow-y:auto;padding:1.5rem 2rem;"></div>
+    <div class="research-decision-bar" id="rsch-pane-bar" style="display:none;border-top:1px solid var(--border);"></div>
+  </div>
+</div>
+
+<!-- Research: player profile sheet -->
+<div id="research-profile-overlay" onclick="if(event.target===this)closeResearchProfile()">
+  <div class="research-sheet">
+    <button class="modal-close" onclick="closeResearchProfile()" style="z-index:2;">✕</button>
+    <div class="research-sheet-body" id="research-profile-body"></div>
+    <div class="research-decision-bar" id="research-decision-bar"></div>
+  </div>
+</div>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script>
+// ===========================================================================
+// RoundRoom — standalone Player Research page.
+// The research list/profile logic below is copied verbatim from index.html so
+// the standalone page and the mid-draft Research tab behave identically. Only
+// the list persistence layer (account sync) and the boot sequence are new.
+// ===========================================================================
+
+// Minimal STATE — the research code reads these fields from the draft app's
+// STATE object. No league context on this page, so SuperFlex is off.
+const STATE = {
+  adpPlayers: [],
+  mergedPlayers: [],
+  vorpData: null,
+  injuryData: null,
+  isSuperflex: false,
+  totalTeams: 12,
+};
+
+// ===== UTILS =====
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function normalizePlayerName(s) {
+  return String(s || '').toLowerCase()
+    .replace(/\s+(jr|sr|ii|iii|iv|v)\.?\s*$/i, '')
+    .replace(/[^a-z ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// SuperFlex is never on here, so the ADP sort reduces to composite ADP.
+function sfSortValue(p) {
+  return p.composite_adp ?? p.adp ?? 999;
+}
+
+// Score cache lives in the draft app; nothing to invalidate on this page.
+function invalidateScoreCache() {}
+
+// ===== PLAYER POOL SANITIZATION (copied from index.html) =====
+const POS_ALIAS = { DEF: 'DST', PK: 'K' };
+const VALID_POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K', 'DST']);
+
+// Known-retired players that Sleeper's legacy records still mark status
+// "Active" (e.g. Tom Brady, player_id 167). Joke picks in crawled mock drafts
+// give them enough times_drafted to survive ADP aggregation.
+const RETIRED_PLAYERS = new Set([
+  'tom brady', 'rob gronkowski', 'ben roethlisberger', 'drew brees',
+  'philip rivers', 'andrew luck', 'matt ryan', 'jason kelce',
+  'ryan fitzpatrick', 'cam newton', 'jimmy graham', 'adrian peterson',
+  'frank gore', 'lesean mccoy', 'julian edelman',
+]);
+
+function isRetiredPlayer(p) {
+  // Blocklist only — "no team" is NOT a retirement signal here: veteran free
+  // agents (Tyreek Hill, Joe Mixon) legitimately carry team null/"FA" and are
+  // draftable. The data pipeline (scripts/retired-players.js) holds the
+  // stronger years_exp-based heuristic where that metadata exists.
+  const name = (p.name || '').toLowerCase().replace(/[^a-z ]/g, '').trim();
+  return RETIRED_PLAYERS.has(name);
+}
+
+// Single sanitization gate for EVERY code path that loads a player pool
+// (live draft, mock, companion view, review mode, research). Normalizes
+// position aliases and drops retired/teamless players so no load path can
+// resurrect them.
+function sanitizePlayerPool(players) {
+  return (players || [])
+    .map(p => {
+      const pos = POS_ALIAS[p.position] || p.position;
+      return pos === p.position ? p : { ...p, position: pos };
+    })
+    .filter(p => p.position && VALID_POSITIONS.has(p.position) && !isRetiredPlayer(p));
+}
+
+// ===== PROJECTIONS (copied from index.html) =====
+const PROJ_PTS = {
+  // RB — RB36 replacement = 132.3 pts (Aaron Jones, MIN)
+  'Jahmyr Gibbs':372.6,'Bijan Robinson':372.0,'Christian McCaffrey':334.8,
+  'Jonathan Taylor':312.4,"De'Von Achane":292.0,'Chase Brown':279.2,
+  'Ashton Jeanty':276.8,'Derrick Henry':273.1,'James Cook III':270.2,'James Cook':270.2,
+  'Saquon Barkley':266.1,'Omarion Hampton':258.0,'Jeremiyah Love':249.0,
+  'Kenneth Walker III':245.0,'Breece Hall':226.0,'Josh Jacobs':218.0,
+  'Cam Skattebo':238.0,'Kyren Williams':234.0,'Javonte Williams':228.0,
+  'Travis Etienne Jr.':224.0,'Bucky Irving':218.0,"D'Andre Swift":215.0,
+  'Quinshon Judkins':204.0,'Bhayshul Tuten':202.0,'TreVeyon Henderson':196.0,
+  'Jaylen Warren':184.0,'David Montgomery':181.0,'Tony Pollard':178.0,
+  'Jadarian Price':174.0,'Rico Dowdle':170.0,'Chuba Hubbard':163.0,
+  'Rhamondre Stevenson':180.0,'RJ Harvey':172.0,'J.K. Dobbins':165.0,
+  'Aaron Jones Sr.':162.0,'Kenny Gainwell':156.0,'Rachaad White':152.0,
+  'Kyle Monangai':138.0,'Jonathon Brooks':130.0,
+  // WR — WR48 replacement = 156.7 pts (Jauan Jennings per Sleeper)
+  // PPR target volume inflates WR replacement level vs standard scoring
+  'Puka Nacua':339.8,"Ja'Marr Chase":336.1,'Jaxon Smith-Njigba':324.0,
+  'Amon-Ra St. Brown':319.6,'CeeDee Lamb':308.0,'Justin Jefferson':300.0,
+  'Drake London':272.0,'Rashee Rice':270.0,'Chris Olave':257.8,
+  'A.J. Brown':257.4,'George Pickens':210.0,'Nico Collins':206.0,
+  'Zay Flowers':202.0,'Garrett Wilson':200.0,'DeVonta Smith':196.0,
+  'Malik Nabers':192.0,'Emeka Egbuka':188.0,'Tetairoa McMillan':188.0,
+  'Davante Adams':180.0,'Tee Higgins':183.0,'Jameson Williams':175.0,
+  'Ladd McConkey':172.0,'Terry McLaurin':168.0,'Rome Odunze':165.0,
+  'Jaylen Waddle':163.0,'DJ Moore':160.0,'Luther Burden III':157.0,
+  'Alec Pierce':155.0,'Mike Evans':153.0,'Courtland Sutton':150.0,
+  'Marvin Harrison Jr.':147.0,'DK Metcalf':143.0,'Christian Watson':138.0,
+  'Michael Pittman Jr.':134.0,"Wan'Dale Robinson":128.0,'Jakobi Meyers':122.0,
+  'Brian Thomas Jr.':122.0,'Carnell Tate':120.0,'Parker Washington':116.0,
+  'Michael Wilson':114.0,'Jayden Reed':112.0,'Deebo Samuel Sr.':110.0,
+  'Stefon Diggs':109.0,'Josh Downs':108.0,'Jordyn Tyson':107.0,
+  'Khalil Shakir':105.0,'Quentin Johnston':103.0,'Jordan Addison':101.0,
+  'Xavier Worthy':99.0,'De\'Zhaun Stribling':95.0,'Tank Dell':90.0,
+  'Makai Lemon':88.0,'Matthew Golden':85.0,
+  // QB — QB12 replacement = 289.7 pts (Justin Herbert per Sleeper)
+  'Josh Allen':400.0,'Drake Maye':326.9,'Jayden Daniels':325.5,
+  'Lamar Jackson':325.0,'Jalen Hurts':320.6,'Jaxson Dart':311.8,
+  'Joe Burrow':310.9,'Brock Purdy':307.4,'Dak Prescott':306.1,
+  'Trevor Lawrence':304.0,'Patrick Mahomes':298.0,'Justin Herbert':291.7,
+  'Tua Tagovailoa':282.0,'Bo Nix':275.0,'Jordan Love':268.0,
+  'Jayden Daniels':325.5,'Caleb Williams':249.0,'Kyler Murray':265.0,
+  'Cam Ward':240.0,'C.J. Stroud':245.0,'Baker Mayfield':238.0,
+  // TE — TE12 replacement = 151.9 pts (George Kittle per Sleeper)
+  'Trey McBride':254.3,'Brock Bowers':243.8,'Colston Loveland':209.3,
+  'Tyler Warren':202.2,'Kyle Pitts Sr.':195.6,'Kyle Pitts':195.6,'Harold Fannin Jr.':188.5,
+  'Sam LaPorta':183.5,'Travis Kelce':181.8,'Dallas Goedert':179.3,
+  'Tucker Kraft':175.3,'George Kittle':168.0,'Mark Andrews':162.0,
+  'Isaiah Likely':155.0,'Dalton Kincaid':150.0,'Pat Freiermuth':145.0,
+  'Jake Ferguson':140.0,'Evan Engram':135.0,'Tyler Higbee':131.0,
+};
+
+const PROJ_PTS_BY_RANK = {
+  RB:[372,372,335,312,292,279,277,273,270,266,250,242,234,226,218,210,202,194,186,178,170,163,156,149,142,135,129,123,118,113,108,104,100,96,93,89,86,83,80,77],
+  WR:[340,336,324,320,289,273,273,270,258,257,248,238,230,222,214,206,199,192,185,179,173,167,162,156,150,145,140,135,130,125,121,117,113,110,107,104,101,98,95,92],
+  QB:[372,327,326,325,321,312,311,307,306,304,298,292,282,275,268,261,255,249,243,238,232,227,222,217],
+  TE:[254,244,209,202,196,189,184,182,179,175,168,160,153,145,138,131,125,119,113,107],
+};
+
+function getProjectedPts(player, allPlayers) {
+  const name = player.name || '';
+  // 1. Direct lookup
+  if (PROJ_PTS[name] !== undefined) return PROJ_PTS[name];
+  // 2. Normalized lookup (strips periods, normalizes apostrophes)
+  const norm = s => s.toLowerCase().replace(/\./g,'').replace(/['’]/g,"'").replace(/\s+/g,' ').trim();
+  const nName = norm(name);
+  for (const [k, v] of Object.entries(PROJ_PTS)) {
+    if (norm(k) === nName) return v;
+  }
+  // 3. Unique last-name match (e.g. "Nacua" → "Puka Nacua"). Guard against
+  // collisions: a full "First Last" that isn't an exact match must NOT collapse
+  // onto a different player who merely shares a surname (e.g. "Mason Taylor" or
+  // "J'Mari Taylor" must not inherit "Jonathan Taylor" projections).
+  const tokens = name.trim().split(/\s+/);
+  const lastName = tokens[tokens.length - 1].toLowerCase();
+  const pos = player.position;
+  const lnMatches = Object.entries(PROJ_PTS).filter(([k]) =>
+    k.split(' ').slice(-1)[0].toLowerCase() === lastName
+  );
+  if (lnMatches.length === 1) {
+    const clean = s => s.toLowerCase().replace(/[^a-z]/g, '');
+    const fi = clean(tokens[0]);
+    const mf = clean(lnMatches[0][0].split(' ')[0]);
+    if (tokens.length === 1 || fi === mf) return lnMatches[0][1];
+  }
+  // 4. Position-rank fallback
+  const table = PROJ_PTS_BY_RANK[pos];
+  if (!table) return 100;
+  const posRank = (allPlayers || [])
+    .filter(p => p.position === pos && (p.rank || 999) < (player.rank || 999))
+    .length + 1;
+  return table[Math.min(posRank - 1, table.length - 1)] || table[table.length - 1];
+}
+
+// ===== TARGET / AVOID LISTS — account-synced with localStorage fallback =====
+// Same Map shapes as index.html (normalizedName → displayName) and the same
+// localStorage keys, so a list edited here is picked up by the draft tool on
+// this device even before the account round-trip completes.
+const _DND = new Map();
+const _TARGET = new Map();
+
+function _pkey(name) { return normalizePlayerName(name || ''); }
+function isDND(name)    { return _DND.has(_pkey(name)); }
+function isTarget(name) { return _TARGET.has(_pkey(name)); }
+
+const LISTS = {
+  mode: 'local',      // 'local' | 'account'
+  saveTimer: null,
+  saving: false,
+  dirty: false,       // an edit landed while a PUT was in flight → save again after
+};
+const LISTS_SAVE_DEBOUNCE_MS = 500;
+
+function setListsStatus(text, cls) {
+  const el = document.getElementById('lists-status');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = cls || '';
+}
+
+function loadCustomLists() {
+  try {
+    const dnd = JSON.parse(localStorage.getItem('rr_dnd') || '[]');
+    const tgt = JSON.parse(localStorage.getItem('rr_target') || '[]');
+    _DND.clear(); _TARGET.clear();
+    // Support both legacy string arrays and {k,n} object arrays.
+    dnd.forEach(e => { const n = typeof e === 'string' ? e : e.n; if (n) _DND.set(_pkey(n), n); });
+    tgt.forEach(e => { const n = typeof e === 'string' ? e : e.n; if (n) _TARGET.set(_pkey(n), n); });
+  } catch(e) {}
+}
+
+function writeListsToLocalStorage() {
+  try {
+    localStorage.setItem('rr_dnd', JSON.stringify([..._DND.values()].map(n => ({ n }))));
+    localStorage.setItem('rr_target', JSON.stringify([..._TARGET.values()].map(n => ({ n }))));
+  } catch(e) {}
+}
+
+function applyListsPayload(payload) {
+  _DND.clear(); _TARGET.clear();
+  (payload.targets || []).forEach(n => { if (n) { _TARGET.set(_pkey(n), n); } });
+  (payload.avoids || []).forEach(n => { if (n) { const k = _pkey(n); if (!_TARGET.has(k)) _DND.set(k, n); } });
+}
+
+// Pull the signed-in user's lists. Returns true when the account copy was
+// adopted; false means the caller should stay on localStorage.
+async function loadListsFromAccount() {
+  try {
+    const res = await fetch('/api/me/lists', { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (!data || !Array.isArray(data.targets) || !Array.isArray(data.avoids)) return false;
+    const accountEmpty = data.targets.length === 0 && data.avoids.length === 0;
+    loadCustomLists();
+    const localHasLists = _TARGET.size > 0 || _DND.size > 0;
+    LISTS.mode = 'account';
+    if (accountEmpty && localHasLists) {
+      // First sign-in on a device with existing lists: adopt them into the account.
+      writeListsToLocalStorage();
+      scheduleListsSave();
+    } else {
+      applyListsPayload(data);
+      writeListsToLocalStorage();
+      setListsStatus('Synced to account', 'saved');
+    }
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function scheduleListsSave() {
+  if (LISTS.mode !== 'account') return;
+  if (LISTS.saveTimer) clearTimeout(LISTS.saveTimer);
+  setListsStatus('Saving…', 'saving');
+  LISTS.saveTimer = setTimeout(pushListsToAccount, LISTS_SAVE_DEBOUNCE_MS);
+}
+
+async function pushListsToAccount() {
+  LISTS.saveTimer = null;
+  if (LISTS.saving) { LISTS.dirty = true; return; }
+  LISTS.saving = true;
+  try {
+    const body = JSON.stringify({ targets: [..._TARGET.values()], avoids: [..._DND.values()] });
+    const res = await fetch('/api/me/lists', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setListsStatus('Saved to account', 'saved');
+  } catch(e) {
+    console.warn('lists save failed', e);
+    setListsStatus('Save failed — kept on this device', 'error');
+  } finally {
+    LISTS.saving = false;
+    if (LISTS.dirty) { LISTS.dirty = false; scheduleListsSave(); }
+  }
+}
+
+function saveCustomLists() {
+  writeListsToLocalStorage();
+  scheduleListsSave();
+}
+
+function toggleDND(name) {
+  if (!name) return;
+  const k = _pkey(name);
+  if (_DND.has(k)) _DND.delete(k);
+  else { _DND.set(k, name); _TARGET.delete(k); } // a player can't be both
+  saveCustomLists();
+}
+
+function toggleTarget(name) {
+  if (!name) return;
+  const k = _pkey(name);
+  if (_TARGET.has(k)) _TARGET.delete(k);
+  else { _TARGET.set(k, name); _DND.delete(k); }
+  saveCustomLists();
+}
+
+// Flush a pending debounced save if the tab is closed mid-edit.
+window.addEventListener('pagehide', () => {
+  if (LISTS.mode !== 'account' || !LISTS.saveTimer) return;
+  clearTimeout(LISTS.saveTimer);
+  LISTS.saveTimer = null;
+  try {
+    const body = JSON.stringify({ targets: [..._TARGET.values()], avoids: [..._DND.values()] });
+    fetch('/api/me/lists', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body, keepalive: true });
+  } catch(e) {}
+});
+
+// ===== RESEARCH TAB =====
+// Deep-dive player browser: works pre-draft (standalone overlay from the setup
+// screen) and mid-draft (mobile tab / header button). Reads STATE.mergedPlayers.
+const RESEARCH = {
+  search: '',
+  pos: 'ALL',
+  sort: 'adp',
+  filter: 'all',     // 'all' | 'value' | 'trending' | 'targets'
+  profileName: null,
+  lastList: [],       // last rendered list — row onclick indexes into this
+  loading: false,
+  loadPromise: null,  // shared in-flight fetch promise
+};
+
+// Pre-draft there's no merged data yet — load the same composite-adp + vorp
+// chain the draft/mock loaders use, into STATE.mergedPlayers.
+async function ensureResearchData() {
+  if (STATE.mergedPlayers?.length) return true;
+  if (RESEARCH.loadPromise) return RESEARCH.loadPromise;
+  RESEARCH.loading = true;
+  RESEARCH.loadPromise = (async () => { try {
+    let adpData = null;
+    try {
+      const resp = await fetch('/api/composite-adp');
+      if (resp.ok) {
+        const json = await resp.json();
+        adpData = {
+          players: (json.players || []).map(p => ({
+            name: p.name, position: p.position, team: p.team || '',
+            adp: p.composite_adp || p.sleeper_adp || p.fantasypros_adp || 999,
+            stdev: p.stdev || 2.0,
+            high: p.high || Math.max(1, Math.round((p.composite_adp || 999) - 3)),
+            low: p.low || Math.round((p.composite_adp || 999) + 3),
+            times_drafted: p.times_drafted || 0,
+            player_id: p.player_id || null,
+            bye: p.bye || null,
+            composite_adp: p.composite_adp ?? null,
+            composite_sf_adp: p.composite_sf_adp ?? null,
+            fantasypros_sf_adp: p.fantasypros_sf_adp ?? null,
+            sleeper_adp: p.sleeper_adp ?? null,
+            fantasypros_adp: p.fantasypros_adp ?? null,
+            underdog_adp: p.underdog_adp ?? null,
+            weighted_adp: p.weighted_adp ?? null,
+            weighted_stdev: p.weighted_stdev ?? null,
+            sources_count: p.sources_count ?? null,
+            injury_status: p.injury_status ?? null,
+            injury_note: p.injury_note ?? null,
+          }))
+        };
+      }
+    } catch(e) {}
+
+    if (!adpData?.players?.length) {
+      try {
+        const resp = await fetch('/api/adp');
+        if (resp.ok) adpData = await resp.json();
+      } catch(e) {}
+    }
+    if (!adpData?.players?.length) return false;
+
+    try {
+      const vorpResp = await fetch('/api/vorp');
+      if (vorpResp.ok) {
+        const vorpData = await vorpResp.json();
+        const vorpMap = {};
+        (vorpData.players || []).forEach(p => {
+          if (p && p.name) vorpMap[p.name.toLowerCase()] = { vorp_std: p.vorp_std, vorp_sf: p.vorp_sf };
+        });
+        (adpData.players || []).forEach(p => {
+          const v = vorpMap[(p.name || '').toLowerCase()];
+          if (v) { p.vorp_std = v.vorp_std; p.vorp_sf = v.vorp_sf; }
+        });
+        STATE.vorpData = vorpMap;
+      }
+    } catch(e) {}
+
+    // Fetch name→player_id map to power Sleeper CDN headshots
+    let playerIdMap = {};
+    try {
+      const pidResp = await fetch('/api/player-ids');
+      if (pidResp.ok) playerIdMap = await pidResp.json();
+    } catch(e) {}
+
+    STATE.adpPlayers = sanitizePlayerPool(adpData.players);
+    STATE.mergedPlayers = STATE.adpPlayers.map((p, idx) => {
+      const pid = playerIdMap[(p.name || '').toLowerCase()] || p.player_id || null;
+      return { ...p, rank: idx + 1, player_id: pid, sleeper_id: pid };
+    });
+    return true;
+  } catch(e) { return false; }
+  finally { RESEARCH.loading = false; RESEARCH.loadPromise = null; }
+  })();
+  return RESEARCH.loadPromise;
+}
+
+function researchAdp(p) {
+  const v = p.composite_adp ?? p.adp;
+  return (v == null || v >= 999) ? null : v;
+}
+
+function playerHeadshotUrl(p) {
+  const id = p.player_id || p.sleeper_id;
+  return id ? `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg` : null;
+}
+
+function playerLargeHeadshotUrl(p) {
+  const id = p.player_id || p.sleeper_id;
+  return id ? `https://sleepercdn.com/content/nfl/players/${id}.jpg` : null;
+}
+
+// Square thumbnail for list rows — trading card mini feel
+function headshotImgHtml(p, size) {
+  const url = playerHeadshotUrl(p);
+  if (!url) return '';
+  return `<img src="${url}" loading="lazy" width="${size}" height="${size}" style="border-radius:6px;object-fit:cover;object-position:top center;flex-shrink:0;background:var(--bg-hover);" onerror="this.remove()">`;
+}
+
+// Broadcast-banner header: large photo bleeds in from left with gradient fade
+function broadcastHeaderHtml(p, posCol) {
+  const injury = p.injury_status && p.injury_status !== 'Active'
+    ? `<span class="rsch-inj-badge">⚠ ${escHtml(p.injury_status)}${p.injury_note ? ' — ' + escHtml(p.injury_note) : ''}</span>` : '';
+  const largeUrl = playerLargeHeadshotUrl(p);
+  const photoHtml = largeUrl ? `<img src="${largeUrl}" loading="lazy"
+    style="position:absolute;left:-4px;top:-4px;bottom:-4px;height:calc(100% + 8px);width:auto;max-width:160px;object-fit:cover;object-position:top center;pointer-events:none;-webkit-mask-image:linear-gradient(to right,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);mask-image:linear-gradient(to right,black 30%,rgba(0,0,0,0.75) 60%,transparent 92%);"
+    onerror="this.remove()">` : '';
+  return `
+    <div class="rsch-head" style="--pos-col:${posCol};position:relative;overflow:hidden;">
+      <div style="position:relative;z-index:1;padding-left:${largeUrl ? '120px' : '0'};">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <span class="rsch-head-name">${escHtml(p.name)}</span>
+          ${injury}
+        </div>
+        <div class="rsch-head-meta">
+          <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};background:color-mix(in srgb, ${posCol} 12%, transparent);">${escHtml(p.position)}</span>
+          <span style="font-weight:600;">${escHtml(p.team || 'FA')}</span>
+          ${p.bye ? `<span style="color:var(--text-muted);">·</span><span>Bye ${escHtml(p.bye)}</span>` : ''}
+          ${p.age ? `<span style="color:var(--text-muted);">·</span><span>Age ${p.age}</span>` : ''}
+        </div>
+      </div>
+      ${photoHtml}
+    </div>`;
+}
+
+// Value vs FantasyPros consensus: positive = market drafts them later than FP
+// ranks them (opportunity), negative = earlier (you'd have to reach).
+function researchValue(p) {
+  if (p.composite_adp == null || p.fantasypros_adp == null) return null;
+  return p.composite_adp - p.fantasypros_adp;
+}
+
+function researchVorp(p) {
+  return (STATE.isSuperflex && p.vorp_sf != null) ? p.vorp_sf : (p.vorp_std ?? null);
+}
+
+// Trend momentum: recent draft avg (weighted_adp) vs season avg (adp).
+// diff > 0.5 → being drafted earlier lately (rising demand); diff < -0.5 → later (falling).
+function trendArrowHtml(p) {
+  if (p.weighted_adp == null || p.adp == null) return '';
+  const diff = p.adp - p.weighted_adp;
+  if (diff > 0.5) return `<span class="trend-arrow" style="color:var(--danger);" title="Trending earlier — recent avg pick ${p.weighted_adp.toFixed(1)} vs season avg ${p.adp.toFixed(1)}">↑</span>`;
+  if (diff < -0.5) return `<span class="trend-arrow" style="color:var(--success);" title="Trending later — recent avg pick ${p.weighted_adp.toFixed(1)} vs season avg ${p.adp.toFixed(1)}">↓</span>`;
+  return '';
+}
+
+// Tiny colored injury-status dot for list rows. Red = out-ish / unavailable,
+// orange = doubtful, yellow = questionable, gray = anything else.
+function injuryDotHtml(p) {
+  const liveInj = STATE.injuryData && STATE.injuryData[(p.name || '').toLowerCase()];
+  if (liveInj && liveInj.availabilityStatus) {
+    const raw = liveInj.availabilityStatus;
+    const abbr = raw === 'NA' ? 'NA' : raw.substring(0, 3).toUpperCase();
+    return `<span class="inj-dot" style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.3rem;border-radius:3px;background:rgba(239,68,68,0.15);color:#f87171;margin-left:0.25rem;">${abbr}</span>`;
+  }
+  if (!p.injury_status) return '';
+  const s = String(p.injury_status).toLowerCase();
+  const abbr = p.injury_status.substring(0, 3).toUpperCase();
+  let bg, col;
+  if (['out', 'ir', 'pup', 'sus', 'dnr', 'na'].some(k => s.startsWith(k))) {
+    bg = 'rgba(239,68,68,0.15)'; col = '#f87171';
+  } else if (s.startsWith('doubtful')) {
+    bg = 'rgba(251,191,36,0.15)'; col = '#fbbf24';
+  } else if (s.startsWith('questionable')) {
+    bg = 'rgba(251,191,36,0.15)'; col = '#fbbf24';
+  } else {
+    bg = 'rgba(156,163,175,0.15)'; col = '#9ca3af';
+  }
+  return `<span class="inj-dot" style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.3rem;border-radius:3px;background:${bg};color:${col};margin-left:0.25rem;">${abbr}</span>`;
+}
+
+function setResearchPos(pos) {
+  RESEARCH.pos = pos;
+  document.querySelectorAll('.rsch-pos-btn').forEach(b => b.classList.toggle('active', b.dataset.rpos === pos));
+  renderResearchList();
+}
+
+function setResearchFilter(f) {
+  RESEARCH.filter = f;
+  document.querySelectorAll('.rsch-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.rfilt === f));
+  renderResearchList();
+}
+
+function setResearchSort(s) {
+  RESEARCH.sort = s;
+  document.querySelectorAll('.rsch-sort-btn').forEach(b => b.classList.toggle('active', b.dataset.rsort === s));
+  renderResearchList();
+}
+
+const RSCH_POS_COLORS = { QB: 'var(--qb)', RB: 'var(--rb)', WR: 'var(--wr)', TE: 'var(--te)', K: 'var(--k)', DST: 'var(--dst)', DEF: 'var(--dst)', PK: 'var(--k)' };
+
+function renderResearchList() {
+  const container = document.getElementById('research-player-list');
+  if (!container) return;
+
+  if (!STATE.mergedPlayers?.length) {
+    container.innerHTML = `<div class="empty-state">${RESEARCH.loading ? 'Loading player data…' : 'No player data available'}</div>`;
+    return;
+  }
+
+  // Position rank by composite ADP, computed once per render
+  const posRank = {};
+  const byPos = {};
+  STATE.mergedPlayers.forEach(p => { (byPos[p.position] = byPos[p.position] || []).push(p); });
+  Object.values(byPos).forEach(list => {
+    list.slice().sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999))
+      .forEach((p, i) => { posRank[p.name] = i + 1; });
+  });
+
+  let players = STATE.mergedPlayers.slice();
+  if (RESEARCH.pos !== 'ALL') players = players.filter(p => p.position === RESEARCH.pos);
+  const q = RESEARCH.search.toLowerCase().trim();
+  if (q) players = players.filter(p => p.name.toLowerCase().includes(q) || (p.team || '').toLowerCase().includes(q));
+
+  // Quick filters
+  if (RESEARCH.filter === 'value') players = players.filter(p => (researchValue(p) ?? 0) > 1);
+  else if (RESEARCH.filter === 'trending') players = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5);
+  else if (RESEARCH.filter === 'targets') players = players.filter(p => isTarget(p.name));
+
+  const sorters = {
+    adp: (a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999),
+    vorp: (a, b) => (researchVorp(b) ?? -999) - (researchVorp(a) ?? -999),
+    proj: (a, b) => (getProjectedPts(b, STATE.mergedPlayers) ?? 0) - (getProjectedPts(a, STATE.mergedPlayers) ?? 0),
+    value: (a, b) => (researchValue(b) ?? -999) - (researchValue(a) ?? -999),
+    volatility: (a, b) => (b.stdev ?? -1) - (a.stdev ?? -1),
+  };
+  const sfOverride = STATE.isSuperflex && (!RESEARCH.sort || RESEARCH.sort === 'adp');
+  players.sort(sfOverride ? (a, b) => sfSortValue(a) - sfSortValue(b) : (sorters[RESEARCH.sort] || sorters.adp));
+
+  RESEARCH.lastList = players;
+
+  // Summary line
+  const summaryEl = document.getElementById('rsch-summary');
+  if (summaryEl) {
+    const valueCt = players.filter(p => (researchValue(p) ?? 0) > 1).length;
+    const trendCt = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5).length;
+    const parts = [`${players.length} players`];
+    if (RESEARCH.filter === 'all' && valueCt > 0) parts.push(`${valueCt} value picks`);
+    if (RESEARCH.filter === 'all' && trendCt > 0) parts.push(`${trendCt} trending up`);
+    summaryEl.textContent = parts.join(' · ');
+  }
+
+  if (!players.length) {
+    const hasFilter = RESEARCH.pos !== 'ALL' || q || RESEARCH.filter !== 'all';
+    container.innerHTML = `<div class="empty-state" style="padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+      <span style="font-size:1.4rem;opacity:0.4;">🔍</span>
+      <span style="font-size:0.8rem;color:var(--text-muted);">${q ? `No players match "${escHtml(q)}"` : 'No players match the current filters'}</span>
+      ${hasFilter ? `<button onclick="RESEARCH.pos='ALL';RESEARCH.search='';RESEARCH.filter='all';document.getElementById('research-search').value='';document.querySelectorAll('.rsch-pos-btn').forEach(b=>b.classList.toggle('active',b.dataset.rpos==='ALL'));document.querySelectorAll('.rsch-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.rfilt==='all'));renderResearchList()" style="font-size:0.7rem;padding:0.3rem 0.75rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;font-family:inherit;">Clear filters</button>` : ''}
+    </div>`;
+    return;
+  }
+
+  // Tier thresholds (VORP-based) — only shown when a single position is selected
+  const TIERS = [
+    { label: 'Tier 1', min: 85 },
+    { label: 'Tier 2', min: 60 },
+    { label: 'Tier 3', min: 38 },
+    { label: 'Tier 4', min: 15 },
+    { label: 'Tier 5', min: -999 },
+  ];
+  const showTiers = (RESEARCH.sort === 'adp' || RESEARCH.sort === 'vorp') && !q && RESEARCH.filter === 'all' && RESEARCH.pos !== 'ALL';
+  let currentTierIdx = -1; // only advance forward — never jump back to a better tier
+
+  const rows = [];
+  players.forEach((p, i) => {
+    const adp = researchAdp(p);
+    const vorp = researchVorp(p);
+    const val = researchValue(p);
+    const proj = getProjectedPts(p, STATE.mergedPlayers);
+    const trend = trendArrowHtml(p);
+    const valHtml = val == null ? `<span style="color:var(--text-muted);">${trend}—</span>`
+      : `<span style="color:${val >= 0 ? 'var(--success)' : 'var(--danger)'};">${trend}${val >= 0 ? '+' : ''}${val.toFixed(1)}</span>`;
+    const status = isTarget(p.name) ? '⭐' : (isDND(p.name) ? '🚫' : '');
+    const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
+
+    // Tier divider — only advances forward so labels never jump backwards when sorted by ADP
+    if (showTiers) {
+      const tierIdx = TIERS.findIndex(t => (vorp ?? -999) >= t.min);
+      const idx = tierIdx < 0 ? TIERS.length - 1 : tierIdx;
+      if (idx > currentTierIdx) {
+        currentTierIdx = idx;
+        rows.push(`<div class="rsch-tier-divider">${TIERS[idx].label}</div>`);
+      }
+    }
+
+    rows.push(`<div class="research-row${isDND(p.name) ? ' rsch-dnd' : ''}${RESEARCH.profileName === p.name ? ' rsch-selected' : ''}" data-rname="${escHtml(p.name)}" onclick="openResearchProfileByIdx(${i})">
+      ${headshotImgHtml(p, 36)}
+      <span class="rsch-pos-pill" style="color:${posCol};border:1px solid ${posCol};">${escHtml(p.position)}</span>
+      <span style="flex:1;min-width:0;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.name)}${injuryDotHtml(p)}</span>
+      <span class="rsch-col rsch-col-team" style="width:30px;color:var(--text-muted);">${escHtml(p.team || 'FA')}</span>
+      <span class="rsch-col" style="width:42px;color:var(--text-primary);">${adp != null ? adp.toFixed(1) : '—'}</span>
+      <span class="rsch-col rsch-col-rank" style="width:36px;color:var(--text-muted);">${escHtml(p.position)}${posRank[p.name] || '—'}</span>
+      <span class="rsch-col" style="width:34px;color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</span>
+      <span class="rsch-col-proj" style="color:var(--text-muted);">${proj != null ? Math.round(proj) : '—'}</span>
+      <span class="rsch-col" style="width:40px;">${valHtml}</span>
+      <span style="width:18px;text-align:center;font-size:0.75rem;flex-shrink:0;">${status}</span>
+    </div>`);
+  });
+  container.innerHTML = rows.join('');
+}
+
+function openResearchProfileByIdx(i) {
+  const p = RESEARCH.lastList[i];
+  if (p) openResearchProfile(p.name);
+}
+
+function openResearchProfile(name) {
+  RESEARCH.profileName = name;
+  // Highlight selected row
+  document.querySelectorAll('.research-row').forEach(r => r.classList.remove('rsch-selected'));
+  const sel = document.querySelector(`.research-row[data-rname="${CSS.escape(name)}"]`);
+  if (sel) sel.classList.add('rsch-selected');
+
+  if (window.innerWidth > 768) {
+    renderResearchProfile('rsch-pane-body', 'rsch-pane-bar');
+    const empty = document.getElementById('rsch-pane-empty');
+    const body = document.getElementById('rsch-pane-body');
+    const bar = document.getElementById('rsch-pane-bar');
+    if (empty) empty.style.display = 'none';
+    if (body) body.style.display = '';
+    if (bar) bar.style.display = '';
+  } else {
+    renderResearchProfile('research-profile-body', 'research-decision-bar');
+    document.getElementById('research-profile-overlay').classList.add('open');
+  }
+}
+
+function closeResearchProfile() {
+  if (window.innerWidth > 768) {
+    const empty = document.getElementById('rsch-pane-empty');
+    const body = document.getElementById('rsch-pane-body');
+    const bar = document.getElementById('rsch-pane-bar');
+    if (empty) { empty.style.display = ''; }
+    if (body) { body.style.display = 'none'; body.innerHTML = ''; }
+    if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
+    document.querySelectorAll('.research-row').forEach(r => r.classList.remove('rsch-selected'));
+  } else {
+    document.getElementById('research-profile-overlay').classList.remove('open');
+  }
+  RESEARCH.profileName = null;
+}
+
+async function loadInjuryData() {
+  try {
+    const resp = await fetch('/api/injuries');
+    if (!resp.ok) return;
+    const json = await resp.json();
+    STATE.injuryData = json.players || {};
+  } catch (e) {}
+}
+
+function getInjuryForPlayer(name) {
+  if (!name || !STATE.injuryData) return null;
+  return STATE.injuryData[name.toLowerCase()] || null;
+}
+
+function isPlayerUnavailable(p) {
+  const inj = STATE.injuryData && STATE.injuryData[(p.name || '').toLowerCase()];
+  return !!(inj && inj.availabilityStatus);
+}
+
+function getInjuryRisk(injuryStatus) {
+  const s = String(injuryStatus || '').toLowerCase();
+  if (['ir', 'pup', 'sus', 'dnr'].some(k => s.startsWith(k))) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
+  if (s.startsWith('out')) return { label: 'High Risk', col: '#ef4444', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' };
+  if (s.startsWith('doubtful')) return { label: 'Elevated Risk', col: '#f97316', bg: 'rgba(249,115,22,0.07)', border: 'rgba(249,115,22,0.28)' };
+  if (s.startsWith('questionable')) return { label: 'Moderate Risk', col: '#eab308', bg: 'rgba(234,179,8,0.07)', border: 'rgba(234,179,8,0.28)' };
+  return { label: 'Monitor', col: '#94a3b8', bg: 'rgba(148,163,184,0.05)', border: 'rgba(148,163,184,0.2)' };
+}
+
+function injuryTimeline(injuryStatus) {
+  const s = String(injuryStatus || '').toLowerCase();
+  if (s.startsWith('ir') || s.startsWith('pup')) return 'Out for extended period — significant time expected to be missed';
+  if (s.startsWith('out')) return 'Expected to miss upcoming game(s)';
+  if (s.startsWith('doubtful')) return 'Unlikely to play — roughly 25% chance active';
+  if (s.startsWith('questionable')) return 'Game-time decision — ~50/50 active status';
+  return null;
+}
+
+function generateScoutingReport(p, adp, vorp, projPts, posRank, val) {
+  const name = p.name;
+  const pos = p.position;
+  const lines = [];
+  const pts = projPts != null ? Math.round(projPts) : null;
+  const adpRounded = adp != null ? Math.round(adp) : null;
+
+  // Sentence 1: role and projection context
+  if (pos === 'QB') {
+    if (pts > 380) lines.push(`Elite arm with rushing upside — ${name} projects as a true QB1 ceiling starter at ${pts ?? '—'} PPR points, capable of winning your week outright on any given Sunday.`);
+    else if (pts > 310) lines.push(`Solid QB1 projection of ${pts ?? '—'} points makes ${name} a reliable weekly starter in single-QB formats, with enough rushing floor to prevent blowup games.`);
+    else if (pts > 260) lines.push(`${name} is a fringe QB1 at ${pts ?? '—'} projected points — enough to start in single-QB formats, but weaker in superflex where you want a clear elite option.`);
+    else lines.push(`${name} projects as a QB2/streamer at ${pts ?? '—'} points — best used in superflex or as a matchup-based spot start in single-QB leagues.`);
+  } else if (pos === 'RB') {
+    if (pts > 300) lines.push(`Premium workhorse — ${name} projects at ${pts ?? '—'} PPR points as a top-tier every-week starter with the volume and efficiency to anchor any backfield.`);
+    else if (pts > 220) lines.push(`Solid RB1 at ${pts ?? '—'} projected PPR points — ${name} benefits from a clear lead role on an offense that commits to the run game.`);
+    else if (pts > 155) lines.push(`${name} profiles as a reliable RB2/flex option at ${pts ?? '—'} projected PPR points — consistent floor with ceiling tied to game script and passing-down usage.`);
+    else lines.push(`${name} is a depth/handcuff option projecting ${pts ?? '—'} PPR points — start-worthy only if the lead back ahead of them misses time.`);
+  } else if (pos === 'WR') {
+    if (pts > 280) lines.push(`Alpha receiver — ${name} is one of the premier WR1s in the game, projecting ${pts ?? '—'} PPR points as the unquestioned top target on their offense.`);
+    else if (pts > 210) lines.push(`Reliable WR1 at ${pts ?? '—'} PPR points — ${name} has the target share and quarterback connection to be a weekly must-start in most formats.`);
+    else if (pts > 155) lines.push(`${name} profiles as a solid WR2/PPR asset at ${pts ?? '—'} projected points — strong floor to start most weeks, with ceiling tied to target volume.`);
+    else lines.push(`${name} is a WR3/flex option at ${pts ?? '—'} projected PPR points — best reserved for favorable matchups or deeper leagues.`);
+  } else if (pos === 'TE') {
+    if (pts > 220) lines.push(`Elite tight end — ${name} projects at ${pts ?? '—'} PPR points, providing a genuine weekly position advantage at fantasy's most scarce spot.`);
+    else if (pts > 160) lines.push(`Premium TE option projecting ${pts ?? '—'} points — ${name} is in the top tier at the position with a weekly start-worthy floor in PPR formats.`);
+    else if (pts > 110) lines.push(`${name} is a TE2/streamer at ${pts ?? '—'} projected points — viable in favorable matchups but doesn't guarantee the advantage of a top-shelf TE every week.`);
+    else lines.push(`${name} projects as a deep TE at ${pts ?? '—'} points — only worth rostering in deep leagues or when waiver options are exhausted.`);
+  } else {
+    lines.push(`${name} projects at ${pts ?? '—'} PPR points this season.`);
+  }
+
+  // Sentence 2: ADP value signal
+  if (val != null) {
+    if (val >= 5) lines.push(`The market is significantly undervaluing ${name} by ${val.toFixed(1)} picks vs expert consensus — this kind of gap is rare and tends to close as the draft season matures.`);
+    else if (val >= 2) lines.push(`Going ${val.toFixed(1)} picks later than FantasyPros ranks them — genuine value here for the patient drafter who trusts the consensus.`);
+    else if (val >= 0.5) lines.push(`A slight discount at current ADP — priced just past expert consensus, giving the patient drafter a small but real edge.`);
+    else if (val <= -5) lines.push(`Heavy market premium — managers are reaching ${Math.abs(val).toFixed(1)} picks early vs expert consensus. The hype is real but the overpay is too.`);
+    else if (val <= -2) lines.push(`Currently a ${Math.abs(val).toFixed(1)}-pick reach vs expert ranking — only pull the trigger if the roster fit is perfect and no comparable value exists later.`);
+    else lines.push(`Priced in line with expert consensus — fair market value with no edge or penalty either way.`);
+  }
+
+  // Sentence 3: positional context and scarcity
+  if (pos === 'TE' && adp != null && adp < 65) {
+    lines.push(`Elite TEs are fantasy's scarcest resource — spending a top-65 pick here is only justified when the player is firmly in the top 3 at the position, where the weekly advantage over opponents is tangible.`);
+  } else if (pos === 'QB' && adp != null && adp < 55) {
+    lines.push(`Taking a QB at pick ${adpRounded} is a deliberate strategy — it works when you land a true elite option with rushing upside, but it compresses value at other positions so plan your board accordingly.`);
+  } else if (pos === 'RB' && posRank <= 4) {
+    lines.push(`As a top-4 RB by ADP, ${name} commands first- or second-round capital — and the steep value cliff below the elite tier makes the early investment worthwhile.`);
+  } else if (pos === 'WR' && posRank <= 3) {
+    lines.push(`In the top-3 WRs by ADP — this is the rarefied tier where weekly dominance is the expectation, and the target ceiling separates them from every other receiver on the board.`);
+  } else if (pos === 'RB' && posRank >= 15) {
+    lines.push(`Deep in the RB rankings, ${name}'s value is highly situation-dependent — a role change or injury to a teammate could unlock significant upside mid-season, making them a worthwhile handcuff or stash.`);
+  } else if (pos === 'WR' && posRank >= 20) {
+    lines.push(`In the mid-tier of receivers, ${name}'s upside is tied to target volume and offensive efficiency — quarterback health and game script are the key variables to monitor heading into the season.`);
+  }
+
+  // Sentence 4: risk or variance signal
+  if (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy') {
+    const note = p.injury_note ? ` (${p.injury_note})` : '';
+    lines.push(`Current injury status is ${p.injury_status}${note} — factor this real risk into your draft-day valuation and track beat reporter updates closely before committing.`);
+  } else if (p.stdev > 4) {
+    lines.push(`High draft variance (stdev ${p.stdev.toFixed(1)}) — the fantasy community is divided on this one, which can work in your favor if you're patient or burn you if the board moves up early.`);
+  } else if (p.stdev < 1.2 && adp != null && adp < 80) {
+    lines.push(`Very low draft variance — the market has strong consensus on their value, so expect to pay near ADP and plan your board around it rather than hoping they fall.`);
+  }
+
+  // Sentence 5: bottom-line recommendation
+  if (adpRounded != null) {
+    const isValue = val != null && val >= 1.5;
+    const isReach = val != null && val <= -2;
+    if (isValue && pts > 150) {
+      lines.push(`Bottom line: ${name} is worth actively targeting at ADP ${adpRounded} — the projection supports the investment and the market discount is real.`);
+    } else if (isReach) {
+      lines.push(`Bottom line: At ADP ${adpRounded} you're paying a market premium — commit only if the roster construction demands it and you've exhausted comparable value options.`);
+    } else {
+      lines.push(`Bottom line: ${name} is fairly priced at ADP ${adpRounded} — draft with confidence when they fall to your spot.`);
+    }
+  }
+
+  return lines.join(' ');
+}
+
+function renderResearchProfile(bodyId, barId) {
+  const name = RESEARCH.profileName;
+  const p = STATE.mergedPlayers.find(x => x.name === name);
+  const body = document.getElementById(bodyId || 'research-profile-body');
+  const bar = document.getElementById(barId || 'research-decision-bar');
+  if (!p || !body) return;
+
+  const posCol = RSCH_POS_COLORS[p.position] || 'var(--k)';
+  const adp = researchAdp(p);
+  const vorp = researchVorp(p);
+
+  // Position rank by composite ADP
+  const posList = STATE.mergedPlayers.filter(x => x.position === p.position)
+    .sort((a, b) => (researchAdp(a) ?? 999) - (researchAdp(b) ?? 999));
+  const posRank = posList.findIndex(x => x.name === p.name) + 1;
+
+  // VORP rank within position (using the scoring-appropriate VORP)
+  const vorpList = STATE.mergedPlayers.filter(x => x.position === p.position && researchVorp(x) != null)
+    .sort((a, b) => researchVorp(b) - researchVorp(a));
+  const vorpRank = vorpList.findIndex(x => x.name === p.name) + 1;
+
+  // ── Header: broadcast-banner with player photo bleeding in from right ──
+  let html = broadcastHeaderHtml(p, posCol);
+
+  // ── Hero grid: 5 key stats ──
+  const projPts = getProjectedPts(p, STATE.mergedPlayers);
+  const val = researchValue(p);
+  const edgeStr = val != null ? (val >= 0 ? '+' : '') + val.toFixed(1) : null;
+  const edgeCol = val == null ? 'var(--text-muted)' : val >= 1 ? 'var(--success)' : val <= -1 ? 'var(--danger)' : 'var(--text-secondary)';
+  html += `<div class="rsch-hero-grid" style="grid-template-columns:repeat(5,1fr);">
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val">${adp != null ? adp.toFixed(1) : '—'}</div>
+      <div class="rsch-hero-label">ADP</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:${posCol};">${posRank > 0 ? escHtml(p.position) + posRank : '—'}</div>
+      <div class="rsch-hero-label">Pos Rank</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:var(--text-secondary);">${vorp != null ? Math.round(vorp) : '—'}</div>
+      <div class="rsch-hero-label">VORP</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:var(--text-secondary);">${projPts != null ? Math.round(projPts) : '—'}</div>
+      <div class="rsch-hero-label">Proj Pts</div>
+    </div>
+    <div class="rsch-hero-card">
+      <div class="rsch-hero-val" style="color:${edgeCol};">${edgeStr ?? '—'}</div>
+      <div class="rsch-hero-label">Edge</div>
+    </div>
+  </div>`;
+
+  // ── Visual ADP range bar ──
+  const adpForRange = p.adp || p.composite_adp;
+  const stdev = p.stdev;
+  if (adpForRange != null && stdev != null) {
+    const lo = Math.max(1, Math.round(adpForRange - stdev));
+    const hi = Math.round(adpForRange + stdev);
+    const maxPick = 180;
+    const loP = (((lo - 1) / maxPick) * 100).toFixed(1);
+    const hiP = Math.min(100, ((hi / maxPick) * 100)).toFixed(1);
+    const adpP = Math.min(99, (((adpForRange - 1) / maxPick) * 100)).toFixed(1);
+    const consistency = stdev < 0.8 ? 'Consistent' : stdev <= 2.0 ? 'Some variance' : 'Volatile';
+    html += `<div style="margin-top:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;">
+        <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Draft Range</span>
+        <span style="font-size:0.68rem;color:var(--text-secondary);">Pick ${lo}–${hi} &nbsp;·&nbsp; ${consistency}</span>
+      </div>
+      <div style="position:relative;height:6px;background:var(--bg-hover);border-radius:3px;">
+        <div style="position:absolute;left:${loP}%;width:${parseFloat(hiP)-parseFloat(loP)}%;height:100%;background:color-mix(in srgb,${posCol} 30%,transparent);border-radius:3px;"></div>
+        <div style="position:absolute;left:${adpP}%;transform:translateX(-50%);width:11px;height:11px;top:-2.5px;background:${posCol};border-radius:50%;box-shadow:0 0 0 2px var(--bg-primary);"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);margin-top:0.3rem;">
+        <span>Pick 1</span><span>Pick 90</span><span>Pick 180</span>
+      </div>
+    </div>`;
+  }
+
+  // ── Source comparison chips ──
+  const srcPairs = [['Sleeper', p.sleeper_adp], ['FP', p.fantasypros_adp], ['Underdog', p.underdog_adp]]
+    .filter(([, v]) => v != null);
+  if (srcPairs.length > 1) {
+    html += `<div style="margin-top:0.75rem;display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:0.6rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-right:0.1rem;">By source</span>
+      ${srcPairs.map(([l, v]) => `<span style="font-size:0.68rem;padding:0.12rem 0.45rem;border-radius:999px;border:1px solid var(--border);color:var(--text-secondary);font-family:'DM Mono',monospace;">${l}&nbsp;${v.toFixed(1)}</span>`).join('')}
+    </div>`;
+  }
+
+  // ── Demand + trend: compact single card ──
+  const trendDiff = (p.weighted_adp != null && adp != null) ? p.weighted_adp - adp : null;
+  if (val != null) {
+    let badge, col, text;
+    if (val <= -1) {
+      badge = '🔴 High Demand'; col = 'var(--danger)';
+      text = `${Math.abs(val).toFixed(1)} picks earlier than experts`;
+    } else if (val >= 1) {
+      badge = '🟢 Value Pick'; col = 'var(--success)';
+      text = `${val.toFixed(1)} picks past where experts rank them`;
+    } else {
+      badge = '⚪ Fair Value'; col = 'var(--text-muted)';
+      text = 'Priced right where experts rank them';
+    }
+    let trendPart = '';
+    if (trendDiff != null && Math.abs(trendDiff) > 0.5) {
+      const dir = trendDiff < 0 ? '↑ Earlier' : '↓ Later';
+      trendPart = `<span style="margin-left:auto;font-size:0.65rem;color:var(--text-muted);">${dir} recently &mdash; ${p.weighted_adp.toFixed(1)} vs ${adp.toFixed(1)} avg</span>`;
+    }
+    html += `<div style="margin-top:0.75rem;padding:0.55rem 0.75rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);">
+      <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+        <span style="font-size:0.66rem;font-weight:700;padding:0.12rem 0.45rem;border-radius:999px;border:1px solid color-mix(in srgb,${col} 35%,transparent);background:color-mix(in srgb,${col} 10%,transparent);color:${col};white-space:nowrap;">${badge}</span>
+        <span style="font-size:0.7rem;color:var(--text-secondary);">${text}</span>
+        ${trendPart}
+      </div>
+    </div>`;
+  }
+
+  // ── Injury health card ──
+  // Live data from /api/injuries takes priority; falls back to player object fields
+  const liveInj = getInjuryForPlayer(p.name);
+  const injStatus = (liveInj && liveInj.status) ||
+    (p.injury_status && p.injury_status !== 'Active' && p.injury_status !== 'Healthy' ? p.injury_status : null);
+  if (injStatus) {
+    const risk = getInjuryRisk(injStatus);
+    const timeline = injuryTimeline(injStatus);
+    const bodyPart = (liveInj && liveInj.body_part) || null;
+    const note = (liveInj && liveInj.note) || p.injury_note || null;
+    let reportedStr = null;
+    if (liveInj && liveInj.start_date) {
+      try {
+        const d = new Date(liveInj.start_date);
+        reportedStr = 'Reported: ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      } catch (e) {}
+    }
+    html += `<div class="rsch-health-card" style="background:${risk.bg};border-color:${risk.border};">
+      <div class="rsch-health-row">
+        <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Health</span>
+        <span class="rsch-health-chip" style="color:${risk.col};border-color:${risk.border};background:${risk.bg};">⚠ ${escHtml(injStatus)}</span>
+        ${bodyPart ? `<span style="font-size:0.65rem;color:var(--text-secondary);font-weight:500;">${escHtml(bodyPart)}</span>` : ''}
+        <span style="margin-left:auto;font-size:0.6rem;font-weight:700;color:${risk.col};">${risk.label}</span>
+      </div>
+      ${note ? `<div class="rsch-health-note">${escHtml(note)}</div>` : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-top:${note ? '0.35rem' : '0.25rem'};">
+        ${timeline ? `<div class="rsch-health-timeline" style="margin-top:0;">${timeline}</div>` : '<div></div>'}
+        ${reportedStr ? `<span style="font-size:0.6rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;">${escHtml(reportedStr)}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // ── Availability alert card (non-medical: Suspended, Inactive, NA, etc.) ──
+  const availStatus = liveInj && liveInj.availabilityStatus;
+  if (availStatus) {
+    const statusLabel = availStatus === 'NA' ? 'Not Available' : escHtml(availStatus);
+    const availDescMap = {
+      'Suspended': 'Player is serving a league suspension. Timeline unknown — check official NFL reports.',
+      'Inactive':  'Player has been deactivated. May be on practice squad or waived.',
+      'NA':        'Player availability is unknown. Status may indicate suspension, holdout, or personal leave.',
+      'PUP-R':     'On Physically Unable to Perform list. Out until at least Week 5.',
+    };
+    const availDesc = availDescMap[availStatus] || `Player listed as ${escHtml(availStatus)}. Verify availability before drafting.`;
+    html += `<div class="rsch-health-card" style="background:rgba(139,92,246,0.07);border-color:rgba(139,92,246,0.28);margin-top:0.55rem;">
+      <div class="rsch-health-row">
+        <span style="font-size:0.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Availability Alert</span>
+        <span class="rsch-health-chip" style="color:#a855f7;border-color:rgba(139,92,246,0.28);background:rgba(139,92,246,0.12);">🚫 ${statusLabel}</span>
+      </div>
+      <div class="rsch-health-note">${availDesc}</div>
+    </div>`;
+  }
+
+  // ── VORP position context ──
+  if (vorp != null && vorpRank > 0) {
+    const vorpCtx = vorpRank === 1
+      ? `Top ${escHtml(p.position)} by projected value over replacement`
+      : `#${vorpRank} ${escHtml(p.position)} of ${vorpList.length} by VORP`;
+    html += `<div style="margin-top:0.45rem;font-size:0.65rem;color:var(--text-muted);">${vorpCtx}</div>`;
+  }
+
+  // ── Sample size footnote ──
+  const td = p.times_drafted || 0;
+  if (td) {
+    html += `<div class="rsch-src-note">Based on ${td} drafts</div>`;
+  }
+
+  // ── Comparable picks at similar ADP ──
+  if (adp != null) {
+    const WINDOW = 2.5;
+    const comps = STATE.mergedPlayers
+      .filter(x => x.name !== p.name && Math.abs((researchAdp(x) ?? 999) - adp) <= WINDOW)
+      .sort((a, b) => Math.abs((researchAdp(a) ?? 999) - adp) - Math.abs((researchAdp(b) ?? 999) - adp))
+      .slice(0, 4);
+    if (comps.length) {
+      html += `<div style="margin-top:1.1rem;">
+        <div style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.45rem;">Also in this range</div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          ${comps.map(c => {
+            const cadp = researchAdp(c);
+            const cpos = RSCH_POS_COLORS[c.position] || 'var(--k)';
+            const cval = researchValue(c);
+            const edgeCol = cval == null ? '' : cval >= 1 ? 'var(--success)' : cval <= -1 ? 'var(--danger)' : 'var(--text-muted)';
+            const edgeBlock = cval != null ? `<div style="display:flex;flex-direction:column;align-items:flex-end;min-width:42px;">
+                <span style="font-size:0.7rem;font-weight:600;color:${edgeCol};">${cval >= 0 ? '+' : ''}${cval.toFixed(1)}</span>
+                <span style="font-size:0.55rem;color:var(--text-muted);margin-top:1px;">edge</span>
+              </div>` : '';
+            const adpBlock = cadp != null ? `<div style="display:flex;flex-direction:column;align-items:flex-end;min-width:36px;">
+                <span style="font-size:0.7rem;color:var(--text-secondary);font-family:'DM Mono',monospace;">${cadp.toFixed(1)}</span>
+                <span style="font-size:0.55rem;color:var(--text-muted);margin-top:1px;">adp</span>
+              </div>` : '';
+            return `<div onclick="openResearchProfile('${escHtml(c.name).replace(/'/g, "\\'")}')" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.5rem;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--bg-secondary);" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='var(--bg-secondary)'">
+              <span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:4px;background:color-mix(in srgb,${cpos} 15%,transparent);color:${cpos};">${escHtml(c.position)}</span>
+              <span style="font-size:0.75rem;font-weight:600;color:var(--text-primary);flex:1;">${escHtml(c.name)}</span>
+              ${edgeBlock}
+              ${adpBlock}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Scouting report ──
+  const scoutText = generateScoutingReport(p, adp, vorp, projPts, posRank, val);
+  if (scoutText) {
+    html += `<div class="rsch-scout-section">
+      <div class="rsch-scout-label">📋 Scouting Report</div>
+      <div class="rsch-scout-text">${scoutText}</div>
+    </div>`;
+  }
+
+  // ── Async stats placeholder ──
+  html += `<div id="rsch-stats-async" style="margin-top:1.1rem;"></div>`;
+  // ── Async news placeholder ──
+  html += `<div id="rsch-news-async" style="margin-top:0.75rem;"></div>`;
+
+  body.innerHTML = html;
+
+  // Kick off async stats fetch (fills placeholder after render)
+  if (p.player_id) loadResearchPlayerStats(p, posCol);
+  // Kick off news fetch in parallel
+  loadResearchPlayerNews(p);
+
+  // ── Decision bar: compact 3-button row ──
+  const t = isTarget(p.name), d = isDND(p.name);
+  bar.innerHTML = `
+    <button class="rsch-decision-btn${t ? ' active-target' : ''}" onclick="setResearchDecision('target')" style="font-size:0.72rem;padding:0.4rem 0;">⭐ Target</button>
+    <button class="rsch-decision-btn${!t && !d ? ' active-neutral' : ''}" onclick="setResearchDecision('neutral')" style="font-size:0.72rem;padding:0.4rem 0;">— Neutral</button>
+    <button class="rsch-decision-btn${d ? ' active-dnd' : ''}" onclick="setResearchDecision('dnd')" style="font-size:0.72rem;padding:0.4rem 0;">🚫 DND</button>`;
+}
+
+function setResearchDecision(kind) {
+  const name = RESEARCH.profileName;
+  if (!name) return;
+  if (kind === 'target') { if (!isTarget(name)) toggleTarget(name); }
+  else if (kind === 'dnd') { if (!isDND(name)) toggleDND(name); }
+  else { if (isTarget(name)) toggleTarget(name); if (isDND(name)) toggleDND(name); }
+  const isDesktop = window.innerWidth > 768;
+  renderResearchProfile(isDesktop ? 'rsch-pane-body' : 'research-profile-body', isDesktop ? 'rsch-pane-bar' : 'research-decision-bar');
+  renderResearchList();
+}
+
+async function loadResearchPlayerStats(p, posCol) {
+  const el = document.getElementById('rsch-stats-async');
+  if (!el) return;
+  el.innerHTML = `<div style="font-size:0.65rem;color:var(--text-muted);padding:0.5rem 0;">Loading career stats…</div>`;
+  try {
+    const res = await fetch(`/api/player-stats/${encodeURIComponent(p.player_id)}`);
+    if (!res.ok) { el.innerHTML = ''; return; }
+    const { seasons, nflSeasonLength } = await res.json();
+    if (!seasons || !seasons.length) { el.innerHTML = ''; return; }
+
+    const pos = (p.position || '').toUpperCase();
+    const isQB = pos === 'QB';
+    const isRB = pos === 'RB';
+    const pCol = posCol || 'var(--k)';
+    const seasonLen = nflSeasonLength || 17;
+
+    // ── Trend helper: compare a key across consecutive seasons ──
+    // Returns arrow + color relative to prior year
+    function trend(curr, prev, key, higherIsBetter = true) {
+      const c = curr[key], pr = prev[key];
+      if (c == null || pr == null) return '';
+      const delta = c - pr;
+      const pct = Math.abs(delta) / (Math.abs(pr) || 1);
+      if (pct < 0.05) return `<span style="color:var(--text-muted);font-size:0.6rem;"> →</span>`;
+      const up = delta > 0 ? higherIsBetter : !higherIsBetter;
+      return `<span style="color:${up ? 'var(--success)' : 'var(--danger)'};font-size:0.6rem;"> ${up ? '↑' : '↓'}</span>`;
+    }
+
+    // ── Position-specific per-game rate columns ──
+    // Each col: { label, key, fmt, higherIsBetter? }
+    const cols = isQB
+      ? [
+          { label: 'Pass Yd/G', key: 'pass_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Cmp %', key: 'cmp_pct', fmt: v => (v * 100).toFixed(0) + '%', hi: true },
+          { label: 'TD:INT', key: '_tdint', fmt: (_, s) => s.pass_td != null && s.pass_int != null ? `${s.pass_td}:${s.pass_int}` : '—', hi: true },
+          { label: 'Yd/Att', key: 'pass_yd_per_att', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
+        ]
+      : isRB
+      ? [
+          { label: 'Car/G', key: 'rush_att_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Yd/Car', key: 'rush_yd_per_carry', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Rush Yd/G', key: 'rush_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Tgt/G', key: 'tgt_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
+        ]
+      : [ // WR / TE
+          { label: 'Tgt/G', key: 'tgt_pg', fmt: v => v.toFixed(1), hi: true },
+          { label: 'Rec Yd/G', key: 'rec_yd_pg', fmt: v => Math.round(v), hi: true },
+          { label: 'Catch %', key: 'catch_pct', fmt: v => (v * 100).toFixed(0) + '%', hi: true },
+          { label: 'Yd/Tgt', key: 'rec_yd_per_tgt', fmt: v => v.toFixed(1), hi: true },
+          { label: 'PPR/G', key: 'pts_ppr_pg', fmt: v => v.toFixed(1), hi: true },
+        ];
+
+    // Projected PPR/G for 2025
+    const projPts = getProjectedPts(p, STATE.mergedPlayers);
+    const projPg = projPts != null ? projPts / 17 : null;
+
+    // ── Header divider ──
+    let statsHtml = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;margin-top:0.2rem;">
+      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">Year-by-Year</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:0.58rem;color:var(--text-muted);">per game rates</span>
+    </div>`;
+
+    // ── Health bars — one per season ──
+    statsHtml += `<div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+      ${seasons.map(s => {
+        const gp = s.gp || 0;
+        const pct = Math.min(1, gp / seasonLen);
+        const healthCol = pct >= 0.88 ? 'var(--success)' : pct >= 0.65 ? 'var(--warning, #f59e0b)' : 'var(--danger)';
+        return `<div style="display:flex;flex-direction:column;gap:3px;min-width:60px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);">
+            <span>${s.season}</span><span style="color:${healthCol};font-weight:600;">${gp}/${seasonLen}</span>
+          </div>
+          <div style="height:4px;border-radius:2px;background:var(--bg-hover);">
+            <div style="height:100%;width:${(pct * 100).toFixed(0)}%;background:${healthCol};border-radius:2px;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${projPts != null ? `<div style="display:flex;flex-direction:column;gap:3px;min-width:60px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-muted);">
+          <span>2025</span><span style="color:var(--text-muted);">proj</span>
+        </div>
+        <div style="height:4px;border-radius:2px;background:var(--bg-hover);">
+          <div style="height:100%;width:100%;background:color-mix(in srgb,${pCol} 40%,transparent);border-radius:2px;border:1px dashed color-mix(in srgb,${pCol} 60%,transparent);"></div>
+        </div>
+      </div>` : ''}
+    </div>`;
+
+    // ── Per-game rate table with trend arrows ──
+    statsHtml += `<div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:0.2rem 0.3rem;font-size:0.58rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">Season</th>
+            ${cols.filter(c => !c.key.startsWith('_')).map(c => `<th style="text-align:right;padding:0.2rem 0.3rem;font-size:0.58rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;">${c.label}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${seasons.map((s, i) => {
+            const prev = seasons[i - 1];
+            return `<tr style="${i % 2 === 1 ? 'background:var(--bg-secondary);' : ''}">
+              <td style="padding:0.22rem 0.3rem;color:var(--text-secondary);font-weight:600;font-size:0.68rem;">${s.season}</td>
+              ${cols.filter(c => !c.key.startsWith('_')).map(c => {
+                const val = s[c.key];
+                const isPPR = c.key === 'pts_ppr_pg';
+                const t = prev ? trend(s, prev, c.key, c.hi !== false) : '';
+                const display = val != null ? c.fmt(val, s) : (c.key === 'cmp_pct' || c.key === 'catch_pct' ? '—' : '—');
+                return `<td style="text-align:right;padding:0.22rem 0.3rem;color:${isPPR ? pCol : 'var(--text-primary)'};font-weight:${isPPR ? '600' : '400'};white-space:nowrap;">${display}${t}</td>`;
+              }).join('')}
+            </tr>`;
+          }).join('')}
+          ${projPg != null ? (() => {
+            const prev = seasons[seasons.length - 1];
+            const fake = { pts_ppr_pg: projPg, tgt_pg: prev?.tgt_pg, rec_yd_pg: prev?.rec_yd_pg, rush_att_pg: prev?.rush_att_pg, rush_yd_pg: prev?.rush_yd_pg, rush_yd_per_carry: prev?.rush_yd_per_carry, pass_yd_pg: prev?.pass_yd_pg, cmp_pct: prev?.cmp_pct, pass_yd_per_att: prev?.pass_yd_per_att, catch_pct: prev?.catch_pct, rec_yd_per_tgt: prev?.rec_yd_per_tgt };
+            return `<tr style="border-top:1px dashed var(--border);">
+              <td style="padding:0.22rem 0.3rem;color:var(--text-muted);font-weight:600;font-size:0.68rem;">2025P</td>
+              ${cols.filter(c => !c.key.startsWith('_')).map(c => {
+                const isPPR = c.key === 'pts_ppr_pg';
+                if (!isPPR) return `<td style="text-align:right;padding:0.22rem 0.3rem;color:var(--text-muted);">—</td>`;
+                const t = trend(fake, prev, c.key, true);
+                return `<td style="text-align:right;padding:0.22rem 0.3rem;color:color-mix(in srgb,${pCol} 70%,var(--text-muted));font-weight:600;">${projPg.toFixed(1)}${t}</td>`;
+              }).join('')}
+            </tr>`;
+          })() : ''}
+        </tbody>
+      </table>
+    </div>`;
+
+    // ── TD:INT note for QBs (table can't fit it cleanly) ──
+    if (isQB) {
+      const latest = seasons[seasons.length - 1];
+      if (latest?.pass_td != null && latest?.pass_int != null) {
+        const ratio = latest.pass_int > 0 ? (latest.pass_td / latest.pass_int).toFixed(1) : '∞';
+        statsHtml += `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.35rem;">${latest.season}: ${latest.pass_td} TD / ${latest.pass_int} INT — ratio ${ratio}:1</div>`;
+      }
+    }
+
+    el.innerHTML = statsHtml;
+  } catch (e) {
+    el.innerHTML = '';
+  }
+}
+
+async function loadResearchPlayerNews(p) {
+  const el = document.getElementById('rsch-news-async');
+  if (!el) return;
+  const name = encodeURIComponent(p.name || '');
+  if (!name) return;
+  try {
+    const res = await fetch(`/api/player-news/${name}`);
+    if (!res.ok) return;
+    const { items } = await res.json();
+    if (!items || !items.length) return;
+
+    function timeAgo(pubDate) {
+      if (!pubDate) return '';
+      const d = new Date(pubDate);
+      if (isNaN(d)) return '';
+      const mins = Math.round((Date.now() - d) / 60000);
+      if (mins < 60) return `${mins}m ago`;
+      if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+      return `${Math.round(mins / 1440)}d ago`;
+    }
+
+    let html = `<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+      <span style="font-size:0.65rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">News</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>`;
+
+    for (const item of items) {
+      const ago = timeAgo(item.pubDate);
+      // Strip player name prefix from title (FP format: "Player Name: Headline")
+      const headline = item.title.replace(/^[^:]+:\s*/, '');
+      html += `<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;margin-bottom:0.2rem;">
+          <span style="font-size:0.72rem;font-weight:600;color:var(--text-primary);line-height:1.3;">${escHtml(headline)}</span>
+          ${ago ? `<span style="font-size:0.6rem;color:var(--text-muted);flex-shrink:0;">${ago}</span>` : ''}
+        </div>
+        ${item.blurb ? `<div style="font-size:0.65rem;color:var(--text-muted);line-height:1.5;">${escHtml(item.blurb)}</div>` : ''}
+      </div>`;
+    }
+
+    el.innerHTML = html;
+  } catch (e) { /* fail silently — news is bonus info */ }
+}
+
+// ===== BOOT =====
+async function initClerk() {
+  const key = window.__clerk_publishable_key;
+  if (!key || !/^pk_/.test(key) || !window.Clerk) return null;
+  try {
+    // The script-tag clerk-js build exposes a ready instance on window.Clerk (not a class)
+    const clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
+    await clerk.load({ telemetry: { disabled: true } });
+    return clerk;
+  } catch(e) {
+    console.warn('Clerk init failed', e);
+    return null;
+  }
+}
+
+function mountNav(clerk) {
+  const wrap = document.getElementById('user-btn-mount');
+  const btn = document.getElementById('rr-sign-in');
+  if (clerk && clerk.user) {
+    clerk.mountUserButton(wrap);
+    btn.hidden = true;
+  } else {
+    btn.hidden = false;
+    btn.onclick = () => { if (clerk) clerk.openSignIn(); };
+  }
+}
+
+async function boot() {
+  // Player data and injuries don't depend on auth — start them immediately.
+  renderResearchList();
+  const dataP = ensureResearchData();
+  const injP = loadInjuryData();
+
+  // Lists: account when signed in, localStorage otherwise.
+  const clerk = await initClerk();
+  mountNav(clerk);
+  let fromAccount = false;
+  if (clerk && clerk.user) fromAccount = await loadListsFromAccount();
+  if (!fromAccount) {
+    LISTS.mode = 'local';
+    loadCustomLists();
+    setListsStatus(clerk && clerk.user ? 'Saved on this device' : 'Sign in to sync lists', '');
+  }
+
+  await dataP;
+  await injP;
+  renderResearchList();
+  if (window.innerWidth > 768 && RESEARCH.lastList.length > 0) {
+    openResearchProfile(RESEARCH.lastList[0].name);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
