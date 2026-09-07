@@ -3697,6 +3697,71 @@
 </head>
 <body>
 
+<!-- APP NAV (shared style with /trade — see shared/nav.css) -->
+<style>
+#rr-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+#rr-nav .rr-logo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+#rr-nav .rr-links {
+  display: flex;
+  gap: 0.15rem;
+  flex: 1;
+}
+#rr-nav .rr-link {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: background 0.12s, color 0.12s;
+}
+#rr-nav .rr-link:hover { background: var(--accent-glow); color: var(--text-primary); }
+#rr-nav .rr-link.active { color: var(--text-primary); background: var(--accent-glow); }
+#rr-nav .rr-link.dim { opacity: 0.38; cursor: default; }
+#rr-nav .rr-auth { margin-left: auto; display: flex; align-items: center; }
+#rr-sign-in {
+  font-size: 0.76rem;
+  padding: 0.32rem 0.9rem;
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+#rr-sign-in:hover { background: var(--accent-glow); }
+</style>
+<nav id="rr-nav">
+  <a href="/" class="rr-logo">RoundRoom</a>
+  <div class="rr-links">
+    <a href="/draft" class="rr-link active">Draft</a>
+    <a href="/trade" class="rr-link">Trade</a>
+    <span class="rr-link dim">Lineup</span>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+</nav>
+
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
 

@@ -789,6 +789,32 @@ app.get('/api/league/:id', async (req, res) => {
   }
 });
 
+// Season-long projections (used by the trade calculator). Sleeper's weekly
+// endpoint returns empty stat objects until the week is published, but the
+// season endpoint has full-season stats for every player. Response is a dict
+// keyed by player_id whose values are flat stat objects (rec, rec_yd, ...),
+// which is exactly what shared/scoring.js expects.
+app.get('/api/projections/season', async (req, res) => {
+  try {
+    const data = await apiCached('proj:2026:season', 6 * 60 * 60 * 1000, async () => {
+      const r = await fetch('https://api.sleeper.app/v1/projections/nfl/regular/2026');
+      if (!r.ok) throw new Error(`Sleeper season projections ${r.status}`);
+      const raw = await r.json();
+      const slim = {};
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        for (const [playerId, item] of Object.entries(raw)) {
+          if (item && typeof item === 'object') slim[playerId] = item;
+        }
+      }
+      return slim;
+    });
+    res.setHeader('Cache-Control', 'public, max-age=21600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch season projections' });
+  }
+});
+
 app.get('/api/projections/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);
   if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });

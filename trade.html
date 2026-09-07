@@ -239,8 +239,10 @@ async function boot() {
       document.getElementById('rr-sign-in').hidden = false;
     }
 
-    // Fetch projections + slim players in parallel
-    var projP = fetch('/api/projections/' + S.week).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    // Fetch season-long projections + slim players in parallel.
+    // Weekly projections come back empty from Sleeper until published; the
+    // season endpoint always has full-season stats, so trade values stay live.
+    var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var plP = fetch('/api/players/slim').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var results = await Promise.all([projP, plP]);
     S.proj = results[0] || {};
