@@ -990,9 +990,11 @@ app.get('/trade', (req, res) => {
 });
 
 // Serve the app
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'home.html')));
+app.get('/draft', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'home.html'));
 });
 
 // Warm injury cache on startup so the first request is fast, then refresh every 4h
