@@ -76,6 +76,39 @@ var ScoringEngine = (function () {
     return scaled;
   }
 
+  // Blend rescaled VORP (0–10000) with FantasyCalc market values.
+  // marketValues: { sleeperId: redraftValue } on FC's 0–~10230 scale; normalized
+  // to 0–10000 here. Players missing from FC (fringe) keep pure VORP.
+  // weight = market share of the blend (default 0.3 → 70% VORP / 30% market).
+  function blendWithMarket(scaledVorpMap, marketValues, weight) {
+    weight = weight != null ? weight : 0.3;
+    marketValues = marketValues || {};
+    var fcMax = 0;
+    for (var k in marketValues) {
+      if (Object.prototype.hasOwnProperty.call(marketValues, k)) {
+        var v = Number(marketValues[k]);
+        if (v > fcMax) fcMax = v;
+      }
+    }
+    var fcNorm = {};
+    if (fcMax > 0) {
+      for (var sid in marketValues) {
+        if (Object.prototype.hasOwnProperty.call(marketValues, sid)) {
+          fcNorm[sid] = Math.round(Number(marketValues[sid]) / fcMax * 10000);
+        }
+      }
+    }
+    var blended = new Map();
+    scaledVorpMap.forEach(function (vorp, id) {
+      var fc = Object.prototype.hasOwnProperty.call(fcNorm, id) ? fcNorm[id] : null;
+      var val = fc != null
+        ? Math.round((1 - weight) * vorp + weight * fc)
+        : vorp;
+      blended.set(id, val);
+    });
+    return blended;
+  }
+
   // givePlayers / receivePlayers: arrays of player_ids (from giver's perspective)
   // verdict: WIN = giver gets more value, LOSE = giver gives more, FAIR = within ±10%
   function evaluateTrade(givePlayers, receivePlayers, vorpMap, _rosterPositions) {
@@ -87,7 +120,7 @@ var ScoringEngine = (function () {
     return { giverValue: giverValue, receiverValue: receiverValue, verdict: verdict, deltaPct: deltaPct };
   }
 
-  return { scorePlayer: scorePlayer, computeVORP: computeVORP, rescaleVORP: rescaleVORP, evaluateTrade: evaluateTrade };
+  return { scorePlayer: scorePlayer, computeVORP: computeVORP, rescaleVORP: rescaleVORP, blendWithMarket: blendWithMarket, evaluateTrade: evaluateTrade };
 })();
 
 if (typeof module !== 'undefined') module.exports = ScoringEngine;

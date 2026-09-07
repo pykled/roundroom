@@ -830,6 +830,33 @@ app.get('/api/projections/season', async (req, res) => {
   }
 });
 
+// FantasyCalc redraft market values — community trade consensus, blended with
+// VORP on the client (shared/scoring.js blendWithMarket). Returns a slim
+// { sleeperId: redraftValue } dict; each ppr/sf combination is cached separately.
+app.get('/api/market-values', async (req, res) => {
+  const ppr = req.query.ppr === '0' ? 0 : 1;
+  const sf = req.query.sf === '1' ? 1 : 0;
+  const cacheKey = `fc:${ppr}:${sf}`;
+  try {
+    const data = await apiCached(cacheKey, 60 * 60 * 1000, async () => {
+      const url = `https://api.fantasycalc.com/values/current?isDynasty=false&numQbs=${sf ? 2 : 1}&ppr=${ppr}`;
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(`FC ${r.status}`);
+      const arr = await r.json();
+      const slim = {};
+      for (const item of (Array.isArray(arr) ? arr : [])) {
+        const sid = item?.player?.sleeperId;
+        if (sid && item.redraftValue != null) slim[sid] = item.redraftValue;
+      }
+      return slim;
+    });
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch market values' });
+  }
+});
+
 app.get('/api/projections/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);
   if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });

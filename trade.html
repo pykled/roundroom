@@ -251,9 +251,14 @@ async function boot() {
     // season endpoint always has full-season stats, so trade values stay live.
     var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var plP = fetch('/api/players/slim').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
-    var results = await Promise.all([projP, plP]);
+    // FantasyCalc market values with preset defaults (PPR, 1QB); re-fetched
+    // once league settings are known. Empty object → pure VORP.
+    var marketP = fetchMarketValues({ ppr: 1, sf: 0 });
+    var results = await Promise.all([projP, plP, marketP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
+    S.market = results[2] || {};
+    S.marketKey = '1:0';
 
     document.getElementById('loading').hidden = true;
 
@@ -399,14 +404,42 @@ async function enterConnected(opts) {
     var next = sel.value;
     setLeagueHint('Loading…');
     await loadLeague(next);
+    await refreshMarket();
     if (S.league) setLeagueHint('');
     recompute();
     if (!(await setPrimaryLeague(next))) setLeagueHint('Scored with this league, but could not save it as default', true);
   };
 
   await loadLeague(lid);
+  await refreshMarket();
   if (S.league && opts.justLinked && S.leagues.length > 1) setLeagueHint('Pick your league — we saved this one as your default');
   recompute();
+}
+
+// FantasyCalc params from current scoring/roster settings: PPR if rec >= 0.9,
+// superflex if the roster has a SUPER_FLEX slot.
+function getMarketParams() {
+  var sc = getScoringSettings();
+  var ppr = (sc.rec != null && parseFloat(sc.rec) >= 0.9) ? 1 : 0;
+  var positions = getRosterPositions();
+  var sf = positions.indexOf('SUPER_FLEX') >= 0 ? 1 : 0;
+  return { ppr: ppr, sf: sf };
+}
+
+function fetchMarketValues(p) {
+  return fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf)
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .catch(function(){ return {}; });
+}
+
+// Re-fetch market values for the current league settings (server caches per combo).
+async function refreshMarket() {
+  var p = getMarketParams();
+  var key = p.ppr + ':' + p.sf;
+  if (S.marketKey === key && S.market && Object.keys(S.market).length) return;
+  var m = await fetchMarketValues(p);
+  S.market = m && typeof m === 'object' && !Array.isArray(m) ? m : {};
+  S.marketKey = key;
 }
 
 function getScoringSettings() {
@@ -455,7 +488,9 @@ function recompute() {
     return { player_id: id, position: S.players[id][1] };
   });
   var raw = ScoringEngine.computeVORP(players, S.proj, getScoringSettings(), getRosterPositions(), getTeams());
-  S.vorp = ScoringEngine.rescaleVORP(raw);
+  var scaled = ScoringEngine.rescaleVORP(raw);
+  // 70% league-specific VORP / 30% FantasyCalc market consensus; pure VORP when market is empty
+  S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
   renderLeagueStrip();
   renderSide('give');
   renderSide('recv');
@@ -568,6 +603,8 @@ document.querySelectorAll('.pg button').forEach(function(btn) {
     btn.classList.add('on');
     S.preset[g] = Number(btn.dataset.v);
     recompute();
+    // Scoring/QB presets change the FantasyCalc format (PPR / superflex); re-blend once fetched
+    if (g === 'scoring' || g === 'qbs') refreshMarket().then(recompute);
   });
 });
 
