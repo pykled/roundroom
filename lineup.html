@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lineup Optimizer — RoundRoom</title>
+<link rel="stylesheet" href="/shared/theme.css">
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-primary); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+#app { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+#loading { text-align: center; padding: 5rem; color: var(--text-secondary); font-size: 0.85rem; }
+
+/* setup cards (auth gate, sleeper link) */
+.setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.setup-card h2 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
+.setup-card p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.9rem; line-height: 1.5; }
+.form-row { display: flex; gap: 0.5rem; }
+.form-row input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; color: var(--text-primary); font-size: 0.82rem; }
+.form-row input:focus { outline: none; border-color: var(--border-bright); }
+.btn-primary { background: var(--text-primary); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-primary:disabled { opacity: 0.45; cursor: default; }
+.btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.error-msg { font-size: 0.76rem; color: var(--danger); margin-top: 0.4rem; }
+
+/* league + week bar */
+#league-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; font-size: 0.78rem; color: var(--text-secondary); }
+#league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: 0.78rem; max-width: 100%; }
+#league-bar select:focus { outline: none; border-color: var(--border-bright); }
+#league-hint { font-size: 0.72rem; color: var(--text-muted); }
+#league-hint.warn { color: var(--danger); }
+#week-bar { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin-bottom: 0.6rem; }
+#week-bar .wk { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+#week-bar .wk-sub { font-size: 0.72rem; color: var(--text-muted); }
+#team-name { font-size: 0.78rem; color: var(--text-secondary); margin-left: auto; }
+#league-settings-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
+
+/* swap summary */
+#swap-note { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
+#swap-note.ok { border-color: rgba(16,185,129,.28); color: var(--rb); }
+#swap-note b { color: var(--text-primary); font-weight: 600; }
+#swap-note .sw-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+#swap-note .arrow { color: var(--text-muted); }
+
+/* two columns */
+.lineup-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 620px) { .lineup-grid { grid-template-columns: 1fr; } }
+.lineup-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+.col-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; }
+.col-hdr .total { font-family: 'DM Mono', monospace; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.sub-hdr { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.8rem 0 0.35rem; }
+
+/* player rows */
+.pl-row { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.45rem; border-radius: 6px; border-bottom: 1px solid var(--border); }
+.pl-row:last-child { border-bottom: none; }
+.pl-row.starter { background: var(--accent-glow); border-bottom-color: transparent; margin-bottom: 2px; }
+.pl-row.ir { opacity: 0.5; }
+.slot-lbl { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
+.slot-lbl.flex { color: var(--gold); }
+.pos-badge { font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 4px; white-space: nowrap; }
+.QB { background: rgba(239,68,68,.18); color: var(--qb); }
+.RB { background: rgba(16,185,129,.18); color: var(--rb); }
+.WR { background: rgba(59,130,246,.18); color: var(--wr); }
+.TE { background: rgba(168,85,247,.18); color: var(--te); }
+.K  { background: rgba(107,114,128,.18); color: var(--k); }
+.DEF { background: rgba(107,114,128,.18); color: var(--dst); }
+.pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-name .team { color: var(--text-muted); font-size: 0.68rem; margin-left: 0.3rem; }
+.pl-name .star { font-size: 0.7rem; margin-left: 0.25rem; }
+.pl-name .cur { font-size: 0.6rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.35rem; vertical-align: middle; }
+.pl-pts { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--text-primary); min-width: 48px; text-align: right; }
+.pl-pts small { color: var(--text-muted); font-size: 0.6rem; margin-left: 2px; }
+.pl-val { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
+.empty-slot { color: var(--text-muted); font-style: italic; }
+.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
+.legend { font-size: 0.7rem; color: var(--text-muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/" class="rr-logo">RoundRoom</a>
+  <div class="rr-links">
+    <a href="/draft" class="rr-link">Draft</a>
+    <a href="/research" class="rr-link">Research</a>
+    <a href="/trade" class="rr-link">Trade</a>
+    <a href="/lineup" class="rr-link active">Lineup</a>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+</nav>
+
+<div id="app">
+  <div id="loading">Loading…</div>
+
+  <!-- Signed out -->
+  <div id="auth-card" class="setup-card" hidden>
+    <h2>Sign in to set your lineup</h2>
+    <p>The optimizer reads your roster straight from Sleeper and builds the highest-value starting lineup under your league's exact scoring and slots.</p>
+    <button class="btn-primary" id="auth-btn">Sign in</button>
+  </div>
+
+  <!-- Signed in but no Sleeper linked -->
+  <div id="sleeper-card" class="setup-card" hidden>
+    <h2>Connect Your Sleeper Account</h2>
+    <p>Enter your Sleeper username to load your leagues and rosters.</p>
+    <div class="form-row">
+      <input id="sleeper-input" type="text" placeholder="Sleeper username" autocomplete="off">
+      <button class="btn-primary" id="sleeper-btn">Connect</button>
+    </div>
+    <div id="sleeper-err" class="error-msg" hidden></div>
+  </div>
+
+  <!-- Main lineup UI -->
+  <div id="lineup-ui" hidden>
+    <div id="league-bar">
+      <span>League:</span>
+      <select id="league-sel"></select>
+      <span id="league-hint" hidden></span>
+    </div>
+
+    <div id="week-bar">
+      <span class="wk" id="week-label">Week 1</span>
+      <span class="wk-sub">Based on full-season projections (÷17 per week) — weekly projections aren't live yet for 2026</span>
+      <span id="team-name"></span>
+    </div>
+    <div id="league-settings-strip" hidden></div>
+
+    <div id="swap-note" hidden></div>
+
+    <div class="lineup-grid">
+      <div class="lineup-col">
+        <div class="col-hdr"><span>Optimal starters</span><span class="total" id="starters-total"></span></div>
+        <div id="starters-list"><div class="empty-hint">Pick a league</div></div>
+      </div>
+      <div class="lineup-col">
+        <div class="col-hdr"><span>Bench</span><span class="total" id="bench-count"></span></div>
+        <div id="bench-list"><div class="empty-hint">—</div></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      pts/wk = your league's scoring applied to Sleeper's season projection, divided by 17. Value = VORP for your slots and team count, blended 70/30 with FantasyCalc market consensus (same numbers as the trade calculator). ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
+    </div>
+  </div>
+</div>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script src="/shared/scoring.js"></script>
+<script src="/shared/lineup.js"></script>
+<script>
+var GAMES = 17;
+var S = {
+  clerk: null,
+  me: null,
+  proj: {},
+  players: {},
+  league: null,
+  leagues: [],
+  roster: null,
+  vorp: new Map(),
+  market: {},
+  marketKey: '',
+  targets: {},
+  week: 1,
+};
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+async function boot() {
+  try {
+    var cfgP = fetch('/api/config').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var stateP = fetch('/api/nfl-state').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var cfg = await cfgP;
+    var nfl = await stateP;
+    S.week = nfl.display_week || nfl.week || 1;
+    document.getElementById('week-label').textContent = 'Week ' + S.week;
+
+    var key = window.__clerk_publishable_key || (cfg && cfg.clerkPublishableKey);
+    if (key) {
+      try {
+        // The script-tag clerk-js build exposes a ready instance on window.Clerk (not a class)
+        var clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
+        await clerk.load({ telemetry: { disabled: true } });
+        S.clerk = clerk;
+        mountNav(clerk);
+        if (clerk.user) {
+          S.me = await fetch('/api/me').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+        }
+      } catch(e) { console.warn('Clerk init failed', e); }
+    }
+
+    document.getElementById('loading').hidden = true;
+
+    if (!S.clerk || !S.clerk.user) {
+      // Auth gate — nothing else to show without a roster
+      document.getElementById('rr-sign-in').hidden = false;
+      document.getElementById('auth-card').hidden = false;
+      document.getElementById('auth-btn').onclick = function() {
+        if (S.clerk) S.clerk.openSignIn({ redirectUrl: '/lineup' });
+      };
+      return;
+    }
+
+    // Signed in: pull projections, players (incl. DEF), targets in parallel
+    var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var plP = fetch('/api/players/slim?def=1').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var listsP = loadTargets();
+    var results = await Promise.all([projP, plP, listsP]);
+    S.proj = results[0] || {};
+    S.players = results[1] || {};
+
+    if (S.me && S.me.sleeperUserId) {
+      await enterConnected();
+    } else {
+      document.getElementById('sleeper-card').hidden = false;
+    }
+  } catch(e) {
+    var l = document.getElementById('loading');
+    l.hidden = false;
+    l.textContent = 'Failed to load — please refresh.';
+    console.error('boot error', e);
+  }
+}
+
+function mountNav(clerk) {
+  var wrap = document.getElementById('user-btn-mount');
+  var btn = document.getElementById('rr-sign-in');
+  if (clerk.user) {
+    clerk.mountUserButton(wrap);
+    btn.hidden = true;
+  } else {
+    btn.hidden = false;
+    btn.onclick = function() { clerk.openSignIn({ redirectUrl: '/lineup' }); };
+  }
+}
+
+// Target list: account copy when signed in, else the localStorage key the
+// research page / draft tool write. Stored as lowercase name → true.
+async function loadTargets() {
+  var names = [];
+  try {
+    var res = await fetch('/api/me/lists', { headers: { 'Accept': 'application/json' } });
+    if (res.ok) {
+      var data = await res.json();
+      if (data && Array.isArray(data.targets)) names = data.targets;
+    }
+  } catch(e) {}
+  if (!names.length) {
+    try {
+      var local = JSON.parse(localStorage.getItem('rr_target') || '[]');
+      names = local.map(function(e){ return typeof e === 'string' ? e : (e && e.n); }).filter(Boolean);
+    } catch(e) {}
+  }
+  S.targets = {};
+  names.forEach(function(n){ S.targets[String(n).toLowerCase().trim()] = true; });
+  return S.targets;
+}
+
+function setLeagueHint(text, warn) {
+  var h = document.getElementById('league-hint');
+  h.textContent = text || '';
+  h.className = warn ? 'warn' : '';
+  h.hidden = !text;
+}
+
+async function setPrimaryLeague(lid) {
+  try {
+    var res = await fetch('/api/me/leagues/' + encodeURIComponent(lid) + '/primary', { method: 'POST' });
+    if (res.ok && S.me) S.me.primaryLeagueId = lid;
+    return res.ok;
+  } catch(e) { return false; }
+}
+
+async function enterConnected() {
+  document.getElementById('lineup-ui').hidden = false;
+  setLeagueHint('Loading leagues…');
+  try {
+    S.leagues = await fetch('/api/me/leagues').then(function(r){ return r.ok ? r.json() : []; });
+  } catch(e) { S.leagues = []; }
+  if (!Array.isArray(S.leagues)) S.leagues = [];
+
+  var sel = document.getElementById('league-sel');
+  sel.innerHTML = '';
+  if (!S.leagues.length) {
+    sel.hidden = true;
+    setLeagueHint('No 2026 leagues found on Sleeper for this account', true);
+    return;
+  }
+  sel.hidden = false;
+  S.leagues.forEach(function(l) {
+    var opt = document.createElement('option');
+    opt.value = l.league_id;
+    opt.textContent = l.name || ('League ' + l.league_id);
+    sel.appendChild(opt);
+  });
+
+  var primary = S.me && S.me.primaryLeagueId;
+  var hasPrimary = primary && S.leagues.some(function(l){ return String(l.league_id) === String(primary); });
+  var lid = hasPrimary ? String(primary) : String(S.leagues[0].league_id);
+  sel.value = lid;
+  if (!hasPrimary) await setPrimaryLeague(lid);
+
+  sel.onchange = async function() {
+    var next = sel.value;
+    await selectLeague(next);
+    if (!(await setPrimaryLeague(next))) setLeagueHint('Loaded this league, but could not save it as default', true);
+  };
+  await selectLeague(lid);
+}
+
+async function selectLeague(lid) {
+  setLeagueHint('Loading roster…');
+  S.league = null; S.roster = null;
+  try {
+    S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
+  } catch(e) {}
+  if (!S.league) { setLeagueHint('Could not load league from Sleeper — try again', true); return; }
+  S.roster = findMyRoster(S.league);
+  if (!S.roster) {
+    setLeagueHint('Could not find your roster in this league', true);
+    renderEmpty();
+    return;
+  }
+  await refreshMarket();
+  setLeagueHint('');
+  recompute();
+}
+
+// Match the signed-in user's Sleeper user_id to a roster owner; fall back to
+// the league's users array by username in case ids ever disagree.
+function findMyRoster(league) {
+  var rosters = league.rosters || [];
+  var uid = S.me && S.me.sleeperUserId ? String(S.me.sleeperUserId) : null;
+  var r = null;
+  if (uid) r = rosters.find(function(x){ return String(x.owner_id) === uid; }) || null;
+  if (!r && uid) r = rosters.find(function(x){ return Array.isArray(x.co_owners) && x.co_owners.map(String).indexOf(uid) >= 0; }) || null;
+  if (!r && S.me && S.me.sleeperUsername) {
+    var uname = String(S.me.sleeperUsername).toLowerCase();
+    var u = (league.users || []).find(function(x){ return String(x.display_name || '').toLowerCase() === uname; });
+    if (u) r = rosters.find(function(x){ return String(x.owner_id) === String(u.user_id); }) || null;
+  }
+  return r;
+}
+
+function leagueUser(userId) {
+  return (S.league.users || []).find(function(u){ return String(u.user_id) === String(userId); }) || null;
+}
+
+// FantasyCalc params from league settings: PPR if rec >= 0.9, SF if a SUPER_FLEX slot exists.
+function getMarketParams() {
+  var sc = S.league.scoring_settings || {};
+  var ppr = (sc.rec != null && parseFloat(sc.rec) >= 0.9) ? 1 : 0;
+  var sf = (S.league.roster_positions || []).indexOf('SUPER_FLEX') >= 0 ? 1 : 0;
+  return { ppr: ppr, sf: sf };
+}
+
+async function refreshMarket() {
+  var p = getMarketParams();
+  var key = p.ppr + ':' + p.sf;
+  if (S.marketKey === key && S.market && Object.keys(S.market).length) return;
+  var m = await fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf)
+    .then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+  S.market = m && typeof m === 'object' && !Array.isArray(m) ? m : {};
+  S.marketKey = key;
+}
+
+function renderLeagueStrip() {
+  var strip = document.getElementById('league-settings-strip');
+  var sc = S.league.scoring_settings || {};
+  var rec = sc.rec != null ? parseFloat(sc.rec) : null;
+  var scoringLabel = rec === 1 ? 'PPR' : rec === 0.5 ? 'Half-PPR' : rec === 0 ? 'Std' : null;
+  var positions = S.league.roster_positions || [];
+  var tags = [];
+  if (scoringLabel) tags.push(scoringLabel);
+  if (positions.indexOf('SUPER_FLEX') >= 0) tags.push('Superflex');
+  else if (positions.filter(function(p){ return p === 'QB'; }).length >= 2) tags.push('2QB');
+  if (S.league.total_rosters) tags.push(S.league.total_rosters + ' teams');
+  var tePrem = sc.bonus_rec_te || sc.rec_te_bonus;
+  if (tePrem) tags.push('TE+' + tePrem);
+  // Starter slot summary, e.g. "QB · RB·2 · WR·2 · TE · FLEX · K · DEF"
+  var counts = {}; var order = [];
+  LineupOptimizer.starterSlots(positions).forEach(function(s) {
+    if (!counts[s.slot]) { counts[s.slot] = 0; order.push(s.slot); }
+    counts[s.slot]++;
+  });
+  if (order.length) tags.push(order.map(function(k){ return counts[k] > 1 ? k + '×' + counts[k] : k; }).join(' · '));
+  strip.innerHTML = tags.map(function(t){ return '<span class="ls-tag">' + esc(t) + '</span>'; }).join('');
+  strip.hidden = tags.length === 0;
+}
+
+function renderEmpty() {
+  document.getElementById('starters-list').innerHTML = '<div class="empty-hint">No roster loaded</div>';
+  document.getElementById('bench-list').innerHTML = '<div class="empty-hint">—</div>';
+  document.getElementById('starters-total').textContent = '';
+  document.getElementById('bench-count').textContent = '';
+  document.getElementById('swap-note').hidden = true;
+  document.getElementById('team-name').textContent = '';
+}
+
+// Season points under this league's scoring — DEF included (the VORP engine
+// only covers QB/RB/WR/TE/K, so DEF slots rank on raw projected points).
+function seasonPts(id) {
+  return ScoringEngine.scorePlayer({ player_id: id }, S.proj, S.league.scoring_settings || {});
+}
+
+function recompute() {
+  var scoring = S.league.scoring_settings || {};
+  var positions = S.league.roster_positions || [];
+  var teams = S.league.total_rosters || 12;
+
+  // League-wide VORP so replacement level reflects the whole player pool, not just this roster
+  var pool = Object.keys(S.players).map(function(id) { return { player_id: id, position: S.players[id][1] }; });
+  var raw = ScoringEngine.computeVORP(pool, S.proj, scoring, positions, teams);
+  var scaled = ScoringEngine.rescaleVORP(raw);
+  S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
+
+  var reserve = {};
+  (S.roster.reserve || []).forEach(function(id){ reserve[id] = true; });
+  var ids = (S.roster.players || []).filter(function(id){ return !reserve[id]; });
+
+  var rows = ids.map(function(id) {
+    var info = S.players[id] || [id, '?', ''];
+    var pts = seasonPts(id);
+    var vorp = S.vorp.get(id);
+    // Rank by blended VORP; DEF (not in the engine) and sub-replacement ties fall back to projected points
+    var value = vorp != null ? vorp + pts / 100000 : pts;
+    return { id: id, position: info[1], value: value };
+  });
+
+  var result = LineupOptimizer.optimize(rows, positions);
+  renderStarters(result);
+  renderBench(result, Object.keys(reserve));
+  renderSwaps(result);
+  renderLeagueStrip();
+
+  var owner = leagueUser(S.roster.owner_id);
+  var tn = owner && owner.metadata && owner.metadata.team_name ? owner.metadata.team_name : (owner ? owner.display_name : '');
+  document.getElementById('team-name').textContent = tn || '';
+}
+
+function playerRow(id, opts) {
+  opts = opts || {};
+  var info = S.players[id] || [id, '?', ''];
+  var name = info[0], pos = info[1] || '?', team = info[2] || '';
+  var pts = seasonPts(id) / GAMES;
+  var vorp = S.vorp.get(id);
+  var isTarget = S.targets[String(name).toLowerCase()];
+  var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
+  var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '');
+  var slotHtml = opts.slot != null
+    ? '<span class="slot-lbl' + (LineupOptimizer.eligible(opts.slot).length > 1 ? ' flex' : '') + '">' + esc(opts.slot === 'SUPER_FLEX' ? 'SFLX' : opts.slot) + '</span>'
+    : (opts.ir ? '<span class="slot-lbl">IR</span>' : '');
+  return '<div class="' + cls + '">' + slotHtml +
+    '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>' +
+    '<span class="pl-name">' + esc(name) +
+      (team ? '<span class="team">' + esc(team) + '</span>' : '') +
+      (isTarget ? '<span class="star" title="On your target list">⭐</span>' : '') +
+      (onSleeper ? '<span class="cur" title="Currently starting on Sleeper">on Sleeper</span>' : '') +
+    '</span>' +
+    '<span class="pl-pts">' + pts.toFixed(1) + '<small>pts/wk</small></span>' +
+    '<span class="pl-val">' + (vorp != null ? vorp.toLocaleString() : '—') + '</span>' +
+    '</div>';
+}
+
+function renderStarters(result) {
+  var el = document.getElementById('starters-list');
+  var total = 0;
+  el.innerHTML = result.starters.map(function(s) {
+    if (!s.id) {
+      return '<div class="pl-row starter"><span class="slot-lbl">' + esc(s.slot) + '</span>' +
+        '<span class="pl-name empty-slot">No eligible player</span></div>';
+    }
+    total += seasonPts(s.id) / GAMES;
+    return playerRow(s.id, { starter: true, slot: s.slot });
+  }).join('') || '<div class="empty-hint">This league has no starter slots</div>';
+  document.getElementById('starters-total').textContent = total ? total.toFixed(1) + ' proj pts/wk' : '';
+}
+
+function renderBench(result, irIds) {
+  var el = document.getElementById('bench-list');
+  var html = result.bench.map(function(id){ return playerRow(id, {}); }).join('');
+  if (!html) html = '<div class="empty-hint">No bench players</div>';
+  if (irIds.length) {
+    html += '<div class="sub-hdr">Injured reserve (not eligible)</div>' +
+      irIds.map(function(id){ return playerRow(id, { ir: true }); }).join('');
+  }
+  el.innerHTML = html;
+  document.getElementById('bench-count').textContent = result.bench.length + ' players';
+}
+
+function renderSwaps(result) {
+  var note = document.getElementById('swap-note');
+  var cur = S.roster.starters || [];
+  var hasCurrent = cur.some(function(id){ return id && id !== '0'; });
+  if (!hasCurrent) { note.hidden = true; return; }
+  var d = LineupOptimizer.diff(result, cur);
+  var nameOf = function(id){ var i = S.players[id]; return i ? i[0] : id; };
+  if (!d.in.length && !d.out.length) {
+    note.className = 'ok';
+    note.textContent = 'Your Sleeper lineup already matches the optimal lineup.';
+  } else {
+    note.className = '';
+    note.innerHTML = '<div class="sw-row"><b>Suggested changes vs your Sleeper lineup:</b></div>' +
+      (d.in.length ? '<div class="sw-row">Start: ' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</div>' : '') +
+      (d.out.length ? '<div class="sw-row">Bench: ' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</div>' : '') +
+      '<div class="sw-row" style="color:var(--text-muted)">Set the change in the Sleeper app — RoundRoom reads your roster but can\'t write to it.</div>';
+  }
+  note.hidden = false;
+}
+
+// Sleeper link (signed in, not yet connected)
+document.getElementById('sleeper-btn').addEventListener('click', async function() {
+  var btn = document.getElementById('sleeper-btn');
+  var inp = document.getElementById('sleeper-input');
+  var err = document.getElementById('sleeper-err');
+  var u = inp.value.trim();
+  if (!u) return;
+  btn.disabled = true; btn.textContent = 'Connecting…'; err.hidden = true;
+  try {
+    var res = await fetch('/api/me/sleeper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sleeperUsername: u }),
+    });
+    if (!res.ok) {
+      var e = await res.json().catch(function(){ return {}; });
+      err.textContent = e.error || 'Sleeper user not found';
+      err.hidden = false;
+      return;
+    }
+    S.me = await res.json();
+    document.getElementById('sleeper-card').hidden = true;
+    await enterConnected();
+  } catch(e) {
+    err.textContent = 'Network error — try again'; err.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Connect';
+  }
+});
+
+boot();
+</script>
+</body>
+</html>

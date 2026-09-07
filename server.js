@@ -879,8 +879,11 @@ app.get('/api/projections/:week', async (req, res) => {
   }
 });
 
-// Slim players dict for trade UI — only name/pos/team for skill positions
+// Slim players dict for trade/lineup UI — only name/pos/team for skill positions.
+// ?def=1 also includes team defenses (keyed by team abbreviation, e.g. "SF"),
+// which rosters reference but the trade search doesn't want.
 app.get('/api/players/slim', async (req, res) => {
+  const includeDef = req.query.def === '1';
   const now = Date.now();
   let dict = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL ? playerCache : null;
   if (!dict) {
@@ -897,7 +900,13 @@ app.get('/api/players/slim', async (req, res) => {
   const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
   const slim = {};
   for (const [id, p] of Object.entries(dict)) {
-    if (!p || !p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
+    if (!p) continue;
+    if (includeDef && p.position === 'DEF') {
+      const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || id;
+      slim[id] = [name, 'DEF', p.team || id];
+      continue;
+    }
+    if (!p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
     slim[id] = [p.full_name, p.position, p.team || 'FA'];
   }
   res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -1188,9 +1197,22 @@ app.use((req, res, next) => {
     /^\/scripts\//i.test(p) ||
     /^\/trade\.html$/i.test(p) ||
     /^\/research\.html$/i.test(p) ||
+    /^\/lineup\.html$/i.test(p) ||
     /^\/home\.html$/i.test(p)
   ) return res.status(404).end();
   next();
+});
+
+// /lineup — weekly lineup optimizer (server-injected Clerk publishable key)
+app.get('/lineup', (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'lineup.html'), 'utf8');
+    html = html.replace('PUBLISHABLE_KEY_PLACEHOLDER', process.env.CLERK_PUBLISHABLE_KEY || '');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Failed to load lineup page');
+  }
 });
 
 // /research — standalone player research page (server-injected Clerk publishable key)
