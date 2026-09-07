@@ -123,6 +123,15 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 .yt-tag.need { background: rgba(251,191,36,.1); color: var(--gold); }
 .yt-tag.surplus { background: rgba(59,130,246,.12); color: var(--wr); }
 .yt-empty { font-size: 0.74rem; color: var(--text-muted); }
+.yt-ai { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+.yt-ai-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.yt-ai-btn { background: var(--text-primary); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.3rem 0.8rem; font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.yt-ai-btn:disabled { opacity: 0.45; cursor: default; }
+.yt-ai-btn:hover:not(:disabled) { opacity: 0.85; }
+.yt-ai-err { font-size: 0.72rem; color: var(--danger); }
+.yt-ai-out { margin-top: 0.55rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.yt-ai-out p { font-size: 0.76rem; line-height: 1.5; color: var(--text-secondary); margin: 0; }
+.yt-ai-out p strong { color: var(--text-primary); font-weight: 600; }
 
 /* roster fit (need-adjusted view, connected mode only) */
 #roster-fit { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.9rem; text-align: left; }
@@ -230,6 +239,13 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
         <div class="yt-row" id="yt-elite"></div>
         <div class="yt-row" id="yt-liab"></div>
         <div class="yt-partners" id="yt-partners"></div>
+        <div class="yt-ai">
+          <div class="yt-ai-bar">
+            <button type="button" class="yt-ai-btn" id="yt-ai-btn">Explain my team</button>
+            <span class="yt-ai-err" id="yt-ai-err" hidden></span>
+          </div>
+          <div class="yt-ai-out" id="yt-ai-out" hidden></div>
+        </div>
       </div>
     </div>
 
@@ -890,12 +906,106 @@ function renderYourTeam() {
     }
     pEl.innerHTML = html;
 
+    // Clear stale AI prose when the league or roster changes — not on every
+    // recompute, since editing the trade doesn't change the team analysis.
+    var aiKey = String(S.league.league_id || '') + ':' + String(me.rosterId);
+    if (YT_AI_KEY !== aiKey) { YT_AI_KEY = aiKey; resetYourTeamAI(); }
+
     sec.hidden = false;
   } catch(e) {
     console.warn('your team panel failed', e);
     sec.hidden = true;
   }
 }
+
+// ---- "Explain my team" (AI prose) -----------------------------------------
+// Button-triggered only. Sends the structured analysis the panel already shows
+// (never the raw roster); the server validates, caches by payload hash, and
+// asks Claude for four labelled bullets. Same endpoint as the /team page.
+var YT_AI_KEY = null;
+
+function resetYourTeamAI() {
+  var out = document.getElementById('yt-ai-out');
+  var err = document.getElementById('yt-ai-err');
+  if (!out) return;
+  out.hidden = true; out.innerHTML = '';
+  err.hidden = true; err.textContent = '';
+}
+
+function buildYourTeamPayload() {
+  var me = S.myAnalysis;
+  if (!me || !S.league) return null;
+  var n = me.teamCount || (S.leagueAnalysis ? S.leagueAnalysis.teams.length : 0);
+  var byPos = {};
+  NEED_POSITIONS.forEach(function(p) {
+    var c = me.byPos[p] || {};
+    byPos[p] = {
+      status: c.status || 'neutral',
+      rank: c.rank || null,
+      rostered: c.rostered != null ? c.rostered : 0,
+      slots: c.slots != null ? c.slots : 0,
+    };
+  });
+  var partners = S.leagueAnalysis ? S.leagueAnalysis.partners(me.rosterId, 3) : [];
+  return {
+    name: String(me.name || 'My team'),
+    record: { wins: (me.record && me.record.wins) || 0, losses: (me.record && me.record.losses) || 0 },
+    starterPts: Math.round((me.starterPts || 0) * 10) / 10,
+    strengthRank: me.rank,
+    totalTeams: n,
+    byPos: byPos,
+    elite: me.elite.slice(0, 5).map(function(e){ return e.name; }),
+    liabilities: me.liabilities.slice(0, 5).map(function(e){ return e.name; }),
+    injuredCount: me.injured.length,
+    partners: partners.map(function(p) {
+      return { name: p.team.name, theyNeed: p.team.needs.slice(), theySurplus: p.team.surplus.slice() };
+    }),
+  };
+}
+
+// "**Label:** text" → <p><strong>Label:</strong> text</p>, one per bullet line.
+// Everything is escaped first; only the bold markers become markup.
+function renderAIBullets(text) {
+  var lines = String(text || '').split(/\r?\n/).map(function(l){ return l.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '').trim(); }).filter(Boolean);
+  return lines.map(function(l) {
+    return '<p>' + esc(l).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') + '</p>';
+  }).join('');
+}
+
+async function explainYourTeam() {
+  var btn = document.getElementById('yt-ai-btn');
+  var err = document.getElementById('yt-ai-err');
+  var out = document.getElementById('yt-ai-out');
+  var payload = buildYourTeamPayload();
+  if (!payload) return;
+  btn.disabled = true; btn.textContent = 'Analyzing…';
+  err.hidden = true;
+  try {
+    var res = await fetch('/api/analysis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leagueId: String(S.league.league_id || ''), team: payload }),
+    });
+    if (!res.ok) {
+      var e = await res.json().catch(function(){ return {}; });
+      err.textContent = res.status === 401 ? 'Sign in to use AI analysis'
+        : res.status === 429 ? 'Too many analyses — try again in a few minutes'
+        : res.status === 503 ? 'AI analysis is not available right now'
+        : (e.error || 'AI analysis failed — try again');
+      err.hidden = false;
+      return;
+    }
+    var data = await res.json();
+    var html = renderAIBullets(data && data.bullets);
+    if (!html) { err.textContent = 'AI returned an empty analysis'; err.hidden = false; return; }
+    out.innerHTML = html; out.hidden = false;
+  } catch(e) {
+    err.textContent = 'Network error — try again'; err.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Explain my team';
+  }
+}
+document.getElementById('yt-ai-btn').addEventListener('click', explainYourTeam);
 
 // ---- Counterparty hint ----------------------------------------------------
 // When a received player is on another roster in this league, show what that

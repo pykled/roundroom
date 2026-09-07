@@ -109,6 +109,15 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 .partner-row .pn { font-weight: 500; min-width: 120px; }
 .partner-row .chips { display: flex; gap: 0.3rem; flex-wrap: wrap; font-family: 'DM Mono', monospace; font-size: 0.68rem; }
 .partner-row .chips span { border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.35rem; }
+
+/* AI explanation (button-triggered, never auto-fires) */
+.ai-wrap { margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); }
+.ai-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
+.ai-hint { font-size: 0.7rem; color: var(--text-muted); }
+.ai-err { font-size: 0.74rem; color: var(--danger); }
+.ai-out { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.ai-out p { font-size: 0.78rem; line-height: 1.5; color: var(--text-secondary); margin: 0; }
+.ai-out p strong { color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -185,6 +194,14 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
         <div class="rf-col-lbl">Teams that need what you have</div>
         <div id="my-partners-list"></div>
       </div>
+      <div class="ai-wrap">
+        <div class="ai-bar">
+          <button class="btn-primary" id="ai-btn" type="button">Explain my team</button>
+          <span class="ai-hint" id="ai-hint">AI summary of the numbers above · uses only this data</span>
+          <span class="ai-err" id="ai-err" hidden></span>
+        </div>
+        <div class="ai-out" id="ai-out" hidden></div>
+      </div>
     </div>
 
     <div class="legend">
@@ -221,6 +238,8 @@ var S = {
   rows: [],        // normalized per-team rows for the table
   ranks: {},       // pos -> [rosterId...] best first
   partners: [],
+  mine: null,      // the user's normalized row (feeds the Your Team card + AI payload)
+  aiNames: null,   // { elite, liabilities } as displayed, so the AI prose matches the card
   sortKey: 'strength',
   sortDir: 'desc',
 };
@@ -736,6 +755,9 @@ function playerLine(id, valueOverride) {
 
 function renderMyTeam(mine) {
   var card = document.getElementById('my-team');
+  S.mine = mine || null;
+  S.aiNames = null;
+  resetAI();
   if (!mine) { card.hidden = true; return; }
   var t = mine.raw;
   var n = S.count;
@@ -777,6 +799,15 @@ function renderMyTeam(mine) {
   liab.sort(function(a, b){ return (S.vorp.get(a) || 0) - (S.vorp.get(b) || 0); });
   document.getElementById('my-liabilities').innerHTML = liab.length ? liab.slice(0, 3).map(function(id){ return playerLine(id); }).join('') : '<div class="rf-empty">No obvious weak spots</div>';
 
+  // Names for the AI payload: the engine's elite list when it has one, else the
+  // top starters shown under Strengths; liabilities exactly as displayed.
+  var eliteNames = (Array.isArray(t.elite) ? t.elite : []).map(function(x){ return x && typeof x === 'object' ? x.name : (S.players[x] || [])[0]; }).filter(Boolean);
+  if (!eliteNames.length) eliteNames = top.map(function(id){ return (S.players[id] || [])[0]; }).filter(Boolean);
+  S.aiNames = {
+    elite: eliteNames.slice(0, 5),
+    liabilities: liab.slice(0, 5).map(function(id){ return (S.players[id] || [])[0]; }).filter(Boolean),
+  };
+
   var pw = document.getElementById('my-partners');
   if (S.partners.length) {
     document.getElementById('my-partners-list').innerHTML = S.partners.map(function(p) {
@@ -792,6 +823,98 @@ function renderMyTeam(mine) {
   }
   card.hidden = false;
 }
+
+// ---- "Explain my team" (AI prose) -------------------------------------------
+// Button-triggered only. Sends the structured analysis the card already shows
+// (never the raw roster); the server validates, caches by payload hash, and
+// asks Claude for four labelled bullets. No client-side cache — a second click
+// re-requests and hits the server cache.
+function resetAI() {
+  var out = document.getElementById('ai-out');
+  var err = document.getElementById('ai-err');
+  if (!out) return;
+  out.hidden = true; out.innerHTML = '';
+  err.hidden = true; err.textContent = '';
+}
+
+function buildAnalysisPayload() {
+  var mine = S.mine;
+  if (!mine || !mine.raw) return null;
+  var t = mine.raw;
+  var byPos = {};
+  POS.forEach(function(p) {
+    var c = mine.pos[p] || {};
+    byPos[p] = {
+      status: c.status || 'neutral',
+      rank: c.rank || null,
+      rostered: c.rostered != null ? c.rostered : 0,
+      slots: c.slots != null ? c.slots : 0,
+    };
+  });
+  return {
+    name: String(mine.name || 'My team'),
+    record: { wins: mine.wins || 0, losses: mine.losses || 0 },
+    starterPts: Math.round((mine.pts || 0) * 10) / 10,
+    strengthRank: mine.strengthRank,
+    totalTeams: S.count,
+    byPos: byPos,
+    elite: (S.aiNames && S.aiNames.elite) || [],
+    liabilities: (S.aiNames && S.aiNames.liabilities) || [],
+    injuredCount: Array.isArray(t.injured) ? t.injured.length : 0,
+    partners: S.partners.map(function(p) {
+      return {
+        name: p.row.name,
+        theyNeed: POS.filter(function(q){ return p.row.pos[q].status === 'need'; }),
+        theySurplus: POS.filter(function(q){ return p.row.pos[q].status === 'surplus'; }),
+      };
+    }),
+  };
+}
+
+// "**Label:** text" → <p><strong>Label:</strong> text</p>, one per bullet line.
+// Everything is escaped first; only the bold markers become markup.
+function renderBullets(text) {
+  var lines = String(text || '').split(/\r?\n/).map(function(l){ return l.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '').trim(); }).filter(Boolean);
+  return lines.map(function(l) {
+    return '<p>' + esc(l).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') + '</p>';
+  }).join('');
+}
+
+async function explainTeam() {
+  var btn = document.getElementById('ai-btn');
+  var err = document.getElementById('ai-err');
+  var out = document.getElementById('ai-out');
+  var payload = buildAnalysisPayload();
+  if (!payload || !S.league) return;
+  var leagueId = String(S.league.league_id || document.getElementById('league-sel').value || '');
+  btn.disabled = true; btn.textContent = 'Analyzing…';
+  err.hidden = true;
+  try {
+    var res = await fetch('/api/analysis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leagueId: leagueId, team: payload }),
+    });
+    if (!res.ok) {
+      var e = await res.json().catch(function(){ return {}; });
+      var msg = res.status === 401 ? 'Sign in to use AI analysis'
+        : res.status === 429 ? 'Too many analyses — try again in a few minutes'
+        : res.status === 503 ? 'AI analysis is not available right now'
+        : (e.error || 'AI analysis failed — try again');
+      err.textContent = msg; err.hidden = false;
+      return;
+    }
+    var data = await res.json();
+    var html = renderBullets(data && data.bullets);
+    if (!html) { err.textContent = 'AI returned an empty analysis'; err.hidden = false; return; }
+    out.innerHTML = html; out.hidden = false;
+  } catch(e) {
+    err.textContent = 'Network error — try again'; err.hidden = false;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Explain my team';
+  }
+}
+document.getElementById('ai-btn').addEventListener('click', explainTeam);
 
 // Sleeper link (signed in, not yet connected)
 document.getElementById('sleeper-btn').addEventListener('click', async function() {
