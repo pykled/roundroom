@@ -226,7 +226,7 @@ async function boot() {
       try {
         // The script-tag clerk-js build exposes a ready instance on window.Clerk (not a class)
         var clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
-        await clerk.load();
+        await clerk.load({ telemetry: { disabled: true } });
         S.clerk = clerk;
         mountNav(clerk);
         if (clerk.user) {

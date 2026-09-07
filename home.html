@@ -681,7 +681,8 @@ footer .f-links .dim { opacity: 0.5; }
       await loadClerkScript();
       // Script-tag build exposes an instance; fall back to constructing if a class is exposed.
       var clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
-      await clerk.load();
+      // Telemetry beacon (clerk-telemetry.com) is not in connect-src; disable rather than widen CSP.
+      await clerk.load({ telemetry: { disabled: true } });
       H.clerk = clerk;
       mountNav(clerk);
       renderForSession();
