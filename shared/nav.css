@@ -38,12 +38,15 @@
 #rr-nav .rr-link.dim { opacity: 0.38; cursor: default; }
 #rr-nav .rr-auth { margin-left: auto; display: flex; align-items: center; }
 #rr-sign-in {
+  font-family: inherit;
   font-size: 0.76rem;
+  font-weight: 600;
   padding: 0.32rem 0.9rem;
   border: 1px solid var(--border-bright);
   border-radius: 6px;
   background: none;
   color: var(--text-primary);
   cursor: pointer;
+  transition: background 0.12s;
 }
 #rr-sign-in:hover { background: var(--accent-glow); }

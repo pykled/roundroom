@@ -38,7 +38,6 @@
   --radius-lg: 16px;
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-mono: 'DM Mono', monospace;
-  --nav-h: 52px;
 }
 @media (max-width: 768px) { :root { --section-pad: 64px; } }
 
@@ -74,8 +73,8 @@ button { font-family: inherit; }
 }
 .eyebrow { color: var(--text-secondary); }
 
-/* ---- Nav tweaks (nav.css is reused verbatim; these only apply below 400px) ---- */
-#rr-nav { min-height: var(--nav-h); font-family: var(--font-sans); }
+/* ---- Nav tweaks (nav.css is reused verbatim; same height as every app page) ---- */
+#rr-nav { font-family: var(--font-sans); }
 #rr-nav .rr-logo { display: inline-flex; align-items: center; gap: 0.5rem; }
 @media (max-width: 400px) {
   #rr-nav { padding-left: 1rem; padding-right: 1rem; }
@@ -200,7 +199,7 @@ button { font-family: inherit; }
 }
 .prow:last-child { border-bottom: 1px solid var(--border); }
 .pos {
-  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.04em;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em;
   padding: 2px 5px; border-radius: 4px; flex: none;
 }
 .pos.QB { background: rgba(239,68,68,.18);  color: var(--qb); }
