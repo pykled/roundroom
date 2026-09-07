@@ -8,42 +8,17 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111'/><text x='16' y='22' font-family='system-ui,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'>RR</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/shared/theme.css">
-<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/styles.css">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.4; min-height: 100vh; }
-button, input, select { font-family: inherit; }
-#app { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-#loading { text-align: center; padding: 5rem; color: var(--text-secondary); font-size: 0.85rem; }
+/* Shared tokens, reset, nav, setup card, form row, buttons, league bar, position
+   badges and mobile input sizing come from /shared/styles.css. */
+#app { max-width: 900px; }
 
-/* setup cards (auth gate, sleeper link) */
-.setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
-.setup-card h2 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
-.setup-card p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.9rem; line-height: 1.5; }
-.form-row { display: flex; gap: 0.5rem; }
-.form-row input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; color: var(--text-primary); font-size: 0.82rem; transition: border-color 0.15s; }
-.form-row input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.btn-primary { background: #ffffff; color: #000000; border: none; border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-.btn-primary:hover:not(:disabled) { background: rgba(255,255,255,0.88); }
-.btn-primary:active:not(:disabled) { transform: scale(0.97); }
-.error-msg { font-size: 0.76rem; color: var(--danger); margin-top: 0.4rem; }
-
-/* league + week bar */
-#league-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; font-size: 0.78rem; color: var(--text-secondary); }
-#league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: 0.78rem; max-width: 100%; transition: border-color 0.15s; }
-#league-bar select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-#league-bar select option { background: var(--bg-secondary); }
-#league-hint { font-size: 0.72rem; color: var(--text-muted); }
-#league-hint.warn { color: var(--danger); }
+/* week bar */
 #week-bar { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin-bottom: 0.6rem; }
 #week-bar .wk { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
 #week-bar .wk-sub { font-size: 0.72rem; color: var(--text-muted); }
 #team-name { font-size: 0.78rem; color: var(--text-secondary); margin-left: auto; }
-#league-settings-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
-.ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
 
 /* swap summary */
 #swap-note { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
@@ -56,8 +31,6 @@ button, input, select { font-family: inherit; }
 .lineup-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 @media (max-width: 768px) { .lineup-grid { grid-template-columns: 1fr; } }
 .lineup-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
-.col-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.7rem; }
-.col-hdr .total { font-family: 'DM Mono', monospace; text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--text-secondary); }
 .sub-hdr { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.8rem 0 0.35rem; }
 
 /* player rows */
@@ -65,31 +38,16 @@ button, input, select { font-family: inherit; }
 .pl-row:last-child { border-bottom: none; }
 .pl-row.starter { background: var(--accent-glow); border-bottom-color: transparent; margin-bottom: 2px; }
 .pl-row.ir { opacity: 0.5; }
-.slot-lbl { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
+.slot-lbl { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
 .slot-lbl.flex { color: var(--gold); }
-.pos-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 4px; letter-spacing: 0.04em; white-space: nowrap; }
-.QB { background: rgba(239,68,68,.18); color: var(--qb); }
-.RB { background: rgba(16,185,129,.18); color: var(--rb); }
-.WR { background: rgba(59,130,246,.18); color: var(--wr); }
-.TE { background: rgba(168,85,247,.18); color: var(--te); }
-.K  { background: rgba(107,114,128,.18); color: var(--k); }
-.DEF { background: rgba(107,114,128,.18); color: var(--dst); }
 .pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-name .team { color: var(--text-muted); font-size: 0.68rem; margin-left: 0.3rem; }
 .pl-name .star { font-size: 0.7rem; margin-left: 0.25rem; }
 .pl-name .cur { font-size: 0.6rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.35rem; vertical-align: middle; }
-.pl-pts { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--text-primary); min-width: 48px; text-align: right; }
+.pl-pts { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-primary); min-width: 48px; text-align: right; }
 .pl-pts small { color: var(--text-muted); font-size: 0.6rem; margin-left: 2px; }
-.pl-val { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
+.pl-val { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
 .empty-slot { color: var(--text-muted); font-style: italic; }
-.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
-.legend { font-size: 0.7rem; color: var(--text-muted); line-height: 1.6; }
-
-/* mobile: match draft/research — 16px inputs stop iOS focus-zoom, 40px touch targets */
-@media (max-width: 768px) {
-  .form-row input, #league-bar select { min-height: 40px; font-size: 16px; }
-  .btn-primary { min-height: 40px; }
-}
 </style>
 </head>
 <body>

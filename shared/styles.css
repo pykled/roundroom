@@ -1,0 +1,851 @@
+/* ============================================================================
+   RoundRoom — shared stylesheet
+   ----------------------------------------------------------------------------
+   Loaded by every page BEFORE its own <style> block, so page-level rules with
+   equal specificity win. A page's <style> should only hold layout and widgets
+   unique to that page; anything used on two or more pages belongs here.
+
+   Sections
+     1. Fonts
+     2. Design tokens (palette, type, spacing, radius, shadow, z-index)
+     3. Reset + base
+     4. Typography (section labels)
+     5. Nav (#rr-nav)
+     6. Components (cards, forms, buttons, badges, league bar, lists)
+     7. Draft/research primitives (.panel, .board-search, .modal-close)
+     8. Utilities
+     9. Research profile sheet (shared by /draft research tab and /research)
+    10. Responsive (768px grid collapse, iOS-safe inputs)
+   ========================================================================== */
+
+
+/* 1. Fonts ------------------------------------------------------------------
+   Each page keeps its <link rel="preconnect"> hints for fonts.googleapis.com
+   and fonts.gstatic.com; the stylesheet request itself lives here. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+
+/* 2. Design tokens --------------------------------------------------------- */
+:root {
+  /* surfaces */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-hover: #181818;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.14);
+
+  /* text */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.45);
+  --text-muted: rgba(255,255,255,0.22);
+  --text-body: rgba(255,255,255,0.62);
+
+  /* accent (white-on-black product accent; used for focus rings + primary btn) */
+  --accent: #ffffff;
+  --accent-glow: rgba(255,255,255,0.06);
+  --color-accent: var(--accent);
+
+  /* brand (indigo → violet; home CTA, keyboard focus outline) */
+  --brand-400: #818cf8;
+  --brand-500: #6366f1;
+  --brand-600: #8b5cf6;
+  --brand-glow: rgba(99,102,241,0.18);
+
+  /* positions */
+  --qb: #ef4444;
+  --rb: #10b981;
+  --wr: #3b82f6;
+  --te: #a855f7;
+  --k: #6b7280;
+  --dst: #6b7280;
+
+  /* status */
+  --gold: #fbbf24;
+  --silver: #94a3b8;
+  --bronze: #cd7f32;
+  --danger: #ef4444;
+  --success: #10b981;
+  --amber: #f59e0b;
+  --win: var(--success);
+  --fair: var(--gold);
+  --lose: var(--danger);
+
+  /* type */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --fs-2xs: 0.62rem;   /* badges, chips */
+  --fs-xs: 0.7rem;     /* section labels, hints */
+  --fs-sm: 0.78rem;    /* body copy in tools */
+  --fs-md: 0.85rem;    /* loading / empty states */
+  --fs-lg: 1.15rem;    /* page titles in tools */
+  --fs-xl: 1.6rem;     /* hero titles */
+  --tracking-label: 0.1em;
+
+  /* spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* shadow */
+  --shadow-focus: 0 0 0 3px var(--accent-glow);
+  --shadow-card: 0 12px 40px rgba(0,0,0,0.35);
+
+  /* z-index */
+  --z-sticky: 1;
+  --z-dropdown: 60;
+  --z-nav: 100;
+  --z-overlay: 860;
+  --z-toast: 1000;
+}
+
+
+/* 3. Reset + base ---------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+button, input, select, textarea { font-family: inherit; }
+
+/* Keyboard focus ring. Text inputs replace this with the accent border + glow
+   (see .form-row input:focus below), which is more specific and wins. */
+:focus-visible { outline: 2px solid var(--brand-400); outline-offset: 2px; }
+
+
+/* 4. Typography ------------------------------------------------------------ */
+/* Small uppercase section label used by every tool page. */
+.section-label,
+.panel-title,
+.col-hdr,
+.rf-hdr,
+.yt-title {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+}
+.panel-title { margin-bottom: var(--space-3); }
+.col-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.7rem; }
+.col-hdr .total { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--text-secondary); }
+
+/* Smaller column label (roster-fit lists on /trade + /team). */
+.rf-col-lbl { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+
+
+/* 5. Nav ------------------------------------------------------------------- */
+#rr-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.7rem var(--space-6);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+}
+#rr-nav .rr-logo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-decoration: none;
+  margin-right: var(--space-2);
+}
+#rr-nav .rr-links {
+  display: flex;
+  gap: 0.15rem;
+  flex: 1;
+}
+#rr-nav .rr-link {
+  font-size: var(--fs-sm);
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: background 0.12s, color 0.12s;
+}
+#rr-nav .rr-link:hover { background: var(--accent-glow); color: var(--text-primary); }
+#rr-nav .rr-link.active { color: var(--text-primary); background: var(--accent-glow); }
+#rr-nav .rr-link.dim { opacity: 0.38; cursor: default; }
+#rr-nav .rr-auth { margin-left: auto; display: flex; align-items: center; }
+#rr-sign-in {
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.32rem 0.9rem;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+#rr-sign-in:hover { background: var(--accent-glow); }
+
+
+/* 6. Components ------------------------------------------------------------ */
+
+/* Page shell for the tool pages (/trade, /lineup, /team). Pages set max-width. */
+#app { max-width: 900px; margin: 0 auto; padding: var(--space-6) var(--space-4) 3rem; }
+#loading { text-align: center; padding: 5rem; color: var(--text-secondary); font-size: var(--fs-md); }
+
+/* Cards */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-4); }
+.setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); margin-bottom: var(--space-5); }
+.setup-card h2 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
+.setup-card p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.9rem; line-height: 1.5; }
+
+/* Forms */
+.form-row { display: flex; gap: var(--space-2); }
+.form-row input,
+.form-row select {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  transition: border-color 0.15s;
+}
+.form-row input:focus,
+.form-row select:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
+.error-msg { font-size: 0.76rem; color: var(--danger); margin-top: 0.4rem; }
+
+/* Buttons */
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.btn-primary:hover:not(:disabled) { background: rgba(255,255,255,0.88); }
+.btn-primary:active:not(:disabled) { transform: scale(0.97); }
+
+.btn-secondary {
+  background: none;
+  color: var(--text-primary);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-secondary:hover:not(:disabled) { background: var(--accent-glow); }
+
+/* Brand gradient CTA (home hero). */
+.btn-brand {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 var(--space-5);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+  color: #fff;
+  font-family: inherit; font-weight: 600; font-size: 0.9rem; line-height: 1;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: filter 0.12s, background 0.12s, border-color 0.12s;
+}
+.btn-brand:hover { filter: brightness(1.08); }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+}
+.pos-badge { font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700; padding: 0.1rem 0.3rem; border-radius: var(--radius-xs); letter-spacing: 0.04em; white-space: nowrap; }
+.QB  { background: rgba(239,68,68,.18);   color: var(--qb); }
+.RB  { background: rgba(16,185,129,.18);  color: var(--rb); }
+.WR  { background: rgba(59,130,246,.18);  color: var(--wr); }
+.TE  { background: rgba(168,85,247,.18);  color: var(--te); }
+.K   { background: rgba(107,114,128,.18); color: var(--k); }
+.DEF, .DST { background: rgba(107,114,128,.18); color: var(--dst); }
+
+/* Positional tiers: liability → asset (/team table + /trade roster fit). */
+.st-critical, .rf-st-critical { color: var(--danger); }
+.st-upgrade,  .rf-st-upgrade  { color: var(--amber); }
+.st-thin,     .rf-st-thin     { color: var(--gold); }
+.st-solid,    .rf-st-solid    { color: var(--text-muted); }
+.st-deep,     .rf-st-deep     { color: var(--success); }
+.st-loaded,   .rf-st-loaded   { color: #4ade80; text-shadow: 0 0 10px rgba(74,222,128,.45); }
+
+/* Trade verdict tones (/trade badge + home mock). */
+.vd-WIN,  .v-WIN  { background: rgba(16,185,129,.12); color: var(--win);  border: 1px solid rgba(16,185,129,.28); }
+.vd-FAIR, .v-FAIR { background: rgba(251,191,36,.08); color: var(--fair); border: 1px solid rgba(251,191,36,.22); }
+.vd-LOSE, .v-LOSE { background: rgba(239,68,68,.08);  color: var(--lose); border: 1px solid rgba(239,68,68,.22); }
+
+/* League picker bar + settings strip (/trade, /lineup, /team). */
+#league-bar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-bottom: 0.8rem; font-size: var(--fs-sm); color: var(--text-secondary); }
+#league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: var(--fs-sm); max-width: 100%; transition: border-color 0.15s; }
+#league-bar select:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
+#league-bar select option { background: var(--bg-secondary); }
+#league-hint { font-size: 0.72rem; color: var(--text-muted); }
+#league-hint.warn { color: var(--danger); }
+#league-settings-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: var(--space-4); }
+.ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono); }
+
+/* Empty / helper text */
+.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
+.empty-state { text-align: center; padding: var(--space-8); color: var(--text-muted); font-size: var(--fs-md); }
+.legend { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.6; }
+
+/* Roster-fit lists (/trade + /team). */
+.rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.rf-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+.rf-row:last-child { border-bottom: none; }
+.rf-name { flex: 1; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-empty { font-size: 0.74rem; color: var(--text-muted); padding: 0.3rem 0; }
+
+
+/* 7. Draft/research primitives ------------------------------------------- */
+.panel {
+  overflow-y: auto;
+  padding: var(--space-3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.board-search {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.7rem;
+  color: rgba(255,255,255,0.8);
+  font-size: var(--fs-sm);
+  outline: none;
+  font-family: inherit;
+}
+.board-search:focus { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
+.board-search::placeholder { color: rgba(255,255,255,0.2); }
+
+.modal-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+
+/* 8. Utilities ------------------------------------------------------------- */
+.hidden { display: none !important; }
+.mono { font-family: var(--font-mono); }
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+/* 9. Research profile sheet ----------------------------------------------- */
+/* Identical on the draft page's Research tab and the standalone /research
+   page. Generated from the former inline block; edit here, not per page. */
+@keyframes rsch-page-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Two-pane research layout */
+#research-detail-pane .rsch-head { border-radius: 0; margin: -1.5rem -2rem 1rem; }
+.research-row.rsch-selected { background: rgba(124,111,247,0.1) !important; }
+@media (max-width: 768px) {
+  #research-screen { flex-direction: column !important; }
+  #research-detail-pane { display: none !important; }
+}
+
+.research-controls { flex-shrink: 0; margin-bottom: 0.5rem; }
+
+.rsch-filter-btn {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.63rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.rsch-filter-btn.active {
+  background: rgba(124,111,247,0.15);
+  border-color: rgba(124,111,247,0.5);
+  color: #a78bfa;
+}
+.rsch-sort-btn {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.rsch-sort-btn.active {
+  background: rgba(255,255,255,0.07);
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+}
+.rsch-tier-divider {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.4rem 0.2rem;
+  font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 1;
+}
+.rsch-tier-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.rsch-summary { font-size: 0.65rem; color: var(--text-muted); padding: 0.25rem 0 0.3rem; flex-shrink: 0; }
+.rsch-col-proj { font-family: var(--font-mono); font-size: 0.7rem; text-align: right; flex-shrink: 0; width: 38px; }
+@media (max-width: 600px) { .rsch-col-proj { display: none; } }
+
+.rsch-pos-btn {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rsch-pos-btn.active {
+  background: var(--bg-hover);
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+}
+
+#research-player-list { flex: 1; overflow-y: auto; }
+
+/* Roster needs summary bar */
+#roster-needs {
+  margin-top: 0.4rem; padding: 0.3rem 0.5rem;
+  font-size: 0.7rem; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 6px;
+  line-height: 1.4;
+}
+#roster-needs:empty { display: none; }
+#roster-needs .rn-pos { font-weight: 700; }
+.rn-QB { color: #f87171; }
+.rn-RB { color: #4ade80; }
+.rn-WR { color: #60a5fa; }
+.rn-TE { color: #fb923c; }
+.rn-FLEX { color: var(--text-secondary); }
+.rn-K, .rn-DST { color: var(--text-muted); }
+
+/* Trend arrow in player lists */
+.trend-arrow { font-size: 0.7rem; cursor: help; margin-right: 2px; display: inline-block; }
+
+.research-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.3rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.research-row:hover { background: var(--bg-hover); }
+.research-row.rsch-dnd { opacity: 0.45; }
+
+.rsch-pos-pill {
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  flex-shrink: 0;
+  min-width: 30px;
+  text-align: center;
+}
+
+.rsch-col { font-family: var(--font-mono); font-size: 0.7rem; text-align: right; flex-shrink: 0; }
+
+/* Player profile sheet */
+#research-profile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 860;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overscroll-behavior: contain;
+}
+#research-profile-overlay.open { display: flex; }
+
+.research-sheet {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.research-sheet-body { overflow-y: auto; padding: 1.25rem 1.25rem 1rem; -webkit-overflow-scrolling: touch; }
+
+.research-decision-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+.rsch-decision-btn {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@media (hover: hover) {
+  .rsch-decision-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+}
+.rsch-decision-btn.active-target { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
+.rsch-decision-btn.active-dnd { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
+.rsch-decision-btn.active-neutral { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text-primary); }
+
+/* ── Profile sheet: header ── */
+.rsch-head {
+  position: relative;
+  margin: -1.25rem -1.25rem 0;
+  padding: 1.4rem 3.25rem 1.1rem 1.4rem;
+  background:
+    radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--pos-col) 15%, transparent), transparent 55%);
+  border-bottom: 1px solid var(--border);
+}
+.rsch-head::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--pos-col), transparent 75%);
+}
+.rsch-head-name {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.rsch-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+.rsch-injury {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.35);
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  white-space: nowrap;
+}
+/* Injury status dot (list rows) */
+.inj-dot {
+  font-size: 0.55rem;
+  margin-left: 3px;
+  vertical-align: middle;
+  cursor: help;
+}
+/* Injury pill (research profile header) */
+.rsch-inj-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(234,179,8,0.12);
+  color: #eab308;
+  border: 1px solid rgba(234,179,8,0.35);
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  white-space: nowrap;
+}
+
+
+/* ── Profile sheet: hero stats ── */
+.rsch-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 1.15rem;
+}
+.rsch-hero-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.8rem 0.5rem 0.7rem;
+  text-align: center;
+}
+.rsch-hero-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.rsch-hero-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.5rem;
+}
+
+/* ── Profile sheet: VORP section ── */
+.rsch-vorp-card { margin-top: 1rem; }
+.rsch-vorp-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.rsch-vorp-nums {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+.rsch-vorp-main {
+  font-size: 1.9rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.rsch-vorp-sub {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.rsch-vorp-sf {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  margin-left: 0.75rem;
+}
+.rsch-vorp-context {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+}
+
+/* ── Profile sheet: demand signal ── */
+.rsch-demand { margin-top: 1.1rem; }
+.rsch-demand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.rsch-demand-badge {
+  font-size: 0.64rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  white-space: nowrap;
+  border: 1px solid;
+}
+.rsch-demand-text {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.rsch-demand-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+/* ── Profile sheet: typical draft slot ── */
+.rsch-drafted {
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+.rsch-drafted-main {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+.rsch-drafted-main b { color: var(--text-primary); font-weight: 700; }
+.rsch-drafted-sub {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ── Profile sheet: sources footer ── */
+.rsch-src-note {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 0.7rem;
+}
+
+/* ── Profile sheet: scouting report ── */
+.rsch-scout-section {
+  margin-top: 1.1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  animation: rsch-fade-in 0.28s ease;
+}
+.rsch-scout-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.55rem;
+}
+.rsch-scout-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ── Profile sheet: health card ── */
+.rsch-health-card {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid;
+  animation: rsch-fade-in 0.22s ease;
+}
+.rsch-health-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.rsch-health-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.63rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.rsch-health-note {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 0.4rem;
+}
+.rsch-health-timeline {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+@keyframes rsch-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rsch-sheet-up {
+  from { transform: translateY(40px); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+
+/* 10. Responsive ----------------------------------------------------------- */
+@media (max-width: 768px) {
+  /* Two-column grids collapse to one. */
+  .rf-grid { grid-template-columns: 1fr; }
+
+  /* 16px inputs stop iOS focus-zoom; 40px touch targets. */
+  .form-row input,
+  .form-row select,
+  #league-bar select,
+  .board-search { min-height: 40px; font-size: 16px; }
+  .btn-primary,
+  .btn-secondary { min-height: 40px; }
+}

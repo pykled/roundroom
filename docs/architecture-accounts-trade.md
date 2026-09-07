@@ -309,7 +309,7 @@ points before/after for both rosters and show "+3.2 pts/wk to your starters" as 
 ## 7. Trade calculator UI flow (`trade.html`)
 
 Static page, vanilla JS, same visual system as index.html (reuse its CSS variables by extracting them into
-`shared/theme.css` — copy, don't edit index.html). Loads `shared/trade-engine.js` as a module.
+`shared/styles.css` — copy, don't edit index.html). Loads `shared/trade-engine.js` as a module.
 
 **0. Boot (parallel):** `GET /api/config` → load ClerkJS from the FAPI domain with the publishable key →
 `Clerk.load()`; `GET /api/players/slim` (ETag-cached); `GET /api/nfl/state`.
@@ -380,7 +380,7 @@ shared/
   sleeper.js                  gated cache + all Sleeper/FC fetchers (server-only, but lives here for locality)
   cache.js                    TTL/LRU/in-flight/token-bucket primitives
   trade-engine.js             fingerprint, baselines, VORP, blend, evaluate  (isomorphic)
-  theme.css                   CSS variables lifted from index.html
+  styles.css                  Shared tokens, reset, nav + component styles (all pages)
 routes/
   config.js  values.js  league.js  me.js  trades.js  webhooks.js
 db/

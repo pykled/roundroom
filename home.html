@@ -16,48 +16,29 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/shared/theme.css">
-<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/styles.css">
 <style>
-/* ---- Home-page tokens (additions only; theme.css is untouched) ---- */
+/* ---- Home-page tokens (palette, fonts, radius, brand live in /shared/styles.css) ---- */
 :root {
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #8b5cf6;
-  --brand-glow: rgba(99,102,241,0.18);
-  --text-body: rgba(255,255,255,0.62);
-  --win: #10b981;
-  --fair: #fbbf24;
-  --lose: #ef4444;
   --container: 1120px;
   --section-pad: 96px;
   --card-pad: 24px;
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono: 'DM Mono', monospace;
 }
 @media (max-width: 768px) { :root { --section-pad: 64px; } }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+/* Marketing page runs at the browser default type size, not the 14px tool base. */
 body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: normal;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
   overflow-x: hidden;
 }
 a { color: inherit; }
-button { font-family: inherit; }
-:focus-visible { outline: 2px solid var(--brand-400); outline-offset: 2px; }
 [hidden] { display: none !important; }
 
 /* ---- Shared primitives ---- */
@@ -73,7 +54,7 @@ button { font-family: inherit; }
 }
 .eyebrow { color: var(--text-secondary); }
 
-/* ---- Nav tweaks (nav.css is reused verbatim; same height as every app page) ---- */
+/* ---- Nav tweaks (nav base is in shared/styles.css; same height as every app page) ---- */
 #rr-nav { font-family: var(--font-sans); }
 #rr-nav .rr-logo { display: inline-flex; align-items: center; gap: 0.5rem; }
 @media (max-width: 400px) {
@@ -146,11 +127,6 @@ button { font-family: inherit; }
   text-decoration: none; cursor: pointer; white-space: nowrap;
   transition: filter 0.12s, background 0.12s, border-color 0.12s;
 }
-.btn-brand {
-  background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
-  color: #fff; border: 1px solid transparent;
-}
-.btn-brand:hover { filter: brightness(1.08); }
 .btn-ghost {
   background: none; color: var(--text-primary);
   border: 1px solid var(--border-bright);
@@ -173,7 +149,7 @@ button { font-family: inherit; }
 .frame {
   position: relative; width: 100%; max-width: 460px;
   background: var(--bg-card); border: 1px solid var(--border-bright);
-  border-radius: var(--radius-lg); padding: 20px 22px 18px;
+  border-radius: var(--radius-xl); padding: 20px 22px 18px;
 }
 .frame-hdr {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -187,9 +163,6 @@ button { font-family: inherit; }
   font-weight: 700; font-size: 1rem; letter-spacing: 0.04em;
 }
 .verdict .delta { font-family: var(--font-mono); font-weight: 500; font-size: 0.85rem; letter-spacing: 0; }
-.v-WIN  { background: rgba(16,185,129,.12); color: var(--win);  border: 1px solid rgba(16,185,129,.28); }
-.v-FAIR { background: rgba(251,191,36,.08); color: var(--fair); border: 1px solid rgba(251,191,36,.22); }
-.v-LOSE { background: rgba(239,68,68,.08);  color: var(--lose); border: 1px solid rgba(239,68,68,.22); }
 
 .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .side-lbl { color: var(--text-secondary); margin-bottom: 10px; }
@@ -202,10 +175,6 @@ button { font-family: inherit; }
   font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em;
   padding: 2px 5px; border-radius: 4px; flex: none;
 }
-.pos.QB { background: rgba(239,68,68,.18);  color: var(--qb); }
-.pos.RB { background: rgba(16,185,129,.18); color: var(--rb); }
-.pos.WR { background: rgba(59,130,246,.18); color: var(--wr); }
-.pos.TE { background: rgba(168,85,247,.18); color: var(--te); }
 .pname { flex: 1; min-width: 0; font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pval { font-family: var(--font-mono); font-weight: 500; font-size: 0.85rem; text-align: right; flex: none; }
 .frame-ftr { margin-top: 16px; color: var(--text-muted); text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
@@ -231,7 +200,7 @@ button { font-family: inherit; }
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .card {
   display: flex; flex-direction: column; gap: 12px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: var(--card-pad); color: inherit; text-decoration: none;
   transition: border-color 0.12s, background 0.12s;
 }

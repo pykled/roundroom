@@ -9,7 +9,7 @@ Scope: the page served at bare `/` (no query params) on roundroom.pykled.com.
 
 1. `/` with **any** query param (`?companion=1`, `?league_id=…`, anything) keeps serving `index.html` unchanged. The home page is only served when the query string is empty. Commit `bb8bd3b` was reverted because it broke this. Do not touch `index.html`.
 2. Add a `/draft` alias that serves `index.html`. All "Draft Assistant" links on the home page point to `/draft`. The PWA `start_url` stays `/?companion=1`.
-3. Reuse `shared/theme.css` and `shared/nav.css` verbatim. The home page adds tokens; it does not change existing ones. The tools already ship on this system and the home page must look like the same product.
+3. Reuse `shared/styles.css` (tokens + nav) verbatim. The home page adds tokens; it does not change existing ones. The tools already ship on this system and the home page must look like the same product.
 4. Fonts are already loaded on the tools: Plus Jakarta Sans (400–800) and DM Mono (400/500). Use the same Google Fonts link. No new font families.
 5. Trade Calculator works signed-out. The home page may say "No account needed" for it.
 
@@ -143,7 +143,7 @@ Hover: border `--border` → `--border-bright`, background `--bg-card` → `--bg
 
 ### Palette
 
-Keep every token in `shared/theme.css`. Add the following for the home page.
+Keep every token in `shared/styles.css`. Add the following for the home page.
 
 | Token | Value | Use |
 |---|---|---|

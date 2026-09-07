@@ -8,28 +8,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111'/><text x='16' y='22' font-family='system-ui,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'>RR</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/shared/theme.css">
-<link rel="stylesheet" href="/shared/nav.css">
+<link rel="stylesheet" href="/shared/styles.css">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.4; min-height: 100vh; }
-button, input, select { font-family: inherit; }
-#app { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-#loading { text-align: center; padding: 5rem; color: var(--text-secondary); font-size: 0.85rem; }
-
-/* setup cards */
-.setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
-.setup-card h2 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
-.setup-card p { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.9rem; line-height: 1.5; }
-.form-row { display: flex; gap: 0.5rem; }
-.form-row input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; color: var(--text-primary); font-size: 0.82rem; transition: border-color 0.15s; }
-.form-row input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.btn-primary { background: #ffffff; color: #000000; border: none; border-radius: 6px; padding: 0.45rem 1.1rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-.btn-primary:hover:not(:disabled) { background: rgba(255,255,255,0.88); }
-.btn-primary:active:not(:disabled) { transform: scale(0.97); }
-.error-msg { font-size: 0.76rem; color: var(--danger); margin-top: 0.4rem; }
+/* Shared tokens, reset, nav, setup card, form row, buttons, league bar, .col-hdr,
+   position badges, verdict tones, tier colors, roster-fit lists and mobile input
+   sizing come from /shared/styles.css. */
+#app { max-width: 860px; }
 
 /* preset bar */
 #preset-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.1rem; }
@@ -40,36 +24,23 @@ button, input, select { font-family: inherit; }
 .pg button:last-child { border-right: none; }
 .pg button.on { background: rgba(255,255,255,0.08); color: var(--text-primary); }
 
-/* league bar */
-#league-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.1rem; font-size: 0.78rem; color: var(--text-secondary); }
-#league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: 0.78rem; transition: border-color 0.15s; }
-#league-bar select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-#league-bar select option { background: var(--bg-secondary); }
-#league-bar #league-hint { font-size: 0.72rem; color: var(--text-muted); }
-#league-bar #league-hint.warn { color: var(--danger); }
-#league-settings-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; margin-top: -0.6rem; }
-#league-settings-strip .ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
+/* league bar: single row here, settings strip tucks up under it */
+#league-bar { flex-wrap: nowrap; margin-bottom: 1.1rem; }
+#league-settings-strip { margin-top: -0.6rem; }
 
 /* trade grid */
 .trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 @media (max-width: 768px) { .trade-grid { grid-template-columns: 1fr; } }
 .trade-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
-.col-hdr { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.7rem; }
 
 /* search */
 .srch-wrap { position: relative; margin-bottom: 0.65rem; }
 .srch-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.42rem 0.7rem; color: var(--text-primary); font-size: 0.8rem; transition: border-color 0.15s; }
-.srch-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.srch-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
 .srch-input::placeholder { color: var(--text-muted); }
-.srch-drop { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: 6px; z-index: 60; max-height: 200px; overflow-y: auto; }
+.srch-drop { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: 6px; z-index: var(--z-dropdown); max-height: 200px; overflow-y: auto; }
 .srch-item { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.7rem; cursor: pointer; font-size: 0.8rem; }
 .srch-item:hover { background: var(--bg-hover); }
-.pos-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 4px; letter-spacing: 0.04em; white-space: nowrap; }
-.QB { background: rgba(239,68,68,.18); color: var(--qb); }
-.RB { background: rgba(16,185,129,.18); color: var(--rb); }
-.WR { background: rgba(59,130,246,.18); color: var(--wr); }
-.TE { background: rgba(168,85,247,.18); color: var(--te); }
-.K  { background: rgba(107,114,128,.18); color: var(--k); }
 
 /* player rows */
 .pl-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.38rem 0; border-bottom: 1px solid var(--border); }
@@ -78,7 +49,6 @@ button, input, select { font-family: inherit; }
 .pl-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
 .rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; }
 .rm-btn:hover { color: var(--danger); }
-.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
 
 /* value bar */
 .vbar-wrap { height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 0.6rem; }
@@ -94,9 +64,6 @@ button, input, select { font-family: inherit; }
 .vd-side-lbl { font-size: 0.68rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
 .vd-side-num { font-size: 1.35rem; font-weight: 700; }
 .vd-badge { display: inline-block; padding: 0.35rem 1.4rem; border-radius: 999px; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.04em; margin: 0.3rem 0; }
-.vd-WIN  { background: rgba(16,185,129,.12); color: var(--rb); border: 1px solid rgba(16,185,129,.28); }
-.vd-FAIR { background: rgba(251,191,36,.08); color: var(--gold); border: 1px solid rgba(251,191,36,.22); }
-.vd-LOSE { background: rgba(239,68,68,.08); color: var(--danger); border: 1px solid rgba(239,68,68,.22); }
 .vd-delta { font-size: 0.76rem; color: var(--text-secondary); }
 .vd-partner { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.55rem; line-height: 1.6; }
 .vd-partner .vp-name { color: var(--text-primary); font-weight: 600; }
@@ -108,14 +75,13 @@ button, input, select { font-family: inherit; }
 .yt-hdr { border-radius: 10px 10px 0 0; }
 .yt.collapsed .yt-hdr { border-radius: 10px; }
 .yt-hdr:hover { background: var(--bg-hover); }
-.yt-title { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
-.yt-sub { flex: 1; font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yt-sub { flex: 1; font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .yt-chev { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.15s; }
 .yt.collapsed .yt-chev { transform: rotate(-90deg); }
 .yt.collapsed .yt-body { display: none; }
 .yt-body { padding: 0 1rem 0.9rem; border-top: 1px solid var(--border); }
 .yt-depth { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.8rem; margin-bottom: 0.6rem; }
-.yt-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: 'DM Mono', monospace; color: var(--text-secondary); }
+.yt-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
 .yt-dep .yt-rank { color: var(--text-muted); }
 .yt-strength { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.55rem; }
 .yt-strength b { color: var(--text-primary); font-weight: 600; }
@@ -123,7 +89,7 @@ button, input, select { font-family: inherit; }
 .yt-row { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.6; }
 .yt-row .yt-lbl { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-right: 0.35rem; }
 .yt-row .yt-name { color: var(--text-primary); }
-.yt-row .yt-v { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 0.68rem; }
+.yt-row .yt-v { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.68rem; }
 .yt-partners { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
 .yt-partners .yt-lbl { display: block; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-bottom: 0.3rem; }
 .yt-partner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: 0.76rem; padding: 0.22rem 0; }
@@ -145,29 +111,15 @@ button, input, select { font-family: inherit; }
 
 /* roster fit (need-adjusted view, connected mode only) */
 #roster-fit { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.9rem; text-align: left; }
-.rf-hdr { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-align: center; }
+.rf-hdr { margin-bottom: 0.5rem; text-align: center; }
 .rf-depth { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 0.85rem; }
-.rf-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: 'DM Mono', monospace; color: var(--text-secondary); }
-.rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-@media (max-width: 768px) { .rf-grid { grid-template-columns: 1fr; } }
-.rf-col-lbl { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
-.rf-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: 0.78rem; }
-.rf-row:last-child { border-bottom: none; }
-.rf-name { flex: 1; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
 .rf-tag { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; white-space: nowrap; }
 .rf-good { background: rgba(16,185,129,.12); color: var(--rb); }
 .rf-bad { background: rgba(239,68,68,.1); color: var(--danger); }
 .rf-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-/* positional tiers: liability → asset (same palette as /team) */
-.rf-st-critical { color: var(--danger); }
-.rf-st-upgrade { color: var(--amber); }
-.rf-st-thin { color: var(--gold); }
-.rf-st-solid { color: var(--text-muted); }
-.rf-st-deep { color: var(--success); }
-.rf-st-loaded { color: #4ade80; text-shadow: 0 0 10px rgba(74,222,128,.45); }
 .rf-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; }
 .rf-mult { color: var(--text-muted); font-size: 0.64rem; margin-left: 0.2rem; }
-.rf-empty { font-size: 0.74rem; color: var(--text-muted); padding: 0.3rem 0; }
 .rf-summary { text-align: center; margin-top: 0.9rem; font-size: 0.78rem; color: var(--text-secondary); }
 .rf-badge { font-size: 0.78rem; padding: 0.25rem 1rem; margin-left: 0.4rem; }
 #rf-delta { text-align: center; }
@@ -176,10 +128,9 @@ button, input, select { font-family: inherit; }
 .share-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--border-bright); color: var(--text-primary); }
 .share-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; }
 
-/* mobile: match draft/research — 16px inputs stop iOS focus-zoom, 40px touch targets */
+/* mobile: 16px stops iOS focus-zoom (shared/styles.css covers .form-row + #league-bar) */
 @media (max-width: 768px) {
-  .form-row input, .srch-input, #league-bar select { min-height: 40px; font-size: 16px; }
-  .btn-primary { min-height: 40px; }
+  .srch-input { min-height: 40px; font-size: 16px; }
 }
 </style>
 </head>
