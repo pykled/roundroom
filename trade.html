@@ -88,6 +88,41 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 .vd-FAIR { background: rgba(251,191,36,.08); color: var(--gold); border: 1px solid rgba(251,191,36,.22); }
 .vd-LOSE { background: rgba(239,68,68,.08); color: var(--danger); border: 1px solid rgba(239,68,68,.22); }
 .vd-delta { font-size: 0.76rem; color: var(--text-secondary); }
+.vd-partner { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.55rem; line-height: 1.6; }
+.vd-partner .vp-name { color: var(--text-primary); font-weight: 600; }
+.vd-partner .vp-fit { color: var(--rb); }
+
+/* Your Team panel (connected mode only) */
+.yt { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 1rem; }
+.yt-hdr { display: flex; align-items: center; gap: 0.5rem; width: 100%; background: none; border: none; color: var(--text-primary); padding: 0.7rem 1rem; cursor: pointer; text-align: left; font: inherit; }
+.yt-hdr { border-radius: 10px 10px 0 0; }
+.yt.collapsed .yt-hdr { border-radius: 10px; }
+.yt-hdr:hover { background: var(--bg-hover); }
+.yt-title { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+.yt-sub { flex: 1; font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yt-chev { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.15s; }
+.yt.collapsed .yt-chev { transform: rotate(-90deg); }
+.yt.collapsed .yt-body { display: none; }
+.yt-body { padding: 0 1rem 0.9rem; border-top: 1px solid var(--border); }
+.yt-depth { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.8rem; margin-bottom: 0.6rem; }
+.yt-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: 'DM Mono', monospace; color: var(--text-secondary); }
+.yt-dep .yt-rank { color: var(--text-muted); }
+.yt-strength { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.55rem; }
+.yt-strength b { color: var(--text-primary); font-weight: 600; }
+.yt-inj { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(239,68,68,.1); color: var(--danger); cursor: default; }
+.yt-row { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.6; }
+.yt-row .yt-lbl { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-right: 0.35rem; }
+.yt-row .yt-name { color: var(--text-primary); }
+.yt-row .yt-v { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 0.68rem; }
+.yt-partners { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+.yt-partners .yt-lbl { display: block; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-bottom: 0.3rem; }
+.yt-partner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: 0.76rem; padding: 0.22rem 0; }
+.yt-partner .yt-name { color: var(--text-primary); font-weight: 500; margin-right: 0.15rem; }
+.yt-partner .yt-sep { color: var(--text-muted); }
+.yt-tag { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; white-space: nowrap; background: rgba(255,255,255,0.06); color: var(--text-muted); }
+.yt-tag.need { background: rgba(251,191,36,.1); color: var(--gold); }
+.yt-tag.surplus { background: rgba(59,130,246,.12); color: var(--wr); }
+.yt-empty { font-size: 0.74rem; color: var(--text-muted); }
 
 /* roster fit (need-adjusted view, connected mode only) */
 #roster-fit { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.9rem; text-align: left; }
@@ -128,6 +163,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
     <a href="/research" class="rr-link">Research</a>
     <a href="/trade" class="rr-link active">Trade</a>
     <a href="/lineup" class="rr-link">Lineup</a>
+    <a href="/team" class="rr-link">Team</a>
   </div>
   <div class="rr-auth">
     <div id="user-btn-mount"></div>
@@ -180,6 +216,23 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
     </div>
     <div id="league-settings-strip" hidden></div>
 
+    <!-- Your Team: league-relative read on the signed-in user's roster (connected mode only).
+         Rendered by renderYourTeam() from S.myAnalysis; stays hidden when we can't find their roster. -->
+    <div id="your-team" class="yt" hidden>
+      <button type="button" class="yt-hdr" id="yt-toggle" aria-expanded="true" aria-controls="yt-body">
+        <span class="yt-title">Your Team</span>
+        <span class="yt-sub" id="yt-sub"></span>
+        <span class="yt-chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="yt-body" id="yt-body">
+        <div class="yt-depth" id="yt-depth"></div>
+        <div class="yt-strength" id="yt-strength"></div>
+        <div class="yt-row" id="yt-elite"></div>
+        <div class="yt-row" id="yt-liab"></div>
+        <div class="yt-partners" id="yt-partners"></div>
+      </div>
+    </div>
+
     <div class="trade-grid">
       <div class="trade-col">
         <div class="col-hdr">You Give</div>
@@ -216,6 +269,8 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
         </div>
         <div id="vd-badge" class="vd-badge vd-FAIR">FAIR</div>
         <div class="vd-delta" id="vd-delta"></div>
+        <!-- Counterparty hint: needs of the team that owns the received player(s). Connected mode only. -->
+        <div class="vd-partner" id="vd-partner" hidden></div>
 
         <!-- Roster Fit: need-adjusted view of the same trade for the signed-in user's roster.
              Hidden unless connected mode has located their roster in the selected league. -->
@@ -242,15 +297,21 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script src="/shared/scoring.js"></script>
+<script src="/shared/lineup.js"></script>
+<script src="/shared/analysis.js"></script>
 <script>
 var S = {
   clerk: null,
   me: null,
   proj: {},
   players: {},
+  injuries: {},   // /api/injuries `players` dict, keyed by lowercase full name
   league: null,
   leagues: [],
   roster: null,   // signed-in user's active player_ids in S.league (null = unknown → Roster Fit hidden)
+  myRosterId: null,
+  leagueAnalysis: null,  // AnalysisEngine.analyzeLeague output (connected mode only)
+  myAnalysis: null,      // entry in leagueAnalysis.teams for S.myRosterId
   give: [],
   recv: [],
   vorp: new Map(),
@@ -294,11 +355,14 @@ async function boot() {
     // FantasyCalc market values with preset defaults (PPR, 1QB); re-fetched
     // once league settings are known. Empty object → pure VORP.
     var marketP = fetchMarketValues({ ppr: 1, sf: 0 });
-    var results = await Promise.all([projP, plP, marketP]);
+    // Injuries feed the Your Team panel only; a failure here is not fatal.
+    var injP = fetch('/api/injuries').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+    var results = await Promise.all([projP, plP, marketP, injP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
     S.market = results[2] || {};
     S.marketKey = '1:0';
+    S.injuries = (results[3] && results[3].players && typeof results[3].players === 'object') ? results[3].players : {};
 
     document.getElementById('loading').hidden = true;
 
@@ -378,6 +442,7 @@ function setLeagueHint(text, warn) {
 async function loadLeague(lid) {
   S.league = null;
   S.roster = null;
+  S.myRosterId = null;
   if (!lid) return;
   try {
     S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
@@ -386,6 +451,10 @@ async function loadLeague(lid) {
   // The league payload already carries rosters + users; pull ours out for Roster Fit.
   // Stays null (section hidden) if we're not an owner in this league.
   S.roster = loadMyRoster(S.league);
+  try {
+    var mine = S.me ? findMyRoster(S.league) : null;
+    S.myRosterId = mine && mine.roster_id != null ? mine.roster_id : null;
+  } catch(e) { S.myRosterId = null; }
   syncPresetButtons();
 }
 
@@ -445,6 +514,7 @@ async function enterConnected(opts) {
     document.getElementById('preset-bar').hidden = false;
     S.league = null;
     S.roster = null;
+    S.myRosterId = null;
     recompute();
     return;
   }
@@ -560,10 +630,28 @@ function recompute() {
   var scaled = ScoringEngine.rescaleVORP(raw);
   // 70% league-specific VORP / 30% FantasyCalc market consensus; pure VORP when market is empty
   S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
+  recomputeAnalysis();
   renderLeagueStrip();
+  renderYourTeam();
   renderSide('give');
   renderSide('recv');
   renderVerdict();
+}
+
+// League-wide team analysis on the same blended VORP the verdict uses, so the
+// Your Team panel and the trade math agree by construction. Connected mode only.
+function recomputeAnalysis() {
+  S.leagueAnalysis = null;
+  S.myAnalysis = null;
+  if (S.mode !== 'connected' || !S.league || !Array.isArray(S.league.rosters)) return;
+  try {
+    S.leagueAnalysis = AnalysisEngine.analyzeLeague(S.league, S.players, S.proj, S.vorp, S.injuries);
+    if (S.myRosterId != null) S.myAnalysis = S.leagueAnalysis.team(S.myRosterId);
+  } catch(e) {
+    console.warn('team analysis failed', e);
+    S.leagueAnalysis = null;
+    S.myAnalysis = null;
+  }
 }
 
 function addPlayer(side, id) {
@@ -622,6 +710,7 @@ function renderVerdict() {
   var maxV = Math.max(r.giverValue, r.receiverValue, 1);
   document.getElementById('vbar-give').style.width = Math.max(2, r.giverValue / maxV * 100).toFixed(1) + '%';
   document.getElementById('vbar-recv').style.width = Math.max(2, r.receiverValue / maxV * 100).toFixed(1) + '%';
+  renderCounterparty();
   renderRosterFit();
 }
 
@@ -665,36 +754,11 @@ function loadMyRoster(league) {
   } catch(e) { return null; }
 }
 
-// Starter slots per position. Flex slots split evenly across eligible
-// positions — same convention as ScoringEngine.computeVORP so "need" lines up
-// with the replacement level the values are built on.
-function starterSlots(positions) {
-  var s = { QB: 0, RB: 0, WR: 0, TE: 0 };
-  (positions || []).forEach(function(p) {
-    if (s.hasOwnProperty(p)) s[p] += 1;
-    else if (p === 'FLEX' || p === 'WRRB_FLEX') { s.RB += 0.5; s.WR += 0.5; }
-    else if (p === 'SUPER_FLEX') s.QB += 1;
-    else if (p === 'REC_FLEX') { s.WR += 0.5; s.TE += 0.5; }
-  });
-  return s;
-}
-
 // Per-position depth: need (rostered ≤ starters), surplus (rostered ≥ 2× starters), else neutral.
-// Positions with no starter slot in this league are always neutral.
+// The rule itself lives in shared/analysis.js (starterSlots + assessDepth) so
+// Roster Fit and the Your Team panel agree by construction.
 function assessDepth(rosterIds, positions) {
-  var slots = starterSlots(positions);
-  var count = { QB: 0, RB: 0, WR: 0, TE: 0 };
-  (rosterIds || []).forEach(function(id) {
-    var info = S.players[id];
-    if (info && count.hasOwnProperty(info[1])) count[info[1]] += 1;
-  });
-  var depth = {};
-  NEED_POSITIONS.forEach(function(p) {
-    var st = slots[p], n = count[p];
-    var status = st <= 0 ? 'neutral' : n <= st ? 'need' : n >= st * 2 ? 'surplus' : 'neutral';
-    depth[p] = { rostered: n, starters: st, status: status };
-  });
-  return depth;
+  return AnalysisEngine.depthFromRoster(rosterIds, S.players, positions);
 }
 
 function needStatus(depth, id) {
@@ -733,6 +797,146 @@ function rfRow(id, side, depth) {
 
 function fmtSlots(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
 
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function ord(n) {
+  var m100 = n % 100, m10 = n % 10;
+  var sfx = (m100 >= 11 && m100 <= 13) ? 'th' : m10 === 1 ? 'st' : m10 === 2 ? 'nd' : m10 === 3 ? 'rd' : 'th';
+  return n + sfx;
+}
+
+// ---- Your Team panel ------------------------------------------------------
+// Compact league-relative read on the user's roster, computed by
+// AnalysisEngine in recomputeAnalysis(). Collapsed by default on narrow screens.
+var YT_INIT = false;
+
+function ytChip(p, d) {
+  var title = d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's') +
+    ' · ' + ord(d.rank) + ' strongest ' + p + ' starters in the league';
+  return '<span class="yt-dep" title="' + esc(title) + '">' +
+    '<span class="pos-badge ' + p + '">' + p + '</span>' + d.rostered +
+    '<span class="rf-st-' + d.status + '">' + NEED_GLYPH[d.status] + ' ' + NEED_LABEL[d.status] + '</span>' +
+    '<span class="yt-rank">· ' + ord(d.rank) + '</span>' +
+    '</span>';
+}
+
+function ytNames(list, max) {
+  return list.slice(0, max).map(function(e) {
+    return '<span class="yt-name">' + esc(e.name) + '</span> <span class="yt-v">' + e.position + ' ' + e.vorp.toLocaleString() + '</span>';
+  }).join(', ') + (list.length > max ? ' <span class="yt-v">+' + (list.length - max) + '</span>' : '');
+}
+
+function renderYourTeam() {
+  var sec = document.getElementById('your-team');
+  if (!sec) return;
+  var me = S.myAnalysis;
+  if (S.mode !== 'connected' || !S.league || !me) { sec.hidden = true; return; }
+  try {
+    var n = me.teamCount || (S.leagueAnalysis ? S.leagueAnalysis.teams.length : 0);
+
+    if (!YT_INIT) {
+      YT_INIT = true;
+      if (window.matchMedia && window.matchMedia('(max-width: 560px)').matches) sec.classList.add('collapsed');
+      document.getElementById('yt-toggle').addEventListener('click', function() {
+        var collapsed = sec.classList.toggle('collapsed');
+        this.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      });
+    }
+
+    document.getElementById('yt-sub').textContent = me.name + ' · ' + ord(me.rank) + ' of ' + n;
+
+    document.getElementById('yt-depth').innerHTML = NEED_POSITIONS.map(function(p) {
+      return ytChip(p, me.byPos[p]);
+    }).join('');
+
+    var rec = me.record;
+    var recStr = (rec.wins || rec.losses || rec.ties) ? (rec.wins + '-' + rec.losses + (rec.ties ? '-' + rec.ties : '')) : null;
+    var strength = '<span><b>' + me.starterPts.toLocaleString() + '</b> proj pts/wk · ' + ord(me.rank) + ' of ' + n + '</span>';
+    if (recStr) strength += '<span>' + recStr + '</span>';
+    if (me.emptySlots) strength += '<span class="yt-inj">' + me.emptySlots + ' empty slot' + (me.emptySlots === 1 ? '' : 's') + '</span>';
+    if (me.injured.length) {
+      strength += '<span class="yt-inj" title="' + esc(me.injured.map(function(i){ return i.name + ' (' + i.status + ')'; }).join(', ')) + '">' +
+        me.injured.length + ' injured</span>';
+    }
+    document.getElementById('yt-strength').innerHTML = strength;
+
+    var eliteEl = document.getElementById('yt-elite');
+    eliteEl.innerHTML = '<span class="yt-lbl">Elite</span>' + (me.elite.length ? ytNames(me.elite, 3) : '<span class="yt-empty">No top-tier starters</span>');
+
+    // Liabilities at a need position first — those are the ones a trade can actually fix.
+    var liab = me.liabilities.filter(function(e){ return me.needs.indexOf(e.position) >= 0; });
+    if (!liab.length) liab = me.liabilities;
+    var liabEl = document.getElementById('yt-liab');
+    liabEl.innerHTML = '<span class="yt-lbl">Liability</span>' + (liab.length ? ytNames(liab, 3) : '<span class="yt-empty">No sub-replacement starters</span>');
+
+    var partners = S.leagueAnalysis ? S.leagueAnalysis.partners(me.rosterId, 3) : [];
+    var pEl = document.getElementById('yt-partners');
+    var html = '<span class="yt-lbl">Trade partners · teams that need what you have</span>';
+    if (!me.surplus.length) {
+      html += '<div class="yt-empty">No surplus position to deal from yet</div>';
+    } else if (!partners.length) {
+      html += '<div class="yt-empty">No team currently needs your surplus (' + me.surplus.join(', ') + ')</div>';
+    } else {
+      html += partners.map(function(p) {
+        var tags = p.overlap.map(function(pos){ return '<span class="yt-tag need">needs ' + pos + '</span>'; });
+        p.mutual.forEach(function(pos){ tags.push('<span class="yt-tag surplus">surplus ' + pos + '</span>'); });
+        return '<div class="yt-partner"><span class="yt-name">' + esc(p.team.name) + '</span>' +
+          '<span class="yt-sep">' + ord(p.team.rank) + '</span>' + tags.join('') + '</div>';
+      }).join('');
+    }
+    pEl.innerHTML = html;
+
+    sec.hidden = false;
+  } catch(e) {
+    console.warn('your team panel failed', e);
+    sec.hidden = true;
+  }
+}
+
+// ---- Counterparty hint ----------------------------------------------------
+// When a received player is on another roster in this league, show what that
+// team needs so the user can see whether what they're giving fits.
+function ownerOf(id) {
+  if (!S.league || !Array.isArray(S.league.rosters)) return null;
+  return S.league.rosters.find(function(r){ return Array.isArray(r.players) && r.players.indexOf(id) >= 0; }) || null;
+}
+
+function renderCounterparty() {
+  var el = document.getElementById('vd-partner');
+  if (!el) return;
+  if (S.mode !== 'connected' || !S.leagueAnalysis || !S.recv.length) { el.hidden = true; return; }
+  try {
+    var seen = {}, teams = [];
+    S.recv.forEach(function(id) {
+      var r = ownerOf(id);
+      if (!r || r.roster_id == null || seen[r.roster_id]) return;
+      if (S.myRosterId != null && String(r.roster_id) === String(S.myRosterId)) return;
+      var t = S.leagueAnalysis.team(r.roster_id);
+      if (t) { seen[r.roster_id] = true; teams.push(t); }
+    });
+    if (!teams.length) { el.hidden = true; return; }
+    var givePos = S.give.map(function(id){ return S.players[id] ? S.players[id][1] : null; }).filter(Boolean);
+    el.innerHTML = teams.slice(0, 2).map(function(t) {
+      var parts = [];
+      if (t.needs.length) parts.push('they need ' + t.needs.join(', '));
+      if (t.surplus.length) parts.push('surplus ' + t.surplus.join(', '));
+      var fills = t.needs.filter(function(p){ return givePos.indexOf(p) >= 0; });
+      var line = 'Trading with <span class="vp-name">' + esc(t.name) + '</span>' +
+        (parts.length ? ' — ' + parts.join(' · ') : ' — balanced roster');
+      if (fills.length) line += ' <span class="vp-fit">· your ' + fills.join('/') + ' fills a need</span>';
+      return '<div>' + line + '</div>';
+    }).join('');
+    el.hidden = false;
+  } catch(e) {
+    console.warn('counterparty hint failed', e);
+    el.hidden = true;
+  }
+}
+
 function renderRosterFit() {
   var sec = document.getElementById('roster-fit');
   if (!sec) return;
@@ -744,7 +948,7 @@ function renderRosterFit() {
 
     document.getElementById('rf-depth').innerHTML = NEED_POSITIONS.map(function(p) {
       var d = depth[p];
-      return '<span class="rf-dep" title="' + d.rostered + ' rostered, ' + fmtSlots(d.starters) + ' starter slot' + (d.starters === 1 ? '' : 's') + '">' +
+      return '<span class="rf-dep" title="' + d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's') + '">' +
         '<span class="pos-badge ' + p + '">' + p + '</span>' + d.rostered +
         '<span class="rf-st-' + d.status + '">' + NEED_GLYPH[d.status] + ' ' + NEED_LABEL[d.status] + '</span>' +
         '</span>';
