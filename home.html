@@ -564,10 +564,11 @@ footer .f-links .dim { opacity: 0.5; }
     var wrap = $('hero-leagues');
     wrap.innerHTML = '';
     if (leagues && leagues.length) {
+      var isPrimary = function (l) { return !!me.primaryLeagueId && String(l.league_id) === String(me.primaryLeagueId); };
       var shown = leagues.slice(0, 4);
-      shown.forEach(function (l, i) {
+      shown.forEach(function (l) {
         var c = document.createElement('span');
-        c.className = 'chip' + (i === 0 ? ' primary' : '');
+        c.className = 'chip' + (isPrimary(l) ? ' primary' : '');
         c.textContent = (l.name || 'League') + ' · ' + leagueMeta(l);
         wrap.appendChild(c);
       });
@@ -580,9 +581,9 @@ footer .f-links .dim { opacity: 0.5; }
       wrap.hidden = false;
 
       $('fl-count').textContent = leagues.length + (leagues.length === 1 ? ' league' : ' leagues');
-      $('fl-list').innerHTML = leagues.slice(0, 6).map(function (l, i) {
+      $('fl-list').innerHTML = leagues.slice(0, 6).map(function (l) {
         return '<div class="lrow" data-league="' + esc(l.league_id) + '">' +
-          '<div class="lname"><span>' + esc(l.name || 'League') + '</span>' + (i === 0 ? '<span class="tag mono">Primary</span>' : '') + '</div>' +
+          '<div class="lname"><span>' + esc(l.name || 'League') + '</span>' + (isPrimary(l) ? '<span class="tag mono">Primary</span>' : '') + '</div>' +
           '<div class="lmeta mono">' + esc(leagueMeta(l)) + '</div>' +
           '</div>';
       }).join('');

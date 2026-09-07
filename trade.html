@@ -36,6 +36,8 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 #league-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.1rem; font-size: 0.78rem; color: var(--text-secondary); }
 #league-bar select { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; color: var(--text-primary); font-size: 0.78rem; }
 #league-bar select:focus { outline: none; border-color: var(--border-bright); }
+#league-bar #league-hint { font-size: 0.72rem; color: var(--text-muted); }
+#league-bar #league-hint.warn { color: var(--danger); }
 
 /* trade grid */
 .trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -146,6 +148,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
     <div id="league-bar" hidden>
       <span>League:</span>
       <select id="league-sel"></select>
+      <span id="league-hint" hidden></span>
     </div>
 
     <div class="trade-grid">
@@ -204,6 +207,7 @@ var S = {
   proj: {},
   players: {},
   league: null,
+  leagues: [],
   give: [],
   recv: [],
   vorp: new Map(),
@@ -250,6 +254,9 @@ async function boot() {
 
     document.getElementById('loading').hidden = true;
 
+    // Shared trade link (/trade?t=TOKEN): preload both sides before entering a mode
+    var shared = await loadSharedTrade();
+
     if (S.me && S.me.sleeperUserId) {
       await enterConnected();
     } else if (S.clerk && S.clerk.user) {
@@ -257,6 +264,11 @@ async function boot() {
       enterManual();
     } else {
       enterManual();
+    }
+    if (shared) {
+      var note = document.getElementById('share-note');
+      note.textContent = 'Viewing a shared trade';
+      note.hidden = false;
     }
   } catch(e) {
     document.getElementById('loading').textContent = 'Failed to load — please refresh.';
@@ -284,24 +296,113 @@ function enterManual() {
   recompute();
 }
 
-async function enterConnected() {
+// Load a shared trade from ?t=TOKEN into S.give / S.recv. Returns true if one loaded.
+async function loadSharedTrade() {
+  var token = new URLSearchParams(location.search).get('t');
+  if (!token || !/^[a-z0-9]{12}$/.test(token)) return false;
+  try {
+    var t = await fetch('/api/trades/' + token).then(function(r){ return r.ok ? r.json() : null; });
+    if (!t) return false;
+    var known = function(id) { return typeof id === 'string' && S.players[id]; };
+    S.give = (t.give || []).filter(known);
+    S.recv = (t.recv || []).filter(known);
+    if (t.preset && typeof t.preset === 'object') {
+      ['scoring','qbs','teams'].forEach(function(g) {
+        if (typeof t.preset[g] === 'number') {
+          S.preset[g] = t.preset[g];
+          document.querySelectorAll('[data-g="' + g + '"]').forEach(function(b) {
+            b.classList.toggle('on', Number(b.dataset.v) === t.preset[g]);
+          });
+        }
+      });
+    }
+    return S.give.length + S.recv.length > 0;
+  } catch(e) { return false; }
+}
+
+function setLeagueHint(text, warn) {
+  var h = document.getElementById('league-hint');
+  h.textContent = text || '';
+  h.className = warn ? 'warn' : '';
+  h.hidden = !text;
+}
+
+async function loadLeague(lid) {
+  S.league = null;
+  if (!lid) return;
+  try {
+    S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
+  } catch(e) {}
+  if (!S.league) setLeagueHint('Could not load league settings — using defaults', true);
+}
+
+async function setPrimaryLeague(lid) {
+  try {
+    var res = await fetch('/api/me/leagues/' + encodeURIComponent(lid) + '/primary', { method: 'POST' });
+    if (res.ok && S.me) S.me.primaryLeagueId = lid;
+    return res.ok;
+  } catch(e) { return false; }
+}
+
+// Connected mode: list every Sleeper league the user belongs to, select the
+// primary (or the first one on first link, persisting it), and rescore on change.
+async function enterConnected(opts) {
+  opts = opts || {};
   S.mode = 'connected';
-  var lid = S.me && S.me.primaryLeagueId;
-  if (lid) {
-    try {
-      S.league = await fetch('/api/league/' + lid).then(function(r){ return r.json(); });
-    } catch(e) {}
-  }
   document.getElementById('trade-ui').hidden = false;
   document.getElementById('preset-bar').hidden = true;
   document.getElementById('league-bar').hidden = false;
-  if (S.league) {
-    var sel = document.getElementById('league-sel');
-    var opt = document.createElement('option');
-    opt.value = S.league.league_id || lid;
-    opt.textContent = S.league.name || ('League ' + lid);
-    sel.appendChild(opt);
+  setLeagueHint('Loading leagues…');
+
+  try {
+    S.leagues = await fetch('/api/me/leagues').then(function(r){ return r.ok ? r.json() : []; });
+  } catch(e) { S.leagues = []; }
+  if (!Array.isArray(S.leagues)) S.leagues = [];
+
+  var sel = document.getElementById('league-sel');
+  sel.innerHTML = '';
+
+  if (!S.leagues.length) {
+    // Linked, but Sleeper has no 2026 leagues for this user — fall back to presets.
+    sel.hidden = true;
+    setLeagueHint('No 2026 leagues found on Sleeper — using preset scoring', true);
+    document.getElementById('preset-bar').hidden = false;
+    S.league = null;
+    recompute();
+    return;
   }
+  sel.hidden = false;
+
+  var primary = S.me && S.me.primaryLeagueId;
+  var hasPrimary = primary && S.leagues.some(function(l){ return String(l.league_id) === String(primary); });
+  S.leagues.forEach(function(l) {
+    var opt = document.createElement('option');
+    opt.value = l.league_id;
+    opt.textContent = l.name || ('League ' + l.league_id);
+    sel.appendChild(opt);
+  });
+
+  var lid = hasPrimary ? String(primary) : String(S.leagues[0].league_id);
+  sel.value = lid;
+  if (!hasPrimary) {
+    // First-time setup (or stale primary): remember the default pick server-side
+    await setPrimaryLeague(lid);
+    setLeagueHint(S.leagues.length > 1 ? 'Pick your league — we saved this one as your default' : '');
+  } else {
+    setLeagueHint('');
+  }
+
+  sel.onchange = async function() {
+    var next = sel.value;
+    setLeagueHint('Loading…');
+    await loadLeague(next);
+    if (S.league) setLeagueHint('');
+    recompute();
+    if (!(await setPrimaryLeague(next))) setLeagueHint('Scored with this league, but could not save it as default', true);
+  };
+
+  await loadLeague(lid);
+  if (S.league && opts.justLinked && S.leagues.length > 1) setLeagueHint('Pick your league — we saved this one as your default');
   recompute();
 }
 
@@ -466,7 +567,7 @@ document.getElementById('sleeper-btn').addEventListener('click', async function(
     }
     S.me = await res.json();
     document.getElementById('sleeper-card').hidden = true;
-    await enterConnected();
+    await enterConnected({ justLinked: true });
   } catch(e) {
     err.textContent = 'Network error — try again'; err.hidden = false;
   } finally {
@@ -482,8 +583,18 @@ document.getElementById('share-btn').addEventListener('click', async function() 
     var res = await fetch('/api/trades', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ give: S.give, recv: S.recv, result: result, preset: S.preset }),
+      body: JSON.stringify({
+        give: S.give, recv: S.recv, result: result, preset: S.preset,
+        leagueId: (S.mode === 'connected' && S.league && S.league.league_id) ? S.league.league_id : undefined,
+      }),
     });
+    if (res.status === 429) {
+      var lim = document.getElementById('share-note');
+      lim.textContent = 'Too many shared trades — try again in an hour';
+      lim.hidden = false;
+      setTimeout(function(){ lim.hidden = true; }, 4000);
+      return;
+    }
     if (!res.ok) throw new Error();
     var data = await res.json();
     var url = location.origin + '/trade?t=' + data.shareToken;

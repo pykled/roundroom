@@ -1,7 +1,9 @@
 const { Pool } = require('pg');
 
+// Railway Postgres requires SSL; set DATABASE_SSL=false for a local dev database.
+const ssl = process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false };
 const pool = process.env.DATABASE_URL
-  ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+  ? new Pool({ connectionString: process.env.DATABASE_URL, ssl })
   : null;
 
 async function migrate() {

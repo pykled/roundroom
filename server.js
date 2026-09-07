@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const { clerkMiddleware, getAuth, requireAuth } = require("@clerk/express");
+const { clerkMiddleware, getAuth } = require("@clerk/express");
 const { Pool } = require('pg');
 const { pool: db, migrate } = require('./db/migrate');
 
@@ -490,11 +490,26 @@ function chatRateLimited(ip) {
   return entry.count > CHAT_RATE_LIMIT;
 }
 
-// Periodically drop expired rate-limit entries so the map doesn't grow forever
+// Generic in-memory rate limiter for other write endpoints (e.g. trade saves).
+// key → { count, reset }. Returns true when the caller is over the limit.
+const rateLimitMap = new Map();
+function rateLimit(key, maxReq, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key) || { count: 0, reset: now + windowMs };
+  if (now > entry.reset) { entry.count = 0; entry.reset = now + windowMs; }
+  entry.count++;
+  rateLimitMap.set(key, entry);
+  return entry.count > maxReq;
+}
+
+// Periodically drop expired rate-limit entries so the maps don't grow forever
 setInterval(() => {
   const now = Date.now();
   for (const [ip, entry] of chatRateLimits) {
     if (now - entry.windowStart >= CHAT_RATE_WINDOW) chatRateLimits.delete(ip);
+  }
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.reset) rateLimitMap.delete(key);
   }
 }, 5 * 60 * 1000).unref();
 
@@ -865,7 +880,14 @@ app.get('/api/players/slim', async (req, res) => {
 // ---------------------------------------------------------------------------
 // Account routes (Clerk auth required)
 // ---------------------------------------------------------------------------
-const auth = requireAuth();
+// JSON 401 instead of requireAuth()'s redirect-to-sign-in: these are fetch()
+// endpoints, and a redirect would turn an expired-session POST into a 200 HTML
+// response that the client could mistake for success.
+const auth = (req, res, next) => {
+  const { userId } = getAuth(req);
+  if (!userId) return res.status(401).json({ error: 'Sign in required' });
+  next();
+};
 
 app.get('/api/me', auth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'Database not configured' });
@@ -912,19 +934,31 @@ app.post('/api/me/sleeper', auth, express.json({ limit: '10kb' }), async (req, r
   }
 });
 
+// Fetch a Sleeper user's 2026 NFL leagues (slimmed to what the client needs).
+// Throws on network/upstream failure so callers can map it to a 502.
+async function fetchSleeperLeagues(sleeperUserId) {
+  const r = await fetch(`https://api.sleeper.app/v1/user/${encodeURIComponent(sleeperUserId)}/leagues/nfl/2026`, { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error(`Sleeper leagues ${r.status}`);
+  const leagues = await r.json();
+  return (Array.isArray(leagues) ? leagues : []).map(l => ({
+    league_id: l.league_id, name: l.name, roster_positions: l.roster_positions,
+    scoring_settings: l.scoring_settings, total_rosters: l.total_rosters,
+  }));
+}
+
 app.get('/api/me/leagues', auth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'Database not configured' });
   const { userId } = getAuth(req);
   try {
     const { rows } = await db.query('SELECT sleeper_user_id FROM users WHERE clerk_user_id = $1', [userId]);
     if (!rows.length || !rows[0].sleeper_user_id) return res.status(404).json({ error: 'Sleeper account not linked' });
-    const r = await fetch(`https://api.sleeper.app/v1/user/${rows[0].sleeper_user_id}/leagues/nfl/2026`, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return res.status(502).json({ error: 'Failed to fetch leagues from Sleeper' });
-    const leagues = await r.json();
-    res.json((leagues || []).map(l => ({
-      league_id: l.league_id, name: l.name, roster_positions: l.roster_positions,
-      scoring_settings: l.scoring_settings, total_rosters: l.total_rosters,
-    })));
+    let leagues;
+    try {
+      leagues = await fetchSleeperLeagues(rows[0].sleeper_user_id);
+    } catch (err) {
+      return res.status(502).json({ error: 'Failed to fetch leagues from Sleeper' });
+    }
+    res.json(leagues);
   } catch (err) {
     console.error('/api/me/leagues error:', err.message);
     res.status(500).json({ error: 'Failed to fetch leagues' });
@@ -935,17 +969,35 @@ app.post('/api/me/leagues/:leagueId/primary', auth, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'Database not configured' });
   const { userId } = getAuth(req);
   const { leagueId } = req.params;
+  if (!/^\d{1,32}$/.test(leagueId)) return res.status(400).json({ error: 'Invalid league ID' });
+  let uid, leagueName = null;
+  try {
+    const { rows: uRows } = await db.query('SELECT id, sleeper_user_id FROM users WHERE clerk_user_id = $1', [userId]);
+    if (!uRows.length) return res.status(404).json({ error: 'User not found' });
+    if (!uRows[0].sleeper_user_id) return res.status(404).json({ error: 'Sleeper account not linked' });
+    uid = uRows[0].id;
+    // Ownership check: the league must be one the linked Sleeper user actually belongs to.
+    let leagues;
+    try {
+      leagues = await fetchSleeperLeagues(uRows[0].sleeper_user_id);
+    } catch (err) {
+      return res.status(502).json({ error: 'Failed to verify league with Sleeper' });
+    }
+    const owned = leagues.find(l => String(l.league_id) === leagueId);
+    if (!owned) return res.status(403).json({ error: 'League is not one of your Sleeper leagues' });
+    leagueName = owned.name || null;
+  } catch (err) {
+    console.error('/api/me/leagues/:id/primary lookup error:', err.message);
+    return res.status(500).json({ error: 'Failed to set primary league' });
+  }
   const client = await db.connect();
   try {
-    const { rows: uRows } = await client.query('SELECT id FROM users WHERE clerk_user_id = $1', [userId]);
-    if (!uRows.length) return res.status(404).json({ error: 'User not found' });
-    const uid = uRows[0].id;
     await client.query('BEGIN');
     await client.query('UPDATE user_leagues SET is_primary = false WHERE user_id = $1', [uid]);
     await client.query(
-      `INSERT INTO user_leagues (user_id, league_id, is_primary) VALUES ($1, $2, true)
-       ON CONFLICT (user_id, league_id) DO UPDATE SET is_primary = true`,
-      [uid, leagueId]
+      `INSERT INTO user_leagues (user_id, league_id, league_name, is_primary) VALUES ($1, $2, $3, true)
+       ON CONFLICT (user_id, league_id) DO UPDATE SET is_primary = true, league_name = COALESCE(EXCLUDED.league_name, user_leagues.league_name)`,
+      [uid, leagueId, leagueName]
     );
     await client.query('UPDATE users SET primary_league_id = $1 WHERE id = $2', [leagueId, uid]);
     await client.query('COMMIT');
@@ -962,10 +1014,21 @@ app.post('/api/me/leagues/:leagueId/primary', auth, async (req, res) => {
 // ---------------------------------------------------------------------------
 // Trades — save + retrieve
 // ---------------------------------------------------------------------------
+// Anonymous saves are allowed (share links work without an account), so the
+// only guard against DB bloat is a per-IP cap: 20 saves per hour.
+const TRADE_SAVE_LIMIT = 20;
+const TRADE_SAVE_WINDOW = 60 * 60 * 1000;
+const isIdList = a => Array.isArray(a) && a.length <= 25 && a.every(x => typeof x === 'string' && x.length <= 20);
+
 app.post('/api/trades', express.json({ limit: '50kb' }), async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  if (rateLimit(`trade:${req.ip}`, TRADE_SAVE_LIMIT, TRADE_SAVE_WINDOW)) {
+    return res.status(429).json({ error: 'Too many saved trades — try again in an hour' });
+  }
   const { give, recv, result, preset, leagueId } = req.body || {};
-  if (!Array.isArray(give) || !Array.isArray(recv)) return res.status(400).json({ error: 'give and recv arrays required' });
+  if (!isIdList(give) || !isIdList(recv)) return res.status(400).json({ error: 'give and recv must be arrays of player IDs' });
+  if (!give.length && !recv.length) return res.status(400).json({ error: 'Trade is empty' });
+  if (leagueId != null && !/^\d{1,32}$/.test(String(leagueId))) return res.status(400).json({ error: 'Invalid league ID' });
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
   const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   const shareToken = token.slice(0, 12);
   try {
@@ -978,6 +1041,7 @@ app.post('/api/trades', express.json({ limit: '50kb' }), async (req, res) => {
 });
 
 app.get('/api/trades/:token', async (req, res) => {
+  if (!/^[a-z0-9]{12}$/.test(req.params.token)) return res.status(404).json({ error: 'Trade not found' });
   if (!db) return res.status(503).json({ error: 'Database not configured' });
   try {
     const { rows } = await db.query('SELECT payload_json, created_at FROM trades WHERE share_token = $1', [req.params.token]);
