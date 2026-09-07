@@ -68,9 +68,13 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 .pos-cell { font-family: 'DM Mono', monospace; font-size: 0.72rem; white-space: nowrap; }
 .pos-cell .st { font-weight: 600; }
 .pos-cell .pr { color: var(--text-muted); margin-left: 0.3rem; font-size: 0.66rem; }
-.st-need { color: var(--gold); }
-.st-surplus { color: var(--wr); }
-.st-neutral { color: var(--text-muted); }
+/* positional tiers: liability → asset */
+.st-critical { color: var(--danger); }
+.st-upgrade { color: var(--amber); }
+.st-thin { color: var(--gold); }
+.st-solid { color: var(--text-muted); }
+.st-deep { color: var(--success); }
+.st-loaded { color: #4ade80; text-shadow: 0 0 10px rgba(74,222,128,.45); }
 @media (max-width: 600px) {
   table.lg { min-width: 0; font-size: 0.74rem; }
   table.lg td, table.lg th { padding: 0.4rem 0.3rem; }
@@ -205,7 +209,14 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
     </div>
 
     <div class="legend">
-      Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). ▲ Need = rostered ≤ starter slots, ▼ Surplus = rostered ≥ 2× starter slots. Positional rank compares each team's starting strength at that position across the league. Record and points come from Sleeper and show 0-0 until Week 1 posts.
+      Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
+      <span class="st-critical">▲ Critical</span> weak starters and no depth ·
+      <span class="st-upgrade">▲ Upgrade</span> bodies on the roster but starters below league average ·
+      <span class="st-thin">△ Thin</span> starters are fine, no one behind them ·
+      <span class="st-solid">● Solid</span> average-or-better starters, normal depth ·
+      <span class="st-deep">▼ Deep</span> good starters with real bench (rostered ≥ 2× slots) ·
+      <span class="st-loaded">◆ Loaded</span> top-3 starters and surplus — a trade chip.
+      Positional rank compares each team's starting strength at that position across the league. Record and points come from Sleeper and show 0-0 until Week 1 posts.
     </div>
   </div>
 </div>
@@ -218,8 +229,25 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 <script>
 var GAMES = 17;
 var POS = ['QB', 'RB', 'WR', 'TE'];
-var GLYPH = { need: '▲', neutral: '●', surplus: '▼' };
-var LABEL = { need: 'Need', neutral: 'Neutral', surplus: 'Surplus' };
+// Positional tiers from AnalysisEngine (depth × starter quality), liability → asset.
+// ▲ = add here, ● = hold, ▼/◆ = can deal from here. Colors carry the tier on
+// mobile where the label is hidden.
+var TIERS = ['critical', 'upgrade', 'thin', 'solid', 'deep', 'loaded'];
+var GLYPH = { critical: '▲', upgrade: '▲', thin: '△', solid: '●', deep: '▼', loaded: '◆' };
+var LABEL = { critical: 'Critical', upgrade: 'Upgrade', thin: 'Thin', solid: 'Solid', deep: 'Deep', loaded: 'Loaded' };
+var TIER_HINT = {
+  critical: 'weak starters and no depth — fix first',
+  upgrade: 'bodies on the roster but starters below league average',
+  thin: 'starters are fine, one injury from trouble',
+  solid: 'average-or-better starters, normal depth',
+  deep: 'good starters with real bench behind them — can deal from here',
+  loaded: 'top-3 starters and surplus — prime trade chip',
+};
+// Tier → the count-era vocabulary the /api/analysis validator still expects.
+function tierStatus(tier) {
+  if (typeof AnalysisEngine !== 'undefined' && AnalysisEngine && AnalysisEngine.tierStatus) return AnalysisEngine.tierStatus(tier);
+  return (tier === 'critical' || tier === 'upgrade' || tier === 'thin') ? 'need' : (tier === 'deep' || tier === 'loaded') ? 'surplus' : 'neutral';
+}
 // Counted as "injured" (matches AnalysisEngine.INJURED_STATUS); Questionable only gets an inline tag
 var INJ_FLAG = { Out: 1, Doubtful: 1, IR: 1, PUP: 1 };
 var INJ_TAG = { Out: 1, Doubtful: 1, Questionable: 1, IR: 1, PUP: 1, Sus: 1 };
@@ -525,7 +553,8 @@ function localAnalyzeTeam(roster, positions, injuries) {
       var v = S.vorp.get(id) || 0;
       if (!nextUp || v > nextUp.vorp) nextUp = { id: id, vorp: v };
     });
-    byPos[p] = { starterVorp: sv, rostered: n, slots: st, status: status, nextUp: nextUp };
+    // tier is count-only here; localAnalyzeLeague applies quality once every team is known
+    byPos[p] = { starterVorp: sv, rostered: n, slots: st, status: status, tier: status === 'need' ? 'thin' : status === 'surplus' ? 'deep' : 'solid', leagueAvg: null, nextUp: nextUp };
   });
 
   var u = leagueUser(roster.owner_id);
@@ -551,17 +580,33 @@ function localAnalyzeLeague(injuries) {
     teams.forEach(function(t){ t.starters.forEach(function(id){ var i = S.players[id]; if (i && i[1] === p) all.push({ t: t, id: id, v: S.vorp.get(id) || 0 }); }); });
     all.sort(function(a, b){ return b.v - a.v; }).slice(0, 5).forEach(function(x){ x.t.elite.push(x.id); });
   });
+  // Same tier matrix as AnalysisEngine.assessDepthAndQuality: depth (count vs
+  // slots) × starter quality (vs league mean; "strong" = top 30% of teams).
   var ranks = {};
+  var strongCount = Math.max(1, Math.round(teams.length * 0.3));
   POS.forEach(function(p) {
-    ranks[p] = teams.slice().sort(function(a, b){ return b.byPos[p].starterVorp - a.byPos[p].starterVorp; }).map(function(t){ return t.rosterId; });
+    var order = teams.slice().sort(function(a, b){ return b.byPos[p].starterVorp - a.byPos[p].starterVorp; });
+    ranks[p] = order.map(function(t){ return t.rosterId; });
+    var sum = 0; order.forEach(function(t){ sum += t.byPos[p].starterVorp; });
+    var avg = order.length ? sum / order.length : 0;
+    var cutoff = order.length ? order[Math.min(strongCount, order.length) - 1].byPos[p].starterVorp : 0;
+    order.forEach(function(t) {
+      var c = t.byPos[p];
+      c.leagueAvg = avg;
+      if (!c.slots || c.slots <= 0) { c.tier = 'solid'; return; }
+      var weak = c.starterVorp < avg, strong = !weak && c.starterVorp >= cutoff;
+      c.tier = c.status === 'need' ? (weak ? 'critical' : 'thin')
+        : c.status === 'surplus' ? (weak ? 'upgrade' : strong ? 'loaded' : 'deep')
+        : (weak ? 'upgrade' : 'solid');
+    });
   });
   function partners(myRosterId) {
     var me = teams.find(function(t){ return String(t.rosterId) === String(myRosterId); });
     if (!me) return [];
-    var mySurplus = POS.filter(function(p){ return me.byPos[p].status === 'surplus'; });
+    var mySurplus = POS.filter(function(p){ return tierStatus(me.byPos[p].tier) === 'surplus'; });
     if (!mySurplus.length) return [];
     return teams.filter(function(t){ return t !== me; }).map(function(t) {
-      var overlap = POS.filter(function(p){ return t.byPos[p].status === 'need' && mySurplus.indexOf(p) >= 0; });
+      var overlap = POS.filter(function(p){ return tierStatus(t.byPos[p].tier) === 'need' && mySurplus.indexOf(p) >= 0; });
       return { team: t, overlap: overlap, score: overlap.length };
     }).filter(function(x){ return x.score > 0; }).sort(function(a, b){ return b.score - a.score; });
   }
@@ -588,7 +633,9 @@ function normalize(out) {
     POS.forEach(function(p) {
       var bp = t.byPos[p] || {};
       var idx = ranks[p].map(String).indexOf(String(t.rosterId));
-      pos[p] = { status: bp.status || 'neutral', rank: idx >= 0 ? idx + 1 : null, rostered: bp.rostered, slots: bp.slots, starterVorp: bp.starterVorp || 0 };
+      var tier = TIERS.indexOf(bp.tier) >= 0 ? bp.tier
+        : (bp.status === 'need' ? 'thin' : bp.status === 'surplus' ? 'deep' : 'solid');
+      pos[p] = { tier: tier, status: tierStatus(tier), rank: idx >= 0 ? idx + 1 : null, rostered: bp.rostered, slots: bp.slots, starterVorp: bp.starterVorp || 0, leagueAvg: bp.leagueAvg != null ? bp.leagueAvg : null };
     });
     return {
       rosterId: t.rosterId,
@@ -617,7 +664,7 @@ function normalize(out) {
         var rid = t && t.rosterId != null ? t.rosterId : (x && x.rosterId);
         var row = S.rows.find(function(r){ return String(r.rosterId) === String(rid); });
         var overlap = (x && Array.isArray(x.overlap)) ? x.overlap : (x && Array.isArray(x.positions) ? x.positions : null);
-        if (!overlap && row) overlap = POS.filter(function(p){ return row.pos[p].status === 'need' && mine.pos[p].status === 'surplus'; });
+        if (!overlap && row) overlap = POS.filter(function(p){ return row.pos[p].status === 'need' && mine.pos[p].status === 'surplus'; }); // status is already tier-derived here
         return row ? { row: row, overlap: overlap || [] } : null;
       }).filter(Boolean).slice(0, 3);
     } catch(e) { console.warn('partners failed', e); }
@@ -699,9 +746,17 @@ function avatarHtml(row) {
   return '<span class="avatar" data-init="' + esc(initials(row.name)) + '">' + (img || esc(initials(row.name))) + '</span>';
 }
 
+// Tooltip: "Upgrade — bodies on the roster but… · 6 rostered, 3 starter slots · starters 6,170 vs league avg 7,982"
+function tierTitle(p, c) {
+  var bits = [LABEL[c.tier] + ' — ' + TIER_HINT[c.tier]];
+  if (c.rostered != null) bits.push(c.rostered + ' rostered, ' + fmtSlots(c.slots) + ' starter slot' + (c.slots === 1 ? '' : 's'));
+  if (c.leagueAvg != null) bits.push('starters ' + Math.round(c.starterVorp).toLocaleString() + ' vs league avg ' + Math.round(c.leagueAvg).toLocaleString());
+  return bits.join(' · ');
+}
+
 function posCell(p, row) {
   var c = row.pos[p];
-  return '<td class="pos-cell"><span class="st st-' + c.status + '">' + GLYPH[c.status] + '<span class="lbl"> ' + LABEL[c.status] + '</span></span>' +
+  return '<td class="pos-cell" title="' + esc(tierTitle(p, c)) + '"><span class="st st-' + c.tier + '">' + GLYPH[c.tier] + '<span class="lbl"> ' + LABEL[c.tier] + '</span></span>' +
     (c.rank ? '<span class="pr">#' + c.rank + '</span>' : '') + '</td>';
 }
 
@@ -765,10 +820,9 @@ function renderMyTeam(mine) {
 
   document.getElementById('my-depth').innerHTML = POS.map(function(p) {
     var c = mine.pos[p];
-    var title = (c.rostered != null ? c.rostered + ' rostered, ' + fmtSlots(c.slots) + ' starter slot' + (c.slots === 1 ? '' : 's') : '');
-    return '<span class="rf-dep" title="' + esc(title) + '">' +
+    return '<span class="rf-dep" title="' + esc(tierTitle(p, c)) + '">' +
       '<span class="pos-badge ' + p + '">' + p + '</span>' + (c.rostered != null ? c.rostered : '') +
-      '<span class="st-' + c.status + '">' + GLYPH[c.status] + ' ' + LABEL[c.status] + '</span>' +
+      '<span class="st-' + c.tier + '">' + GLYPH[c.tier] + ' ' + LABEL[c.tier] + '</span>' +
       (c.rank ? '<span class="pr">· #' + c.rank + ' of ' + n + '</span>' : '') +
       '</span>';
   }).join('');
@@ -811,8 +865,9 @@ function renderMyTeam(mine) {
   var pw = document.getElementById('my-partners');
   if (S.partners.length) {
     document.getElementById('my-partners-list').innerHTML = S.partners.map(function(p) {
-      var chips = POS.filter(function(q){ return p.row.pos[q].status !== 'neutral'; }).map(function(q) {
-        return '<span class="st-' + p.row.pos[q].status + '">' + q + ' ' + GLYPH[p.row.pos[q].status] + '</span>';
+      var chips = POS.filter(function(q){ return p.row.pos[q].tier !== 'solid'; }).map(function(q) {
+        var c = p.row.pos[q];
+        return '<span class="st-' + c.tier + '" title="' + esc(LABEL[c.tier]) + '">' + q + ' ' + GLYPH[c.tier] + '</span>';
       }).join('');
       return '<div class="partner-row"><span class="pn">' + esc(p.row.name) + '</span><span class="chips">' + chips + '</span>' +
         (p.overlap.length ? '<span style="color:var(--text-muted);font-size:0.72rem">needs your ' + esc(p.overlap.join(', ')) + '</span>' : '') + '</div>';
@@ -845,7 +900,8 @@ function buildAnalysisPayload() {
   POS.forEach(function(p) {
     var c = mine.pos[p] || {};
     byPos[p] = {
-      status: c.status || 'neutral',
+      // server validator only accepts need/neutral/surplus; collapse the tier
+      status: tierStatus(c.tier),
       rank: c.rank || null,
       rostered: c.rostered != null ? c.rostered : 0,
       slots: c.slots != null ? c.slots : 0,

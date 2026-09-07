@@ -148,9 +148,13 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: -
 .rf-good { background: rgba(16,185,129,.12); color: var(--rb); }
 .rf-bad { background: rgba(239,68,68,.1); color: var(--danger); }
 .rf-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-.rf-st-need { color: var(--gold); }
-.rf-st-surplus { color: var(--wr); }
-.rf-st-neutral { color: var(--text-muted); }
+/* positional tiers: liability → asset (same palette as /team) */
+.rf-st-critical { color: var(--danger); }
+.rf-st-upgrade { color: var(--amber); }
+.rf-st-thin { color: var(--gold); }
+.rf-st-solid { color: var(--text-muted); }
+.rf-st-deep { color: var(--success); }
+.rf-st-loaded { color: #4ade80; text-shadow: 0 0 10px rgba(74,222,128,.45); }
 .rf-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; }
 .rf-mult { color: var(--text-muted); font-size: 0.64rem; margin-left: 0.2rem; }
 .rf-empty { font-size: 0.74rem; color: var(--text-muted); padding: 0.3rem 0; }
@@ -737,9 +741,27 @@ function renderVerdict() {
 // The multiplier is symmetric: a position you NEED makes incoming players more
 // valuable AND outgoing players costlier, so swapping TE-for-TE nets out.
 var NEED_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
-var NEED_MULT  = { need: 1.15, neutral: 1, surplus: 0.85 };
-var NEED_LABEL = { need: 'Need', neutral: 'Neutral', surplus: 'Surplus' };
-var NEED_GLYPH = { need: '▲', neutral: '–', surplus: '▼' }; // ▲ – ▼
+// Positional tiers from AnalysisEngine (depth × starter quality), liability → asset.
+// Anything you should add at scales ×1.15, anything you can deal from ×0.85.
+var NEED_MULT  = { critical: 1.15, upgrade: 1.15, thin: 1.15, solid: 1, deep: 0.85, loaded: 0.85 };
+var NEED_LABEL = { critical: 'Critical', upgrade: 'Upgrade', thin: 'Thin', solid: 'Solid', deep: 'Deep', loaded: 'Loaded' };
+var NEED_GLYPH = { critical: '▲', upgrade: '▲', thin: '△', solid: '–', deep: '▼', loaded: '◆' };
+var NEED_HINT  = {
+  critical: 'weak starters and no depth — fix first',
+  upgrade: 'bodies on the roster but starters below league average',
+  thin: 'starters are fine, one injury from trouble',
+  solid: 'average-or-better starters, normal depth',
+  deep: 'good starters with real bench behind them — can deal from here',
+  loaded: 'top-3 starters and surplus — prime trade chip',
+};
+function tierOf(d) { return d && NEED_MULT.hasOwnProperty(d.tier) ? d.tier : 'solid'; }
+function tierTitle(p, d) {
+  var bits = [NEED_LABEL[tierOf(d)] + ' — ' + NEED_HINT[tierOf(d)]];
+  bits.push(d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's'));
+  if (d.leagueAvg != null) bits.push('starters ' + Math.round(d.starterVorp || 0).toLocaleString() + ' vs league avg ' + Math.round(d.leagueAvg).toLocaleString());
+  if (d.rank) bits.push(ord(d.rank) + ' strongest ' + p + ' starters in the league');
+  return bits.join(' · ');
+}
 
 // Match the signed-in user's Sleeper user_id to a roster owner; fall back to
 // the league's users array by username in case ids ever disagree.
@@ -770,24 +792,28 @@ function loadMyRoster(league) {
   } catch(e) { return null; }
 }
 
-// Per-position depth: need (rostered ≤ starters), surplus (rostered ≥ 2× starters), else neutral.
-// The rule itself lives in shared/analysis.js (starterSlots + assessDepth) so
-// Roster Fit and the Your Team panel agree by construction.
+// Per-position tier for the user's roster. Preferred source is the league
+// analysis (quality-aware: this team's starter VORP vs the league); when that
+// isn't available yet, fall back to the count-only read from shared/analysis.js
+// (need → thin, surplus → deep). Both live in AnalysisEngine so Roster Fit and
+// the Your Team panel agree by construction.
 function assessDepth(rosterIds, positions) {
+  var me = S.myAnalysis;
+  if (me && me.byPos && S.myRosterId != null && String(me.rosterId) === String(S.myRosterId)) return me.byPos;
   return AnalysisEngine.depthFromRoster(rosterIds, S.players, positions);
 }
 
-function needStatus(depth, id) {
+function needTier(depth, id) {
   var info = S.players[id];
   var pos = info && info[1];
-  return (pos && depth[pos]) ? depth[pos].status : 'neutral';
+  return (pos && depth[pos]) ? tierOf(depth[pos]) : 'solid';
 }
 
 // Same verdict rule as the raw comparison, run on need-scaled values.
 function evaluateNeedAdjusted(depth) {
   var adj = new Map();
   S.give.concat(S.recv).forEach(function(id) {
-    adj.set(id, Math.round((S.vorp.get(id) || 0) * NEED_MULT[needStatus(depth, id)]));
+    adj.set(id, Math.round((S.vorp.get(id) || 0) * NEED_MULT[needTier(depth, id)]));
   });
   var r = ScoringEngine.evaluateTrade(S.give, S.recv, adj, getRosterPositions());
   r.adjusted = adj;
@@ -796,12 +822,12 @@ function evaluateNeedAdjusted(depth) {
 
 function rfRow(id, side, depth) {
   var info = S.players[id] || [id, '?', '?'];
-  var st = needStatus(depth, id);
+  var st = needTier(depth, id);
   var raw = S.vorp.get(id) || 0;
   var adj = Math.round(raw * NEED_MULT[st]);
-  // Impact on the user, not the status itself: receiving at a need (or giving
-  // from a surplus) helps; receiving at a surplus (or giving from a need) hurts.
-  var impact = st === 'neutral' ? 'neutral' : ((side === 'recv') === (st === 'need')) ? 'good' : 'bad';
+  // Impact on the user, not the tier itself: receiving where you should add
+  // (or giving from where you can deal) helps; the reverse hurts.
+  var impact = NEED_MULT[st] === 1 ? 'neutral' : ((side === 'recv') === (NEED_MULT[st] > 1)) ? 'good' : 'bad';
   var mult = NEED_MULT[st] !== 1 ? '<span class="rf-mult">×' + NEED_MULT[st].toFixed(2) + '</span>' : '';
   return '<div class="rf-row">' +
     '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
@@ -831,11 +857,10 @@ function ord(n) {
 var YT_INIT = false;
 
 function ytChip(p, d) {
-  var title = d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's') +
-    ' · ' + ord(d.rank) + ' strongest ' + p + ' starters in the league';
-  return '<span class="yt-dep" title="' + esc(title) + '">' +
+  var t = tierOf(d);
+  return '<span class="yt-dep" title="' + esc(tierTitle(p, d)) + '">' +
     '<span class="pos-badge ' + p + '">' + p + '</span>' + d.rostered +
-    '<span class="rf-st-' + d.status + '">' + NEED_GLYPH[d.status] + ' ' + NEED_LABEL[d.status] + '</span>' +
+    '<span class="rf-st-' + t + '">' + NEED_GLYPH[t] + ' ' + NEED_LABEL[t] + '</span>' +
     '<span class="yt-rank">· ' + ord(d.rank) + '</span>' +
     '</span>';
 }
@@ -940,7 +965,8 @@ function buildYourTeamPayload() {
   NEED_POSITIONS.forEach(function(p) {
     var c = me.byPos[p] || {};
     byPos[p] = {
-      status: c.status || 'neutral',
+      // server validator only accepts need/neutral/surplus; collapse the tier
+      status: AnalysisEngine.tierStatus(tierOf(c)),
       rank: c.rank || null,
       rostered: c.rostered != null ? c.rostered : 0,
       slots: c.slots != null ? c.slots : 0,
@@ -1057,10 +1083,10 @@ function renderRosterFit() {
     var r = evaluateNeedAdjusted(depth);
 
     document.getElementById('rf-depth').innerHTML = NEED_POSITIONS.map(function(p) {
-      var d = depth[p];
-      return '<span class="rf-dep" title="' + d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's') + '">' +
+      var d = depth[p], t = tierOf(d);
+      return '<span class="rf-dep" title="' + esc(tierTitle(p, d)) + '">' +
         '<span class="pos-badge ' + p + '">' + p + '</span>' + d.rostered +
-        '<span class="rf-st-' + d.status + '">' + NEED_GLYPH[d.status] + ' ' + NEED_LABEL[d.status] + '</span>' +
+        '<span class="rf-st-' + t + '">' + NEED_GLYPH[t] + ' ' + NEED_LABEL[t] + '</span>' +
         '</span>';
     }).join('');
 

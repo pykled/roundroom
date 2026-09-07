@@ -44,8 +44,10 @@ var AnalysisEngine = (function () {
     return s;
   }
 
-  // need (rostered ≤ starters), surplus (rostered ≥ 2× starters), else neutral.
-  // A position with no starter slot in this league is always neutral.
+  // Count-only depth: need (rostered ≤ starters), surplus (rostered ≥ 2×
+  // starters), else neutral. A position with no starter slot is always neutral.
+  // This is the "depth" axis of the tier below and the vocabulary the
+  // /api/analysis payload still speaks.
   function assessDepth(rostered, slots) {
     if (!slots || slots <= 0) return 'neutral';
     if (rostered <= slots) return 'need';
@@ -53,8 +55,56 @@ var AnalysisEngine = (function () {
     return 'neutral';
   }
 
+  // Positional tier = depth (count vs slots) × starter quality (this team's
+  // starter VORP at the position vs the league). Ordered liability → asset:
+  //
+  //   quality \ depth   thin (≤ slots)   neutral          deep (≥ 2× slots)
+  //   weak  (< avg)     critical         upgrade          upgrade
+  //   decent (≥ avg)    thin             solid            deep
+  //   strong (top 30%)  thin             solid            loaded
+  //
+  //   critical  weak starters and nobody behind them — fix first
+  //   upgrade   bodies on the roster but the starters are below league average
+  //   thin      starters are fine, one injury from trouble — add depth
+  //   solid     average-or-better starters, normal depth — hold
+  //   deep      good starters with real bench behind them — can deal from here
+  //   loaded    top-tier starters AND surplus — prime trade chip
+  //
+  // `leagueAvg` is the mean starter VORP at the position across the league and
+  // `strongCutoff` the starter VORP of the last team inside the top 30%; pass
+  // null for either to skip that comparison (no league context → never weak,
+  // never strong).
+  var TIERS = ['critical', 'upgrade', 'thin', 'solid', 'deep', 'loaded'];
+  var STRONG_SHARE = 0.3;
+
+  function assessDepthAndQuality(rostered, slots, myStarterVorp, leagueAvg, strongCutoff) {
+    var depth = assessDepth(rostered, slots);
+    if (!slots || slots <= 0) return 'solid';
+    var v = typeof myStarterVorp === 'number' && isFinite(myStarterVorp) ? myStarterVorp : 0;
+    var weak = typeof leagueAvg === 'number' && isFinite(leagueAvg) && v < leagueAvg;
+    var strong = !weak && typeof strongCutoff === 'number' && isFinite(strongCutoff) && v >= strongCutoff;
+    if (depth === 'need') return weak ? 'critical' : 'thin';
+    if (depth === 'surplus') return weak ? 'upgrade' : (strong ? 'loaded' : 'deep');
+    return weak ? 'upgrade' : 'solid';
+  }
+
+  // Collapse a tier back to the count-era vocabulary (need / neutral / surplus)
+  // for consumers that still speak it — the AI payload validator, the Roster
+  // Fit multiplier table, partner matching.
+  function tierStatus(tier) {
+    if (tier === 'critical' || tier === 'upgrade' || tier === 'thin') return 'need';
+    if (tier === 'deep' || tier === 'loaded') return 'surplus';
+    return 'neutral';
+  }
+
+  // Best-effort tier when there is no league to compare against (count only):
+  // assume average starters, so need → thin, surplus → deep.
+  function tierFromDepth(status) {
+    return status === 'need' ? 'thin' : status === 'surplus' ? 'deep' : 'solid';
+  }
+
   // Per-position depth for a list of active player ids:
-  // { QB|RB|WR|TE: { rostered, slots, status } }
+  // { QB|RB|WR|TE: { rostered, slots, status, tier } }  (tier is count-only here)
   function depthFromRoster(activeIds, players, rosterPositions) {
     var slots = starterSlots(rosterPositions);
     var count = { QB: 0, RB: 0, WR: 0, TE: 0 };
@@ -64,7 +114,8 @@ var AnalysisEngine = (function () {
     });
     var depth = {};
     NEED_POSITIONS.forEach(function (p) {
-      depth[p] = { rostered: count[p], slots: slots[p], status: assessDepth(count[p], slots[p]) };
+      var status = assessDepth(count[p], slots[p]);
+      depth[p] = { rostered: count[p], slots: slots[p], status: status, tier: tierFromDepth(status) };
     });
     return depth;
   }
@@ -138,9 +189,11 @@ var AnalysisEngine = (function () {
         starterVorp: posVorp[p],
         rostered: depth[p].rostered,
         slots: depth[p].slots,
-        status: depth[p].status,
+        status: depth[p].status,   // count-only depth: need | neutral | surplus
+        tier: depth[p].tier,       // depth × quality; count-only guess until analyzeLeague fills it
+        leagueAvg: null,           // filled by analyzeLeague
         nextUp: nextUp,
-        rank: null,          // filled by analyzeLeague
+        rank: null,                // filled by analyzeLeague
       };
     });
 
@@ -165,8 +218,10 @@ var AnalysisEngine = (function () {
       // slot reads as unfilled even when the roster has one.
       emptySlots: lineup.starters.filter(function (s) { return !s.id && s.slot !== 'DEF'; }).length,
       byPos: byPos,
-      needs: NEED_POSITIONS.filter(function (p) { return byPos[p].status === 'need'; }),
-      surplus: NEED_POSITIONS.filter(function (p) { return byPos[p].status === 'surplus'; }),
+      // Tier-based (critical/upgrade/thin → needs, deep/loaded → surplus).
+      // Count-only until analyzeLeague re-derives them with quality applied.
+      needs: NEED_POSITIONS.filter(function (p) { return tierStatus(byPos[p].tier) === 'need'; }),
+      surplus: NEED_POSITIONS.filter(function (p) { return tierStatus(byPos[p].tier) === 'surplus'; }),
       elite: elite,
       liabilities: liabilities,
       injured: injured,
@@ -205,11 +260,28 @@ var AnalysisEngine = (function () {
     teams.sort(function (a, b) { return b.starterVorp - a.starterVorp; });
     teams.forEach(function (t, i) { t.rank = i + 1; t.teamCount = teams.length; });
 
-    var ranks = {};
+    // Per-position league context: rank, mean starter VORP, and the cutoff for
+    // "strong" (the starter VORP of the last team inside the top 30%, at least
+    // one team). Then re-tier every position with quality applied.
+    var ranks = {}, leagueAvg = {}, strongCutoff = {};
+    var strongCount = Math.max(1, Math.round(teams.length * STRONG_SHARE));
     NEED_POSITIONS.forEach(function (p) {
       var order = teams.slice().sort(function (a, b) { return b.byPos[p].starterVorp - a.byPos[p].starterVorp; });
       ranks[p] = order.map(function (t) { return t.rosterId; });
       order.forEach(function (t, i) { t.byPos[p].rank = i + 1; });
+      var sum = 0;
+      order.forEach(function (t) { sum += t.byPos[p].starterVorp; });
+      leagueAvg[p] = order.length ? sum / order.length : 0;
+      strongCutoff[p] = order.length ? order[Math.min(strongCount, order.length) - 1].byPos[p].starterVorp : 0;
+      order.forEach(function (t) {
+        var c = t.byPos[p];
+        c.leagueAvg = leagueAvg[p];
+        c.tier = assessDepthAndQuality(c.rostered, c.slots, c.starterVorp, leagueAvg[p], strongCutoff[p]);
+      });
+    });
+    teams.forEach(function (t) {
+      t.needs = NEED_POSITIONS.filter(function (p) { return tierStatus(t.byPos[p].tier) === 'need'; });
+      t.surplus = NEED_POSITIONS.filter(function (p) { return tierStatus(t.byPos[p].tier) === 'surplus'; });
     });
 
     function byRosterId(id) {
@@ -218,6 +290,9 @@ var AnalysisEngine = (function () {
     return {
       teams: teams,
       ranks: ranks,
+      leagueAvg: leagueAvg,
+      strongCutoff: strongCutoff,
+      strongCount: strongCount,
       team: byRosterId,
       partners: function (myRosterId, limit) { return findPartners(byRosterId(myRosterId), teams, limit); },
     };
@@ -226,6 +301,10 @@ var AnalysisEngine = (function () {
   return {
     starterSlots: starterSlots,
     assessDepth: assessDepth,
+    assessDepthAndQuality: assessDepthAndQuality,
+    tierStatus: tierStatus,
+    tierFromDepth: tierFromDepth,
+    TIERS: TIERS,
     depthFromRoster: depthFromRoster,
     analyzeTeam: analyzeTeam,
     analyzeLeague: analyzeLeague,
