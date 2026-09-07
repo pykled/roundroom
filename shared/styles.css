@@ -206,6 +206,10 @@ button, input, select, textarea { font-family: inherit; }
 }
 #rr-sign-in:hover { background: var(--accent-glow); }
 
+/* Mobile hamburger (shared/nav.js toggles #rr-nav.open). Hidden on desktop;
+   the ≤768px rules live in section 10. */
+.nav-hamburger { display: none; }
+
 
 /* 6. Components ------------------------------------------------------------ */
 
@@ -848,4 +852,57 @@ button, input, select, textarea { font-family: inherit; }
   .board-search { min-height: 40px; font-size: 16px; }
   .btn-primary,
   .btn-secondary { min-height: 40px; }
+
+  /* Nav collapses into a hamburger. Links + auth become a full-width stacked
+     dropdown inside the sticky nav when #rr-nav.open (see shared/nav.js). */
+  #rr-nav { flex-wrap: wrap; padding: 0.55rem var(--space-4); }
+  #rr-nav .rr-logo { margin-right: 0; }
+  .nav-hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+    line-height: 1;
+    background: none;
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .nav-hamburger:hover,
+  #rr-nav.open .nav-hamburger { background: var(--accent-glow); }
+  #rr-nav .rr-links,
+  #rr-nav .rr-auth { display: none; }
+  #rr-nav.open .rr-links,
+  #rr-nav.open .rr-auth {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 100%;
+    order: 10;
+  }
+  #rr-nav.open .rr-links {
+    gap: 0.25rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+  }
+  #rr-nav.open .rr-link {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 0.9rem;
+    font-size: var(--fs-md);
+  }
+  #rr-nav.open .rr-auth {
+    margin-left: 0;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.5rem 0 0.3rem;
+  }
+  #rr-nav.open #rr-sign-in { min-height: 48px; font-size: 0.9rem; }
+  #rr-nav.open { box-shadow: var(--shadow-card); }
 }
