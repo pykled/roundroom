@@ -99,7 +99,7 @@
     <div class="page-head">
       <div class="page-head-text">
         <div class="page-title" id="week-label">Week 1</div>
-        <div class="page-sub">Optimal starters from full-season projections (÷17 per week). Weekly projections aren't live yet for 2026.</div>
+        <div class="page-sub">Optimal starters from weekly matchup projections when available, falling back to season projections.</div>
       </div>
       <div id="league-bar">
         <span>League:</span>
@@ -127,7 +127,7 @@
 
     <div class="legend">
       <span class="legend-title">How to read this</span>
-      pts/wk = your league's scoring applied to Sleeper's season projection, divided by 17. Value = VORP for your slots and team count, blended 70/30 with FantasyCalc market consensus (same numbers as the trade calculator). ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
+      pts = projected points for this week (matchup-aware when Sleeper publishes weekly data; season average otherwise). Value = VORP for your slots and team count, blended 70/30 with FantasyCalc market consensus (same numbers as the trade calculator). ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
     </div>
   </div>
 </div>
@@ -195,7 +195,16 @@ async function boot() {
     }
 
     // Signed in: pull projections, players (incl. DEF), targets in parallel
-    var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    // Prefer weekly projections (matchup-aware); fall back to season/17 if the
+    // weekly endpoint returns an empty object (pre-season or data not yet published).
+    var projP = fetch('/api/projections/' + S.week)
+      .then(function(r){ return r.ok ? r.json() : {}; })
+      .then(function(weekly) {
+        var hasData = weekly && Object.keys(weekly).length > 0;
+        if (hasData) { S.weeklyMode = true; return weekly; }
+        return fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+      })
+      .catch(function(){ return {}; });
     var plP = fetch('/api/players/slim?def=1').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var listsP = loadTargets();
     var results = await Promise.all([projP, plP, listsP]);
@@ -390,10 +399,11 @@ function renderEmpty() {
   document.getElementById('team-name').textContent = '';
 }
 
-// Season points under this league's scoring — DEF included (the VORP engine
-// only covers QB/RB/WR/TE/K, so DEF slots rank on raw projected points).
+// Points under this league's scoring — weekly when available, season/17 as fallback.
+// DEF included (the VORP engine only covers QB/RB/WR/TE/K, so DEF slots rank on raw pts).
 function seasonPts(id) {
-  return ScoringEngine.scorePlayer({ player_id: id }, S.proj, S.league.scoring_settings || {});
+  var raw = ScoringEngine.scorePlayer({ player_id: id }, S.proj, S.league.scoring_settings || {});
+  return S.weeklyMode ? raw : raw / GAMES;
 }
 
 function recompute() {
@@ -435,7 +445,7 @@ function playerRow(id, opts) {
   opts = opts || {};
   var info = S.players[id] || [id, '?', ''];
   var name = info[0], pos = info[1] || '?', team = info[2] || '';
-  var pts = seasonPts(id) / GAMES;
+  var pts = seasonPts(id);
   var vorp = S.vorp.get(id);
   var isTarget = S.targets[String(name).toLowerCase()];
   var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
@@ -450,7 +460,7 @@ function playerRow(id, opts) {
       (isTarget ? '<span class="star" title="On your target list">⭐</span>' : '') +
       (onSleeper ? '<span class="cur" title="Currently starting on Sleeper">on Sleeper</span>' : '') +
     '</span>' +
-    '<span class="pl-pts">' + pts.toFixed(1) + '<small>pts/wk</small></span>' +
+    '<span class="pl-pts">' + pts.toFixed(1) + '<small>pts</small></span>' +
     '<span class="pl-val">' + (vorp != null ? vorp.toLocaleString() : '—') + '</span>' +
     '</div>';
 }
@@ -463,10 +473,10 @@ function renderStarters(result) {
       return '<div class="pl-row starter"><span class="slot-lbl">' + esc(s.slot) + '</span>' +
         '<span class="pl-name empty-slot">No eligible player</span></div>';
     }
-    total += seasonPts(s.id) / GAMES;
+    total += seasonPts(s.id);
     return playerRow(s.id, { starter: true, slot: s.slot });
   }).join('') || '<div class="empty-hint">This league has no starter slots</div>';
-  document.getElementById('starters-total').textContent = total ? total.toFixed(1) + ' proj pts/wk' : '';
+  document.getElementById('starters-total').textContent = total ? total.toFixed(1) + ' proj pts' : '';
 }
 
 function renderBench(result, irIds) {
