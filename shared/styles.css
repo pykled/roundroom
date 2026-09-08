@@ -11,7 +11,8 @@
      3. Reset + base
      4. Typography (section labels)
      5. Nav (#rr-nav)
-     6. Components (cards, forms, buttons, badges, league bar, lists)
+     6. Components (cards, forms, buttons, badges, league bar, empty states,
+        page head, gate card, stat tiles, roster-fit lists + depth chips)
      7. Draft/research primitives (.panel, .board-search, .modal-close)
      8. Utilities
      9. Research profile sheet (shared by /draft research tab and /research)
@@ -129,6 +130,13 @@ button, input, select, textarea { font-family: inherit; }
 /* Keyboard focus ring. Text inputs replace this with the accent border + glow
    (see .form-row input:focus below), which is more specific and wins. */
 :focus-visible { outline: 2px solid var(--brand-400); outline-offset: 2px; }
+
+/* Tool pages (/trade, /lineup, /team) toggle sections with the `hidden`
+   attribute; several of those sections also carry an author `display: flex`,
+   which beats the UA's [hidden] rule (e.g. /trade showed an empty "League:"
+   select in manual mode). Scoped to #app so the draft/home pages are untouched;
+   home.html applies the same rule globally. */
+#app [hidden] { display: none !important; }
 
 
 /* 4. Typography ------------------------------------------------------------ */
@@ -331,16 +339,109 @@ button, input, select, textarea { font-family: inherit; }
 .ls-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 0.15rem 0.5rem; font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono); }
 
 /* Empty / helper text */
-.empty-hint { font-size: 0.76rem; color: var(--text-muted); padding: 0.6rem 0; text-align: center; }
+/* Designed empty state for list slots (/trade sides, /lineup columns, /team table).
+   Dashed outline + muted copy; optional .eh-icon / .eh-sub children. */
+.empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  text-align: center;
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--border-bright);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.empty-hint .eh-icon { font-size: 1.25rem; line-height: 1; opacity: 0.45; margin-bottom: 0.1rem; }
+.empty-hint .eh-sub { font-size: var(--fs-xs); font-weight: 400; opacity: 0.8; }
+td.empty-hint { display: table-cell; border: none; padding: var(--space-6) var(--space-4); }
 .empty-state { text-align: center; padding: var(--space-8); color: var(--text-muted); font-size: var(--fs-md); }
-.legend { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.6; }
+
+/* Footnote legend under a tool page. */
+.legend { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.7; margin-top: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.legend-title { display: block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-bottom: 0.3rem; }
+
+/* Tool page header: title + one-line sub on the left, controls (league picker) on the right. */
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-4); }
+.page-head-text { min-width: 0; flex: 1 1 260px; }
+.page-title { font-size: var(--fs-xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: var(--text-primary); }
+.page-sub { font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.5; margin-top: 0.35rem; max-width: 60ch; }
+.page-head #league-bar { margin-bottom: 0; flex: 0 1 auto; }
+.page-head #league-bar select { min-width: 160px; }
+.page-head #league-hint { flex-basis: 100%; }
+
+/* Row of league-settings tags with an optional highlighted lead tag (team name). */
+.strip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: var(--space-4); }
+.strip-row #league-settings-strip { margin-bottom: 0; }
+.strip-row:empty { display: none; }
+.ls-tag-hi { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-glow); font-weight: 500; }
+.ls-tag-hi:empty { display: none; }
+
+/* Sign-in / connect gate for a tool page: centered card with an eyebrow pill. */
+.setup-card.gate {
+  max-width: 520px;
+  margin: 3rem auto var(--space-5);
+  padding: var(--space-8) var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+.setup-card.gate h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.45rem; }
+.setup-card.gate p { font-size: var(--fs-md); line-height: 1.55; margin: 0 auto var(--space-5); max-width: 42ch; }
+.setup-card.gate .btn-primary { min-height: 40px; padding: 0 1.4rem; font-size: 0.85rem; }
+.setup-card.gate .form-row { max-width: 380px; margin: 0 auto; }
+.setup-card.gate .error-msg { margin-top: 0.6rem; }
+.gate-eyebrow {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: rgba(124,111,247,0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(124,111,247,0.3);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem 0.7rem;
+  margin-bottom: var(--space-4);
+}
+
+/* Stat tiles: big mono number + uppercase label (/team Your Team, /trade verdict). */
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2); }
+.stat-tile { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.75rem 0.5rem 0.65rem; text-align: center; min-width: 0; }
+.stat-val { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--text-primary); white-space: nowrap; }
+.stat-val small { font-family: var(--font-sans); font-size: 0.64rem; font-weight: 500; color: var(--text-muted); margin-left: 0.2rem; letter-spacing: 0; }
+.stat-lbl { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-top: 0.45rem; }
+.stat-tile.danger .stat-val { color: var(--danger); }
 
 /* Roster-fit lists (/trade + /team). */
 .rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-.rf-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+.rf-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
 .rf-row:last-child { border-bottom: none; }
 .rf-name { flex: 1; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rf-empty { font-size: 0.74rem; color: var(--text-muted); padding: 0.3rem 0; }
+
+/* Positional depth chips: position badge + count + tier (/trade Roster Fit, /team Your Team).
+   Same silhouette as the Your Team chips on /trade (.yt-chip). */
+.rf-depth { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.85rem; }
+.rf-dep {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.22rem 0.55rem 0.22rem 0.32rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  cursor: default;
+}
+.rf-dep .pr { color: var(--text-muted); }
 
 
 /* 7. Draft/research primitives ------------------------------------------- */
@@ -844,6 +945,15 @@ button, input, select, textarea { font-family: inherit; }
 @media (max-width: 768px) {
   /* Two-column grids collapse to one. */
   .rf-grid { grid-template-columns: 1fr; }
+
+  /* Page head stacks: title block, then a full-width league picker. */
+  .page-head { align-items: stretch; margin-bottom: var(--space-3); }
+  .page-title { font-size: 1.4rem; }
+  .page-head #league-bar { flex: 1 1 100%; }
+  .page-head #league-bar select { flex: 1; min-width: 0; }
+  .stat-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-val { font-size: 1.2rem; }
+  .setup-card.gate { margin-top: var(--space-6); padding: var(--space-6) var(--space-5); }
 
   /* 16px inputs stop iOS focus-zoom; 40px touch targets. */
   .form-row input,

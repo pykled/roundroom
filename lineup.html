@@ -15,38 +15,40 @@
    badges and mobile input sizing come from /shared/styles.css. */
 #app { max-width: 900px; }
 
-/* week bar */
-#week-bar { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin-bottom: 0.6rem; }
-#week-bar .wk { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
-#week-bar .wk-sub { font-size: 0.72rem; color: var(--text-muted); }
-#team-name { font-size: 0.78rem; color: var(--text-secondary); margin-left: auto; }
+/* Page head carries the week title; the team name + league settings sit in the strip row below it. */
+#team-name { font-family: var(--font-mono); }
 
-/* swap summary */
-#swap-note { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
-#swap-note.ok { border-color: rgba(16,185,129,.28); color: var(--rb); }
+/* swap summary: callout with a colored rail (amber = changes suggested, green = already optimal) */
+#swap-note { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: var(--space-4); font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
+#swap-note.ok { border-left-color: var(--success); color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+#swap-note.ok::before { content: '✓'; color: var(--success); font-weight: 800; }
 #swap-note b { color: var(--text-primary); font-weight: 600; }
-#swap-note .sw-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-#swap-note .arrow { color: var(--text-muted); }
+#swap-note .sw-title { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-bottom: 0.4rem; }
+#swap-note .sw-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.15rem 0; }
+#swap-note .sw-tag { display: inline-flex; align-items: center; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.12rem 0.5rem; border-radius: var(--radius-pill); min-width: 52px; justify-content: center; }
+#swap-note .sw-tag.in { background: rgba(16,185,129,.12); color: var(--success); }
+#swap-note .sw-tag.out { background: rgba(239,68,68,.1); color: var(--danger); }
+#swap-note .sw-foot { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 0.4rem; }
 
 /* two columns */
-.lineup-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.lineup-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
 @media (max-width: 768px) { .lineup-grid { grid-template-columns: 1fr; } }
-.lineup-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
-.sub-hdr { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.8rem 0 0.35rem; }
+.lineup-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.sub-hdr { font-size: 0.66rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0.9rem 0 0.35rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
 
 /* player rows */
-.pl-row { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.45rem; border-radius: 6px; border-bottom: 1px solid var(--border); }
+.pl-row { display: flex; align-items: center; gap: 0.45rem; min-height: 38px; padding: 0.35rem 0.45rem; border-radius: var(--radius-sm); border-bottom: 1px solid var(--border); }
 .pl-row:last-child { border-bottom: none; }
 .pl-row.starter { background: var(--accent-glow); border-bottom-color: transparent; margin-bottom: 2px; }
 .pl-row.ir { opacity: 0.5; }
-.slot-lbl { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
+.slot-lbl { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
 .slot-lbl.flex { color: var(--gold); }
 .pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-name .team { color: var(--text-muted); font-size: 0.68rem; margin-left: 0.3rem; }
 .pl-name .star { font-size: 0.7rem; margin-left: 0.25rem; }
-.pl-name .cur { font-size: 0.6rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.35rem; vertical-align: middle; }
-.pl-pts { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-primary); min-width: 48px; text-align: right; }
-.pl-pts small { color: var(--text-muted); font-size: 0.6rem; margin-left: 2px; }
+.pl-name .cur { font-size: 0.58rem; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0.05rem 0.4rem; margin-left: 0.35rem; vertical-align: middle; letter-spacing: 0.02em; }
+.pl-pts { font-family: var(--font-mono); font-size: 0.76rem; font-weight: 500; color: var(--text-primary); min-width: 52px; text-align: right; }
+.pl-pts small { color: var(--text-muted); font-size: 0.58rem; font-weight: 400; margin-left: 2px; }
 .pl-val { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
 .empty-slot { color: var(--text-muted); font-style: italic; }
 </style>
@@ -73,14 +75,16 @@
   <div id="loading">Loading…</div>
 
   <!-- Signed out -->
-  <div id="auth-card" class="setup-card" hidden>
+  <div id="auth-card" class="setup-card gate" hidden>
+    <div class="gate-eyebrow">Lineup Optimizer</div>
     <h2>Sign in to set your lineup</h2>
     <p>The optimizer reads your roster straight from Sleeper and builds the highest-value starting lineup under your league's exact scoring and slots.</p>
     <button class="btn-primary" id="auth-btn">Sign in</button>
   </div>
 
   <!-- Signed in but no Sleeper linked -->
-  <div id="sleeper-card" class="setup-card" hidden>
+  <div id="sleeper-card" class="setup-card gate" hidden>
+    <div class="gate-eyebrow">Lineup Optimizer</div>
     <h2>Connect Your Sleeper Account</h2>
     <p>Enter your Sleeper username to load your leagues and rosters.</p>
     <div class="form-row">
@@ -92,33 +96,37 @@
 
   <!-- Main lineup UI -->
   <div id="lineup-ui" hidden>
-    <div id="league-bar">
-      <span>League:</span>
-      <select id="league-sel"></select>
-      <span id="league-hint" hidden></span>
+    <div class="page-head">
+      <div class="page-head-text">
+        <div class="page-title" id="week-label">Week 1</div>
+        <div class="page-sub">Optimal starters from full-season projections (÷17 per week). Weekly projections aren't live yet for 2026.</div>
+      </div>
+      <div id="league-bar">
+        <span>League:</span>
+        <select id="league-sel"></select>
+        <span id="league-hint" hidden></span>
+      </div>
     </div>
-
-    <div id="week-bar">
-      <span class="wk" id="week-label">Week 1</span>
-      <span class="wk-sub">Based on full-season projections (÷17 per week) — weekly projections aren't live yet for 2026</span>
-      <span id="team-name"></span>
+    <div class="strip-row">
+      <span id="team-name" class="ls-tag ls-tag-hi"></span>
+      <div id="league-settings-strip" hidden></div>
     </div>
-    <div id="league-settings-strip" hidden></div>
 
     <div id="swap-note" hidden></div>
 
     <div class="lineup-grid">
       <div class="lineup-col">
         <div class="col-hdr"><span>Optimal starters</span><span class="total" id="starters-total"></span></div>
-        <div id="starters-list"><div class="empty-hint">Pick a league</div></div>
+        <div id="starters-list"><div class="empty-hint"><span class="eh-icon">☰</span>Pick a league<span class="eh-sub">Your optimal starters will show here</span></div></div>
       </div>
       <div class="lineup-col">
         <div class="col-hdr"><span>Bench</span><span class="total" id="bench-count"></span></div>
-        <div id="bench-list"><div class="empty-hint">—</div></div>
+        <div id="bench-list"><div class="empty-hint">No roster loaded</div></div>
       </div>
     </div>
 
     <div class="legend">
+      <span class="legend-title">How to read this</span>
       pts/wk = your league's scoring applied to Sleeper's season projection, divided by 17. Value = VORP for your slots and team count, blended 70/30 with FantasyCalc market consensus (same numbers as the trade calculator). ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
     </div>
   </div>
@@ -374,8 +382,8 @@ function renderLeagueStrip() {
 }
 
 function renderEmpty() {
-  document.getElementById('starters-list').innerHTML = '<div class="empty-hint">No roster loaded</div>';
-  document.getElementById('bench-list').innerHTML = '<div class="empty-hint">—</div>';
+  document.getElementById('starters-list').innerHTML = '<div class="empty-hint"><span class="eh-icon">☰</span>No roster loaded<span class="eh-sub">We couldn\'t find your team in this league</span></div>';
+  document.getElementById('bench-list').innerHTML = '<div class="empty-hint">No roster loaded</div>';
   document.getElementById('starters-total').textContent = '';
   document.getElementById('bench-count').textContent = '';
   document.getElementById('swap-note').hidden = true;
@@ -485,10 +493,10 @@ function renderSwaps(result) {
     note.textContent = 'Your Sleeper lineup already matches the optimal lineup.';
   } else {
     note.className = '';
-    note.innerHTML = '<div class="sw-row"><b>Suggested changes vs your Sleeper lineup:</b></div>' +
-      (d.in.length ? '<div class="sw-row">Start: ' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</div>' : '') +
-      (d.out.length ? '<div class="sw-row">Bench: ' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</div>' : '') +
-      '<div class="sw-row" style="color:var(--text-muted)">Set the change in the Sleeper app — RoundRoom reads your roster but can\'t write to it.</div>';
+    note.innerHTML = '<div class="sw-title">Suggested changes vs your Sleeper lineup</div>' +
+      (d.in.length ? '<div class="sw-row"><span class="sw-tag in">Start</span><span>' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
+      (d.out.length ? '<div class="sw-row"><span class="sw-tag out">Bench</span><span>' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
+      '<div class="sw-foot">Set the change in the Sleeper app — RoundRoom reads your roster but can\'t write to it.</div>';
   }
   note.hidden = false;
 }

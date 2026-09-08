@@ -16,35 +16,31 @@
    sizing come from /shared/styles.css. */
 #app { max-width: 960px; }
 
-#title-bar { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin-bottom: 0.6rem; }
-#title-bar .ttl { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
-#title-bar .ttl-sub { font-size: 0.72rem; color: var(--text-muted); }
-
 /* cards */
-.card { margin-bottom: 1rem; }
+.card { margin-bottom: var(--space-4); border-radius: var(--radius-lg); }
 
 /* league table */
 .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -1rem; padding: 0 1rem; }
 table.lg { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 560px; }
-table.lg th { text-align: left; font-size: 0.64rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 0.4rem 0.45rem; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+table.lg th { text-align: left; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 0.45rem 0.45rem; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; transition: color 0.12s; }
 table.lg th:hover { color: var(--text-secondary); }
 table.lg th.sorted { color: var(--text-primary); }
-table.lg th .dir { font-size: 0.6rem; margin-left: 0.2rem; }
-table.lg td { padding: 0.45rem 0.45rem; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+table.lg th .dir { font-size: 0.55rem; margin-left: 0.25rem; color: var(--brand-400); }
+table.lg td { padding: 0.5rem 0.45rem; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
 table.lg tr:last-child td { border-bottom: none; }
 table.lg tr.me td { background: var(--accent-glow); }
-table.lg tr.me td:first-child { border-radius: 6px 0 0 6px; }
-table.lg tr.me td:last-child { border-radius: 0 6px 6px 0; }
+table.lg tr.me td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); box-shadow: inset 2px 0 0 var(--brand-400); }
+table.lg tr.me td:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 table.lg .num { font-family: var(--font-mono); text-align: right; }
 table.lg th.num { text-align: right; }
-table.lg .rank { font-family: var(--font-mono); color: var(--text-secondary); }
+table.lg .rank { font-family: var(--font-mono); color: var(--text-muted); }
 table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 .team-cell { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
-.avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border); flex-shrink: 0; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: var(--text-secondary); }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border); flex-shrink: 0; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: var(--text-secondary); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.team-name { font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.team-name .you { font-size: 0.6rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.35rem; vertical-align: middle; }
-.team-name .open { color: var(--text-muted); font-style: italic; }
+.team-name { font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-name .you { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #a78bfa; background: rgba(124,111,247,0.15); border: 1px solid rgba(124,111,247,0.35); border-radius: var(--radius-pill); padding: 0.05rem 0.4rem; margin-left: 0.4rem; vertical-align: middle; }
+.team-name .open { color: var(--text-muted); font-style: italic; font-weight: 400; }
 .pos-cell { font-family: var(--font-mono); font-size: 0.72rem; white-space: nowrap; }
 .pos-cell .st { font-weight: 600; }
 .pos-cell .pr { color: var(--text-muted); margin-left: 0.3rem; font-size: 0.66rem; }
@@ -56,31 +52,31 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
   th.hide-sm, td.hide-sm { display: none; }
 }
 
-/* your team card */
-.rf-depth { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.85rem; }
-.rf-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.2rem 0.5rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
-.rf-dep .pr { color: var(--text-muted); }
-.stat-row { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.9rem; }
-.stat-row b { color: var(--text-primary); font-family: var(--font-mono); font-weight: 600; }
-.stat-row .inj { color: var(--danger); }
+/* your team card (.rf-depth/.rf-dep chips are shared) */
+#my-team .rf-depth { margin-bottom: var(--space-4); }
+#my-stats { margin-bottom: var(--space-4); }
 .rf-name .team { color: var(--text-muted); font-size: 0.68rem; margin-left: 0.3rem; }
-.rf-name .injtag { font-size: 0.6rem; color: var(--danger); border: 1px solid rgba(239,68,68,.3); border-radius: 3px; padding: 0 0.25rem; margin-left: 0.35rem; vertical-align: middle; }
+.rf-name .injtag { font-size: 0.58rem; font-weight: 700; color: var(--danger); background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); border-radius: var(--radius-pill); padding: 0.05rem 0.4rem; margin-left: 0.35rem; vertical-align: middle; }
 .rf-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; font-family: var(--font-mono); }
-.partners { margin-top: 1rem; }
-.partner-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.78rem; flex-wrap: wrap; }
+.partners { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.partner-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.78rem; flex-wrap: wrap; }
 .partner-row:last-child { border-bottom: none; }
-.partner-row .pn { font-weight: 500; min-width: 120px; }
-.partner-row .chips { display: flex; gap: 0.3rem; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.68rem; }
-.partner-row .chips span { border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.35rem; }
+.partner-row .pn { font-weight: 600; min-width: 120px; }
+.partner-row .chips { display: flex; gap: 0.3rem; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.66rem; }
+.partner-row .chips span { border: 1px solid var(--border); background: rgba(255,255,255,0.04); border-radius: var(--radius-pill); padding: 0.08rem 0.45rem; font-weight: 600; }
+.partner-row .pn-need { color: var(--text-muted); font-size: 0.72rem; }
 
 /* AI explanation (button-triggered, never auto-fires) */
-.ai-wrap { margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border); }
+.ai-wrap { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .ai-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
 .ai-hint { font-size: 0.7rem; color: var(--text-muted); }
 .ai-err { font-size: 0.74rem; color: var(--danger); }
-.ai-out { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.45rem; }
-.ai-out p { font-size: 0.78rem; line-height: 1.5; color: var(--text-secondary); margin: 0; }
+.ai-out { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.9rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.ai-out p { font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
 .ai-out p strong { color: var(--text-primary); font-weight: 600; }
+
+/* legend: tier glossary reads better as its own wrapped line */
+.legend .lg-tiers { display: block; margin-top: 0.35rem; }
 </style>
 </head>
 <body>
@@ -105,14 +101,16 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
   <div id="loading">Loading…</div>
 
   <!-- Signed out -->
-  <div id="auth-card" class="setup-card" hidden>
+  <div id="auth-card" class="setup-card gate" hidden>
+    <div class="gate-eyebrow">Team Analysis</div>
     <h2>Sign in to see your league</h2>
     <p>Team Analysis reads every roster in your Sleeper league and ranks them under your league's exact scoring and slots — who's strong, who's thin, and who needs what you have.</p>
     <button class="btn-primary" id="auth-btn">Sign in</button>
   </div>
 
   <!-- Signed in but no Sleeper linked -->
-  <div id="sleeper-card" class="setup-card" hidden>
+  <div id="sleeper-card" class="setup-card gate" hidden>
+    <div class="gate-eyebrow">Team Analysis</div>
     <h2>Connect Your Sleeper Account</h2>
     <p>Enter your Sleeper username to load your leagues and rosters.</p>
     <div class="form-row">
@@ -124,24 +122,27 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 
   <!-- Main team UI -->
   <div id="team-ui" hidden>
-    <div id="league-bar">
-      <span>League:</span>
-      <select id="league-sel"></select>
-      <span id="league-hint" hidden></span>
+    <div class="page-head">
+      <div class="page-head-text">
+        <div class="page-title">League Comparison</div>
+        <div class="page-sub">Every roster ranked on optimal starters from full-season projections (÷17 per week), under this league's scoring and slots.</div>
+      </div>
+      <div id="league-bar">
+        <span>League:</span>
+        <select id="league-sel"></select>
+        <span id="league-hint" hidden></span>
+      </div>
     </div>
-
-    <div id="title-bar">
-      <span class="ttl">League Comparison</span>
-      <span class="ttl-sub">Optimal starters from full-season projections (÷17 per week)</span>
+    <div class="strip-row">
+      <div id="league-settings-strip" hidden></div>
     </div>
-    <div id="league-settings-strip" hidden></div>
 
     <div class="card">
       <div class="col-hdr"><span>All teams</span><span class="total" id="team-count"></span></div>
       <div class="tbl-wrap">
         <table class="lg" id="league-table">
           <thead><tr id="league-thead"></tr></thead>
-          <tbody id="league-tbody"><tr><td colspan="8" class="empty-hint">Pick a league</td></tr></tbody>
+          <tbody id="league-tbody"><tr><td colspan="8" class="empty-hint">Pick a league to compare its teams</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -149,7 +150,7 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
     <div class="card" id="my-team" hidden>
       <div class="col-hdr"><span>Your team</span><span class="total" id="my-team-name"></span></div>
       <div class="rf-depth" id="my-depth"></div>
-      <div class="stat-row" id="my-stats"></div>
+      <div class="stat-tiles" id="my-stats"></div>
       <div class="rf-grid">
         <div><div class="rf-col-lbl">Strengths</div><div id="my-strengths"></div></div>
         <div><div class="rf-col-lbl">Liabilities</div><div id="my-liabilities"></div></div>
@@ -169,13 +170,16 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
     </div>
 
     <div class="legend">
+      <span class="legend-title">How to read this</span>
       Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
+      <span class="lg-tiers">
       <span class="st-critical">▲ Critical</span> weak starters and no depth — prioritize an upgrade ·
       <span class="st-upgrade">▲ Upgrade</span> bodies on the roster but below-average starters — quality over quantity ·
       <span class="st-thin">△ Thin</span> starters are fine, no one behind them — add depth ·
       <span class="st-solid">● Solid</span> average-or-better starters, normal depth ·
       <span class="st-deep">▼ Deep</span> good starters with real bench (rostered ≥ 2× slots) — can deal from here ·
       <span class="st-loaded">◆ Loaded</span> elite starters and surplus — deal from here.
+      </span>
       The trade calculator scales player value by these tiers (Critical ×1.30 … Loaded ×0.80) in its Roster Fit verdict.
       Positional rank compares each team's starting strength at that position across the league. Record and points come from Sleeper and show 0-0 until Week 1 posts.
     </div>
@@ -650,7 +654,7 @@ function recompute() {
   var out;
   try { out = runAnalysis(); } catch(e) { console.error('analysis failed', e); }
   if (!out || !out.teams || !out.teams.length) {
-    document.getElementById('league-tbody').innerHTML = '<tr><td colspan="8" class="empty-hint">Could not analyze this league</td></tr>';
+    document.getElementById('league-tbody').innerHTML = '<tr><td colspan="8" class="empty-hint">Could not analyze this league — try another or reload</td></tr>';
     document.getElementById('my-team').hidden = true;
     return;
   }
@@ -793,10 +797,10 @@ function renderMyTeam(mine) {
   var injured = Array.isArray(t.injured) ? t.injured : [];
   var injTitle = injured.map(function(x){ return x && typeof x === 'object' ? (x.name + ' (' + x.status + ')') : ((S.players[x] || [x])[0] + ' (' + (injuryOf(x) || '?') + ')'); }).join(', ');
   document.getElementById('my-stats').innerHTML =
-    '<span>Starters <b>' + mine.pts.toFixed(1) + '</b> proj pts/wk</span>' +
-    '<span>Strength <b>#' + mine.strengthRank + '</b> of ' + n + '</span>' +
-    (t.benchVorp != null ? '<span>Bench value <b>' + Math.round(t.benchVorp).toLocaleString() + '</b></span>' : '') +
-    '<span' + (injured.length ? ' class="inj"' : '') + ' title="' + esc(injTitle) + '">Injured <b>' + injured.length + '</b></span>';
+    '<div class="stat-tile"><div class="stat-val">' + mine.pts.toFixed(1) + '<small>pts/wk</small></div><div class="stat-lbl">Starters</div></div>' +
+    '<div class="stat-tile"><div class="stat-val">#' + mine.strengthRank + '<small>of ' + n + '</small></div><div class="stat-lbl">Strength</div></div>' +
+    (t.benchVorp != null ? '<div class="stat-tile"><div class="stat-val">' + Math.round(t.benchVorp).toLocaleString() + '</div><div class="stat-lbl">Bench value</div></div>' : '') +
+    '<div class="stat-tile' + (injured.length ? ' danger' : '') + '" title="' + esc(injTitle) + '"><div class="stat-val">' + injured.length + '</div><div class="stat-lbl">Injured</div></div>';
 
   // Strengths: top 3 starters by VORP (elite flagged by the engine first, then by value)
   var starters = Array.isArray(t.starters) ? t.starters
@@ -833,7 +837,7 @@ function renderMyTeam(mine) {
         return '<span class="st-' + c.tier + '" title="' + esc(LABEL[c.tier]) + '">' + q + ' ' + GLYPH[c.tier] + '</span>';
       }).join('');
       return '<div class="partner-row"><span class="pn">' + esc(p.row.name) + '</span><span class="chips">' + chips + '</span>' +
-        (p.overlap.length ? '<span style="color:var(--text-muted);font-size:0.72rem">needs your ' + esc(p.overlap.join(', ')) + '</span>' : '') + '</div>';
+        (p.overlap.length ? '<span class="pn-need">needs your ' + esc(p.overlap.join(', ')) + '</span>' : '') + '</div>';
     }).join('');
     pw.hidden = false;
   } else {

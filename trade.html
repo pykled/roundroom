@@ -16,64 +16,74 @@
    sizing come from /shared/styles.css. */
 #app { max-width: 860px; }
 
-/* preset bar */
-#preset-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.1rem; }
-#preset-bar .pb-label { font-size: 0.7rem; color: var(--text-muted); }
-.pg { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.pg button { font-size: 0.72rem; font-weight: 600; padding: 0.28rem 0.6rem; background: none; border: none; border-right: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: background 0.1s, color 0.1s; }
-.pg button:hover:not(.on) { background: rgba(255,255,255,0.04); color: var(--text-primary); }
-.pg button:last-child { border-right: none; }
-.pg button.on { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+/* Connect card sits above the manual calculator, so it stays compact (not .gate). */
+#sleeper-card { margin-bottom: var(--space-5); }
 
-/* league bar: single row here */
-#league-bar { flex-wrap: nowrap; margin-bottom: 1.1rem; }
+/* preset toolbar (manual mode) */
+#preset-bar { display: flex; gap: 0.5rem 0.9rem; flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+#preset-bar .pb-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+.pg { display: flex; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.pg button { font-family: inherit; font-size: 0.72rem; font-weight: 600; padding: 0.32rem 0.65rem; background: none; border: none; border-right: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: background 0.12s, color 0.12s; }
+.pg button:hover:not(.on) { background: var(--bg-hover); color: var(--text-primary); }
+.pg button:last-child { border-right: none; }
+.pg button.on { background: rgba(255,255,255,0.1); color: var(--text-primary); font-weight: 700; }
+.pg button:focus-visible { outline-offset: -2px; }
 
 /* trade grid */
-.trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
 @media (max-width: 768px) { .trade-grid { grid-template-columns: 1fr; } }
-.trade-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+.trade-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; }
+.trade-col .col-hdr { margin-bottom: 0.6rem; }
+.trade-col .pl-list { flex: 1; }
+.trade-col .empty-hint { padding: var(--space-4); }
 
 /* search */
 .srch-wrap { position: relative; margin-bottom: 0.65rem; }
-.srch-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.42rem 0.7rem; color: var(--text-primary); font-size: 0.8rem; transition: border-color 0.15s; }
+.srch-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.45rem 0.75rem; color: var(--text-primary); font-size: 0.82rem; transition: border-color 0.15s, box-shadow 0.15s; }
 .srch-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
 .srch-input::placeholder { color: var(--text-muted); }
-.srch-drop { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: 6px; z-index: var(--z-dropdown); max-height: 200px; overflow-y: auto; }
-.srch-item { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.7rem; cursor: pointer; font-size: 0.8rem; }
+.srch-drop { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: var(--radius-md); z-index: var(--z-dropdown); max-height: 220px; overflow-y: auto; box-shadow: var(--shadow-card); padding: 0.25rem; }
+.srch-item { display: flex; align-items: center; gap: 0.45rem; padding: 0.42rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; }
 .srch-item:hover { background: var(--bg-hover); }
+.srch-item .si-team { color: var(--text-muted); font-size: 0.7rem; margin-left: 0.25rem; }
+.srch-item .si-val { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); }
 
 /* player rows */
-.pl-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.38rem 0; border-bottom: 1px solid var(--border); }
+.pl-row { display: flex; align-items: center; gap: 0.45rem; min-height: 36px; padding: 0.3rem 0.3rem; margin: 0 -0.3rem; border-radius: var(--radius-sm); border-bottom: 1px solid var(--border); transition: background 0.12s; }
 .pl-row:last-child { border-bottom: none; }
-.pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; }
-.pl-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
-.rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; }
-.rm-btn:hover { color: var(--danger); }
+.pl-row:hover { background: var(--bg-hover); border-bottom-color: transparent; }
+.pl-name { flex: 1; font-size: 0.8rem; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-val { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; }
+.rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; line-height: 1; width: 24px; height: 24px; border-radius: var(--radius-xs); display: inline-flex; align-items: center; justify-content: center; transition: color 0.12s, background 0.12s; }
+.rm-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
 
 /* value bar */
-.vbar-wrap { height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 0.6rem; }
-.vbar { height: 100%; border-radius: 3px; transition: width 0.25s; min-width: 2px; }
+.vbar-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 0.75rem; }
+.vbar { height: 100%; border-radius: 2px; transition: width 0.25s; min-width: 2px; }
 .vbar-give { background: var(--danger); }
 .vbar-recv { background: var(--rb); }
 
 /* verdict */
-#verdict { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; text-align: center; margin-bottom: 0.9rem; }
-.vd-empty { font-size: 0.8rem; color: var(--text-muted); }
-.vd-sides { display: flex; gap: 1rem; justify-content: center; margin-bottom: 0.75rem; }
-.vd-side { flex: 1; max-width: 180px; }
-.vd-side-lbl { font-size: 0.68rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
-.vd-side-num { font-size: 1.35rem; font-weight: 700; }
-.vd-badge { display: inline-block; padding: 0.35rem 1.4rem; border-radius: 999px; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.04em; margin: 0.3rem 0; }
-.vd-delta { font-size: 0.76rem; color: var(--text-secondary); }
-.vd-partner { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.55rem; line-height: 1.6; }
+#verdict { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); text-align: center; margin-bottom: var(--space-4); }
+.vd-empty { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: var(--space-3) 0; color: var(--text-muted); }
+.vd-empty .ve-icon { font-size: 1.5rem; line-height: 1; opacity: 0.4; }
+.vd-empty .ve-title { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
+.vd-empty .ve-sub { font-size: var(--fs-xs); }
+.vd-sides { display: flex; gap: var(--space-3); justify-content: center; margin-bottom: var(--space-4); }
+.vd-side { flex: 1; max-width: 200px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.8rem 0.5rem 0.7rem; }
+.vd-side-lbl { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-label); margin-bottom: 0.45rem; }
+.vd-side-num { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.vd-badge { display: inline-block; padding: 0.4rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.88rem; font-weight: 800; letter-spacing: 0.08em; margin: 0.2rem 0 0.45rem; }
+.vd-delta { font-size: 0.78rem; color: var(--text-secondary); }
+.vd-partner { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--border); line-height: 1.6; }
 .vd-partner .vp-name { color: var(--text-primary); font-weight: 600; }
 .vd-partner .vp-fit { color: var(--rb); }
 
 /* Your Team panel (connected mode only) */
-.yt { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 1rem; }
-.yt-hdr { display: flex; align-items: center; gap: 0.5rem; width: 100%; background: none; border: none; color: var(--text-primary); padding: 0.7rem 1rem; cursor: pointer; text-align: left; font: inherit; }
-.yt-hdr { border-radius: 10px 10px 0 0; }
-.yt.collapsed .yt-hdr { border-radius: 10px; }
+.yt { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: var(--space-4); }
+.yt-hdr { display: flex; align-items: center; gap: 0.5rem; width: 100%; background: none; border: none; color: var(--text-primary); padding: 0.7rem 1rem; cursor: pointer; text-align: left; font: inherit; transition: background 0.12s; }
+.yt-hdr { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.yt.collapsed .yt-hdr { border-radius: var(--radius-lg); }
 .yt-hdr:hover { background: var(--bg-hover); }
 .yt-sub { flex: 1; font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .yt-chev { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.15s; }
@@ -118,28 +128,27 @@
 .yt-ai-out p { font-size: 0.76rem; line-height: 1.5; color: var(--text-secondary); margin: 0; }
 .yt-ai-out p strong { color: var(--text-primary); font-weight: 600; }
 
-/* roster fit (need-adjusted view, connected mode only) */
-#roster-fit { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.9rem; text-align: left; }
-.rf-hdr { margin-bottom: 0.5rem; text-align: center; }
-.rf-depth { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 0.85rem; }
-.rf-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
-.rf-tag { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; white-space: nowrap; }
+/* roster fit (need-adjusted view, connected mode only). .rf-depth/.rf-dep are shared. */
+#roster-fit { border-top: 1px solid var(--border); margin-top: var(--space-4); padding-top: var(--space-4); text-align: left; }
+.rf-hdr { margin-bottom: 0.6rem; text-align: center; }
+.rf-depth { justify-content: center; }
+.rf-tag { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: var(--radius-pill); white-space: nowrap; }
 .rf-good { background: rgba(16,185,129,.12); color: var(--rb); }
 .rf-bad { background: rgba(239,68,68,.1); color: var(--danger); }
 .rf-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-.rf-val { font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; }
+.rf-val { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; }
 .rf-mult { color: var(--text-muted); font-size: 0.64rem; margin-left: 0.2rem; }
-.rf-summary { text-align: center; margin-top: 0.9rem; font-size: 0.78rem; color: var(--text-secondary); }
-.rf-badge { font-size: 0.78rem; padding: 0.25rem 1rem; margin-left: 0.4rem; }
-#rf-delta { text-align: center; }
+.rf-summary { text-align: center; margin-top: var(--space-4); font-size: 0.78rem; color: var(--text-secondary); }
+.rf-badge { font-size: 0.76rem; padding: 0.25rem 1rem; margin: 0 0 0 0.4rem; }
+#rf-delta { text-align: center; margin-top: 0.35rem; }
 .share-row { text-align: center; }
-.share-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.35rem 0.9rem; font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
-.share-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--border-bright); color: var(--text-primary); }
-.share-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; }
+.share-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.5rem; }
 
 /* mobile: 16px stops iOS focus-zoom (shared/styles.css covers .form-row + #league-bar) */
 @media (max-width: 768px) {
   .srch-input { min-height: 40px; font-size: 16px; }
+  .vd-sides { gap: var(--space-2); }
+  .vd-side-num { font-size: 1.35rem; }
 }
 /* Narrow: the panel starts collapsed, so the header line is the whole summary — let it wrap rather than truncate. */
 @media (max-width: 560px) {
@@ -181,6 +190,19 @@
 
   <!-- Main trade UI -->
   <div id="trade-ui" hidden>
+    <div class="page-head">
+      <div class="page-head-text">
+        <div class="page-title">Trade Calculator</div>
+        <div class="page-sub">Score both sides on league-specific VORP blended with market value. Connect Sleeper to check the fit for your actual roster.</div>
+      </div>
+      <!-- League selector (connected mode) -->
+      <div id="league-bar" hidden>
+        <span>League:</span>
+        <select id="league-sel"></select>
+        <span id="league-hint" hidden></span>
+      </div>
+    </div>
+
     <!-- Preset controls (manual mode) -->
     <div id="preset-bar">
       <span class="pb-label">Scoring</span>
@@ -200,13 +222,6 @@
         <button class="on" data-g="teams" data-v="12">12</button>
         <button data-g="teams" data-v="14">14</button>
       </div>
-    </div>
-
-    <!-- League selector (connected mode) -->
-    <div id="league-bar" hidden>
-      <span>League:</span>
-      <select id="league-sel"></select>
-      <span id="league-hint" hidden></span>
     </div>
 
     <!-- Your Team: league-relative read on the signed-in user's roster (connected mode only).
@@ -239,7 +254,7 @@
           <input class="srch-input" id="srch-give" type="text" placeholder="Search players…" autocomplete="off">
           <div class="srch-drop" id="drop-give" hidden></div>
         </div>
-        <div id="give-list"><div class="empty-hint">No players added</div></div>
+        <div id="give-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're sending</span></div></div>
         <div class="vbar-wrap"><div class="vbar vbar-give" id="vbar-give" style="width:50%"></div></div>
       </div>
       <div class="trade-col">
@@ -248,13 +263,13 @@
           <input class="srch-input" id="srch-recv" type="text" placeholder="Search players…" autocomplete="off">
           <div class="srch-drop" id="drop-recv" hidden></div>
         </div>
-        <div id="recv-list"><div class="empty-hint">No players added</div></div>
+        <div id="recv-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're getting back</span></div></div>
         <div class="vbar-wrap"><div class="vbar vbar-recv" id="vbar-recv" style="width:50%"></div></div>
       </div>
     </div>
 
     <div id="verdict">
-      <div class="vd-empty" id="vd-empty">Add players to both sides to see the trade value</div>
+      <div class="vd-empty" id="vd-empty"><span class="ve-icon">⚖</span><span class="ve-title">No trade to score yet</span><span class="ve-sub">Add players to both sides to see the value verdict</span></div>
       <div id="vd-content" hidden>
         <div class="vd-sides">
           <div class="vd-side">
@@ -287,7 +302,7 @@
     </div>
 
     <div class="share-row">
-      <button class="share-btn" id="share-btn">Share Trade Link</button>
+      <button class="btn-secondary" id="share-btn">Share Trade Link</button>
       <div class="share-note" id="share-note" hidden></div>
     </div>
   </div>
@@ -649,7 +664,11 @@ function removePlayer(side, id) {
 function renderSide(side) {
   var list = side === 'give' ? S.give : S.recv;
   var el = document.getElementById(side + '-list');
-  if (!list.length) { el.innerHTML = '<div class="empty-hint">No players added</div>'; return; }
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">' +
+      (side === 'give' ? 'Search above to add who you\'re sending' : 'Search above to add who you\'re getting back') + '</span></div>';
+    return;
+  }
   el.innerHTML = list.map(function(id) {
     var info = S.players[id] || [id, '?', '?'];
     var val = S.vorp.get(id) || 0;
@@ -1154,8 +1173,8 @@ function setupSearch(side, inputId, dropId) {
       var val = S.vorp.get(id) || 0;
       return '<div class="srch-item" onclick="pick(\'' + side + '\',\'' + id + '\')">' +
         '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
-        '<span style="flex:1">' + info[0] + ' <span style="color:var(--text-muted);font-size:0.7rem">' + (info[2] || 'FA') + '</span></span>' +
-        '<span style="font-size:0.7rem;color:var(--text-secondary)">' + val.toLocaleString() + '</span>' +
+        '<span class="truncate" style="flex:1">' + info[0] + '<span class="si-team">' + (info[2] || 'FA') + '</span></span>' +
+        '<span class="si-val">' + val.toLocaleString() + '</span>' +
         '</div>';
     }).join('');
     drop.hidden = false;
