@@ -80,23 +80,28 @@
 .yt-chev { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.15s; }
 .yt.collapsed .yt-chev { transform: rotate(-90deg); }
 .yt.collapsed .yt-body { display: none; }
-.yt-body { padding: 0 1rem 0.9rem; border-top: 1px solid var(--border); }
-.yt-depth { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.8rem; margin-bottom: 0.6rem; }
-.yt-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
-.yt-dep .yt-rank { color: var(--text-muted); }
-.yt-tiers { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.65rem; }
-.yt-tier { display: flex; align-items: center; gap: 0.45rem; font-size: 0.74rem; line-height: 1.4; color: var(--text-secondary); }
-.yt-tier .yt-tier-txt { flex: 1; min-width: 0; }
-.yt-tier .yt-tier-mult { font-family: var(--font-mono); font-size: 0.68rem; white-space: nowrap; cursor: default; }
-.yt-strength { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.55rem; }
-.yt-strength b { color: var(--text-primary); font-weight: 600; }
-.yt-inj { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(239,68,68,.1); color: var(--danger); cursor: default; }
-.yt-row { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.6; }
-.yt-row .yt-lbl { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-right: 0.35rem; }
-.yt-row .yt-name { color: var(--text-primary); }
-.yt-row .yt-v { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.68rem; }
-.yt-partners { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
-.yt-partners .yt-lbl { display: block; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.64rem; margin-bottom: 0.3rem; }
+.yt-body { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.7rem 1rem 0.8rem; border-top: 1px solid var(--border); }
+/* Position chips: position + tier are the two signals. The multiplier is a quiet
+   mono suffix (only when ≠ 1.00); rank, depth and the explanation live in the
+   tooltip and in the tap-to-reveal hint line — never inline by default. */
+.yt-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.yt-chip { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 0.22rem 0.55rem 0.22rem 0.32rem; font: inherit; font-size: 0.72rem; color: var(--text-secondary); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.yt-chip:hover { border-color: var(--border-bright); }
+.yt-chip[aria-pressed="true"] { border-color: var(--border-bright); background: var(--bg-hover); }
+.yt-chip-tier { font-weight: 600; }
+.yt-chip-mult { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-muted); }
+.yt-hint { font-size: 0.72rem; line-height: 1.5; color: var(--text-secondary); margin-top: -0.2rem; }
+.yt-hint .pos-badge { margin-right: 0.3rem; }
+/* One-line roster read: Elite · Liability · health pills */
+.yt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.9rem; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.5; }
+.yt-kv { display: inline; }
+.yt-lbl { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.62rem; margin-right: 0.3rem; }
+.yt-name { color: var(--text-primary); }
+.yt-v { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.66rem; }
+.yt-inj { font-size: 0.62rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(239,68,68,.1); color: var(--danger); cursor: default; }
+.yt-partners { padding-top: 0.65rem; border-top: 1px solid var(--border); }
+.yt-partners .yt-lbl { display: block; margin-bottom: 0.3rem; }
+.yt-partners .yt-lbl .yt-lbl-sub { color: var(--text-muted); opacity: 0.7; text-transform: none; letter-spacing: 0; }
 .yt-partner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: 0.76rem; padding: 0.22rem 0; }
 .yt-partner .yt-name { color: var(--text-primary); font-weight: 500; margin-right: 0.15rem; }
 .yt-partner .yt-sep { color: var(--text-muted); }
@@ -104,7 +109,7 @@
 .yt-tag.need { background: rgba(251,191,36,.1); color: var(--gold); }
 .yt-tag.surplus { background: rgba(59,130,246,.12); color: var(--wr); }
 .yt-empty { font-size: 0.74rem; color: var(--text-muted); }
-.yt-ai { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+.yt-ai { padding-top: 0.6rem; border-top: 1px solid var(--border); }
 .yt-ai-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
 .yt-ai-btn { background: var(--text-primary); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.3rem 0.8rem; font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
 .yt-ai-btn:disabled { opacity: 0.45; cursor: default; }
@@ -136,6 +141,10 @@
 /* mobile: 16px stops iOS focus-zoom (shared/styles.css covers .form-row + #league-bar) */
 @media (max-width: 768px) {
   .srch-input { min-height: 40px; font-size: 16px; }
+}
+/* Narrow: the panel starts collapsed, so the header line is the whole summary — let it wrap rather than truncate. */
+@media (max-width: 560px) {
+  .yt-sub { white-space: normal; line-height: 1.5; }
 }
 </style>
 </head>
@@ -211,11 +220,9 @@
         <span class="yt-chev" aria-hidden="true">▾</span>
       </button>
       <div class="yt-body" id="yt-body">
-        <div class="yt-depth" id="yt-depth"></div>
-        <div class="yt-tiers" id="yt-tiers"></div>
-        <div class="yt-strength" id="yt-strength"></div>
-        <div class="yt-row" id="yt-elite"></div>
-        <div class="yt-row" id="yt-liab"></div>
+        <div class="yt-chips" id="yt-chips"></div>
+        <div class="yt-hint" id="yt-hint" hidden></div>
+        <div class="yt-line" id="yt-line"></div>
         <div class="yt-partners" id="yt-partners"></div>
         <div class="yt-ai">
           <div class="yt-ai-bar">
@@ -849,20 +856,49 @@ function ord(n) {
 // ---- Your Team panel ------------------------------------------------------
 // Compact league-relative read on the user's roster, computed by
 // AnalysisEngine in recomputeAnalysis(). Collapsed by default on narrow screens.
+//
+// Built to be scanned, not read: header carries the headline numbers, one row
+// of position chips (position + tier, multiplier as a quiet suffix), one line
+// for elite / liability / health, then trade partners. Everything explanatory
+// is hover (title) or tap (hint line) only, so nothing verbose shows by default.
 var YT_INIT = false;
+var YT_HINT_POS = null;   // position whose hint line is open, or null
 
 function ytChip(p, d) {
-  var t = tierOf(d);
-  return '<span class="yt-dep" title="' + esc(tierTitle(p, d)) + '">' +
-    '<span class="pos-badge ' + p + '">' + p + '</span>' + d.rostered +
-    '<span class="rf-st-' + t + '">' + NEED_GLYPH[t] + ' ' + NEED_LABEL[t] + '</span>' +
-    '<span class="yt-rank">· ' + ord(d.rank) + '</span>' +
-    '</span>';
+  var t = tierOf(d), m = NEED_MULT[t];
+  return '<button type="button" class="yt-chip" data-pos="' + p + '" aria-pressed="' + (YT_HINT_POS === p) + '" title="' + esc(tierTitle(p, d)) + '">' +
+    '<span class="pos-badge ' + p + '">' + p + '</span>' +
+    '<span class="yt-chip-tier rf-st-' + t + '">' + NEED_LABEL[t] + '</span>' +
+    (m !== 1 ? '<span class="yt-chip-mult">×' + m.toFixed(2) + '</span>' : '') +
+    '</button>';
 }
 
+// The tap-to-reveal line under the chips: one sentence, then the numbers in mono.
+function ytHint(p, d, n) {
+  var t = tierOf(d);
+  var bits = [];
+  if (multNote(t)) bits.push(multNote(t));
+  if (d.rank) bits.push(ord(d.rank) + ' of ' + n + ' at ' + p);
+  bits.push(d.rostered + ' rostered · ' + fmtSlots(d.slots) + ' slot' + (d.slots === 1 ? '' : 's'));
+  return '<span class="pos-badge ' + p + '">' + p + '</span>' +
+    '<span class="rf-st-' + t + '">' + NEED_LABEL[t] + '</span>: ' + esc(NEED_HINT[t]) + '. ' +
+    '<span class="yt-v">' + esc(bits.join(' · ')) + '</span>';
+}
+
+function renderYourTeamHint() {
+  var el = document.getElementById('yt-hint');
+  var me = S.myAnalysis;
+  if (!el) return;
+  if (!me || !YT_HINT_POS || !me.byPos[YT_HINT_POS]) { el.hidden = true; el.innerHTML = ''; return; }
+  var n = me.teamCount || (S.leagueAnalysis ? S.leagueAnalysis.teams.length : 0);
+  el.innerHTML = ytHint(YT_HINT_POS, me.byPos[YT_HINT_POS], n);
+  el.hidden = false;
+}
+
+// Names only — VORP lives in the tooltip so the line stays one glance long.
 function ytNames(list, max) {
   return list.slice(0, max).map(function(e) {
-    return '<span class="yt-name">' + esc(e.name) + '</span> <span class="yt-v">' + e.position + ' ' + e.vorp.toLocaleString() + '</span>';
+    return '<span class="yt-name" title="' + esc(e.position + ' · VORP ' + e.vorp.toLocaleString()) + '">' + esc(e.name) + '</span>';
   }).join(', ') + (list.length > max ? ' <span class="yt-v">+' + (list.length - max) + '</span>' : '');
 }
 
@@ -881,52 +917,53 @@ function renderYourTeam() {
         var collapsed = sec.classList.toggle('collapsed');
         this.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       });
+      // Tap a chip to open its one-line hint; tap again (or another chip) to switch/close.
+      document.getElementById('yt-chips').addEventListener('click', function(ev) {
+        var chip = ev.target.closest('.yt-chip');
+        if (!chip) return;
+        var p = chip.getAttribute('data-pos');
+        YT_HINT_POS = YT_HINT_POS === p ? null : p;
+        this.querySelectorAll('.yt-chip').forEach(function(c) {
+          c.setAttribute('aria-pressed', c.getAttribute('data-pos') === YT_HINT_POS ? 'true' : 'false');
+        });
+        renderYourTeamHint();
+      });
     }
 
-    document.getElementById('yt-sub').textContent = me.name + ' · ' + ord(me.rank) + ' of ' + n;
+    // League or roster changed: close any open chip hint so it can't describe
+    // a position on a roster the user is no longer looking at.
+    var ytKey = String(S.league.league_id || '') + ':' + String(me.rosterId);
+    if (YT_AI_KEY !== null && YT_AI_KEY !== ytKey) YT_HINT_POS = null;
 
-    document.getElementById('yt-depth').innerHTML = NEED_POSITIONS.map(function(p) {
-      return ytChip(p, me.byPos[p]);
-    }).join('');
-
-    // Why each tier matters for the trade, worst → best so the fix-first
-    // position sits on top. Solid positions are skipped — nothing to act on.
-    var TIER_ORDER = ['critical', 'upgrade', 'thin', 'deep', 'loaded', 'solid'];
-    var tierRows = NEED_POSITIONS.map(function(p){ return { p: p, t: tierOf(me.byPos[p]) }; })
-      .filter(function(x){ return x.t !== 'solid'; })
-      .sort(function(a, b){ return TIER_ORDER.indexOf(a.t) - TIER_ORDER.indexOf(b.t); });
-    document.getElementById('yt-tiers').innerHTML = tierRows.length ? tierRows.map(function(x) {
-      var m = NEED_MULT[x.t];
-      return '<div class="yt-tier">' +
-        '<span class="pos-badge ' + x.p + '">' + x.p + '</span>' +
-        '<span class="yt-tier-txt">' + esc(NEED_HINT[x.t]) + '</span>' +
-        '<span class="yt-tier-mult rf-st-' + x.t + '" title="' + esc(multNote(x.t)) + '">×' + m.toFixed(2) + '</span>' +
-        '</div>';
-    }).join('') : '<div class="yt-empty">Every position is solid — trade on raw value</div>';
-
+    // Headline numbers live in the header so they read even when collapsed.
     var rec = me.record;
     var recStr = (rec.wins || rec.losses || rec.ties) ? (rec.wins + '-' + rec.losses + (rec.ties ? '-' + rec.ties : '')) : null;
-    var strength = '<span><b>' + me.starterPts.toLocaleString() + '</b> proj pts/wk · ' + ord(me.rank) + ' of ' + n + '</span>';
-    if (recStr) strength += '<span>' + recStr + '</span>';
-    if (me.emptySlots) strength += '<span class="yt-inj">' + me.emptySlots + ' empty slot' + (me.emptySlots === 1 ? '' : 's') + '</span>';
-    if (me.injured.length) {
-      strength += '<span class="yt-inj" title="' + esc(me.injured.map(function(i){ return i.name + ' (' + i.status + ')'; }).join(', ')) + '">' +
-        me.injured.length + ' injured</span>';
-    }
-    document.getElementById('yt-strength').innerHTML = strength;
+    var sub = [me.name, ord(me.rank) + ' of ' + n, me.starterPts.toLocaleString() + ' pts/wk'];
+    if (recStr) sub.push(recStr);
+    document.getElementById('yt-sub').textContent = sub.join(' · ');
 
-    var eliteEl = document.getElementById('yt-elite');
-    eliteEl.innerHTML = '<span class="yt-lbl">Elite</span>' + (me.elite.length ? ytNames(me.elite, 3) : '<span class="yt-empty">No top-tier starters</span>');
+    document.getElementById('yt-chips').innerHTML = NEED_POSITIONS.map(function(p) {
+      return ytChip(p, me.byPos[p]);
+    }).join('');
+    renderYourTeamHint();
 
     // Liabilities at a need position first — those are the ones a trade can actually fix.
     var liab = me.liabilities.filter(function(e){ return me.needs.indexOf(e.position) >= 0; });
     if (!liab.length) liab = me.liabilities;
-    var liabEl = document.getElementById('yt-liab');
-    liabEl.innerHTML = '<span class="yt-lbl">Liability</span>' + (liab.length ? ytNames(liab, 3) : '<span class="yt-empty">No sub-replacement starters</span>');
+    var line = '<span class="yt-kv"><span class="yt-lbl">Elite</span>' +
+      (me.elite.length ? ytNames(me.elite, 2) : '<span class="yt-empty" title="No top-tier starters">—</span>') + '</span>';
+    line += '<span class="yt-kv"><span class="yt-lbl">Liability</span>' +
+      (liab.length ? ytNames(liab, 2) : '<span class="yt-empty" title="No sub-replacement starters">—</span>') + '</span>';
+    if (me.emptySlots) line += '<span class="yt-inj">' + me.emptySlots + ' empty slot' + (me.emptySlots === 1 ? '' : 's') + '</span>';
+    if (me.injured.length) {
+      line += '<span class="yt-inj" title="' + esc(me.injured.map(function(i){ return i.name + ' (' + i.status + ')'; }).join(', ')) + '">' +
+        me.injured.length + ' injured</span>';
+    }
+    document.getElementById('yt-line').innerHTML = line;
 
     var partners = S.leagueAnalysis ? S.leagueAnalysis.partners(me.rosterId, 3) : [];
     var pEl = document.getElementById('yt-partners');
-    var html = '<span class="yt-lbl">Trade partners · teams that need what you have</span>';
+    var html = '<span class="yt-lbl">Trade partners <span class="yt-lbl-sub">· teams that need what you have</span></span>';
     if (!me.surplus.length) {
       html += '<div class="yt-empty">No surplus position to deal from yet</div>';
     } else if (!partners.length) {
