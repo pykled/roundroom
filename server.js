@@ -20,10 +20,11 @@ let playerCache = null;
 let playerCacheTime = 0;
 const PLAYER_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-// In-memory live injury cache — refreshed every 4 hours from Sleeper.
+// In-memory live injury cache — refreshed every 30 minutes from Sleeper.
+// Injury designations can flip fast on game day; 30 min keeps data actionable.
 // Falls back to data/injuries.json when Sleeper is unreachable.
 let liveInjuryCache = { data: null, lastFetch: 0 };
-const INJURY_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
+const INJURY_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 // Data files only change on deploy (GHA commits → Railway redeploys), so a
 // 1-hour TTL is just a safety net against long-lived containers going stale.
