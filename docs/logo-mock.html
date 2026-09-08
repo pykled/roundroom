@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { background: #0a0a0f; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; gap: 60px; flex-wrap: wrap; padding: 40px; }
+  .label { color: #666; font-size: 11px; text-align: center; margin-top: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Option A: Back-to-back mirrored RR inside circle */
+  .logo-a svg { display: block; }
+
+  /* Option B: RR in a hexagonal/badge shape */
+  /* Option C: Circular ring with RR */
+</style>
+</head>
+<body>
+
+<!-- Option A: Mirrored RR in circle (back-to-back) -->
+<div class="logo-a">
+  <svg width="160" height="160" viewBox="0 0 160 160">
+    <defs>
+      <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#1e1a3a"/>
+        <stop offset="100%" stop-color="#0d0d12"/>
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- Circle bg -->
+    <circle cx="80" cy="80" r="78" fill="url(#bgGrad)" stroke="#3d2fa0" stroke-width="1.5"/>
+    <!-- Outer ring accent -->
+    <circle cx="80" cy="80" r="74" fill="none" stroke="#7c6ff7" stroke-width="0.5" opacity="0.4"/>
+
+    <!-- Left R (normal, right-facing) -->
+    <text x="52" y="100" font-family="'Georgia', serif" font-size="68" font-weight="900" font-style="italic"
+          fill="#7c6ff7" filter="url(#glow)" text-anchor="middle" dominant-baseline="auto">R</text>
+
+    <!-- Right R (mirrored, left-facing) -->
+    <g transform="translate(160, 0) scale(-1, 1)">
+      <text x="52" y="100" font-family="'Georgia', serif" font-size="68" font-weight="900" font-style="italic"
+            fill="#a89cf7" text-anchor="middle" dominant-baseline="auto" opacity="0.75">R</text>
+    </g>
+
+    <!-- Subtle center divider line -->
+    <line x1="80" y1="36" x2="80" y2="112" stroke="#7c6ff7" stroke-width="0.75" opacity="0.3"/>
+  </svg>
+  <div class="label">A · Back-to-back · circle</div>
+</div>
+
+<!-- Option B: RR badge — bold, clean, no mirror -->
+<div>
+  <svg width="160" height="160" viewBox="0 0 160 160">
+    <defs>
+      <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#9d8fff"/>
+        <stop offset="100%" stop-color="#5b4ee8"/>
+      </linearGradient>
+      <filter id="glow2">
+        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- Hexagon / shield bg -->
+    <polygon points="80,6 148,44 148,116 80,154 12,116 12,44" fill="#0f0d1e" stroke="#7c6ff7" stroke-width="1.5"/>
+    <polygon points="80,14 140,48 140,112 80,146 20,112 20,48" fill="none" stroke="#7c6ff7" stroke-width="0.4" opacity="0.3"/>
+    <!-- RR text centered -->
+    <text x="80" y="102" font-family="'Georgia', serif" font-size="62" font-weight="900" font-style="italic"
+          fill="url(#purpleGrad)" filter="url(#glow2)" text-anchor="middle">RR</text>
+  </svg>
+  <div class="label">B · Shield / badge</div>
+</div>
+
+<!-- Option C: Circular ring with RR — clean wordmark version -->
+<div>
+  <svg width="160" height="160" viewBox="0 0 160 160">
+    <defs>
+      <filter id="glow3">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- Dark ring -->
+    <circle cx="80" cy="80" r="78" fill="#0d0d12" stroke="#7c6ff7" stroke-width="2.5"/>
+    <circle cx="80" cy="80" r="70" fill="none" stroke="#7c6ff7" stroke-width="0.5" opacity="0.2"/>
+    <!-- RR large, clean -->
+    <text x="80" y="98" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-size="56" font-weight="900"
+          fill="#ffffff" filter="url(#glow3)" text-anchor="middle" letter-spacing="-2">RR</text>
+    <!-- Dot accent under letters -->
+    <circle cx="62" cy="112" r="3" fill="#7c6ff7" opacity="0.8"/>
+    <circle cx="80" cy="112" r="3" fill="#7c6ff7" opacity="0.8"/>
+    <circle cx="98" cy="112" r="3" fill="#7c6ff7" opacity="0.8"/>
+  </svg>
+  <div class="label">C · Ring + white RR + dots</div>
+</div>
+
+<!-- Option D: Minimal — just "RR" wordmark with underline bar -->
+<div>
+  <svg width="200" height="100" viewBox="0 0 200 100">
+    <defs>
+      <linearGradient id="barGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#7c6ff7"/>
+        <stop offset="100%" stop-color="#a89cf7" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="glow4">
+        <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect width="200" height="100" fill="#0d0d12" rx="8"/>
+    <!-- RR bold -->
+    <text x="20" y="62" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-size="52" font-weight="900"
+          fill="#ffffff" filter="url(#glow4)" letter-spacing="-2">RR</text>
+    <!-- Purple accent bar -->
+    <rect x="20" y="72" width="80" height="3" fill="url(#barGrad)" rx="2"/>
+    <!-- small tagline -->
+    <text x="20" y="90" font-family="'Arial', sans-serif" font-size="10" fill="#7c6ff7" letter-spacing="0.15em">ROUNDROOM</text>
+  </svg>
+  <div class="label">D · Wordmark flat</div>
+</div>
+
+</body>
+</html>
