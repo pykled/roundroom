@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T13:00:54.450Z",
+  "generated_at": "2026-09-08T22:34:34.450Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -584,9 +584,9 @@
       "vorp_sf": 37.5
     },
     {
-      "name": "Rico Dowdle",
+      "name": "RJ Harvey",
       "position": "RB",
-      "team": "PIT",
+      "team": "DEN",
       "vorp_std": 36,
       "vorp_sf": 36
     },
@@ -612,9 +612,9 @@
       "vorp_sf": 31.5
     },
     {
-      "name": "RJ Harvey",
+      "name": "Rico Dowdle",
       "position": "RB",
-      "team": "DEN",
+      "team": "PIT",
       "vorp_std": 30,
       "vorp_sf": 30
     },
@@ -990,9 +990,9 @@
       "vorp_sf": -48
     },
     {
-      "name": "Malik Washington",
+      "name": "Denzel Boston",
       "position": "WR",
-      "team": "MIA",
+      "team": "CLE",
       "vorp_std": -49.5,
       "vorp_sf": -49.5
     },
@@ -1018,9 +1018,9 @@
       "vorp_sf": -54
     },
     {
-      "name": "Denzel Boston",
+      "name": "Malik Washington",
       "position": "WR",
-      "team": "CLE",
+      "team": "MIA",
       "vorp_std": -54,
       "vorp_sf": -54
     },
@@ -1032,9 +1032,9 @@
       "vorp_sf": 6.5
     },
     {
-      "name": "Cyrus Allen",
+      "name": "Jalen Nailor",
       "position": "WR",
-      "team": "KC",
+      "team": "LV",
       "vorp_std": -58.5,
       "vorp_sf": -58.5
     },
@@ -1053,16 +1053,16 @@
       "vorp_sf": -60
     },
     {
-      "name": "Jalen Nailor",
+      "name": "Cyrus Allen",
       "position": "WR",
-      "team": "LV",
+      "team": "KC",
       "vorp_std": -63,
       "vorp_sf": -63
     },
     {
-      "name": "Fernando Mendoza",
+      "name": "C.J. Stroud",
       "position": "QB",
-      "team": "LV",
+      "team": "HOU",
       "vorp_std": -65,
       "vorp_sf": 0
     },
@@ -1088,9 +1088,9 @@
       "vorp_sf": -67.5
     },
     {
-      "name": "C.J. Stroud",
+      "name": "Fernando Mendoza",
       "position": "QB",
-      "team": "HOU",
+      "team": "LV",
       "vorp_std": -71.5,
       "vorp_sf": -6.5
     },
@@ -1144,9 +1144,9 @@
       "vorp_sf": -81
     },
     {
-      "name": "Dalton Schultz",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "HOU",
+      "team": "WAS",
       "vorp_std": -82.5,
       "vorp_sf": -82.5
     },
@@ -1165,16 +1165,16 @@
       "vorp_sf": -19.5
     },
     {
-      "name": "Dontayvion Wicks",
+      "name": "Travis Hunter",
       "position": "WR",
-      "team": "PHI",
+      "team": "JAX",
       "vorp_std": -85.5,
       "vorp_sf": -85.5
     },
     {
-      "name": "Travis Hunter",
+      "name": "Dontayvion Wicks",
       "position": "WR",
-      "team": "JAX",
+      "team": "PHI",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1256,16 +1256,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Adonai Mitchell",
+      "name": "Jauan Jennings",
       "position": "WR",
-      "team": "NYJ",
+      "team": "MIN",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Jauan Jennings",
+      "name": "Adonai Mitchell",
       "position": "WR",
-      "team": "MIN",
+      "team": "NYJ",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1347,9 +1347,9 @@
       "vorp_sf": -90
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "Dalton Schultz",
       "position": "TE",
-      "team": "WAS",
+      "team": "HOU",
       "vorp_std": -90,
       "vorp_sf": -90
     },

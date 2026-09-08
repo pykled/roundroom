@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-08T21:16:48.059Z",
+  "fetched_at": "2026-09-08T22:34:36.597Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -126,6 +126,13 @@
       "team": "PIT",
       "status": "Questionable",
       "body_part": "Concussion"
+    },
+    {
+      "name": "Ben Yurosek",
+      "position": "TE",
+      "team": "MIN",
+      "status": "IR",
+      "body_part": "Undisclosed"
     },
     {
       "name": "BenJarvus Green-Ellis",
@@ -324,13 +331,6 @@
       "body_part": "Calf"
     },
     {
-      "name": "Christian McCaffrey",
-      "position": "RB",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Chuba Hubbard",
       "position": "RB",
       "team": "CAR",
@@ -448,13 +448,6 @@
       "team": "LAR",
       "status": "Questionable",
       "body_part": "Quadriceps"
-    },
-    {
-      "name": "De'Zhaun Stribling",
-      "position": "WR",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Dennis Houston",
@@ -1395,13 +1388,6 @@
       "body_part": "Leg"
     },
     {
-      "name": "Mike Evans",
-      "position": "WR",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Foot"
-    },
-    {
       "name": "Mike Williams",
       "position": "WR",
       "team": null,
@@ -1498,13 +1484,6 @@
       "team": "DAL",
       "status": "IR",
       "body_part": "Knee - ACL + MCL"
-    },
-    {
-      "name": "Puka Nacua",
-      "position": "WR",
-      "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Quentin Moore",
@@ -1701,13 +1680,6 @@
       "team": "CIN",
       "status": "Questionable",
       "body_part": "Heel"
-    },
-    {
-      "name": "Terrance Ferguson",
-      "position": "TE",
-      "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Terrell Jennings",
