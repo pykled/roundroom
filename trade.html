@@ -84,6 +84,10 @@
 .yt-depth { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.8rem; margin-bottom: 0.6rem; }
 .yt-dep { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); }
 .yt-dep .yt-rank { color: var(--text-muted); }
+.yt-tiers { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.65rem; }
+.yt-tier { display: flex; align-items: center; gap: 0.45rem; font-size: 0.74rem; line-height: 1.4; color: var(--text-secondary); }
+.yt-tier .yt-tier-txt { flex: 1; min-width: 0; }
+.yt-tier .yt-tier-mult { font-family: var(--font-mono); font-size: 0.68rem; white-space: nowrap; cursor: default; }
 .yt-strength { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.55rem; }
 .yt-strength b { color: var(--text-primary); font-weight: 600; }
 .yt-inj { font-size: 0.64rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(239,68,68,.1); color: var(--danger); cursor: default; }
@@ -208,6 +212,7 @@
       </button>
       <div class="yt-body" id="yt-body">
         <div class="yt-depth" id="yt-depth"></div>
+        <div class="yt-tiers" id="yt-tiers"></div>
         <div class="yt-strength" id="yt-strength"></div>
         <div class="yt-row" id="yt-elite"></div>
         <div class="yt-row" id="yt-liab"></div>
@@ -711,21 +716,42 @@ function renderVerdict() {
 // valuable AND outgoing players costlier, so swapping TE-for-TE nets out.
 var NEED_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 // Positional tiers from AnalysisEngine (depth × starter quality), liability → asset.
-// Anything you should add at scales ×1.15, anything you can deal from ×0.85.
-var NEED_MULT  = { critical: 1.15, upgrade: 1.15, thin: 1.15, solid: 1, deep: 0.85, loaded: 0.85 };
+// The multiplier is graduated by severity, not a flat need/surplus switch:
+// five bad RBs (upgrade) and one good RB with nobody behind him (thin) are
+// both "needs", but a critical RB room — few bodies AND weak starters — should
+// pay far more for an incoming starter than either. Same on the surplus side:
+// loaded (top starters + depth) discounts harder than merely deep.
+var NEED_MULT  = {
+  critical: 1.30,  // desperate — few players AND bad quality
+  upgrade:  1.15,  // bad quality at the position but have bodies
+  thin:     1.10,  // ok starters but depth risk — modest bonus
+  solid:    1.00,  // no adjustment
+  deep:     0.90,  // good depth — modest discount on incoming
+  loaded:   0.80,  // top starters AND depth — strong discount
+};
 var NEED_LABEL = { critical: 'Critical', upgrade: 'Upgrade', thin: 'Thin', solid: 'Solid', deep: 'Deep', loaded: 'Loaded' };
 var NEED_GLYPH = { critical: '▲', upgrade: '▲', thin: '△', solid: '–', deep: '▼', loaded: '◆' };
+// One-line read on what the tier means for a trade. Shown under the Your Team
+// chips and in every tier tooltip, so the multiplier never appears unexplained.
 var NEED_HINT  = {
-  critical: 'weak starters and no depth — fix first',
-  upgrade: 'bodies on the roster but starters below league average',
-  thin: 'starters are fine, one injury from trouble',
-  solid: 'average-or-better starters, normal depth',
-  deep: 'good starters with real bench behind them — can deal from here',
-  loaded: 'top-3 starters and surplus — prime trade chip',
+  critical: 'Weak starters, low depth — prioritize an upgrade here',
+  upgrade: 'Bodies on the roster but below-average starters — quality over quantity',
+  thin: 'Starters are fine, one injury from trouble — add depth',
+  solid: 'Average-or-better starters, normal depth — hold',
+  deep: 'Good starters with real bench behind them — can deal from here',
+  loaded: 'Elite starters + depth — deal from here',
 };
 function tierOf(d) { return d && NEED_MULT.hasOwnProperty(d.tier) ? d.tier : 'solid'; }
+// "×1.30 on players in/out" — blank for solid so neutral rows stay quiet.
+function multNote(t) {
+  var m = NEED_MULT[t];
+  if (m === 1) return '';
+  return '×' + m.toFixed(2) + (m > 1 ? ' — incoming worth more, outgoing costs more' : ' — incoming worth less, outgoing cheaper');
+}
 function tierTitle(p, d) {
-  var bits = [NEED_LABEL[tierOf(d)] + ' — ' + NEED_HINT[tierOf(d)]];
+  var t = tierOf(d);
+  var bits = [NEED_LABEL[t] + ': ' + NEED_HINT[t]];
+  if (multNote(t)) bits.push(multNote(t));
   bits.push(d.rostered + ' rostered, ' + fmtSlots(d.slots) + ' starter slot' + (d.slots === 1 ? '' : 's'));
   if (d.leagueAvg != null) bits.push('starters ' + Math.round(d.starterVorp || 0).toLocaleString() + ' vs league avg ' + Math.round(d.leagueAvg).toLocaleString());
   if (d.rank) bits.push(ord(d.rank) + ' strongest ' + p + ' starters in the league');
@@ -862,6 +888,21 @@ function renderYourTeam() {
     document.getElementById('yt-depth').innerHTML = NEED_POSITIONS.map(function(p) {
       return ytChip(p, me.byPos[p]);
     }).join('');
+
+    // Why each tier matters for the trade, worst → best so the fix-first
+    // position sits on top. Solid positions are skipped — nothing to act on.
+    var TIER_ORDER = ['critical', 'upgrade', 'thin', 'deep', 'loaded', 'solid'];
+    var tierRows = NEED_POSITIONS.map(function(p){ return { p: p, t: tierOf(me.byPos[p]) }; })
+      .filter(function(x){ return x.t !== 'solid'; })
+      .sort(function(a, b){ return TIER_ORDER.indexOf(a.t) - TIER_ORDER.indexOf(b.t); });
+    document.getElementById('yt-tiers').innerHTML = tierRows.length ? tierRows.map(function(x) {
+      var m = NEED_MULT[x.t];
+      return '<div class="yt-tier">' +
+        '<span class="pos-badge ' + x.p + '">' + x.p + '</span>' +
+        '<span class="yt-tier-txt">' + esc(NEED_HINT[x.t]) + '</span>' +
+        '<span class="yt-tier-mult rf-st-' + x.t + '" title="' + esc(multNote(x.t)) + '">×' + m.toFixed(2) + '</span>' +
+        '</div>';
+    }).join('') : '<div class="yt-empty">Every position is solid — trade on raw value</div>';
 
     var rec = me.record;
     var recStr = (rec.wins || rec.losses || rec.ties) ? (rec.wins + '-' + rec.losses + (rec.ties ? '-' + rec.ties : '')) : null;
