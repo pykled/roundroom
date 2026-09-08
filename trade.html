@@ -25,9 +25,8 @@
 .pg button:last-child { border-right: none; }
 .pg button.on { background: rgba(255,255,255,0.08); color: var(--text-primary); }
 
-/* league bar: single row here, settings strip tucks up under it */
+/* league bar: single row here */
 #league-bar { flex-wrap: nowrap; margin-bottom: 1.1rem; }
-#league-settings-strip { margin-top: -0.6rem; }
 
 /* trade grid */
 .trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -209,7 +208,6 @@
       <select id="league-sel"></select>
       <span id="league-hint" hidden></span>
     </div>
-    <div id="league-settings-strip" hidden></div>
 
     <!-- Your Team: league-relative read on the signed-in user's roster (connected mode only).
          Rendered by renderYourTeam() from S.myAnalysis; stays hidden when we can't find their roster. -->
@@ -601,27 +599,6 @@ function getTeams() {
   return S.preset.teams;
 }
 
-function renderLeagueStrip() {
-  var strip = document.getElementById('league-settings-strip');
-  if (!strip) return;
-  if (S.mode !== 'connected' || !S.league) { strip.hidden = true; return; }
-  var sc = S.league.scoring_settings || {};
-  var rec = sc.rec != null ? parseFloat(sc.rec) : null;
-  var scoringLabel = rec === 1 ? 'PPR' : rec === 0.5 ? 'Half-PPR' : rec === 0 ? 'Std' : null;
-  var positions = S.league.roster_positions || [];
-  var hasSF = positions.indexOf('SUPER_FLEX') >= 0;
-  var has2QB = positions.filter(function(p){ return p === 'QB'; }).length >= 2;
-  var teCount = S.league.total_rosters;
-  var tags = [];
-  if (scoringLabel) tags.push(scoringLabel);
-  if (hasSF) tags.push('Superflex');
-  else if (has2QB) tags.push('2QB');
-  if (teCount) tags.push(teCount + ' teams');
-  var tePrem = sc.bonus_rec_te || sc.rec_te_bonus;
-  if (tePrem) tags.push('TE+' + tePrem);
-  strip.innerHTML = tags.map(function(t){ return '<span class="ls-tag">' + t + '</span>'; }).join('');
-  strip.hidden = tags.length === 0;
-}
 
 function recompute() {
   var players = Object.keys(S.players).map(function(id) {
@@ -632,7 +609,6 @@ function recompute() {
   // 70% league-specific VORP / 30% FantasyCalc market consensus; pure VORP when market is empty
   S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
   recomputeAnalysis();
-  renderLeagueStrip();
   renderYourTeam();
   renderSide('give');
   renderSide('recv');
