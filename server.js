@@ -2,7 +2,6 @@ const express = require('express');
 const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
-const Anthropic = require('@anthropic-ai/sdk');
 
 const { clerkMiddleware, getAuth } = require("@clerk/express");
 const { Pool } = require('pg');
@@ -472,26 +471,7 @@ app.get('/api/player-stats/:playerId', async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// AI Assistant proxy — keeps the Anthropic API key server-side.
-// Simple in-memory rate limit: max 20 requests per IP per minute.
-// ---------------------------------------------------------------------------
-const chatRateLimits = new Map(); // ip → { count, windowStart }
-const CHAT_RATE_LIMIT = 20;
-const CHAT_RATE_WINDOW = 60 * 1000;
-
-function chatRateLimited(ip) {
-  const now = Date.now();
-  const entry = chatRateLimits.get(ip);
-  if (!entry || now - entry.windowStart >= CHAT_RATE_WINDOW) {
-    chatRateLimits.set(ip, { count: 1, windowStart: now });
-    return false;
-  }
-  entry.count++;
-  return entry.count > CHAT_RATE_LIMIT;
-}
-
-// Generic in-memory rate limiter for other write endpoints (e.g. trade saves).
+// Generic in-memory rate limiter for write endpoints (e.g. trade saves).
 // key → { count, reset }. Returns true when the caller is over the limit.
 const rateLimitMap = new Map();
 function rateLimit(key, maxReq, windowMs) {
@@ -503,65 +483,13 @@ function rateLimit(key, maxReq, windowMs) {
   return entry.count > maxReq;
 }
 
-// Periodically drop expired rate-limit entries so the maps don't grow forever
+// Periodically drop expired rate-limit entries so the map doesn't grow forever
 setInterval(() => {
   const now = Date.now();
-  for (const [ip, entry] of chatRateLimits) {
-    if (now - entry.windowStart >= CHAT_RATE_WINDOW) chatRateLimits.delete(ip);
-  }
   for (const [key, entry] of rateLimitMap) {
     if (now > entry.reset) rateLimitMap.delete(key);
   }
 }, 5 * 60 * 1000).unref();
-
-// Hardcoded system prompt — client cannot override this. Prevents using the
-// Anthropic key as a general-purpose endpoint.
-const CHAT_SYSTEM_PROMPT =
-  'You are a concise fantasy football draft assistant built into RoundRoom. ' +
-  'Answer questions about NFL players, fantasy strategy, matchups, and draft decisions. ' +
-  'Keep responses brief and actionable. Do not discuss topics unrelated to fantasy football.';
-
-app.post('/api/chat', express.json({ limit: '100kb' }), async (req, res) => {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(503).json({ error: 'AI assistant is not configured' });
-  }
-  if (chatRateLimited(req.ip)) {
-    return res.status(429).json({ error: 'Too many requests — slow down a bit' });
-  }
-
-  const { messages } = req.body || {};
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'messages array required' });
-  }
-  // Cap history depth and individual message length
-  if (messages.length > 20) {
-    return res.status(400).json({ error: 'Too many messages' });
-  }
-  for (const m of messages) {
-    if (typeof m.content === 'string' && m.content.length > 4000) {
-      return res.status(400).json({ error: 'Message too long' });
-    }
-  }
-
-  try {
-    const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      system: CHAT_SYSTEM_PROMPT,
-      messages: messages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: String(m.content || '').slice(0, 4000),
-      })),
-    });
-    const reply = response.content?.find(b => b.type === 'text')?.text || '';
-    res.json({ reply });
-  } catch (err) {
-    console.error('AI chat error:', err.message);
-    const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 502;
-    res.status(status).json({ error: 'AI request failed' });
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Server-Side SSE Relay
@@ -1141,185 +1069,6 @@ app.put('/api/me/lists', auth, express.json({ limit: '100kb' }), async (req, res
     res.status(500).json({ error: 'Failed to save lists' });
   } finally {
     client.release();
-  }
-});
-
-// ---------------------------------------------------------------------------
-// AI team analysis — "Explain my team" on /team and the Trade page.
-// The client sends the structured analysis it already computed (never the raw
-// roster); the server validates, builds a fixed prompt, and asks Haiku for
-// exactly four bullets. Responses are cached 1 h by payload hash and the rate
-// limit is tighter than chat (6 per IP per 10 min) since every miss costs money.
-// Sign-in required — only connected users have a roster to explain anyway.
-// ---------------------------------------------------------------------------
-const ANALYSIS_RATE_LIMIT = 6;
-const ANALYSIS_RATE_WINDOW = 10 * 60 * 1000;
-const ANALYSIS_CACHE_TTL = 60 * 60 * 1000;
-const ANALYSIS_CACHE_MAX = 500;
-const ANALYSIS_POS = ['QB', 'RB', 'WR', 'TE'];
-const ANALYSIS_STATUS = new Set(['need', 'neutral', 'surplus']);
-const ANALYSIS_NAME_MAX = 40;
-const ANALYSIS_LIST_MAX = 5;
-const ANALYSIS_PARTNERS_MAX = 3;
-const analysisCache = new Map(); // hash → { bullets, expires }
-
-// Hardcoded — the client only supplies numbers and names, never instructions.
-const ANALYSIS_SYSTEM_PROMPT =
-  'You are a fantasy football analyst assistant.\n' +
-  'Analyze only the data provided. Do not invent player news, injury updates, or facts not in the data.\n' +
-  'Respond in exactly 4 bullet points — no more, no less.\n' +
-  'Each bullet starts with a bold label: **Needs:**, **Surplus:**, **Strengths:**, **Weaknesses:**\n' +
-  'Keep each bullet to 1-2 sentences. Be specific about players and positions mentioned in the data.';
-
-const isInt = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
-const isNum = (v, min, max) => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
-
-// Trimmed, non-empty strings no longer than ANALYSIS_NAME_MAX, capped at `max`.
-// Over-long or non-string entries are dropped rather than rejecting the request.
-function cleanAnalysisNames(arr, max) {
-  if (!Array.isArray(arr)) return [];
-  const out = [];
-  for (const raw of arr) {
-    if (typeof raw !== 'string') continue;
-    const name = raw.trim();
-    if (!name || name.length > ANALYSIS_NAME_MAX) continue;
-    out.push(name);
-    if (out.length >= max) break;
-  }
-  return out;
-}
-
-function cleanPositions(arr) {
-  if (!Array.isArray(arr)) return [];
-  return ANALYSIS_POS.filter(p => arr.includes(p));
-}
-
-// Returns a canonical, fully-validated team object (fixed key order so the
-// cache hash is stable) or a string describing the first validation failure.
-function validateAnalysisTeam(team) {
-  if (!team || typeof team !== 'object' || Array.isArray(team)) return 'team must be an object';
-  const name = typeof team.name === 'string' ? team.name.trim().slice(0, 80) : '';
-  if (!name) return 'team.name required';
-  const totalTeams = team.totalTeams;
-  if (!isInt(totalTeams, 2, 32)) return 'team.totalTeams must be between 2 and 32';
-  if (!isInt(team.strengthRank, 1, totalTeams)) return 'team.strengthRank must be between 1 and totalTeams';
-  if (!isNum(team.starterPts, 0, 1000)) return 'team.starterPts must be a number';
-  const rec = team.record && typeof team.record === 'object' ? team.record : {};
-  const wins = rec.wins == null ? 0 : rec.wins;
-  const losses = rec.losses == null ? 0 : rec.losses;
-  if (!isInt(wins, 0, 30) || !isInt(losses, 0, 30)) return 'team.record must have integer wins and losses';
-  if (!team.byPos || typeof team.byPos !== 'object') return 'team.byPos required';
-  const byPos = {};
-  for (const p of ANALYSIS_POS) {
-    const c = team.byPos[p];
-    if (!c || typeof c !== 'object') return `team.byPos.${p} required`;
-    if (!ANALYSIS_STATUS.has(c.status)) return `team.byPos.${p}.status must be need, neutral, or surplus`;
-    if (c.rank != null && !isInt(c.rank, 1, totalTeams)) return `team.byPos.${p}.rank must be between 1 and totalTeams`;
-    if (!isInt(c.rostered, 0, 60)) return `team.byPos.${p}.rostered must be an integer`;
-    if (!isNum(c.slots, 0, 10)) return `team.byPos.${p}.slots must be a number`;
-    byPos[p] = { status: c.status, rank: c.rank == null ? null : c.rank, rostered: c.rostered, slots: c.slots };
-  }
-  const injuredCount = team.injuredCount == null ? 0 : team.injuredCount;
-  if (!isInt(injuredCount, 0, 60)) return 'team.injuredCount must be an integer';
-  const partners = [];
-  if (team.partners != null) {
-    if (!Array.isArray(team.partners)) return 'team.partners must be an array';
-    for (const pr of team.partners.slice(0, ANALYSIS_PARTNERS_MAX)) {
-      if (!pr || typeof pr !== 'object') continue;
-      const pn = typeof pr.name === 'string' ? pr.name.trim().slice(0, 80) : '';
-      if (!pn) continue;
-      partners.push({ name: pn, theyNeed: cleanPositions(pr.theyNeed), theySurplus: cleanPositions(pr.theySurplus) });
-    }
-  }
-  return {
-    name,
-    record: { wins, losses },
-    starterPts: Math.round(team.starterPts * 10) / 10,
-    strengthRank: team.strengthRank,
-    totalTeams,
-    byPos,
-    elite: cleanAnalysisNames(team.elite, ANALYSIS_LIST_MAX),
-    liabilities: cleanAnalysisNames(team.liabilities, ANALYSIS_LIST_MAX),
-    injuredCount,
-    partners,
-  };
-}
-
-// Compact natural-language summary of the validated payload — the only thing
-// Claude sees besides the system prompt.
-function analysisSummary(t) {
-  const fmtSlots = v => (Number.isInteger(v) ? String(v) : v.toFixed(1));
-  const posLine = ANALYSIS_POS.map(p => {
-    const c = t.byPos[p];
-    const rank = c.rank ? `rank ${c.rank} of ${t.totalTeams}` : 'unranked';
-    return `${p} ${c.status} (${rank}; ${c.rostered} rostered for ${fmtSlots(c.slots)} starter slot${c.slots === 1 ? '' : 's'})`;
-  }).join(', ');
-  const partnerLine = t.partners.length
-    ? t.partners.map(pr => {
-        const bits = [];
-        if (pr.theyNeed.length) bits.push(`needs ${pr.theyNeed.join('/')}`);
-        if (pr.theySurplus.length) bits.push(`surplus ${pr.theySurplus.join('/')}`);
-        return `${pr.name} (${bits.join('; ') || 'no positional match'})`;
-      }).join('; ')
-    : 'none identified';
-  return (
-    `Team: ${t.name}, ${t.record.wins}-${t.record.losses}, ranked ${t.strengthRank} of ${t.totalTeams} by projected strength (${t.starterPts} pts/wk).\n` +
-    `Positions: ${posLine}.\n` +
-    `Elite players: ${t.elite.length ? t.elite.join(', ') : 'none'}. ` +
-    `Liabilities: ${t.liabilities.length ? t.liabilities.join(', ') : 'none'}. ` +
-    `Injured/out: ${t.injuredCount}.\n` +
-    `Top trade partners: ${partnerLine}.`
-  );
-}
-
-// djb2 — fast, good enough to key an in-memory cache on a ~1 KB JSON string.
-function djb2(str) {
-  let h = 5381;
-  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
-  return (h >>> 0).toString(36);
-}
-
-app.post('/api/analysis', auth, express.json({ limit: '20kb' }), async (req, res) => {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(503).json({ error: 'AI analysis is not configured' });
-  }
-  const { leagueId, team } = req.body || {};
-  if (typeof leagueId !== 'string' || !leagueId.trim() || leagueId.length > 32) {
-    return res.status(400).json({ error: 'leagueId required' });
-  }
-  const clean = validateAnalysisTeam(team);
-  if (typeof clean === 'string') return res.status(400).json({ error: clean });
-
-  const json = JSON.stringify(clean);
-  const cacheKey = `${leagueId.trim()}:${djb2(json)}:${json.length}`;
-  const hit = analysisCache.get(cacheKey);
-  if (hit && Date.now() < hit.expires) {
-    console.log(`AI analysis cache hit: ${cacheKey}`);
-    return res.json({ bullets: hit.bullets });
-  }
-  // Cache hits are free, so only real Claude calls count against the limit.
-  if (rateLimit(`analysis:${req.ip}`, ANALYSIS_RATE_LIMIT, ANALYSIS_RATE_WINDOW)) {
-    return res.status(429).json({ error: 'Too many analyses — try again in a few minutes' });
-  }
-
-  try {
-    const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 350,
-      system: ANALYSIS_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: analysisSummary(clean) }],
-    });
-    const bullets = (response.content?.find(b => b.type === 'text')?.text || '').trim();
-    if (!bullets) return res.status(502).json({ error: 'AI returned an empty analysis' });
-    evictOldest(analysisCache, ANALYSIS_CACHE_MAX);
-    analysisCache.set(cacheKey, { bullets, expires: Date.now() + ANALYSIS_CACHE_TTL });
-    res.json({ bullets });
-  } catch (err) {
-    console.error('AI analysis error:', err.message);
-    // Only Anthropic's own 429 is meaningful to the client; anything else
-    // (bad key, 400, 5xx) is our problem, not a sign-in or client issue.
-    res.status(err.status === 429 ? 429 : 502).json({ error: 'AI request failed' });
   }
 });
 
