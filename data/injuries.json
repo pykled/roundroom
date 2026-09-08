@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-08T16:45:24.901Z",
+  "fetched_at": "2026-09-08T21:16:48.059Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -490,6 +490,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Devontez Walker",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Dez Fitzpatrick",
@@ -1432,7 +1439,7 @@
     {
       "name": "Myles Montgomery",
       "position": "RB",
-      "team": null,
+      "team": "NE",
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -1762,8 +1769,8 @@
       "name": "TreVeyon Henderson",
       "position": "RB",
       "team": "NE",
-      "status": "Questionable",
-      "body_part": "Leg"
+      "status": "Out",
+      "body_part": "Ankle"
     },
     {
       "name": "Trevor Etienne",
