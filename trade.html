@@ -90,15 +90,14 @@
 .yt.collapsed .yt-chev { transform: rotate(-90deg); }
 .yt.collapsed .yt-body { display: none; }
 .yt-body { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.7rem 1rem 0.8rem; border-top: 1px solid var(--border); }
-/* Position chips: position + tier are the two signals. The multiplier is a quiet
-   mono suffix (only when ≠ 1.00); rank, depth and the explanation live in the
-   tooltip and in the tap-to-reveal hint line — never inline by default. */
+/* Position chips: position + tier are the two signals. The multiplier, rank,
+   depth and the explanation live in the tooltip and in the tap-to-reveal hint
+   line — never inline by default. */
 .yt-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .yt-chip { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 0.22rem 0.55rem 0.22rem 0.32rem; font: inherit; font-size: 0.72rem; color: var(--text-secondary); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .yt-chip:hover { border-color: var(--border-bright); }
 .yt-chip[aria-pressed="true"] { border-color: var(--border-bright); background: var(--bg-hover); }
 .yt-chip-tier { font-weight: 600; }
-.yt-chip-mult { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-muted); }
 .yt-hint { font-size: 0.72rem; line-height: 1.5; color: var(--text-secondary); margin-top: -0.2rem; }
 .yt-hint .pos-badge { margin-right: 0.3rem; }
 /* One-line roster read: Elite · Liability · health pills */
@@ -108,9 +107,10 @@
 .yt-name { color: var(--text-primary); }
 .yt-v { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.66rem; }
 .yt-inj { font-size: 0.62rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: rgba(239,68,68,.1); color: var(--danger); cursor: default; }
-.yt-partners { padding-top: 0.65rem; border-top: 1px solid var(--border); }
-.yt-partners .yt-lbl { display: block; margin-bottom: 0.3rem; }
-.yt-partners .yt-lbl .yt-lbl-sub { color: var(--text-muted); opacity: 0.7; text-transform: none; letter-spacing: 0; }
+/* Trade partners: collapsed <details> — the summary carries the count, the list opens on demand. */
+.yt-partners { margin-top: 0; padding-top: 0.65rem; border-top: 1px solid var(--border); }
+.yt-partners .details-body { padding-top: 0.4rem; }
+.yt-partners .yt-lbl-sub { display: block; font-size: 0.68rem; color: var(--text-muted); margin-bottom: 0.2rem; }
 .yt-partner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: 0.76rem; padding: 0.22rem 0; }
 .yt-partner .yt-name { color: var(--text-primary); font-weight: 500; margin-right: 0.15rem; }
 .yt-partner .yt-sep { color: var(--text-muted); }
@@ -137,12 +137,14 @@
 .rf-bad { background: rgba(239,68,68,.1); color: var(--danger); }
 .rf-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); }
 .rf-val { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); min-width: 44px; text-align: right; white-space: nowrap; }
-.rf-mult { color: var(--text-muted); font-size: 0.64rem; margin-left: 0.2rem; }
 .rf-summary { text-align: center; margin-top: var(--space-4); font-size: 0.78rem; color: var(--text-secondary); }
 .rf-badge { font-size: 0.76rem; padding: 0.25rem 1rem; margin: 0 0 0 0.4rem; }
 #rf-delta { text-align: center; margin-top: 0.35rem; }
 .share-row { text-align: center; }
 .share-note { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+/* "How scoring works" footnote: tier/multiplier glossary reads better as its own wrapped line */
+.legend .lg-tiers { display: block; margin-top: 0.35rem; }
 
 /* mobile: 16px stops iOS focus-zoom (shared/styles.css covers .form-row + #league-bar) */
 @media (max-width: 768px) {
@@ -193,7 +195,6 @@
     <div class="page-head">
       <div class="page-head-text">
         <div class="page-title">Trade Calculator</div>
-        <div class="page-sub">Score both sides on league-specific VORP blended with market value. Connect Sleeper to check the fit for your actual roster.</div>
       </div>
       <!-- League selector (connected mode) -->
       <div id="league-bar" hidden>
@@ -236,7 +237,10 @@
         <div class="yt-chips" id="yt-chips"></div>
         <div class="yt-hint" id="yt-hint" hidden></div>
         <div class="yt-line" id="yt-line"></div>
-        <div class="yt-partners" id="yt-partners"></div>
+        <details class="yt-partners info-details" id="yt-partners">
+          <summary id="yt-partners-sum">Trade partners</summary>
+          <div class="details-body" id="yt-partners-body"></div>
+        </details>
         <div class="yt-ai">
           <div class="yt-ai-bar">
             <button type="button" class="yt-ai-btn" id="yt-ai-btn">Explain my team</button>
@@ -305,6 +309,23 @@
       <button class="btn-secondary" id="share-btn">Share Trade Link</button>
       <div class="share-note" id="share-note" hidden></div>
     </div>
+
+    <details class="legend info-details">
+      <summary>How scoring works</summary>
+      <div class="details-body">
+        Both sides are scored on league-specific VORP (value over a replacement player for your slots and team count), blended 70/30 with FantasyCalc market consensus — the same numbers as the lineup optimizer and team page. The verdict is FAIR when the two totals are within 10%, WIN when you receive more, LOSE when you give more. Connect Sleeper to score with your league's exact settings and check the fit for your actual roster.
+        <span class="lg-tiers">
+        Roster Fit scales each player by your need at that position:
+        <span class="st-critical">▲ Critical ×1.30</span> ·
+        <span class="st-upgrade">▲ Upgrade ×1.15</span> ·
+        <span class="st-thin">△ Thin ×1.10</span> ·
+        <span class="st-solid">– Solid ×1.00</span> ·
+        <span class="st-deep">▼ Deep ×0.90</span> ·
+        <span class="st-loaded">◆ Loaded ×0.80</span>.
+        A position you need makes incoming players worth more and outgoing players cost more, so a like-for-like swap nets out. Hover or tap a position chip for the full read on that spot.
+        </span>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -825,12 +846,15 @@ function rfRow(id, side, depth) {
   // Impact on the user, not the tier itself: receiving where you should add
   // (or giving from where you can deal) helps; the reverse hurts.
   var impact = NEED_MULT[st] === 1 ? 'neutral' : ((side === 'recv') === (NEED_MULT[st] > 1)) ? 'good' : 'bad';
-  var mult = NEED_MULT[st] !== 1 ? '<span class="rf-mult">×' + NEED_MULT[st].toFixed(2) + '</span>' : '';
+  // Multiplier + raw value live in the tooltip; the row shows only the adjusted number.
+  var valTitle = NEED_MULT[st] !== 1
+    ? 'Raw ' + raw.toLocaleString() + ' × ' + NEED_MULT[st].toFixed(2) + ' (' + NEED_LABEL[st] + ' ' + info[1] + ') = ' + adj.toLocaleString()
+    : 'Raw ' + raw.toLocaleString() + ' · no need adjustment (' + NEED_LABEL[st] + ' ' + info[1] + ')';
   return '<div class="rf-row">' +
     '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
     '<span class="rf-name">' + info[0] + '</span>' +
-    '<span class="rf-tag rf-' + impact + '">' + NEED_GLYPH[st] + ' ' + NEED_LABEL[st] + '</span>' +
-    '<span class="rf-val">' + adj.toLocaleString() + mult + '</span>' +
+    '<span class="rf-tag rf-' + impact + '" title="' + esc(NEED_LABEL[st] + ': ' + NEED_HINT[st]) + '">' + NEED_GLYPH[st] + ' ' + NEED_LABEL[st] + '</span>' +
+    '<span class="rf-val" title="' + esc(valTitle) + '">' + adj.toLocaleString() + '</span>' +
     '</div>';
 }
 
@@ -853,18 +877,18 @@ function ord(n) {
 // AnalysisEngine in recomputeAnalysis(). Collapsed by default on narrow screens.
 //
 // Built to be scanned, not read: header carries the headline numbers, one row
-// of position chips (position + tier, multiplier as a quiet suffix), one line
-// for elite / liability / health, then trade partners. Everything explanatory
-// is hover (title) or tap (hint line) only, so nothing verbose shows by default.
+// of position chips (position + tier only), one line for elite / liability /
+// health, then trade partners collapsed behind a count. Everything explanatory
+// — including the need multiplier — is hover (title) or tap (hint line) only,
+// so nothing verbose shows by default.
 var YT_INIT = false;
 var YT_HINT_POS = null;   // position whose hint line is open, or null
 
 function ytChip(p, d) {
-  var t = tierOf(d), m = NEED_MULT[t];
+  var t = tierOf(d);
   return '<button type="button" class="yt-chip" data-pos="' + p + '" aria-pressed="' + (YT_HINT_POS === p) + '" title="' + esc(tierTitle(p, d)) + '">' +
     '<span class="pos-badge ' + p + '">' + p + '</span>' +
     '<span class="yt-chip-tier rf-st-' + t + '">' + NEED_LABEL[t] + '</span>' +
-    (m !== 1 ? '<span class="yt-chip-mult">×' + m.toFixed(2) + '</span>' : '') +
     '</button>';
 }
 
@@ -957,8 +981,11 @@ function renderYourTeam() {
     document.getElementById('yt-line').innerHTML = line;
 
     var partners = S.leagueAnalysis ? S.leagueAnalysis.partners(me.rosterId, 3) : [];
-    var pEl = document.getElementById('yt-partners');
-    var html = '<span class="yt-lbl">Trade partners <span class="yt-lbl-sub">· teams that need what you have</span></span>';
+    // Collapsed by default: the summary line carries the count, the list opens on demand.
+    document.getElementById('yt-partners-sum').textContent =
+      'Trade partners · ' + (partners.length ? partners.length + ' team' + (partners.length === 1 ? '' : 's') : 'none yet');
+    var pEl = document.getElementById('yt-partners-body');
+    var html = '<span class="yt-lbl-sub">Teams that need what you have</span>';
     if (!me.surplus.length) {
       html += '<div class="yt-empty">No surplus position to deal from yet</div>';
     } else if (!partners.length) {

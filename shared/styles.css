@@ -365,6 +365,29 @@ td.empty-hint { display: table-cell; border: none; padding: var(--space-6) var(-
 .legend { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.7; margin-top: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .legend-title { display: block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-bottom: 0.3rem; }
 
+/* Collapsible explanation block — native <details>, collapsed by default, no JS.
+   Used for page legends ("How to read this"), methodology notes and secondary
+   lists (trade partners) so the primary view stays quiet. */
+.info-details { margin-top: var(--space-4); }
+.info-details summary {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.info-details summary::-webkit-details-marker { display: none; }
+.info-details summary:hover { color: var(--text-secondary); }
+.info-details summary::before { content: '▶'; font-size: 0.55rem; transition: transform 0.15s; }
+.info-details[open] summary::before { transform: rotate(90deg); }
+.info-details .details-body { padding-top: var(--space-3); }
+
 /* Tool page header: title + one-line sub on the left, controls (league picker) on the right. */
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-4); }
 .page-head-text { min-width: 0; flex: 1 1 260px; }

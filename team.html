@@ -69,7 +69,6 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
 /* AI explanation (button-triggered, never auto-fires) */
 .ai-wrap { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .ai-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
-.ai-hint { font-size: 0.7rem; color: var(--text-muted); }
 .ai-err { font-size: 0.74rem; color: var(--danger); }
 .ai-out { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.9rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); }
 .ai-out p { font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
@@ -125,7 +124,6 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
     <div class="page-head">
       <div class="page-head-text">
         <div class="page-title">League Comparison</div>
-        <div class="page-sub">Every roster ranked on optimal starters from full-season projections (÷17 per week), under this league's scoring and slots.</div>
       </div>
       <div id="league-bar">
         <span>League:</span>
@@ -161,17 +159,17 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
       </div>
       <div class="ai-wrap">
         <div class="ai-bar">
-          <button class="btn-primary" id="ai-btn" type="button">Explain my team</button>
-          <span class="ai-hint" id="ai-hint">AI summary of the numbers above · uses only this data</span>
+          <button class="btn-primary" id="ai-btn" type="button" title="AI summary of the numbers above · uses only this data">Explain my team</button>
           <span class="ai-err" id="ai-err" hidden></span>
         </div>
         <div class="ai-out" id="ai-out" hidden></div>
       </div>
     </div>
 
-    <div class="legend">
-      <span class="legend-title">How to read this</span>
-      Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
+    <details class="legend info-details">
+      <summary>How to read this</summary>
+      <div class="details-body">
+      Every roster is ranked on its optimal starters from full-season projections (÷17 per week), under this league's scoring and slots. Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
       <span class="lg-tiers">
       <span class="st-critical">▲ Critical</span> weak starters and no depth — prioritize an upgrade ·
       <span class="st-upgrade">▲ Upgrade</span> bodies on the roster but below-average starters — quality over quantity ·
@@ -182,7 +180,8 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
       </span>
       The trade calculator scales player value by these tiers (Critical ×1.30 … Loaded ×0.80) in its Roster Fit verdict.
       Positional rank compares each team's starting strength at that position across the league. Record and points come from Sleeper and show 0-0 until Week 1 posts.
-    </div>
+      </div>
+    </details>
   </div>
 </div>
 
