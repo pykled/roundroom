@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T22:34:34.450Z",
+  "generated_at": "2026-09-09T13:11:14.724Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -108,9 +108,9 @@
       "vorp_sf": 175.5
     },
     {
-      "name": "De'Von Achane",
+      "name": "Chase Brown",
       "position": "RB",
-      "team": "MIA",
+      "team": "CIN",
       "vorp_std": 174,
       "vorp_sf": 174
     },
@@ -122,9 +122,9 @@
       "vorp_sf": 171
     },
     {
-      "name": "Chase Brown",
+      "name": "De'Von Achane",
       "position": "RB",
-      "team": "CIN",
+      "team": "MIA",
       "vorp_std": 168,
       "vorp_sf": 168
     },
@@ -493,16 +493,16 @@
       "vorp_sf": 58.5
     },
     {
-      "name": "Josh Jacobs",
+      "name": "Rhamondre Stevenson",
       "position": "RB",
-      "team": "GB",
+      "team": "NE",
       "vorp_std": 54,
       "vorp_sf": 54
     },
     {
-      "name": "Courtland Sutton",
+      "name": "Chris Godwin",
       "position": "WR",
-      "team": "DEN",
+      "team": "TB",
       "vorp_std": 54,
       "vorp_sf": 54
     },
@@ -521,16 +521,16 @@
       "vorp_sf": 117
     },
     {
-      "name": "Chris Godwin",
+      "name": "Courtland Sutton",
       "position": "WR",
-      "team": "TB",
+      "team": "DEN",
       "vorp_std": 49.5,
       "vorp_sf": 49.5
     },
     {
-      "name": "Rhamondre Stevenson",
+      "name": "Josh Jacobs",
       "position": "RB",
-      "team": "NE",
+      "team": "GB",
       "vorp_std": 48,
       "vorp_sf": 48
     },
@@ -584,9 +584,9 @@
       "vorp_sf": 37.5
     },
     {
-      "name": "RJ Harvey",
+      "name": "Rico Dowdle",
       "position": "RB",
-      "team": "DEN",
+      "team": "PIT",
       "vorp_std": 36,
       "vorp_sf": 36
     },
@@ -612,9 +612,9 @@
       "vorp_sf": 31.5
     },
     {
-      "name": "Rico Dowdle",
+      "name": "RJ Harvey",
       "position": "RB",
-      "team": "PIT",
+      "team": "DEN",
       "vorp_std": 30,
       "vorp_sf": 30
     },
@@ -626,9 +626,9 @@
       "vorp_sf": 30
     },
     {
-      "name": "Quentin Johnston",
+      "name": "Stefon Diggs",
       "position": "WR",
-      "team": "LAC",
+      "team": "WAS",
       "vorp_std": 27,
       "vorp_sf": 27
     },
@@ -647,9 +647,9 @@
       "vorp_sf": 24
     },
     {
-      "name": "Stefon Diggs",
+      "name": "Quentin Johnston",
       "position": "WR",
-      "team": "WAS",
+      "team": "LAC",
       "vorp_std": 22.5,
       "vorp_sf": 22.5
     },
@@ -1144,9 +1144,9 @@
       "vorp_sf": -81
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "Dalton Schultz",
       "position": "TE",
-      "team": "WAS",
+      "team": "HOU",
       "vorp_std": -82.5,
       "vorp_sf": -82.5
     },
@@ -1207,16 +1207,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Tank Dell",
+      "name": "Chris Bell",
       "position": "WR",
-      "team": "HOU",
+      "team": "MIA",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Chris Bell",
+      "name": "Tank Dell",
       "position": "WR",
-      "team": "MIA",
+      "team": "HOU",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1235,16 +1235,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Omar Cooper",
+      "name": "Ryan Flournoy",
       "position": "WR",
-      "team": "NYJ",
+      "team": "DAL",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Ryan Flournoy",
+      "name": "Omar Cooper",
       "position": "WR",
-      "team": "DAL",
+      "team": "NYJ",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1347,9 +1347,9 @@
       "vorp_sf": -90
     },
     {
-      "name": "Dalton Schultz",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "HOU",
+      "team": "WAS",
       "vorp_std": -90,
       "vorp_sf": -90
     },
@@ -1480,13 +1480,6 @@
       "vorp_sf": -110
     },
     {
-      "name": "Jaydon Blue",
-      "position": "RB",
-      "team": "DAL",
-      "vorp_std": -110,
-      "vorp_sf": -110
-    },
-    {
       "name": "George Holani",
       "position": "RB",
       "team": "SEA",
@@ -1497,6 +1490,13 @@
       "name": "Justice Hill",
       "position": "RB",
       "team": "BAL",
+      "vorp_std": -110,
+      "vorp_sf": -110
+    },
+    {
+      "name": "Jaydon Blue",
+      "position": "RB",
+      "team": "DAL",
       "vorp_std": -110,
       "vorp_sf": -110
     },
