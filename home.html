@@ -40,7 +40,6 @@ body {
   line-height: normal;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  background: #0a0a12;
 }
 a { color: inherit; }
 [hidden] { display: none !important; }
@@ -96,15 +95,10 @@ a { color: inherit; }
    stack under it, and the product frame anchors the bottom of the section.
    Section runs on a deep navy-black with a violet bloom behind the logo. */
 #hero {
-  /* Logo box. The source art is a square with the card occupying roughly
-     x 18–84%, y 11–97%, so the visible card is ~86% of this box tall
-     (desktop ≈ 275–410px, mobile ≈ 225–275px). The image is drawn at exactly
-     this box size (object-fit: contain, no mask) so nothing can be cropped. */
-  --logo-size: clamp(320px, 40vw, 480px);
-  position: relative; padding: 24px 0 80px;
+  position: relative; padding: 56px 0 80px; overflow: hidden;
   background:
     radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%),
-    #0a0a12;
+    linear-gradient(180deg, #0a0a12 0%, #0a0a12 72%, var(--bg-primary) 100%);
 }
 /* Animated violet bloom: its own layer so only transform/opacity change per frame. */
 #hero::before {
@@ -120,21 +114,9 @@ a { color: inherit; }
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-/* Wrapper owns layout spacing + scroll parallax. The float animation travels
-   10px upward and the art has an ~11% blank band above the card, so a small top
-   margin is enough to keep the card clear of the section's clipped top edge.
-   Parallax uses `translate`/opacity here (not on .hero-logo) because the
-   keyframe animations on .hero-logo own `transform` and `opacity`. */
-.hero-logo-wrap {
-  margin: 12px auto 0;
-  translate: 0 var(--py, 0px);
-  opacity: var(--po, 1);
-  will-change: transform, opacity;
-  mix-blend-mode: screen;
-}
 .hero-logo {
   position: relative; display: flex; justify-content: center; align-items: center;
-  width: var(--logo-size); aspect-ratio: 1;
+  width: clamp(280px, 36vw, 420px); aspect-ratio: 1;
   margin: 0 auto 24px;
   /* Entrance first, then a slow breathing float once the entrance has settled. */
   animation: rise-in 0.7s ease-out both, logo-float 4s ease-in-out 0.7s infinite;
@@ -146,10 +128,16 @@ a { color: inherit; }
   pointer-events: none;
   animation: glow-pulse 4s ease-in-out infinite;
 }
+.hero-logo picture { display: contents; }
 .hero-logo img {
-  position: relative; z-index: 1; display: block;
-  width: 100%; height: 100%; max-width: 100%;
-  object-fit: contain;
+  /* Absolutely positioned so the oversized image never stretches the square box. */
+  position: absolute; inset: -18%; display: block;
+  width: 136%; height: 136%; max-width: none;
+  object-fit: cover;
+  /* The PNG has a near-black backdrop; screen blending drops it into the section bg. */
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 74%);
+          mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 74%);
   filter: saturate(1.08);
   user-select: none; -webkit-user-drag: none;
 }
@@ -363,22 +351,15 @@ footer .f-links .dim { opacity: 0.5; }
    sticky nav after the animation ends (a lingering transform would trap fixed children). */
 #rr-nav { animation: nav-in 0.6s ease-out backwards; }
 
-/* Scroll reveal: only armed when JS is present so no-JS visitors still see content.
-   Variants: default rises up; .reveal-left cascades in from the left (method steps);
-   .reveal-scale settles from 0.98 → 1 (section headings). Stagger via --d. */
+/* Scroll reveal: only armed when JS is present so no-JS visitors still see content. */
 .js .reveal {
   opacity: 0; transform: translateY(20px);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
   transition-delay: var(--d, 0ms);
 }
-.js .reveal-left { transform: translateX(-24px); }
-.js .reveal-scale { transform: translateY(12px) scale(0.98); transform-origin: 0 50%; }
-.js .reveal.in { opacity: 1; transform: none; }
-/* Count-up numbers: fixed-width digits so the value doesn't jitter while ticking. */
-[data-count] { font-variant-numeric: tabular-nums; }
+.js .reveal.in { opacity: 1; transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {
   .js .reveal { opacity: 1; transform: none; }
-  .hero-logo-wrap { translate: none; opacity: 1; }
 }
 
 /* ---- Responsive ---- */
@@ -390,9 +371,8 @@ footer .f-links .dim { opacity: 0.5; }
   .method-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 768px) {
-  #hero { --logo-size: clamp(260px, 72vw, 320px); padding: 16px 0 56px; }
-  .hero-logo-wrap { margin-top: 8px; }
-  .hero-logo { margin-bottom: 16px; }
+  #hero { padding: 32px 0 56px; }
+  .hero-logo { width: clamp(200px, 60vw, 260px); margin-bottom: 16px; }
   #hero h1 { margin-bottom: 1rem; }
   #hero .sub { margin-bottom: 1.5rem; }
   .hero-visual { margin-top: 36px; }
@@ -442,10 +422,11 @@ footer .f-links .dim { opacity: 0.5; }
 
 <section id="hero">
   <div class="container">
-    <div class="hero-logo-wrap" id="hero-logo-wrap">
-      <div class="hero-logo" aria-hidden="true">
+    <div class="hero-logo" aria-hidden="true">
+      <picture>
+        <source srcset="/pocket-logo-hero.webp" type="image/webp">
         <img src="/pocket-logo-primary.png" alt="" width="1024" height="1024" fetchpriority="high" decoding="async">
-      </div>
+      </picture>
     </div>
     <div class="hero-copy">
       <h1 id="hero-h1">Every pick. Every trade. Scored to your league.</h1>
@@ -477,18 +458,18 @@ footer .f-links .dim { opacity: 0.5; }
           <span class="r">12-team · Half PPR · SF</span>
         </div>
         <div class="verdict-wrap">
-          <span class="verdict v-WIN">WIN <span class="delta" data-count="14.2">+14.2</span></span>
+          <span class="verdict v-WIN">WIN <span class="delta">+14.2</span></span>
         </div>
         <div class="sides">
           <div class="side">
             <div class="side-lbl mono">You give</div>
-            <div class="prow"><span class="pos RB">RB</span><span class="pname">Saquon Barkley</span><span class="pval" data-count="4180">4,180</span></div>
-            <div class="prow"><span class="pos WR">WR</span><span class="pname">Tee Higgins</span><span class="pval" data-count="2640">2,640</span></div>
+            <div class="prow"><span class="pos RB">RB</span><span class="pname">Saquon Barkley</span><span class="pval">4,180</span></div>
+            <div class="prow"><span class="pos WR">WR</span><span class="pname">Tee Higgins</span><span class="pval">2,640</span></div>
           </div>
           <div class="side">
             <div class="side-lbl mono">You get</div>
-            <div class="prow"><span class="pos QB">QB</span><span class="pname">Lamar Jackson</span><span class="pval" data-count="5310">5,310</span></div>
-            <div class="prow"><span class="pos TE">TE</span><span class="pname">Brock Bowers</span><span class="pval" data-count="2640">2,640</span></div>
+            <div class="prow"><span class="pos QB">QB</span><span class="pname">Lamar Jackson</span><span class="pval">5,310</span></div>
+            <div class="prow"><span class="pos TE">TE</span><span class="pname">Brock Bowers</span><span class="pval">2,640</span></div>
           </div>
         </div>
         <div class="frame-ftr mono">Replacement level from your roster slots</div>
@@ -509,7 +490,7 @@ footer .f-links .dim { opacity: 0.5; }
 
 <section id="tools">
   <div class="container">
-    <div class="section-head reveal reveal-scale">
+    <div class="section-head reveal">
       <div class="eyebrow mono">Three tools · One login</div>
       <h2>Same league settings. Every tool.</h2>
     </div>
@@ -521,13 +502,13 @@ footer .f-links .dim { opacity: 0.5; }
         <p>Live best-available picks, ranked by value over replacement for your scoring.</p>
         <div class="mini">
           <div class="mrow"><span class="pos RB">RB</span><span class="pname">Jahmyr Gibbs</span><span class="best">Best available</span></div>
-          <div class="mrow dim"><span class="pos WR">WR</span><span class="pname">Ja'Marr Chase</span><span class="pval" data-count="9410">9,410</span></div>
-          <div class="mrow dim"><span class="pos RB">RB</span><span class="pname">Bijan Robinson</span><span class="pval" data-count="9120">9,120</span></div>
+          <div class="mrow dim"><span class="pos WR">WR</span><span class="pname">Ja'Marr Chase</span><span class="pval">9,410</span></div>
+          <div class="mrow dim"><span class="pos RB">RB</span><span class="pname">Bijan Robinson</span><span class="pval">9,120</span></div>
         </div>
         <div class="card-cta">Open draft board →</div>
       </a>
 
-      <a class="card reveal" href="/trade" style="--d: 60ms">
+      <a class="card reveal" href="/trade" style="--d: 50ms">
         <div class="eyebrow mono">Trade desk</div>
         <h3>Trade Calculator</h3>
         <p>Players on both sides. A WIN, FAIR, or LOSE verdict on your league's settings.</p>
@@ -539,7 +520,7 @@ footer .f-links .dim { opacity: 0.5; }
         <div class="card-cta">Run a trade →</div>
       </a>
 
-      <a class="card reveal" id="card-lineup" href="/lineup" style="--d: 120ms">
+      <a class="card reveal" id="card-lineup" href="/lineup" style="--d: 100ms">
         <div class="eyebrow mono">Weekly</div>
         <h3>Lineup Optimizer</h3>
         <p>Your roster, this week's projections, and the highest-scoring lineup under your rules.</p>
@@ -562,15 +543,15 @@ footer .f-links .dim { opacity: 0.5; }
 <section id="method">
   <div class="container">
     <div class="method-grid">
-      <div class="method reveal reveal-left">
+      <div class="method reveal">
         <div class="eyebrow mono">Replacement level</div>
         <p>Your roster slots and team count set the replacement line. Superflex values QBs differently, and the numbers show it.</p>
       </div>
-      <div class="method reveal reveal-left" style="--d: 60ms">
+      <div class="method reveal" style="--d: 50ms">
         <div class="eyebrow mono">Your scoring, per stat</div>
         <p>Projections scored with your exact scoring table, not a PPR preset.</p>
       </div>
-      <div class="method reveal reveal-left" style="--d: 120ms">
+      <div class="method reveal" style="--d: 100ms">
         <div class="eyebrow mono">Fresh data</div>
         <p>Projections and injuries refresh daily in season.</p>
         <div class="fresh mono" id="freshness" hidden></div>
@@ -824,97 +805,23 @@ footer .f-links .dim { opacity: 0.5; }
 })();
 </script>
 <script>
-// Scroll-driven motion (presentation only). Three pieces, all gated on
-// prefers-reduced-motion so reduced-motion visitors get the static page:
-//   1. .reveal blocks fade/slide in via IntersectionObserver; stagger comes from
-//      each element's --d custom property via transition-delay in CSS.
-//   2. [data-count] numbers tick up from 0 the first time they scroll into view.
-//   3. The hero logo parallaxes (0.3x scroll) and fades as the hero scrolls away.
+// Scroll reveal for .reveal blocks (presentation only). Stagger comes from each
+// element's --d custom property via transition-delay in CSS.
 (function () {
-  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var hasIO = 'IntersectionObserver' in window;
-
-  // ---- 1. Reveal ----
   var els = document.querySelectorAll('.reveal');
-  if (els.length) {
-    if (!hasIO || reduce) {
-      for (var i = 0; i < els.length; i++) els[i].classList.add('in');
-    } else {
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (!e.isIntersecting) return;
-          e.target.classList.add('in');
-          io.unobserve(e.target);
-        });
-      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
-      for (var j = 0; j < els.length; j++) io.observe(els[j]);
-    }
+  if (!els.length) return;
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 0; i < els.length; i++) els[i].classList.add('in');
+    return;
   }
-
-  // ---- 2. Count-up ----
-  // Target value lives in data-count; the markup text is the final formatted form,
-  // so we infer prefix ("+"), decimals, and thousands grouping from it and the
-  // element always ends on exactly the text the HTML shipped with.
-  var nums = document.querySelectorAll('[data-count]');
-  if (nums.length && hasIO && !reduce) {
-    var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
-    var format = function (n, spec) {
-      var s = n.toFixed(spec.dec);
-      if (spec.grouped) s = s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      return spec.prefix + s;
-    };
-    var countUp = function (el) {
-      var final = el.textContent.trim();
-      var target = parseFloat(el.getAttribute('data-count'));
-      if (isNaN(target)) return;
-      var m = final.match(/^([^\d]*)([\d,]+)(?:\.(\d+))?/) || [];
-      var spec = { prefix: m[1] || '', grouped: /,/.test(m[2] || ''), dec: (m[3] || '').length };
-      var dur = 1100, t0 = null;
-      el.textContent = format(0, spec);
-      var step = function (ts) {
-        if (t0 === null) t0 = ts;
-        var p = Math.min(1, (ts - t0) / dur);
-        el.textContent = p < 1 ? format(target * easeOut(p), spec) : final;
-        if (p < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    };
-    var nio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        nio.unobserve(e.target);
-        countUp(e.target);
-      });
-    }, { threshold: 0.6 });
-    for (var k = 0; k < nums.length; k++) nio.observe(nums[k]);
-  }
-
-  // ---- 3. Hero parallax ----
-  // Logo moves at 0.3x scroll (lags the page = depth) and fades out before it
-  // could drift over the headline. Written to custom props on the wrapper so it
-  // composes with the keyframe animations on .hero-logo. Stops updating once the
-  // hero is off screen.
-  var wrap = document.getElementById('hero-logo-wrap');
-  var hero = document.getElementById('hero');
-  if (wrap && hero && !reduce && 'requestAnimationFrame' in window) {
-    var ticking = false, lastY = -1;
-    var update = function () {
-      ticking = false;
-      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
-      var limit = hero.offsetHeight;
-      if (y > limit) y = limit;
-      if (y === lastY) return;
-      lastY = y;
-      wrap.style.setProperty('--py', (y * 0.3).toFixed(1) + 'px');
-      wrap.style.setProperty('--po', Math.max(0, 1 - y / 520).toFixed(3));
-    };
-    window.addEventListener('scroll', function () {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(update);
-    }, { passive: true });
-    update();
-  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+  for (var j = 0; j < els.length; j++) io.observe(els[j]);
 })();
 </script>
 </body>
