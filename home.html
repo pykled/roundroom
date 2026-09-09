@@ -95,15 +95,12 @@ a { color: inherit; }
    stack under it, and the product frame anchors the bottom of the section.
    Section runs on a deep navy-black with a violet bloom behind the logo. */
 #hero {
-  /* The logo image is drawn 136% of its box (18% bleed per side) so the card art
-     fills the square. The section clips overflow, so that bleed must be reserved
-     above the box (see .hero-logo-wrap) or the top of the card gets cut off. */
-  --logo-size: clamp(280px, 36vw, 420px);
-  --logo-bleed: calc(var(--logo-size) * 0.18);
-  /* Blank backdrop band above the card inside the source art (~11% of the image,
-     i.e. ~15% of the box). Safe to let this part of the bleed stay clipped. */
-  --logo-art-inset: calc(var(--logo-size) * 0.15);
-  position: relative; padding: 32px 0 80px; overflow: hidden;
+  /* Logo box. The source art is a square with the card occupying roughly
+     x 18–84%, y 11–97%, so the visible card is ~86% of this box tall
+     (desktop ≈ 275–410px, mobile ≈ 225–275px). The image is drawn at exactly
+     this box size (object-fit: contain, no mask) so nothing can be cropped. */
+  --logo-size: clamp(320px, 40vw, 480px);
+  position: relative; padding: 24px 0 80px; overflow: hidden;
   background:
     radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%),
     linear-gradient(180deg, #0a0a12 0%, #0a0a12 72%, var(--bg-primary) 100%);
@@ -122,13 +119,13 @@ a { color: inherit; }
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-/* Wrapper owns layout spacing + scroll parallax. Top margin = (image bleed − blank
-   art band) + float travel (10px) + breathing room, so the card art itself always
-   sits inside the clipped section. Parallax uses `translate`/opacity here (not on
-   .hero-logo) because the keyframe animations on .hero-logo own `transform` and
-   `opacity` with fill-mode both. */
+/* Wrapper owns layout spacing + scroll parallax. The float animation travels
+   10px upward and the art has an ~11% blank band above the card, so a small top
+   margin is enough to keep the card clear of the section's clipped top edge.
+   Parallax uses `translate`/opacity here (not on .hero-logo) because the
+   keyframe animations on .hero-logo own `transform` and `opacity`. */
 .hero-logo-wrap {
-  margin: calc(var(--logo-bleed) - var(--logo-art-inset) + 20px) auto 0;
+  margin: 12px auto 0;
   translate: 0 var(--py, 0px);
   opacity: var(--po, 1);
   will-change: transform, opacity;
@@ -149,16 +146,18 @@ a { color: inherit; }
 }
 .hero-logo picture { display: contents; }
 .hero-logo img {
-  /* Absolutely positioned so the oversized image never stretches the square box. */
-  position: absolute; inset: -18%; display: block;
-  width: 136%; height: 136%; max-width: none;
-  object-fit: cover;
-  /* The PNG has a near-black backdrop; screen blending drops it into the section bg. */
-  mix-blend-mode: screen;
-  /* Feather only the outer ring of the image. closest-side keeps the fully opaque
-     zone wide enough that the card's top corners (top ~11% of the art) stay solid. */
-  -webkit-mask-image: radial-gradient(circle closest-side at 50% 50%, #000 82%, transparent 100%);
-          mask-image: radial-gradient(circle closest-side at 50% 50%, #000 82%, transparent 100%);
+  /* Fill the square box exactly. No oversize, no inset, no mask: the previous
+     version scaled the image to 136% and feathered it with a radial mask whose
+     opaque radius was smaller than the card's corners, which faded the card's top
+     edge and cut both top corners off. */
+  position: relative; z-index: 1; display: block;
+  width: 100%; height: 100%; max-width: 100%;
+  object-fit: contain;
+  /* pocket-logo-hero.{webp,png} carry a real alpha channel (backdrop removed from
+     pocket-logo-primary.png), so no blend mode is needed. A blend mode would not
+     work here anyway: the animated/parallaxed ancestors are stacking contexts,
+     which isolate the image from the section's violet bloom and left the old
+     `mix-blend-mode: screen` showing as a dark square. */
   filter: saturate(1.08);
   user-select: none; -webkit-user-drag: none;
 }
@@ -399,8 +398,8 @@ footer .f-links .dim { opacity: 0.5; }
   .method-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 768px) {
-  #hero { --logo-size: clamp(200px, 60vw, 260px); padding: 20px 0 56px; }
-  .hero-logo-wrap { margin-top: calc(var(--logo-bleed) - var(--logo-art-inset) + 16px); }
+  #hero { --logo-size: clamp(260px, 72vw, 320px); padding: 16px 0 56px; }
+  .hero-logo-wrap { margin-top: 8px; }
   .hero-logo { margin-bottom: 16px; }
   #hero h1 { margin-bottom: 1rem; }
   #hero .sub { margin-bottom: 1.5rem; }
@@ -454,8 +453,8 @@ footer .f-links .dim { opacity: 0.5; }
     <div class="hero-logo-wrap" id="hero-logo-wrap">
       <div class="hero-logo" aria-hidden="true">
         <picture>
-          <source srcset="/pocket-logo-hero.webp" type="image/webp">
-          <img src="/pocket-logo-primary.png" alt="" width="1024" height="1024" fetchpriority="high" decoding="async">
+          <source srcset="/pocket-logo-hero.webp?v=4" type="image/webp">
+          <img src="/pocket-logo-hero.png?v=4" alt="" width="840" height="840" fetchpriority="high" decoding="async">
         </picture>
       </div>
     </div>
