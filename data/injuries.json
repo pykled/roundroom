@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-09T13:11:16.260Z",
+  "fetched_at": "2026-09-09T16:47:23.823Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -985,7 +985,7 @@
       "name": "Joe Mixon",
       "position": "RB",
       "team": null,
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Foot"
     },
     {
@@ -1516,7 +1516,7 @@
     {
       "name": "RJ Maryland",
       "position": "TE",
-      "team": "GB",
+      "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -1783,7 +1783,7 @@
       "name": "Tyreek Hill",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
+      "status": "",
       "body_part": "Knee - ACL"
     },
     {
