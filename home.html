@@ -97,13 +97,11 @@ a { color: inherit; }
    Section runs on a deep navy-black with a violet bloom behind the logo. */
 #hero {
   position: relative; padding: 56px 0 80px;
-  background:
-    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%),
-    linear-gradient(180deg, #0a0a12 0%, #0a0a12 100%);
+  background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%);
 }
 /* Animated violet bloom: its own layer so only transform/opacity change per frame. */
 #hero::before {
-  content: ""; position: absolute; inset: -15% -10%; pointer-events: none; z-index: 0;
+  content: ""; position: absolute; inset: -15% -10% -60% -10%; pointer-events: none; z-index: 0;
   background:
     radial-gradient(ellipse 40% 30% at 50% 30%, rgba(124,58,237,0.24), transparent 70%),
     radial-gradient(ellipse 28% 22% at 38% 22%, rgba(99,102,241,0.14), transparent 70%),
