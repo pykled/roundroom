@@ -1,4 +1,4 @@
-/* RoundRoom nav — mobile hamburger toggle.
+/* Pocket nav — mobile hamburger toggle.
    Toggles `.open` on #rr-nav; shared/styles.css (section 5 + 10) shows
    .rr-links and .rr-auth as a stacked dropdown when open on ≤768px.
    Closes on: link tap, Sign In tap, tap outside, Escape, resize to desktop. */

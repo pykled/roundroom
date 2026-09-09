@@ -307,7 +307,7 @@ async function fetchNews() {
   if (newsCache && Date.now() - newsCacheTime < NEWS_CACHE_TTL) return newsCache;
   try {
     const r = await fetch(NEWS_RSS_URL, {
-      headers: { 'User-Agent': 'RoundRoom/1.0 (fantasy draft assistant)' },
+      headers: { 'User-Agent': 'Pocket/1.0 (fantasy draft assistant)' },
       signal: AbortSignal.timeout(8000),
     });
     if (!r.ok) return newsCache || [];

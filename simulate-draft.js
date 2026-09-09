@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// simulate-draft.js — 12-team PPR snake draft simulation for RoundRoom.
+// simulate-draft.js — 12-team PPR snake draft simulation for Pocket.
 // Faithful port of the scoring engine in index.html (v2 algorithm):
 //   score = adjustedVORP × W_strategy × M_need × M_urgency × M_target
 // Outputs CSV to stdout:

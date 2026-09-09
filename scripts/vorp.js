@@ -47,7 +47,7 @@ async function fetchProjections() {
     'season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE';
   const url = `https://api.sleeper.app/v1/projections/nfl/${SEASON}/1?${qs}`;
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'RoundRoom/1.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'Pocket/1.0' } });
     if (!res.ok) {
       console.warn(`Projections HTTP ${res.status}; will fall back to ADP.`);
       return null;

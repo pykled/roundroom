@@ -1,4 +1,4 @@
-# RoundRoom Recommendation Algorithm v2 — Design Spec
+# Pocket Recommendation Algorithm v2 — Design Spec
 
 Status: design handoff (2026-08-13). Target: replace/extend `scorePlayer()` in `index.html`.
 

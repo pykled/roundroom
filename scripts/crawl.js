@@ -95,7 +95,7 @@ async function throttledFetch(url) {
   if (wait > 0) await sleep(wait);
   lastReq = Date.now();
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'RoundRoom/1.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'Pocket/1.0' } });
     if (res.status === 429) {
       console.warn('  ! 429 rate limited, backing off 2s');
       await sleep(2000);

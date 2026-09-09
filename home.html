@@ -3,21 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoundRoom — Draft, trade, and lineup tools scored to your Sleeper league</title>
-<meta name="description" content="Link your Sleeper username once. RoundRoom reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.">
+<title>Pocket — Draft, trade, and lineup tools scored to your Sleeper league</title>
+<meta name="description" content="Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="RoundRoom — Draft, trade, and lineup tools scored to your Sleeper league">
-<meta property="og:description" content="Link your Sleeper username once. RoundRoom reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.">
+<meta property="og:title" content="Pocket — Draft, trade, and lineup tools scored to your Sleeper league">
+<meta property="og:description" content="Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://roundroom.pykled.com/">
 <meta property="og:image" content="https://roundroom.pykled.com/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/shared/styles.css">
 <script defer src="/shared/nav.js"></script>
+<script>document.documentElement.classList.add('js');</script>
 <style>
 /* ---- Home-page tokens (palette, fonts, radius, brand live in /shared/styles.css) ---- */
 :root {
@@ -88,38 +90,92 @@ a { color: inherit; }
 }
 #draft-banner .db-link:hover { color: var(--amber); }
 
-/* ---- Hero ---- */
-#hero { position: relative; padding: 96px 0 80px; }
-#hero .container {
-  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center;
-  min-height: 78vh;
+/* ---- Hero ----
+   Logo-first: the Pocket mark sits centered above the headline, copy and CTAs
+   stack under it, and the product frame anchors the bottom of the section.
+   Section runs on a deep navy-black with a violet bloom behind the logo. */
+#hero {
+  position: relative; padding: 56px 0 80px; overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%),
+    linear-gradient(180deg, #0a0a12 0%, #0a0a12 72%, var(--bg-primary) 100%);
 }
-.hero-copy { max-width: 40rem; }
+/* Animated violet bloom: its own layer so only transform/opacity change per frame. */
+#hero::before {
+  content: ""; position: absolute; inset: -15% -10%; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 30%, rgba(124,58,237,0.24), transparent 70%),
+    radial-gradient(ellipse 28% 22% at 38% 22%, rgba(99,102,241,0.14), transparent 70%),
+    radial-gradient(ellipse 26% 20% at 62% 34%, rgba(139,92,246,0.12), transparent 70%);
+  animation: glow-drift 9s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+#hero .container {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.hero-logo {
+  position: relative; display: flex; justify-content: center; align-items: center;
+  width: clamp(280px, 36vw, 420px); aspect-ratio: 1;
+  margin: 0 auto 24px;
+  /* Entrance first, then a slow breathing float once the entrance has settled. */
+  animation: rise-in 0.7s ease-out both, logo-float 4s ease-in-out 0.7s infinite;
+  will-change: transform;
+}
+.hero-logo::before {
+  content: ""; position: absolute; inset: -30%;
+  background: radial-gradient(circle at 50% 50%, rgba(139,92,246,0.28), rgba(99,102,241,0.08) 45%, transparent 68%);
+  pointer-events: none;
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+.hero-logo picture { display: contents; }
+.hero-logo img {
+  /* Absolutely positioned so the oversized image never stretches the square box. */
+  position: absolute; inset: -18%; display: block;
+  width: 136%; height: 136%; max-width: none;
+  object-fit: cover;
+  /* The PNG has a near-black backdrop; screen blending drops it into the section bg. */
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 74%);
+          mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 74%);
+  filter: saturate(1.08);
+  user-select: none; -webkit-user-drag: none;
+}
+.hero-copy { max-width: 58rem; display: flex; flex-direction: column; align-items: center; }
+/* Page-load entrance: headline, sub, CTAs and proof rise in one after another. */
+.hero-copy > * { animation: rise-in 0.6s ease-out both; }
+.hero-copy > :nth-child(1) { animation-delay: 0.10s; }
+.hero-copy > :nth-child(2) { animation-delay: 0.18s; }
+.hero-copy > :nth-child(3) { animation-delay: 0.26s; }
+.hero-copy > :nth-child(4) { animation-delay: 0.34s; }
+.hero-copy > :nth-child(5) { animation-delay: 0.42s; }
 #hero h1 {
   font-weight: 800;
   font-size: clamp(2.25rem, 6vw, 4.25rem);
   letter-spacing: -0.03em;
   line-height: 1.02;
   text-wrap: balance;
+  max-width: 24ch;
   margin-bottom: 1.25rem;
 }
 #hero .sub {
-  font-size: 1.125rem; line-height: 1.55; color: var(--text-body);
-  max-width: 34rem; margin-bottom: 2rem;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem); line-height: 1.55; color: var(--text-body);
+  max-width: 34rem; margin-bottom: 2rem; text-wrap: balance;
 }
 #hero .sub-mono {
-  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 2rem;
   color: var(--text-secondary);
 }
 #hero .sub-mono .chip {
   white-space: nowrap; padding: 0.45rem 0.65rem;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   background: var(--bg-card);
 }
 #hero .sub-mono .chip.primary { border-color: var(--border-bright); color: var(--text-primary); }
 
-.cta-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 1.5rem; }
-.cta-col { display: flex; flex-direction: column; gap: 6px; }
+.cta-row { display: flex; justify-content: center; align-items: flex-start; gap: 12px; margin-bottom: 1.5rem; }
+.cta-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; padding: 0 1.25rem;
@@ -133,27 +189,34 @@ a { color: inherit; }
   border: 1px solid var(--border-bright);
 }
 .btn-ghost:hover { background: var(--accent-glow); }
+.btn:active { transform: scale(0.98); }
+/* Idle glow on the primary CTA; hover brightens and lifts instead. */
+#cta-primary { animation: cta-glow 3.2s ease-in-out infinite; transition: filter 0.15s, transform 0.15s; }
+#cta-primary:hover { animation-play-state: paused; transform: translateY(-1px); }
 .cta-note { color: var(--text-muted); text-transform: none; letter-spacing: 0; font-size: 0.72rem; padding-left: 2px; }
 
-.proof { display: flex; flex-wrap: wrap; gap: 8px; color: var(--text-secondary); }
+.proof { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--text-secondary); }
 .proof .fact { white-space: nowrap; }
 .proof .sep { color: var(--text-muted); }
-@media (max-width: 640px) { .proof .sep { display: none; } .proof { row-gap: 10px; } }
+@media (max-width: 640px) { .proof { gap: 10px 8px; } }
 
-/* Product frame */
-.hero-visual { position: relative; display: flex; justify-content: center; }
+/* Product frame (sits under the CTAs, centered) */
+.hero-visual {
+  position: relative; display: flex; justify-content: center; width: 100%; margin-top: 56px;
+  animation: rise-in 0.8s ease-out 0.45s both;
+}
 .hero-visual::before {
-  content: ""; position: absolute; inset: -80px -40px;
-  background: radial-gradient(circle at 60% 40%, var(--brand-glow), transparent 60%);
+  content: ""; position: absolute; inset: -60px -40px;
+  background: radial-gradient(ellipse at 50% 30%, var(--brand-glow), transparent 62%);
   pointer-events: none;
 }
 .frame {
-  position: relative; width: 100%; max-width: 460px;
+  position: relative; width: 100%; max-width: 460px; text-align: left;
   background: var(--bg-card); border: 1px solid var(--border-bright);
   border-radius: var(--radius-xl); padding: 20px 22px 18px;
 }
 .frame-hdr {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap;
   color: var(--text-secondary); margin-bottom: 18px;
 }
 .frame-hdr .r { color: var(--text-primary); }
@@ -197,15 +260,16 @@ a { color: inherit; }
 #tools { padding: var(--section-pad) 0; }
 .section-head { margin-bottom: 32px; }
 .section-head .eyebrow { margin-bottom: 12px; }
-.section-head h2 { font-weight: 700; font-size: 1.75rem; letter-spacing: -0.02em; line-height: 1.15; }
+.section-head h2 { font-weight: 700; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 1.75rem); letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .card {
   display: flex; flex-direction: column; gap: 12px;
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: var(--card-pad); color: inherit; text-decoration: none;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color 0.2s, background 0.2s, transform 0.25s ease-out;
 }
 a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); }
+@media (hover: hover) { a.card:hover, .js a.card.reveal.in:hover { transform: translateY(-3px); } }
 .card h3 { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; line-height: 1.2; }
 .card p { font-size: 0.95rem; line-height: 1.5; color: var(--text-body); }
 .card .eyebrow { display: flex; align-items: center; gap: 8px; }
@@ -254,29 +318,86 @@ footer .f-links a { text-decoration: none; padding: 10px 4px; min-height: 44px; 
 footer .f-links a:hover { color: var(--text-secondary); }
 footer .f-links .dim { opacity: 0.5; }
 
+/* ---- Motion ----
+   Transform/opacity only (compositor-friendly). Page-load entrances use keyframes;
+   below-the-fold blocks use .reveal + IntersectionObserver (script at the bottom).
+   The prefers-reduced-motion rule at the top disables every animation/transition. */
+@keyframes nav-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-10px) scale(1.015); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.06); }
+}
+@keyframes glow-drift {
+  0%   { opacity: 0.85; transform: translate3d(-3%, -2%, 0) scale(1); }
+  50%  { opacity: 1;    transform: translate3d(3%, 2%, 0) scale(1.08); }
+  100% { opacity: 0.9;  transform: translate3d(-1%, 3%, 0) scale(1.03); }
+}
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0), 0 4px 18px rgba(99,102,241,0.22); }
+  50%      { box-shadow: 0 0 0 4px rgba(99,102,241,0.12), 0 8px 30px rgba(139,92,246,0.45); }
+}
+/* Nav drops in from the top on load. `backwards` fill so no transform lingers on the
+   sticky nav after the animation ends (a lingering transform would trap fixed children). */
+#rr-nav { animation: nav-in 0.6s ease-out backwards; }
+
+/* Scroll reveal: only armed when JS is present so no-JS visitors still see content. */
+.js .reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition-delay: var(--d, 0ms);
+}
+.js .reveal.in { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; }
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 960px) {
-  #hero .container { grid-template-columns: 1fr; gap: 48px; min-height: 0; }
-  .hero-visual { order: 2; }
   .frame { max-width: 420px; }
+  .hero-visual { margin-top: 44px; }
   .hero-visual::before { inset: -40px -20px; }
   .tool-grid { grid-template-columns: 1fr; gap: 16px; }
   .method-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 768px) {
-  #hero { padding: 64px 0 56px; }
+  #hero { padding: 32px 0 56px; }
+  .hero-logo { width: clamp(200px, 60vw, 260px); margin-bottom: 16px; }
+  #hero h1 { margin-bottom: 1rem; }
+  #hero .sub { margin-bottom: 1.5rem; }
+  .hero-visual { margin-top: 36px; }
+  .section-head { margin-bottom: 24px; }
+  #method { padding: 48px 0; }
+  .method-grid { gap: 28px; }
+  .card h3 { font-size: 1.1rem; }
+  footer { padding: 32px 0; }
+  footer .container { flex-direction: column; align-items: flex-start; gap: 4px; }
+  footer .f-links a { padding: 10px 8px; }
+  footer .f-links a:first-child { padding-left: 0; }
 }
 @media (max-width: 640px) {
-  .cta-row { flex-direction: column; gap: 10px; }
+  .cta-row { flex-direction: column; gap: 10px; width: 100%; max-width: 360px; }
   .cta-col, .cta-row .btn { width: 100%; }
+  .btn { min-height: 48px; }
   .mini { max-height: 100px; }
+  .frame { padding: 18px 16px 16px; }
 }
 </style>
 </head>
 <body>
 
 <nav id="rr-nav">
-  <a href="/" class="rr-logo">RoundRoom</a>
+  <a href="/" class="rr-logo">Pocket</a>
   <div class="rr-links">
     <a href="/draft" class="rr-link">Draft</a>
     <a href="/research" class="rr-link">Research</a>
@@ -301,9 +422,15 @@ footer .f-links .dim { opacity: 0.5; }
 
 <section id="hero">
   <div class="container">
+    <div class="hero-logo" aria-hidden="true">
+      <picture>
+        <source srcset="/pocket-logo-hero.webp" type="image/webp">
+        <img src="/pocket-logo-primary.png" alt="" width="1024" height="1024" fetchpriority="high" decoding="async">
+      </picture>
+    </div>
     <div class="hero-copy">
       <h1 id="hero-h1">Every pick. Every trade. Scored to your league.</h1>
-      <p class="sub" id="hero-sub">Link your Sleeper username once. RoundRoom reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.</p>
+      <p class="sub" id="hero-sub">Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.</p>
       <div class="sub-mono mono" id="hero-leagues" hidden></div>
 
       <div class="cta-row">
@@ -345,7 +472,7 @@ footer .f-links .dim { opacity: 0.5; }
             <div class="prow"><span class="pos TE">TE</span><span class="pname">Brock Bowers</span><span class="pval">2,640</span></div>
           </div>
         </div>
-        <div class="frame-ftr mono">Replacement level computed from your roster slots</div>
+        <div class="frame-ftr mono">Replacement level from your roster slots</div>
       </div>
 
       <!-- League card (signed in + linked) -->
@@ -363,16 +490,16 @@ footer .f-links .dim { opacity: 0.5; }
 
 <section id="tools">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="eyebrow mono">Three tools · One login</div>
       <h2>Same league settings. Every tool.</h2>
     </div>
     <div class="tool-grid">
 
-      <a class="card" href="/draft">
+      <a class="card reveal" href="/draft">
         <div class="eyebrow mono">Draft day</div>
         <h3>Draft Assistant</h3>
-        <p>Live best-available picks as your Sleeper draft runs, ranked by value over replacement for your scoring.</p>
+        <p>Live best-available picks, ranked by value over replacement for your scoring.</p>
         <div class="mini">
           <div class="mrow"><span class="pos RB">RB</span><span class="pname">Jahmyr Gibbs</span><span class="best">Best available</span></div>
           <div class="mrow dim"><span class="pos WR">WR</span><span class="pname">Ja'Marr Chase</span><span class="pval">9,410</span></div>
@@ -381,10 +508,10 @@ footer .f-links .dim { opacity: 0.5; }
         <div class="card-cta">Open draft board →</div>
       </a>
 
-      <a class="card" href="/trade">
+      <a class="card reveal" href="/trade" style="--d: 50ms">
         <div class="eyebrow mono">Trade desk</div>
         <h3>Trade Calculator</h3>
-        <p>Put players on both sides and get a WIN, FAIR, or LOSE verdict built from your league's exact settings.</p>
+        <p>Players on both sides. A WIN, FAIR, or LOSE verdict on your league's settings.</p>
         <div class="mini chips">
           <span class="verdict v-WIN">WIN</span>
           <span class="verdict v-FAIR faded">FAIR</span>
@@ -393,10 +520,10 @@ footer .f-links .dim { opacity: 0.5; }
         <div class="card-cta">Run a trade →</div>
       </a>
 
-      <a class="card" id="card-lineup" href="/lineup">
+      <a class="card reveal" id="card-lineup" href="/lineup" style="--d: 100ms">
         <div class="eyebrow mono">Weekly</div>
         <h3>Lineup Optimizer</h3>
-        <p>Your actual roster, this week's projections, and the lineup that scores the most under your rules.</p>
+        <p>Your roster, this week's projections, and the highest-scoring lineup under your rules.</p>
         <div class="mini slots" aria-hidden="true">
           <span class="slot">QB</span><span class="slot-sep">·</span>
           <span class="slot">RB</span><span class="slot-sep">·</span>
@@ -416,17 +543,17 @@ footer .f-links .dim { opacity: 0.5; }
 <section id="method">
   <div class="container">
     <div class="method-grid">
-      <div class="method">
+      <div class="method reveal">
         <div class="eyebrow mono">Replacement level</div>
-        <p>Your roster slots and team count set the replacement line per position. A 12-team superflex league values QBs differently from a 10-team 1QB league, and the numbers reflect it.</p>
+        <p>Your roster slots and team count set the replacement line. Superflex values QBs differently, and the numbers show it.</p>
       </div>
-      <div class="method">
+      <div class="method reveal" style="--d: 50ms">
         <div class="eyebrow mono">Your scoring, per stat</div>
-        <p>Projections are converted to points using your league's exact scoring table, not a PPR/half/standard preset.</p>
+        <p>Projections scored with your exact scoring table, not a PPR preset.</p>
       </div>
-      <div class="method">
+      <div class="method reveal" style="--d: 100ms">
         <div class="eyebrow mono">Fresh data</div>
-        <p>Projections and injuries refresh daily during the season.</p>
+        <p>Projections and injuries refresh daily in season.</p>
         <div class="fresh mono" id="freshness" hidden></div>
       </div>
     </div>
@@ -436,7 +563,7 @@ footer .f-links .dim { opacity: 0.5; }
 <footer>
   <div class="container">
     <div class="f-left mono">
-      <span class="wm">RoundRoom</span>
+      <span class="wm">Pocket</span>
       <span>Built for Sleeper leagues</span>
     </div>
     <div class="f-links mono">
@@ -493,7 +620,7 @@ footer .f-links .dim { opacity: 0.5; }
   function setSignedOut() {
     $('hero-h1').textContent = 'Every pick. Every trade. Scored to your league.';
     $('hero-sub').hidden = false;
-    $('hero-sub').textContent = "Link your Sleeper username once. RoundRoom reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.";
+    $('hero-sub').textContent = "Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.";
     $('hero-leagues').hidden = true;
     var p = $('cta-primary');
     p.textContent = 'Link your Sleeper league';
@@ -511,7 +638,7 @@ footer .f-links .dim { opacity: 0.5; }
   function setUnlinked() {
     $('hero-h1').textContent = 'Every pick. Every trade. Scored to your league.';
     $('hero-sub').hidden = false;
-    $('hero-sub').textContent = 'One step left. Add your Sleeper username and every tool loads your league automatically.';
+    $('hero-sub').textContent = 'One step left. Add your Sleeper username and every tool loads your league.';
     $('hero-leagues').hidden = true;
     var p = $('cta-primary');
     p.textContent = 'Add Sleeper username';
@@ -564,7 +691,7 @@ footer .f-links .dim { opacity: 0.5; }
     } else {
       wrap.hidden = true;
       $('hero-sub').hidden = false;
-      $('hero-sub').textContent = 'Your Sleeper account is linked. Every tool loads your league automatically.';
+      $('hero-sub').textContent = 'Sleeper linked. Every tool loads your league automatically.';
       $('frame-trade').hidden = false;
       $('frame-leagues').hidden = true;
     }
@@ -675,6 +802,26 @@ footer .f-links .dim { opacity: 0.5; }
   }
 
   boot();
+})();
+</script>
+<script>
+// Scroll reveal for .reveal blocks (presentation only). Stagger comes from each
+// element's --d custom property via transition-delay in CSS.
+(function () {
+  var els = document.querySelectorAll('.reveal');
+  if (!els.length) return;
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 0; i < els.length; i++) els[i].classList.add('in');
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+  for (var j = 0; j < els.length; j++) io.observe(els[j]);
 })();
 </script>
 </body>

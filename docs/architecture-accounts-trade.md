@@ -1,4 +1,4 @@
-# RoundRoom — Accounts + Sleeper Sync + Trade Calculator
+# Pocket — Accounts + Sleeper Sync + Trade Calculator
 
 Architecture for the in-season expansion. Written 2026-09-06 as the last planning step before coding.
 Scope: two systems (account/Sleeper sync, trade calculator) sized for 1,000+ concurrent users on one Railway instance.

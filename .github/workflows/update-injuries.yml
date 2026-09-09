@@ -26,7 +26,7 @@ jobs:
       - run: node scripts/merge-sources.js
       - name: Commit injury data
         run: |
-          git config user.name "RoundRoom Bot"
+          git config user.name "Pocket Bot"
           git config user.email "bot@roundroom.app"
           git add data/injuries.json data/bye-weeks.json data/composite_adp.json
           git diff --staged --quiet || git commit -m "chore: update injuries $(date -u +%Y-%m-%dT%H:%M)"

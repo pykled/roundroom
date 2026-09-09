@@ -1,4 +1,4 @@
-# RoundRoom Home Page — Creative Brief
+# Pocket Home Page — Creative Brief
 
 Status: design brief, ready to implement. No code in this document.
 Scope: the page served at bare `/` (no query params) on roundroom.pykled.com.
@@ -19,13 +19,13 @@ Scope: the page served at bare `/` (no query params) on roundroom.pykled.com.
 
 **Personality (5 words):** decisive, league-literal, quiet, fast, unsentimental.
 
-**The feeling.** It is 0:45 on the draft clock. Eleven people are scrolling a generic rankings tab. You already know the pick, because your board was built from your league's scoring, not the average league's. RoundRoom should feel like that: a dark room, one lit screen, numbers that already know your settings. Closer to a trading terminal than a sportsbook. No confetti, no helmet art, no stadium photos, no "dominate your league."
+**The feeling.** It is 0:45 on the draft clock. Eleven people are scrolling a generic rankings tab. You already know the pick, because your board was built from your league's scoring, not the average league's. Pocket should feel like that: a dark room, one lit screen, numbers that already know your settings. Closer to a trading terminal than a sportsbook. No confetti, no helmet art, no stadium photos, no "dominate your league."
 
 **What makes it different (this drives every headline):**
 - FantasyCalc gives crowd-consensus market values. League-agnostic.
 - Sleeper is the platform. It shows ADP and has no opinion.
 - ESPN/Yahoo tools assume default scoring.
-- RoundRoom takes one Sleeper username, reads the league's scoring, roster slots, and team count, and recomputes value over replacement against *that* league. Then it gives a verdict: best available, WIN/FAIR/LOSE, start/sit. Opinionated, not a list.
+- Pocket takes one Sleeper username, reads the league's scoring, roster slots, and team count, and recomputes value over replacement against *that* league. Then it gives a verdict: best available, WIN/FAIR/LOSE, start/sit. Opinionated, not a list.
 
 **Voice rules.** Second person. Short declaratives. No exclamation marks. Never "unleash," "dominate," "crush," "ultimate," "AI-powered." The word "your" does the selling.
 
@@ -41,7 +41,7 @@ Scope: the page served at bare `/` (no query params) on roundroom.pykled.com.
 Backup if it wraps badly: "Your league's numbers. Nobody else's."
 
 **Sub-headline:**
-> Link your Sleeper username once. RoundRoom reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.
+> Link your Sleeper username once. Pocket reads your scoring and roster settings, then runs the draft board, trade calculator, and lineup tools on your league's numbers instead of the average one.
 
 **CTAs (exactly two):**
 - Primary (filled, brand gradient): **Link your Sleeper league** → opens the Clerk sign-up modal. After auth, land on the existing Sleeper-username step (the flow in `trade.html` / `/api/me`).
@@ -182,7 +182,7 @@ H1 uses `text-wrap: balance`. Sub-headline max-width 34rem.
 - Hero: 2-column grid `1.1fr / 0.9fr`, 64px gap, items vertically centered, `min-height: 78vh` (not 100vh; the tool grid should peek above the fold on a 900px-tall laptop). Padding 96px top, 80px bottom.
 - Tool grid: 3 columns, 20px gap.
 - Method strip: 3 columns, 32px gap, top border `--border`, padding 64px vertical.
-- Footer: one row. Left: `RoundRoom` wordmark and `Built for Sleeper leagues`. Right: `Draft · Trade · Lineup` text links. DM Mono, `--text-muted`. Padding 40px.
+- Footer: one row. Left: `Pocket` wordmark and `Built for Sleeper leagues`. Right: `Draft · Trade · Lineup` text links. DM Mono, `--text-muted`. Padding 40px.
 
 ### Spacing philosophy
 
@@ -209,7 +209,7 @@ Minimal. Card hover 120ms border/background. Primary CTA hover: brightness 1.08,
 
 ### Page metadata
 
-- `<title>`: `RoundRoom — Draft, trade, and lineup tools scored to your Sleeper league`
+- `<title>`: `Pocket — Draft, trade, and lineup tools scored to your Sleeper league`
 - Meta description: the sub-headline.
 - OG image: 1200×630, black, the trade verdict frame centered, wordmark top-left. Generate from `logo-1200.svg` styling; static PNG at `/og.png`.
 - `theme-color` stays `#6366f1`.
