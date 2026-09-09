@@ -40,6 +40,7 @@ body {
   line-height: normal;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  background: #0a0a12;
 }
 a { color: inherit; }
 [hidden] { display: none !important; }
@@ -103,7 +104,7 @@ a { color: inherit; }
   position: relative; padding: 24px 0 80px; overflow: hidden;
   background:
     radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%),
-    linear-gradient(180deg, #0a0a12 0%, #0a0a12 72%, var(--bg-primary) 100%);
+    #0a0a12;
 }
 /* Animated violet bloom: its own layer so only transform/opacity change per frame. */
 #hero::before {
@@ -145,20 +146,9 @@ a { color: inherit; }
   animation: glow-pulse 4s ease-in-out infinite;
 }
 .hero-logo img {
-  /* Fill the square box exactly. No oversize, no inset, no mask: the previous
-     version scaled the image to 136% and feathered it with a radial mask whose
-     opaque radius was smaller than the card's corners, which faded the card's top
-     edge and cut both top corners off. */
   position: relative; z-index: 1; display: block;
   width: 100%; height: 100%; max-width: 100%;
   object-fit: contain;
-  /* pocket-logo-transparent.png is a true-alpha cutout of pocket-logo-primary.png:
-     the near-black backdrop is alpha 0 and alpha is feathered to 0 on all four
-     image borders, so no rectangle or hard edge can show. No blend mode or mask
-     is used (or needed): the animated/parallaxed ancestors are stacking contexts,
-     which isolate the image from the section's violet bloom and left the old
-     `mix-blend-mode: screen` showing as a dark square. */
-  background: transparent;
   filter: saturate(1.08);
   user-select: none; -webkit-user-drag: none;
 }
@@ -453,7 +443,7 @@ footer .f-links .dim { opacity: 0.5; }
   <div class="container">
     <div class="hero-logo-wrap" id="hero-logo-wrap">
       <div class="hero-logo" aria-hidden="true">
-        <img src="/pocket-logo-transparent.png?v=5" alt="" width="1024" height="1024" fetchpriority="high" decoding="async">
+        <img src="/pocket-logo-primary.png" alt="" width="1024" height="1024" fetchpriority="high" decoding="async">
       </div>
     </div>
     <div class="hero-copy">
