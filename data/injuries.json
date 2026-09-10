@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-09T22:31:07.345Z",
+  "fetched_at": "2026-09-10T00:21:33.524Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -107,6 +107,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Behren Morton",
+      "position": "QB",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Ben Sauls",
       "position": "K",
       "team": null,
@@ -119,13 +126,6 @@
       "team": "MIA",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Ben Sinnott",
-      "position": "TE",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Oblique"
     },
     {
       "name": "Ben Yurosek",
@@ -161,20 +161,6 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Brevin Jordan",
-      "position": "TE",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "British Brooks",
-      "position": "RB",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Hand"
     },
     {
       "name": "Brittain Brown",
@@ -224,13 +210,6 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Cameron Dicker",
-      "position": "K",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Carson Towt",
@@ -541,6 +520,13 @@
       "body_part": null
     },
     {
+      "name": "Efton Chism",
+      "position": "WR",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "EJ Smith",
       "position": "RB",
       "team": null,
@@ -786,6 +772,13 @@
       "body_part": "Calf"
     },
     {
+      "name": "Jalen Milroe",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jalen Virgil",
       "position": "WR",
       "team": null,
@@ -933,13 +926,6 @@
       "body_part": "Personal"
     },
     {
-      "name": "John Bates",
-      "position": "TE",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "John FitzPatrick",
       "position": "TE",
       "team": null,
@@ -987,13 +973,6 @@
       "team": "GB",
       "status": "NA",
       "body_part": "Groin"
-    },
-    {
-      "name": "Joshua Pitsenberger",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "JuJu Smith-Schuster",
@@ -1178,13 +1157,6 @@
       "body_part": "Knee - ACL"
     },
     {
-      "name": "Marcus Mariota",
-      "position": "QB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Mario Williams",
       "position": "WR",
       "team": null,
@@ -1274,6 +1246,13 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Nick Kallerup",
+      "position": "TE",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Nikola Kalinic",
@@ -1545,8 +1524,8 @@
       "name": "Tory Horton",
       "position": "WR",
       "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "Out",
+      "body_part": "Hamstring"
     },
     {
       "name": "Tra Barnett",
