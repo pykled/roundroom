@@ -1,9 +1,9 @@
 {
-  "total_drafts": 247,
-  "total_picks": 42476,
-  "picks_standard": 36871,
-  "picks_sf": 5605,
-  "crawled_at": "2026-09-10T13:06:41.539Z",
+  "total_drafts": 245,
+  "total_picks": 42128,
+  "picks_standard": 36703,
+  "picks_sf": 5425,
+  "crawled_at": "2026-09-10T22:25:32.330Z",
   "seeds_used": [
     "pykle",
     "scott_fish",
@@ -43,10 +43,10 @@
   "users_explored": 54025,
   "leagues_seen": 7994,
   "known_leagues": 7568,
-  "completed_drafts_seen": 1,
+  "completed_drafts_seen": 0,
   "skipped_too_old": 0,
   "skipped_auction": 0,
   "date_window_days": 14,
-  "elapsed_seconds": 3901,
+  "elapsed_seconds": 4050,
   "stop_reason": "frontier_exhausted"
 }

@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-10T21:00:25.427Z",
+  "fetched_at": "2026-09-10T22:25:35.019Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -131,7 +131,7 @@
       "name": "Ben Sims",
       "position": "TE",
       "team": "MIA",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -180,7 +180,7 @@
       "name": "Brock Bowers",
       "position": "TE",
       "team": "LV",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee - Meniscus"
     },
     {
@@ -1157,13 +1157,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Marvin Mims",
-      "position": "WR",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Foot"
-    },
-    {
       "name": "Mason Fine",
       "position": "QB",
       "team": null,
@@ -1267,13 +1260,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Patrick Mahomes",
-      "position": "QB",
-      "team": "KC",
-      "status": "Questionable",
-      "body_part": "Knee - ACL"
     },
     {
       "name": "Patrick Taylor",
