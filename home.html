@@ -101,13 +101,20 @@ a { color: inherit; }
 }
 /* Animated violet bloom: its own layer so only transform/opacity change per frame. */
 #hero::before {
-  content: ""; position: absolute; inset: -15% -10% -60% -10%; pointer-events: none; z-index: 0;
+  content: ""; position: absolute; inset: -15% -10% -20% -10%; pointer-events: none; z-index: 0;
   background:
     radial-gradient(ellipse 40% 30% at 50% 30%, rgba(124,58,237,0.24), transparent 70%),
     radial-gradient(ellipse 28% 22% at 38% 22%, rgba(99,102,241,0.14), transparent 70%),
     radial-gradient(ellipse 26% 20% at 62% 34%, rgba(139,92,246,0.12), transparent 70%);
   animation: glow-drift 9s ease-in-out infinite alternate;
   will-change: transform, opacity;
+}
+/* Bottom-fade scrim: dissolves the bloom into the page background so the hero's
+   bottom edge meets the next section without a visible violet seam. */
+#hero::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 160px;
+  pointer-events: none; z-index: 0;
+  background: linear-gradient(to bottom, transparent, #0a0a12);
 }
 #hero .container {
   position: relative; z-index: 1;
