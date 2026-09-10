@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/shared/styles.css">
 <script defer src="/shared/nav.js"></script>
+<script defer src="https://umami-production-e09b.up.railway.app/script.js" data-website-id="97ba8ad5-da19-4e56-a096-f21d2426ebb1"></script>
 <script>document.documentElement.classList.add('js');</script>
 <style>
 /* ---- Home-page tokens (palette, fonts, radius, brand live in /shared/styles.css) ---- */
@@ -106,7 +107,7 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
    stack under it, and the product frame anchors the bottom of the section.
    Section runs on a deep navy-black with a violet bloom behind the logo. */
 #hero {
-  position: relative; padding: 56px 0 80px;
+  position: relative; padding: 40px 0 80px;
   background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%);
 }
 /* Animated violet bloom: its own layer so only transform/opacity change per frame.
@@ -131,8 +132,10 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 }
 .hero-logo {
   position: relative; display: flex; justify-content: center; align-items: center;
-  width: clamp(280px, 36vw, 420px); aspect-ratio: 1;
-  margin: 0 auto 24px;
+  /* Sized so the headline, sub, and username field all sit above the fold on a
+     ~700px-tall laptop viewport; the mark is the brand, the form is the point. */
+  width: clamp(200px, 22vw, 260px); aspect-ratio: 1;
+  margin: 0 auto 16px;
   /* Entrance first, then a slow breathing float once the entrance has settled. */
   animation: rise-in 0.7s ease-out both, logo-float 4s ease-in-out 0.7s infinite;
   will-change: transform;
@@ -164,6 +167,7 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 .hero-copy > :nth-child(3) { animation-delay: 0.26s; }
 .hero-copy > :nth-child(4) { animation-delay: 0.34s; }
 .hero-copy > :nth-child(5) { animation-delay: 0.42s; }
+.hero-copy > :nth-child(6) { animation-delay: 0.50s; }
 #hero h1 {
   font-weight: 800;
   font-size: clamp(2.25rem, 6vw, 4.25rem);
@@ -189,8 +193,37 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 }
 #hero .sub-mono .chip.primary { border-color: var(--border-bright); color: var(--text-primary); }
 
-.cta-row { display: flex; justify-content: center; align-items: flex-start; gap: 12px; margin-bottom: 1.5rem; }
-.cta-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+/* ---- Hero form: the primary CTA ----
+   Signed-out visitors type their Sleeper username right here and land on the
+   draft board with their leagues already loading (/draft?username=). No account,
+   no second page. Signed-in + linked users get the button row instead. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.hero-form { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 560px; margin-bottom: 1.25rem; }
+.hero-form .hf-row { display: flex; width: 100%; gap: 8px; }
+.hero-form input {
+  flex: 1; min-width: 0; min-height: 52px; padding: 0 1rem;
+  background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: var(--radius-sm);
+  color: var(--text-primary); font-family: var(--font-sans); font-size: 1rem; font-weight: 500;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.hero-form input::placeholder { color: var(--text-secondary); font-weight: 400; }
+.hero-form input:focus { outline: none; border-color: var(--brand-400); box-shadow: 0 0 0 3px rgba(129,140,248,0.22); }
+.hero-form input[aria-invalid="true"] { border-color: var(--danger); }
+.hero-form .btn { min-height: 52px; padding: 0 1.4rem; font-size: 1rem; }
+.hero-form .btn:disabled { opacity: 0.7; cursor: progress; }
+.hero-form .hf-err { color: var(--danger); font-size: 0.82rem; line-height: 1.3; text-align: center; }
+.hero-form .hf-err:empty { display: none; }
+.hero-form .hf-note { color: var(--text-muted); text-transform: none; letter-spacing: 0; font-size: 0.72rem; text-align: center; }
+#hero-go { animation: cta-glow 3.2s ease-in-out infinite; transition: filter 0.15s, transform 0.15s; }
+#hero-go:hover:not(:disabled) { animation-play-state: paused; transform: translateY(-1px); }
+
+.cta-row { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+.cta-link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px;
+  color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; text-decoration: none;
+}
+.cta-link:hover { color: var(--text-primary); }
+.cta-link::after { content: " →"; white-space: pre; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; padding: 0 1.25rem;
@@ -208,8 +241,6 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 /* Idle glow on the primary CTA; hover brightens and lifts instead. */
 #cta-primary { animation: cta-glow 3.2s ease-in-out infinite; transition: filter 0.15s, transform 0.15s; }
 #cta-primary:hover { animation-play-state: paused; transform: translateY(-1px); }
-.cta-note { color: var(--text-muted); text-transform: none; letter-spacing: 0; font-size: 0.72rem; padding-left: 2px; }
-
 .proof { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--text-secondary); }
 .proof .fact { white-space: nowrap; }
 .proof .sep { color: var(--text-muted); }
@@ -389,8 +420,10 @@ footer .f-links .dim { opacity: 0.5; }
   .method-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 768px) {
-  #hero { padding: 32px 0 56px; }
-  .hero-logo { width: clamp(200px, 60vw, 260px); margin-bottom: 16px; }
+  #hero { padding: 24px 0 56px; }
+  /* Smaller mark on phones so the headline and the username field are both on
+     the first screen: 57% of traffic is mobile and most of it left without acting. */
+  .hero-logo { width: clamp(132px, 38vw, 172px); margin-bottom: 12px; }
   #hero h1 { margin-bottom: 1rem; text-align: center; }
   #hero .sub { margin-bottom: 1.5rem; text-align: center; }
   .hero-visual { margin-top: 36px; }
@@ -406,8 +439,10 @@ footer .f-links .dim { opacity: 0.5; }
   footer .f-links a:first-child { padding-left: 0; }
 }
 @media (max-width: 640px) {
+  .hero-form .hf-row { flex-direction: column; gap: 10px; }
+  .hero-form .btn { width: 100%; }
   .cta-row { flex-direction: column; gap: 10px; width: 100%; max-width: 360px; }
-  .cta-col, .cta-row .btn { width: 100%; }
+  .cta-row .btn { width: 100%; }
   .btn { min-height: 48px; }
   .mini { max-height: 100px; }
   .frame { padding: 18px 16px 16px; }
@@ -449,18 +484,23 @@ footer .f-links .dim { opacity: 0.5; }
       </picture>
     </div>
     <div class="hero-copy">
-      <h1 id="hero-h1">Every pick. Every trade. Scored to your league.</h1>
-      <p class="sub" id="hero-sub">Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.</p>
+      <h1 id="hero-h1">Every pick, scored to your Sleeper league.</h1>
+      <p class="sub" id="hero-sub">Pocket reads your league's scoring and roster straight from Sleeper, then ranks every draft pick, trade, and lineup for it. Not ADP. Your league.</p>
       <div class="sub-mono mono" id="hero-leagues" hidden></div>
 
+      <form class="hero-form" id="hero-form" autocomplete="off" novalidate>
+        <div class="hf-row">
+          <label for="hero-user" class="sr-only">Sleeper username</label>
+          <input id="hero-user" type="text" name="username" placeholder="Enter your Sleeper username" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="username" enterkeyhint="go" maxlength="64">
+          <button class="btn btn-brand" id="hero-go" type="submit">Open my draft board →</button>
+        </div>
+        <div class="hf-err" id="hero-err" role="alert" aria-live="polite"></div>
+        <div class="hf-note mono" id="hero-note">Free · No signup or password · Reads only public Sleeper data</div>
+      </form>
+
       <div class="cta-row">
-        <div class="cta-col">
-          <button class="btn btn-brand" id="cta-primary" type="button">Link your Sleeper league</button>
-        </div>
-        <div class="cta-col">
-          <a class="btn btn-ghost" id="cta-secondary" href="/trade">Try the trade calculator</a>
-          <span class="mono cta-note" id="cta-note">No account needed</span>
-        </div>
+        <button class="btn btn-brand" id="cta-primary" type="button" hidden>Run a trade</button>
+        <a class="cta-link" id="cta-secondary" href="/trade">Or try the trade calculator</a>
       </div>
 
       <div class="proof mono" aria-label="Sleeper native, VORP not ADP, free">
@@ -636,36 +676,93 @@ footer .f-links .dim { opacity: 0.5; }
     });
   }
 
+  // ---- Analytics (Umami; no-op if the script is blocked) ----
+  function track(event, data) {
+    try { if (window.umami && typeof window.umami.track === 'function') window.umami.track(event, data || {}); } catch (_) {}
+  }
+
+  // ---- Hero form: username -> draft board ----
+  // Validates the name against Sleeper's public API so a typo is caught here, then
+  // hands off to /draft?username=… which auto-loads that user's leagues. A network
+  // failure still hands off (the draft tool has its own retry path).
+  var HERO_GO_LABEL = 'Open my draft board →';
+  function setHeroError(msg) {
+    var err = $('hero-err'), inp = $('hero-user');
+    err.textContent = msg || '';
+    inp.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  function goToDraft(username) {
+    location.href = '/draft?username=' + encodeURIComponent(username);
+  }
+  function linkAccountIfNeeded(username) {
+    // Signed in but not linked: link in passing so the trade/lineup/team tools work too.
+    if (!(H.clerk && H.clerk.user && H.me && !H.me.sleeperUserId)) return Promise.resolve();
+    return fetch('/api/me/sleeper', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sleeperUsername: username }),
+    }).then(function () {}, function () {});
+  }
+  function heroSubmit(e) {
+    e.preventDefault();
+    var inp = $('hero-user'), btn = $('hero-go');
+    var u = inp.value.trim().replace(/^@/, '');
+    if (!u) { setHeroError('Enter your Sleeper username to get started.'); inp.focus(); return; }
+    setHeroError('');
+    btn.disabled = true; btn.textContent = 'Finding your leagues…';
+    track('hero-username-submit');
+    fetch('https://api.sleeper.app/v1/user/' + encodeURIComponent(u))
+      .then(function (r) { return r.ok ? r.json() : null; }, function () { return undefined; })
+      .then(function (user) {
+        if (user === undefined) { goToDraft(u); return; } // network error: let the draft tool retry
+        if (!user || !user.user_id) {
+          setHeroError('No Sleeper user named "' + u + '". Check the spelling and try again.');
+          btn.disabled = false; btn.textContent = HERO_GO_LABEL; inp.focus(); inp.select();
+          track('hero-username-notfound');
+          return;
+        }
+        var name = user.username || u;
+        try { localStorage.setItem('rr_username', name); localStorage.setItem('rr_user_id', String(user.user_id)); } catch (_) {}
+        track('hero-username-found');
+        linkAccountIfNeeded(name).then(function () { goToDraft(name); });
+      });
+  }
+  $('hero-form').addEventListener('submit', heroSubmit);
+  $('hero-user').addEventListener('input', function () { if ($('hero-err').textContent) setHeroError(''); });
+  $('cta-secondary').addEventListener('click', function () { track('hero-secondary-click', { href: this.getAttribute('href') }); });
+
   // ---- Hero states ----
+  function showHeroForm(show) {
+    $('hero-form').hidden = !show;
+    $('cta-primary').hidden = show;
+    var s = $('cta-secondary');
+    s.className = show ? 'cta-link' : 'btn btn-ghost';
+  }
+
   function setSignedOut() {
-    $('hero-h1').textContent = 'Every pick. Every trade. Scored to your league.';
+    $('hero-h1').textContent = 'Every pick, scored to your Sleeper league.';
     $('hero-sub').hidden = false;
-    $('hero-sub').textContent = "Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.";
+    $('hero-sub').textContent = "Pocket reads your league's scoring and roster straight from Sleeper, then ranks every draft pick, trade, and lineup for it. Not ADP. Your league.";
     $('hero-leagues').hidden = true;
-    var p = $('cta-primary');
-    p.textContent = 'Link your Sleeper league';
-    p.onclick = function () {
-      if (H.clerk) H.clerk.openSignUp({ forceRedirectUrl: '/trade', signInForceRedirectUrl: '/trade' });
-      else location.href = '/trade';
-    };
-    $('cta-secondary').textContent = 'Try the trade calculator';
+    showHeroForm(true);
+    $('hero-go').textContent = HERO_GO_LABEL;
+    $('hero-note').textContent = 'Free · No signup or password · Reads only public Sleeper data';
+    $('cta-secondary').textContent = 'Or try the trade calculator';
     $('cta-secondary').href = '/trade';
-    $('cta-note').hidden = false;
     $('frame-trade').hidden = false;
     $('frame-leagues').hidden = true;
   }
 
   function setUnlinked() {
-    $('hero-h1').textContent = 'Every pick. Every trade. Scored to your league.';
+    $('hero-h1').textContent = 'One step left.';
     $('hero-sub').hidden = false;
-    $('hero-sub').textContent = 'One step left. Add your Sleeper username and every tool loads your league.';
+    $('hero-sub').textContent = 'Type your Sleeper username and every tool loads your league automatically.';
     $('hero-leagues').hidden = true;
-    var p = $('cta-primary');
-    p.textContent = 'Add Sleeper username';
-    p.onclick = function () { location.href = '/trade'; };
-    $('cta-secondary').textContent = 'Try the trade calculator';
+    showHeroForm(true);
+    $('hero-go').textContent = HERO_GO_LABEL;
+    $('hero-note').textContent = 'Links Sleeper to your Pocket account · Reads only public Sleeper data';
+    $('cta-secondary').textContent = 'Or try the trade calculator';
     $('cta-secondary').href = '/trade';
-    $('cta-note').hidden = false;
     $('frame-trade').hidden = false;
     $('frame-leagues').hidden = true;
   }
@@ -673,12 +770,12 @@ footer .f-links .dim { opacity: 0.5; }
   function setLinked(me, leagues) {
     $('hero-h1').textContent = 'Welcome back, ' + (me.sleeperUsername || 'manager') + '.';
     $('hero-sub').hidden = true;
+    showHeroForm(false);
     var p = $('cta-primary');
     p.textContent = 'Run a trade';
     p.onclick = function () { location.href = '/trade'; };
     $('cta-secondary').textContent = 'Open draft board';
     $('cta-secondary').href = '/draft';
-    $('cta-note').hidden = true;
 
     var wrap = $('hero-leagues');
     wrap.innerHTML = '';

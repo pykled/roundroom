@@ -368,6 +368,33 @@ td.empty-hint { display: table-cell; border: none; padding: var(--space-6) var(-
 /* Collapsible explanation block — native <details>, collapsed by default, no JS.
    Used for page legends ("How to read this"), methodology notes and secondary
    lists (trade partners) so the primary view stays quiet. */
+/* Term explainer: a small "?" that shows a definition on hover, keyboard focus, or
+   tap (JS toggles .open on click so it works on touch, where title= does nothing).
+   Markup: <span class="tip"><button type="button" class="tip-btn" aria-label="What is X?">?</button><span class="tip-box" role="tooltip">…</span></span> */
+.tip { position: relative; display: inline-flex; align-items: center; vertical-align: middle; margin-left: 0.3rem; }
+.tip-btn {
+  width: 16px; height: 16px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--border-bright); background: transparent; color: var(--text-muted);
+  font-family: var(--font-sans); font-size: 0.6rem; font-weight: 700; line-height: 1; cursor: help;
+  display: inline-flex; align-items: center; justify-content: center; text-transform: none; letter-spacing: 0;
+  transition: color 0.12s, border-color 0.12s;
+}
+.tip-btn:hover, .tip-btn:focus-visible, .tip.open .tip-btn { color: var(--text-primary); border-color: var(--brand-400); }
+.tip-box {
+  display: none; position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
+  width: max-content; max-width: min(280px, 80vw); padding: 0.5rem 0.65rem; z-index: 30;
+  background: var(--bg-card); border: 1px solid var(--border-bright); border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  color: var(--text-body); font-family: var(--font-sans); font-size: 0.74rem; font-weight: 400; line-height: 1.45;
+  text-transform: none; letter-spacing: 0; white-space: normal; text-align: left; cursor: auto;
+}
+.tip-box::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--border-bright); }
+.tip:hover .tip-box, .tip-btn:focus-visible + .tip-box, .tip.open .tip-box { display: block; }
+.tip.tip-left .tip-box { left: auto; right: -4px; transform: none; }
+.tip.tip-left .tip-box::after { left: auto; right: 8px; margin-left: 0; }
+/* Tooltip in a table header: keep the header text and the "?" on one line. */
+th .tip { margin-left: 0.25rem; }
+
 .info-details { margin-top: var(--space-4); }
 .info-details summary {
   font-size: var(--fs-xs);

@@ -4971,6 +4971,8 @@ async function fetchLeagues() {
     const userResp = await fetch(`https://api.sleeper.app/v1/user/${username}`);
     if (!userResp.ok) throw new Error('User not found');
     STATE.userData = await userResp.json();
+    // Sleeper answers 200 + null for unknown usernames, not 404.
+    if (!STATE.userData || !STATE.userData.user_id) throw new Error('No Sleeper user named "' + username + '" — check the spelling');
     STATE.userId = STATE.userData.user_id;
     try { localStorage.setItem('rr_user_id', STATE.userId); } catch(e) {}
 
@@ -9663,6 +9665,19 @@ async function companionSelectSlot(slot, draftId, totalTeams, totalRounds) {
 try {
   const saved = localStorage.getItem('rr_username');
   if (saved) document.getElementById('username-input').value = saved;
+} catch(e) {}
+
+// Hand-off from the landing page hero (/draft?username=…): fill the field and
+// load leagues immediately so the visitor lands on their league list, not a form.
+try {
+  const handoff = (new URLSearchParams(window.location.search).get('username') || '').trim().replace(/^@/, '');
+  if (handoff) {
+    document.getElementById('username-input').value = handoff;
+    _utrack('draft-handoff-from-home');
+    // Drop the param so a reload/back doesn't re-trigger, then load.
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch(_) {}
+    fetchLeagues();
+  }
 } catch(e) {}
 
 // URL shortcut: ?mock=1 opens the standalone mock config immediately

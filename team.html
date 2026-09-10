@@ -143,11 +143,11 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
       <div class="rf-depth" id="my-depth"></div>
       <div class="stat-tiles" id="my-stats"></div>
       <div class="rf-grid">
-        <div><div class="rf-col-lbl">Strengths</div><div id="my-strengths"></div></div>
-        <div><div class="rf-col-lbl">Liabilities</div><div id="my-liabilities"></div></div>
+        <div><div class="rf-col-lbl">Strengths <span class="tip"><button type="button" class="tip-btn" aria-label="What are Strengths?">?</button><span class="tip-box" role="tooltip">Your three highest-VORP starters. The number on the right is each player's VORP under this league's scoring.</span></span></div><div id="my-strengths"></div></div>
+        <div><div class="rf-col-lbl">Liabilities <span class="tip"><button type="button" class="tip-btn" aria-label="What are Liabilities?">?</button><span class="tip-box" role="tooltip">Your weakest starters at positions where the roster is thin — the first spots to upgrade.</span></span></div><div id="my-liabilities"></div></div>
       </div>
       <div class="partners" id="my-partners" hidden>
-        <div class="rf-col-lbl">Teams that need what you have</div>
+        <div class="rf-col-lbl">Teams that need what you have <span class="tip"><button type="button" class="tip-btn" aria-label="What are trade partners?">?</button><span class="tip-box" role="tooltip">Teams whose weak positions match your surplus. They have a reason to pay up for what you can spare.</span></span></div>
         <div id="my-partners-list"></div>
       </div>
     </div>
@@ -155,7 +155,7 @@ table.lg .rank b { color: var(--text-primary); font-weight: 600; }
     <details class="legend info-details">
       <summary>How to read this</summary>
       <div class="details-body">
-      Every roster is ranked on its optimal starters from full-season projections (÷17 per week), under this league's scoring and slots. Strength = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
+      Every roster is ranked on its optimal starters from full-season projections (÷17 per week), under this league's scoring and slots. <b>VORP</b> (Value Over Replacement Player) is a player's projected points above the best freely available player at that position in this league. <b>Strength</b> = total blended VORP of each team's optimal starters (same values as the trade calculator and lineup optimizer). Position tiers combine depth (rostered vs starter slots) with starter quality (that position's starter VORP vs the league average):
       <span class="lg-tiers">
       <span class="st-critical">▲ Critical</span> weak starters and no depth — prioritize an upgrade ·
       <span class="st-upgrade">▲ Upgrade</span> bodies on the roster but below-average starters — quality over quantity ·
@@ -648,16 +648,54 @@ function recompute() {
   renderMyTeam(mine);
 }
 
+// ---- Term explainers --------------------------------------------------------
+// Plain-language definitions for the metrics on this page. Rendered as a tap/hover
+// "?" (shared .tip styles) next to the term wherever it appears.
+var TERM_HELP = {
+  strength: 'Total VORP of your optimal starting lineup — ranks your starters vs. all other teams in your league.',
+  vorp: 'Value Over Replacement Player: projected points above the best freely available player at that position in this league. Higher is better; the trade calculator and lineup optimizer use the same numbers.',
+  pts: 'Projected points per week from your optimal starters, under this league\'s exact scoring settings.',
+  record: 'Wins-losses from Sleeper. Shows 0-0 until Week 1 posts.',
+  pos: 'Tier for this position: depth (players rostered vs. starter slots) combined with starter quality (this position\'s starter VORP vs. the league average). #rank compares starter strength at this position across the league.',
+  benchValue: 'Total VORP of everyone not in your optimal lineup — your trade ammo and injury cover.',
+  injured: 'Players on your roster listed Out, Doubtful, IR, or PUP. Questionable players are tagged inline but not counted.',
+  strengths: 'Your three highest-VORP starters.',
+  liabilities: 'Your weakest starters at positions where the roster is thin — the first spots to upgrade.',
+  partners: 'Teams whose weak positions match your surplus. They have a reason to pay up for what you can spare.',
+};
+function tipHtml(key, opts) {
+  var text = TERM_HELP[key];
+  if (!text) return '';
+  var label = (opts && opts.label) || ('What does this mean?');
+  return '<span class="tip' + (opts && opts.left ? ' tip-left' : '') + '">' +
+    '<button type="button" class="tip-btn" aria-label="' + esc(label) + '">?</button>' +
+    '<span class="tip-box" role="tooltip">' + esc(text) + '</span></span>';
+}
+// Tap-to-open for touch (hover does the job on desktop). One open at a time; tap
+// outside or press Escape to close.
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest ? e.target.closest('.tip-btn') : null;
+  var openTips = document.querySelectorAll('.tip.open');
+  Array.prototype.forEach.call(openTips, function(t) { if (!btn || t !== btn.parentNode) t.classList.remove('open'); });
+  if (btn) {
+    e.preventDefault(); e.stopPropagation();
+    btn.parentNode.classList.toggle('open');
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') Array.prototype.forEach.call(document.querySelectorAll('.tip.open'), function(t) { t.classList.remove('open'); });
+});
+
 // ---- League table -----------------------------------------------------------
 var COLS = [
   { key: 'name', label: 'Team', cls: '' },
-  { key: 'record', label: 'Record', cls: 'num hide-sm' },
-  { key: 'pts', label: 'Proj pts/wk', cls: 'num' },
-  { key: 'strength', label: 'Strength', cls: 'rank' },
-  { key: 'QB', label: 'QB', cls: 'pos' },
-  { key: 'RB', label: 'RB', cls: 'pos' },
-  { key: 'WR', label: 'WR', cls: 'pos' },
-  { key: 'TE', label: 'TE', cls: 'pos' },
+  { key: 'record', label: 'Record', cls: 'num hide-sm', help: 'record' },
+  { key: 'pts', label: 'Proj pts/wk', cls: 'num', help: 'pts' },
+  { key: 'strength', label: 'Strength', cls: 'rank', help: 'strength' },
+  { key: 'QB', label: 'QB', cls: 'pos', help: 'pos' },
+  { key: 'RB', label: 'RB', cls: 'pos', help: 'pos' },
+  { key: 'WR', label: 'WR', cls: 'pos', help: 'pos' },
+  { key: 'TE', label: 'TE', cls: 'pos', help: 'pos', helpLeft: true },
 ];
 
 function sortValue(row, key) {
@@ -717,10 +755,14 @@ function renderTable() {
   thead.innerHTML = COLS.map(function(c) {
     var sorted = S.sortKey === c.key;
     return '<th class="' + c.cls + (sorted ? ' sorted' : '') + '" data-key="' + c.key + '">' + esc(c.label) +
-      (sorted ? '<span class="dir">' + (S.sortDir === 'asc' ? '▲' : '▼') + '</span>' : '') + '</th>';
+      (sorted ? '<span class="dir">' + (S.sortDir === 'asc' ? '▲' : '▼') + '</span>' : '') +
+      (c.help ? tipHtml(c.help, { label: 'What is ' + c.label + '?', left: !!c.helpLeft }) : '') + '</th>';
   }).join('');
   Array.prototype.forEach.call(thead.querySelectorAll('th'), function(th) {
-    th.onclick = function() { setSort(th.getAttribute('data-key')); };
+    th.onclick = function(e) {
+      if (e.target.closest && e.target.closest('.tip')) return; // "?" opens the explainer, not the sort
+      setSort(th.getAttribute('data-key'));
+    };
   });
 
   var n = S.count;
@@ -781,10 +823,10 @@ function renderMyTeam(mine) {
   var injured = Array.isArray(t.injured) ? t.injured : [];
   var injTitle = injured.map(function(x){ return x && typeof x === 'object' ? (x.name + ' (' + x.status + ')') : ((S.players[x] || [x])[0] + ' (' + (injuryOf(x) || '?') + ')'); }).join(', ');
   document.getElementById('my-stats').innerHTML =
-    '<div class="stat-tile"><div class="stat-val">' + mine.pts.toFixed(1) + '<small>pts/wk</small></div><div class="stat-lbl">Starters</div></div>' +
-    '<div class="stat-tile"><div class="stat-val">#' + mine.strengthRank + '<small>of ' + n + '</small></div><div class="stat-lbl">Strength</div></div>' +
-    (t.benchVorp != null ? '<div class="stat-tile"><div class="stat-val">' + Math.round(t.benchVorp).toLocaleString() + '</div><div class="stat-lbl">Bench value</div></div>' : '') +
-    '<div class="stat-tile' + (injured.length ? ' danger' : '') + '" title="' + esc(injTitle) + '"><div class="stat-val">' + injured.length + '</div><div class="stat-lbl">Injured</div></div>';
+    '<div class="stat-tile"><div class="stat-val">' + mine.pts.toFixed(1) + '<small>pts/wk</small></div><div class="stat-lbl">Starters' + tipHtml('pts', { label: 'What is Starters pts/wk?' }) + '</div></div>' +
+    '<div class="stat-tile"><div class="stat-val">#' + mine.strengthRank + '<small>of ' + n + '</small></div><div class="stat-lbl">Strength' + tipHtml('strength', { label: 'What is Strength?' }) + '</div></div>' +
+    (t.benchVorp != null ? '<div class="stat-tile"><div class="stat-val">' + Math.round(t.benchVorp).toLocaleString() + '</div><div class="stat-lbl">Bench value' + tipHtml('benchValue', { label: 'What is Bench value?' }) + '</div></div>' : '') +
+    '<div class="stat-tile' + (injured.length ? ' danger' : '') + '" title="' + esc(injTitle) + '"><div class="stat-val">' + injured.length + '</div><div class="stat-lbl">Injured' + tipHtml('injured', { label: 'Who counts as injured?' }) + '</div></div>';
 
   // Strengths: top 3 starters by VORP (elite flagged by the engine first, then by value)
   var starters = Array.isArray(t.starters) ? t.starters
