@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T22:31:05.585Z",
+  "generated_at": "2026-09-10T13:06:42.655Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -304,9 +304,9 @@
       "vorp_sf": 103.5
     },
     {
-      "name": "Bucky Irving",
+      "name": "D'Andre Swift",
       "position": "RB",
-      "team": "TB",
+      "team": "CHI",
       "vorp_std": 102,
       "vorp_sf": 102
     },
@@ -318,9 +318,9 @@
       "vorp_sf": 99
     },
     {
-      "name": "D'Andre Swift",
+      "name": "Bucky Irving",
       "position": "RB",
-      "team": "CHI",
+      "team": "TB",
       "vorp_std": 96,
       "vorp_sf": 96
     },
@@ -500,9 +500,9 @@
       "vorp_sf": 54
     },
     {
-      "name": "Chris Godwin",
+      "name": "Courtland Sutton",
       "position": "WR",
-      "team": "TB",
+      "team": "DEN",
       "vorp_std": 54,
       "vorp_sf": 54
     },
@@ -521,9 +521,9 @@
       "vorp_sf": 117
     },
     {
-      "name": "Courtland Sutton",
+      "name": "Chris Godwin",
       "position": "WR",
-      "team": "DEN",
+      "team": "TB",
       "vorp_std": 49.5,
       "vorp_sf": 49.5
     },
@@ -990,9 +990,9 @@
       "vorp_sf": -48
     },
     {
-      "name": "Denzel Boston",
+      "name": "Malik Washington",
       "position": "WR",
-      "team": "CLE",
+      "team": "MIA",
       "vorp_std": -49.5,
       "vorp_sf": -49.5
     },
@@ -1018,9 +1018,9 @@
       "vorp_sf": -54
     },
     {
-      "name": "Malik Washington",
+      "name": "Denzel Boston",
       "position": "WR",
-      "team": "MIA",
+      "team": "CLE",
       "vorp_std": -54,
       "vorp_sf": -54
     },
@@ -1109,9 +1109,9 @@
       "vorp_sf": -72
     },
     {
-      "name": "AJ Barner",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "SEA",
+      "team": "WAS",
       "vorp_std": -75,
       "vorp_sf": -75
     },
@@ -1137,16 +1137,16 @@
       "vorp_sf": -78
     },
     {
-      "name": "Keenan Allen",
+      "name": "Travis Hunter",
       "position": "WR",
-      "team": "IND",
+      "team": "JAX",
       "vorp_std": -81,
       "vorp_sf": -81
     },
     {
-      "name": "Dalton Schultz",
+      "name": "AJ Barner",
       "position": "TE",
-      "team": "HOU",
+      "team": "SEA",
       "vorp_std": -82.5,
       "vorp_sf": -82.5
     },
@@ -1165,9 +1165,9 @@
       "vorp_sf": -19.5
     },
     {
-      "name": "Travis Hunter",
+      "name": "Keenan Allen",
       "position": "WR",
-      "team": "JAX",
+      "team": "IND",
       "vorp_std": -85.5,
       "vorp_sf": -85.5
     },
@@ -1277,16 +1277,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Germie Bernard",
+      "name": "Tyreek Hill",
       "position": "WR",
-      "team": "PIT",
+      "team": null,
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Tyreek Hill",
+      "name": "Germie Bernard",
       "position": "WR",
-      "team": null,
+      "team": "PIT",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1347,9 +1347,9 @@
       "vorp_sf": -90
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "Dalton Schultz",
       "position": "TE",
-      "team": "WAS",
+      "team": "HOU",
       "vorp_std": -90,
       "vorp_sf": -90
     },
@@ -1375,23 +1375,23 @@
       "vorp_sf": -102
     },
     {
-      "name": "Greg Dulcich",
+      "name": "Gunnar Helm",
       "position": "TE",
-      "team": "MIA",
+      "team": "TEN",
       "vorp_std": -105,
       "vorp_sf": -105
-    },
-    {
-      "name": "Tyrone Tracy",
-      "position": "RB",
-      "team": "NYG",
-      "vorp_std": -108,
-      "vorp_sf": -108
     },
     {
       "name": "Emmett Johnson",
       "position": "RB",
       "team": "KC",
+      "vorp_std": -108,
+      "vorp_sf": -108
+    },
+    {
+      "name": "Tyrone Tracy",
+      "position": "RB",
+      "team": "NYG",
       "vorp_std": -110,
       "vorp_sf": -110
     },
@@ -1536,23 +1536,23 @@
       "vorp_sf": -110
     },
     {
-      "name": "Gunnar Helm",
+      "name": "Greg Dulcich",
       "position": "TE",
-      "team": "TEN",
+      "team": "MIA",
       "vorp_std": -112.5,
       "vorp_sf": -112.5
-    },
-    {
-      "name": "David Njoku",
-      "position": "TE",
-      "team": "LAC",
-      "vorp_std": -120,
-      "vorp_sf": -120
     },
     {
       "name": "Pat Freiermuth",
       "position": "TE",
       "team": "PIT",
+      "vorp_std": -120,
+      "vorp_sf": -120
+    },
+    {
+      "name": "David Njoku",
+      "position": "TE",
+      "team": "LAC",
       "vorp_std": -127.5,
       "vorp_sf": -127.5
     },
