@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Node harness for shared/analysis.js against a live league.
 //
-//   node scripts/analyze-league.js [leagueId] [--base=https://roundroom.pykled.com]
+//   node scripts/analyze-league.js [leagueId] [--base=https://pocketff.com]
 //
 // Pulls the same five payloads the Trade/Team pages use, builds blended VORP
 // exactly like the browser (computeVORP → rescaleVORP → blendWithMarket), runs
@@ -16,7 +16,7 @@ const Analysis = require('../shared/analysis.js');
 const args = process.argv.slice(2);
 const leagueId = args.find(a => /^\d+$/.test(a)) || '1399457768158547968';
 const baseArg = args.find(a => a.startsWith('--base='));
-const BASE = baseArg ? baseArg.slice(7).replace(/\/$/, '') : 'https://roundroom.pykled.com';
+const BASE = baseArg ? baseArg.slice(7).replace(/\/$/, '') : 'https://pocketff.com';
 const VERBOSE = args.includes('-v') || args.includes('--verbose');
 
 async function getJSON(path) {

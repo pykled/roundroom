@@ -7,7 +7,7 @@
 <meta name="description" content="Pocket: Real-time NFL fantasy draft assistant. Live Sleeper sync, VORP-based picks, SuperFlex support.">
 <meta property="og:title" content="Pocket — Live Draft Companion for Sleeper">
 <meta property="og:description" content="Real-time pick tracking and VORP-ranked recommendations for Sleeper fantasy drafts. Know who to draft next, instantly.">
-<meta property="og:url" content="https://roundroom.pykled.com">
+<meta property="og:url" content="https://pocketff.com">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Pocket — Live Draft Companion for Sleeper">
@@ -9713,7 +9713,7 @@ try {
       `if(!uid){var blobs=['sleeper_session','session','currentUser','__user'];` +
         `for(var j=0;j<blobs.length;j++){try{var o=JSON.parse(localStorage.getItem(blobs[j])||'{}');uid=o.user_id||o.userId||o.id||'';if(uid&&/^\\d{15,}$/.test(String(uid))){uid=String(uid);break;}uid='';}catch(ex){}}}` +
     `}catch(ex){}` +
-    `var url='https://roundroom.pykled.com/?companion=1&draft_id='+m[1];` +
+    `var url='https://pocketff.com/?companion=1&draft_id='+m[1];` +
     `if(uid)url+='&user_id='+uid;` +
     `window.open(url,'Pocket','width=400,height=680,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes');` +
   `})();`;
@@ -9801,7 +9801,7 @@ function openHelp() {
 // ===== DRAFT RECAP SHARE =====
 function shareDraftRecap(grade, avgValue, leagueName, picks) {
   const pickLines = picks.slice(0, 8).map(p => `R${p.round}.${p.pick_no - (p.round-1)*STATE.totalTeams} ${p.metadata?.first_name||''} ${p.metadata?.last_name||''} (${(p.metadata?.position||'').replace('DEF','DST')})`).join('\n');
-  const text = `🏈 My Pocket draft grade: ${grade} (avg ${avgValue >= 0 ? '+' : ''}${avgValue.toFixed(1)} vs ADP)\n${leagueName}\n\n${pickLines}\n\nroundroom.app`;
+  const text = `🏈 My Pocket draft grade: ${grade} (avg ${avgValue >= 0 ? '+' : ''}${avgValue.toFixed(1)} vs ADP)\n${leagueName}\n\n${pickLines}\n\npocketff.com`;
   if (navigator.share) {
     navigator.share({ title: 'My Draft Grade — Pocket', text }).catch(() => {});
   } else {
