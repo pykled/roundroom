@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-10T16:33:46.392Z",
+  "fetched_at": "2026-09-10T21:00:25.427Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -499,13 +499,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Drew Ogletree",
-      "position": "TE",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Neck"
-    },
-    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -971,7 +964,7 @@
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
-      "status": "Out",
+      "status": "NA",
       "body_part": "Personal"
     },
     {
@@ -1570,6 +1563,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Tua Tagovailoa",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Ty Chandler",
       "position": "RB",
       "team": "NO",
@@ -1685,13 +1685,6 @@
       "name": "Zane Gonzalez",
       "position": "K",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Zay Flowers",
-      "position": "WR",
-      "team": "BAL",
       "status": "Questionable",
       "body_part": "Undisclosed"
     }
