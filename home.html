@@ -35,14 +35,24 @@ html { scroll-behavior: smooth; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 /* Marketing page runs at the browser default type size, not the 14px tool base. */
+/* Horizontal overflow from the animated hero bloom (#hero::before, inset -10%,
+   drifting ±3%) must never widen the page: on iOS a wider-than-viewport page lets
+   the visual viewport pan/rescale, which looks like the page zooming by itself.
+   `clip` (with `hidden` as the fallback) does not create a scroll container, so the
+   sticky nav keeps working; setting it on html too stops body's value from being
+   propagated to the viewport, where iOS ignores it. */
+html { overflow-x: clip; }
 body {
   font-size: 1rem;
   line-height: normal;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-x: clip;
   background: #0a0a12;
 }
 a { color: inherit; }
+/* Suppress double-tap-to-zoom on tappable controls without blocking pinch zoom. */
+a, button, .btn, [role="button"] { touch-action: manipulation; }
 [hidden] { display: none !important; }
 
 /* ---- Shared primitives ---- */
@@ -146,7 +156,7 @@ a { color: inherit; }
   filter: saturate(1.08);
   user-select: none; -webkit-user-drag: none;
 }
-.hero-copy { max-width: 58rem; display: flex; flex-direction: column; align-items: center; }
+.hero-copy { max-width: 58rem; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
 /* Page-load entrance: headline, sub, CTAs and proof rise in one after another. */
 .hero-copy > * { animation: rise-in 0.6s ease-out both; }
 .hero-copy > :nth-child(1) { animation-delay: 0.10s; }
@@ -165,7 +175,7 @@ a { color: inherit; }
 }
 #hero .sub {
   font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem); line-height: 1.55; color: var(--text-body);
-  max-width: 34rem; margin-bottom: 2rem; text-wrap: balance;
+  max-width: 34rem; margin: 0 auto 2rem; text-align: center; text-wrap: balance;
 }
 #hero .sub-mono {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 2rem;
@@ -335,18 +345,21 @@ footer .f-links .dim { opacity: 0.5; }
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* No scale() in any looping keyframe: a slowly scaling hero reads as the page
+   zooming in and out on mobile. Float and drift use translate only; the glow
+   pulses on opacity only. */
 @keyframes logo-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-10px) scale(1.015); }
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
 }
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50%      { opacity: 1; transform: scale(1.06); }
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1; }
 }
 @keyframes glow-drift {
-  0%   { opacity: 0.85; transform: translate3d(-3%, -2%, 0) scale(1); }
-  50%  { opacity: 1;    transform: translate3d(3%, 2%, 0) scale(1.08); }
-  100% { opacity: 0.9;  transform: translate3d(-1%, 3%, 0) scale(1.03); }
+  0%   { opacity: 0.85; transform: translate3d(-3%, -2%, 0); }
+  50%  { opacity: 1;    transform: translate3d(3%, 2%, 0); }
+  100% { opacity: 0.9;  transform: translate3d(-1%, 3%, 0); }
 }
 @keyframes cta-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0), 0 4px 18px rgba(99,102,241,0.22); }
@@ -378,9 +391,11 @@ footer .f-links .dim { opacity: 0.5; }
 @media (max-width: 768px) {
   #hero { padding: 32px 0 56px; }
   .hero-logo { width: clamp(200px, 60vw, 260px); margin-bottom: 16px; }
-  #hero h1 { margin-bottom: 1rem; }
-  #hero .sub { margin-bottom: 1.5rem; }
+  #hero h1 { margin-bottom: 1rem; text-align: center; }
+  #hero .sub { margin-bottom: 1.5rem; text-align: center; }
   .hero-visual { margin-top: 36px; }
+  /* 16px on every tappable control: iOS auto-zooms focused controls set below 16px. */
+  .btn, #rr-nav.open #rr-sign-in { font-size: 1rem; }
   .section-head { margin-bottom: 24px; }
   #method { padding: 48px 0; }
   .method-grid { gap: 28px; }
