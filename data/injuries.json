@@ -1,6 +1,13 @@
 {
-  "fetched_at": "2026-09-10T00:21:33.524Z",
+  "fetched_at": "2026-09-10T04:57:21.858Z",
   "players": [
+    {
+      "name": "A.J. Brown",
+      "position": "WR",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Ankle"
+    },
     {
       "name": "A.J. Hines",
       "position": "RB",
@@ -355,7 +362,7 @@
       "name": "Dalevon Campbell",
       "position": "WR",
       "team": "LAC",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Leg"
     },
     {
@@ -597,13 +604,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "George Kittle",
-      "position": "TE",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Achilles"
-    },
-    {
       "name": "Graham Gano",
       "position": "K",
       "team": null,
@@ -733,7 +733,7 @@
       "name": "Jacoby Jones",
       "position": "WR",
       "team": null,
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1262,13 +1262,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Ollie Gordon",
-      "position": "RB",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Oscar Delp",
       "position": "TE",
       "team": "NO",
@@ -1314,7 +1307,7 @@
       "name": "Quentin Moore",
       "position": "TE",
       "team": null,
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1386,6 +1379,13 @@
       "team": "CHI",
       "status": "Questionable",
       "body_part": "Leg"
+    },
+    {
+      "name": "Sam Darnold",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Hip"
     },
     {
       "name": "Sam Scott",
@@ -1631,6 +1631,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Will Kacmarek",
+      "position": "TE",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Calf"
     },
     {
       "name": "Will Mallory",
