@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T13:06:45.366Z",
+  "generated_at": "2026-09-10T16:33:46.494Z",
   "weights": {
     "sleeper": 0.5,
     "fantasypros": 0.35,
@@ -1357,7 +1357,7 @@
       "sources_count": 2,
       "composite_sf_adp": 102.85,
       "fantasypros_sf_adp": 141.14,
-      "injury_status": "NA",
+      "injury_status": "Out",
       "bye": 11
     },
     {
@@ -4602,7 +4602,8 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 279.63,
-      "fantasypros_sf_adp": 279.63
+      "fantasypros_sf_adp": 279.63,
+      "injury_status": "Questionable"
     },
     {
       "name": "Trey Benson",
@@ -5893,6 +5894,7 @@
       "sources_count": 1,
       "composite_sf_adp": 309,
       "fantasypros_sf_adp": 309,
+      "injury_status": "Questionable",
       "bye": 11
     },
     {

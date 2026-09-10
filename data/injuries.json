@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-10T13:06:45.261Z",
+  "fetched_at": "2026-09-10T16:33:46.392Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -200,7 +200,7 @@
     {
       "name": "Bryson Nesbit",
       "position": "TE",
-      "team": "MIN",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -361,7 +361,7 @@
     {
       "name": "Dalevon Campbell",
       "position": "WR",
-      "team": "LAC",
+      "team": null,
       "status": "Questionable",
       "body_part": "Leg"
     },
@@ -403,7 +403,7 @@
     {
       "name": "Dennis Houston",
       "position": "WR",
-      "team": "TB",
+      "team": null,
       "status": "Questionable",
       "body_part": "Groin"
     },
@@ -494,7 +494,7 @@
     {
       "name": "Dontae Fleming",
       "position": "WR",
-      "team": null,
+      "team": "MIN",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -879,7 +879,7 @@
     {
       "name": "Jerome Ford",
       "position": "RB",
-      "team": "WAS",
+      "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -971,8 +971,8 @@
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
-      "status": "NA",
-      "body_part": "Groin"
+      "status": "Out",
+      "body_part": "Personal"
     },
     {
       "name": "JuJu Smith-Schuster",
@@ -1295,6 +1295,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Pierre Strong",
+      "position": "RB",
+      "team": "GB",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Princeton Fant",
