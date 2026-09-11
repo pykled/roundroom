@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-11T13:03:53.317Z",
+  "fetched_at": "2026-09-11T16:38:06.120Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -130,7 +130,7 @@
     {
       "name": "Ben Sims",
       "position": "TE",
-      "team": "MIA",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -831,7 +831,7 @@
       "name": "Jamari Thrash",
       "position": "WR",
       "team": "CLE",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1078,6 +1078,13 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Kene Nwangwu",
+      "position": "RB",
+      "team": "NYJ",
+      "status": "Doubtful",
+      "body_part": "Back"
     },
     {
       "name": "Kenny Yeboah",
@@ -1446,7 +1453,7 @@
     {
       "name": "Sean McKeon",
       "position": "TE",
-      "team": "IND",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1545,7 +1552,7 @@
       "name": "Tim Patrick",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
