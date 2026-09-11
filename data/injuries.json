@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-11T21:05:01.750Z",
+  "fetched_at": "2026-09-11T22:30:24.235Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -152,13 +152,6 @@
       "name": "Brenden Bates",
       "position": "TE",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Brenen Thompson",
-      "position": "WR",
-      "team": "LAC",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -376,6 +369,13 @@
       "name": "Dan Chisena",
       "position": "WR",
       "team": null,
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Danny Gray",
+      "position": "WR",
+      "team": "PHI",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -873,7 +873,7 @@
       "name": "Jermar Jefferson",
       "position": "RB",
       "team": "MIN",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1015,13 +1015,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Keaton Mitchell",
-      "position": "RB",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Keilan Robinson",
