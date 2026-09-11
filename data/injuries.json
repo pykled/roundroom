@@ -1,11 +1,11 @@
 {
-  "fetched_at": "2026-09-11T16:38:06.120Z",
+  "fetched_at": "2026-09-11T21:05:01.750Z",
   "players": [
     {
       "name": "A.J. Brown",
       "position": "WR",
       "team": "NE",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -42,13 +42,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Alec Pierce",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Heel"
     },
     {
       "name": "Alex Bullock",
@@ -103,7 +96,7 @@
       "name": "Audric Estime",
       "position": "RB",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Thigh"
     },
     {
@@ -751,13 +744,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Jacory Croskey-Merritt",
-      "position": "RB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Jake Bentley",
       "position": "QB",
       "team": null,
@@ -779,18 +765,11 @@
       "body_part": "Knee"
     },
     {
-      "name": "Jakobi Meyers",
-      "position": "WR",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Hand"
-    },
-    {
       "name": "Jalen McMillan",
       "position": "WR",
       "team": "TB",
-      "status": "Questionable",
-      "body_part": "Calf"
+      "status": "Doubtful",
+      "body_part": "Knee"
     },
     {
       "name": "Jalen Milroe",
@@ -973,13 +952,6 @@
       "team": "PHI",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Jonathon Brooks",
-      "position": "RB",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Jordan James",
@@ -1199,6 +1171,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Malik Davis",
+      "position": "RB",
+      "team": "DAL",
+      "status": "Out",
+      "body_part": "Hip"
+    },
+    {
       "name": "Malik Nabers",
       "position": "WR",
       "team": "NYG",
@@ -1314,7 +1293,7 @@
       "name": "Oscar Delp",
       "position": "TE",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1461,8 +1440,8 @@
       "name": "Sean Tucker",
       "position": "RB",
       "team": "TB",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "Doubtful",
+      "body_part": "Hamstring"
     },
     {
       "name": "Sergio Bailey II",
@@ -1615,8 +1594,8 @@
       "name": "Tua Tagovailoa",
       "position": "QB",
       "team": "ATL",
-      "status": "Questionable",
-      "body_part": "Back"
+      "status": "Out",
+      "body_part": "Oblique"
     },
     {
       "name": "Tutu Atwell",
@@ -1703,13 +1682,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Will Kacmarek",
-      "position": "TE",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Calf"
-    },
-    {
       "name": "Will Mallory",
       "position": "TE",
       "team": "IND",
@@ -1729,13 +1701,6 @@
       "team": "SEA",
       "status": "PUP",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Zachariah Branch",
-      "position": "WR",
-      "team": "ATL",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Zack Moss",
