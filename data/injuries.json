@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-10T22:25:35.019Z",
+  "fetched_at": "2026-09-11T00:17:36.088Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -301,6 +301,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "CJ Daniels",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Cole Burgess",
@@ -908,7 +915,7 @@
       "name": "Joe Mixon",
       "position": "RB",
       "team": null,
-      "status": "Out",
+      "status": "",
       "body_part": "Foot"
     },
     {
@@ -952,6 +959,20 @@
       "team": "CAR",
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Jordan James",
+      "position": "RB",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Jordan Watkins",
+      "position": "WR",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jordyn Tyson",
@@ -1043,6 +1064,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Kurtis Rourke",
+      "position": "QB",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Kye Robichaux",
@@ -1176,6 +1204,13 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Max Klare",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "McCallan Castles",
@@ -1556,6 +1591,13 @@
       "body_part": "Back"
     },
     {
+      "name": "Tutu Atwell",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Ty Chandler",
       "position": "RB",
       "team": "NO",
@@ -1568,6 +1610,13 @@
       "team": "BUF",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ty Simpson",
+      "position": "QB",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Tyler Mabry",
