@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-12T18:32:04.235Z",
+  "fetched_at": "2026-09-12T22:09:06.470Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -324,6 +324,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Cooper Rush",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Corey Rucker",
       "position": "WR",
       "team": "LV",
@@ -551,7 +558,7 @@
       "name": "Eli Stowers",
       "position": "TE",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
@@ -1048,7 +1055,7 @@
       "name": "Kene Nwangwu",
       "position": "RB",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Back"
     },
     {
@@ -1524,7 +1531,7 @@
       "name": "Tim Patrick",
       "position": "WR",
       "team": "NYJ",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
