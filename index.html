@@ -3403,33 +3403,6 @@
       </div>
     </div>
 
-    <div class="home-right">
-      <div class="home-right-header">
-        <div>
-          <span class="home-right-title">Player Rankings</span>
-          <div style="font-size:0.58rem;color:var(--text-muted);margin-top:0.1rem;font-family:'DM Mono',monospace;">click a column to sort · +/- vs expert consensus · <span id="home-freshness-text" style="font-style:italic;">loading...</span></div>
-        </div>
-        <div class="home-pos-filters">
-          <button class="home-pos-filter active" data-hpos="ALL" onclick="setHomePos('ALL')">ALL</button>
-          <button class="home-pos-filter" data-hpos="QB" onclick="setHomePos('QB')">QB</button>
-          <button class="home-pos-filter" data-hpos="RB" onclick="setHomePos('RB')">RB</button>
-          <button class="home-pos-filter" data-hpos="WR" onclick="setHomePos('WR')">WR</button>
-          <button class="home-pos-filter" data-hpos="TE" onclick="setHomePos('TE')">TE</button>
-        </div>
-      </div>
-      <div class="home-fmt-toggle">
-        <button class="home-pos-filter active" data-hfmt="standard" onclick="setHomeFormat('standard')" title="ADP from standard 1-QB leagues">Standard</button>
-        <button class="home-pos-filter" data-hfmt="sf" onclick="setHomeFormat('sf')" title="ADP from Superflex / 2-QB leagues — QBs go much earlier">Superflex</button>
-      </div>
-      <div class="home-col-header">
-        <span class="h-pos"></span>
-        <span class="h-name" data-hsort="name" data-label="Player" onclick="setHomeSort('name')">Player</span>
-        <span class="h-team" data-hsort="team" data-label="Team" onclick="setHomeSort('team')">Team</span>
-        <span class="h-adp" data-hsort="adp" data-label="ADP" onclick="setHomeSort('adp')" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
-        <span class="h-val" data-hsort="val" data-label="Experts" data-label-short="Exp" onclick="setHomeSort('val')" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
-      </div>
-      <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
-    </div>
 
   </div>
 </div>
