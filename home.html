@@ -255,9 +255,14 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
   position: relative; display: flex; justify-content: center; width: 100%; margin-top: 56px;
   animation: rise-in 0.8s ease-out 0.45s both;
 }
+/* Card glow. `closest-side` sizes the ellipse so it reaches fully transparent exactly
+   at the pseudo-element's nearest edges (the top edge, 60px above the card, and the
+   sides). The previous default (farthest-corner, transparent at 62%) was still ~7%
+   alpha where the box ended above the card, so the box edge clipped the gradient
+   mid-fade and drew a full-width tinted stripe between the proof line and the card. */
 .hero-visual::before {
   content: ""; position: absolute; inset: -60px -40px;
-  background: radial-gradient(ellipse at 50% 30%, var(--brand-glow), transparent 62%);
+  background: radial-gradient(ellipse closest-side at 50% 30%, var(--brand-glow), transparent);
   pointer-events: none;
 }
 .frame {
