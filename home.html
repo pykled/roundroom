@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pocket — Draft, trade, and lineup tools scored to your Sleeper league</title>
-<meta name="description" content="Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.">
+<title>Pocket — Fantasy football draft, trade, and lineup tools scored to your Sleeper league</title>
+<meta name="description" content="Fantasy football tools for Sleeper leagues. Enter your Sleeper username once and every draft pick, trade, and lineup is scored to your league's exact scoring and roster.">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="Pocket — Draft, trade, and lineup tools scored to your Sleeper league">
-<meta property="og:description" content="Link your Sleeper username once. Every tool runs on your league's exact scoring and roster.">
+<meta property="og:title" content="Pocket — Fantasy football draft, trade, and lineup tools scored to your Sleeper league">
+<meta property="og:description" content="Fantasy football tools for Sleeper leagues. Enter your Sleeper username once and every draft pick, trade, and lineup is scored to your league's exact scoring and roster.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pocketff.com/">
 <meta property="og:image" content="https://pocketff.com/og.png">
@@ -172,6 +172,22 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 .hero-copy > :nth-child(4) { animation-delay: 0.34s; }
 .hero-copy > :nth-child(5) { animation-delay: 0.42s; }
 .hero-copy > :nth-child(6) { animation-delay: 0.50s; }
+.hero-copy > :nth-child(7) { animation-delay: 0.58s; }
+/* Eyebrow: names the category for cold traffic. "Fantasy football" appears nowhere
+   else on the page and there is no Sleeper logo, so this is the only place a visitor
+   from an ad learns what Pocket is before reading the headline. */
+.hero-eyebrow {
+  display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 10px;
+  color: var(--text-body); margin-bottom: 1.1rem;
+}
+.hero-eyebrow span:not(.sep) { white-space: nowrap; }
+/* Tighter tracking on phones so both phrases fit one line inside the 350px column. */
+@media (max-width: 480px) { .hero-eyebrow { font-size: 0.66rem; letter-spacing: 0.05em; gap: 8px; } }
+.hero-eyebrow::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--brand-400); box-shadow: 0 0 8px rgba(129,140,248,0.85);
+}
+.hero-eyebrow .sep { color: var(--text-muted); }
 #hero h1 {
   font-weight: 800;
   font-size: clamp(2.25rem, 6vw, 4.25rem);
@@ -245,10 +261,23 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
 /* Idle glow on the primary CTA; hover brightens and lifts instead. */
 #cta-primary { animation: cta-glow 3.2s ease-in-out infinite; transition: filter 0.15s, transform 0.15s; }
 #cta-primary:hover { animation-play-state: paused; transform: translateY(-1px); }
-.proof { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--text-secondary); }
+.proof { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 8px; color: var(--text-secondary); }
 .proof .fact { white-space: nowrap; }
 .proof .sep { color: var(--text-muted); }
-@media (max-width: 640px) { .proof { gap: 10px 8px; } }
+/* Usage numbers count up from 0 when the row enters the viewport (script at the
+   bottom). The final value is in the markup, so no-JS and reduced-motion visitors
+   see it immediately. min-width is set from the digit count so the label never
+   shifts while the number is still short. */
+.proof .num {
+  display: inline-block; text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--text-primary); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em;
+}
+/* Phones: the three facts no longer fit one line, so stack them and drop the dots
+   rather than leave a dangling separator at a wrap point. */
+@media (max-width: 640px) {
+  .proof { flex-direction: column; align-items: center; gap: 10px; }
+  .proof .sep { display: none; }
+}
 
 /* Product frame (sits under the CTAs, centered) */
 .hero-visual {
@@ -508,6 +537,7 @@ footer .f-links .dim { opacity: 0.5; }
       </picture>
     </div>
     <div class="hero-copy">
+      <div class="hero-eyebrow mono"><span>Fantasy football</span><span class="sep">·</span><span>Built for Sleeper leagues</span></div>
       <h1 id="hero-h1">Every pick, scored to your Sleeper league.</h1>
       <p class="sub" id="hero-sub">Pocket reads your league's scoring and roster straight from Sleeper, then ranks every draft pick, trade, and lineup for it. Not ADP. Your league.</p>
       <div class="sub-mono mono" id="hero-leagues" hidden></div>
@@ -527,10 +557,10 @@ footer .f-links .dim { opacity: 0.5; }
         <a class="cta-link" id="cta-secondary" href="/trade">Or try the trade calculator</a>
       </div>
 
-      <div class="proof mono" aria-label="Sleeper native, VORP not ADP, free">
-        <span class="fact">Sleeper native</span><span class="sep">·</span>
-        <span class="fact">VORP, not ADP</span><span class="sep">·</span>
-        <span class="fact">Free</span>
+      <div class="proof mono" aria-label="21 drafts connected this week, 115 draft strategies tested, VORP not ADP">
+        <span class="fact"><span class="num" data-count="21">21</span> drafts connected this week</span><span class="sep">·</span>
+        <span class="fact"><span class="num" data-count="115">115</span> draft strategies tested</span><span class="sep">·</span>
+        <span class="fact">VORP, not ADP</span>
       </div>
     </div>
 
@@ -963,6 +993,48 @@ footer .f-links .dim { opacity: 0.5; }
     });
   }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
   for (var j = 0; j < els.length; j++) io.observe(els[j]);
+})();
+</script>
+<script>
+// Proof numbers: count up from 0 to data-count once the row is in view. Waits for the
+// row's own rise-in entrance to finish so the count is visible from its first frame.
+// Reduced motion, no rAF, or no IntersectionObserver: the markup value just stays.
+(function () {
+  var nums = document.querySelectorAll('.proof .num[data-count]');
+  if (!nums.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function animate(el, end) {
+    var dur = 900 + Math.min(500, end * 3), t0 = null;
+    el.textContent = '0';
+    function frame(t) {
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(end * eased));
+      if (p < 1) requestAnimationFrame(frame); else el.textContent = String(end);
+    }
+    requestAnimationFrame(frame);
+  }
+  function run(el) {
+    var end = parseInt(el.getAttribute('data-count'), 10);
+    if (!isFinite(end)) return;
+    el.style.minWidth = String(end).length + 'ch';
+    if (reduce || !window.requestAnimationFrame) { el.textContent = String(end); return; }
+    var row = el.closest ? el.closest('.proof') : null;
+    var anims = (row && row.getAnimations) ? row.getAnimations() : [];
+    var start = function () { animate(el, end); };
+    if (anims.length) Promise.all(anims.map(function (a) { return a.finished; })).then(start, start);
+    else start();
+  }
+  if (!('IntersectionObserver' in window)) { for (var i = 0; i < nums.length; i++) run(nums[i]); return; }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      run(e.target);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.5 });
+  for (var k = 0; k < nums.length; k++) io.observe(nums[k]);
 })();
 </script>
 </body>
