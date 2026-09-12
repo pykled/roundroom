@@ -732,7 +732,6 @@
   .home-player-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-player-team { width: 34px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; font-family: var(--font-mono); }
   .home-player-adp { width: 40px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.78rem; }
-  .home-player-rank { width: 42px; flex-shrink: 0; color: var(--text-muted); font-size: 0.72rem; font-family: var(--font-mono); }
   .home-value { width: 48px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.75rem; text-align: right; }
   .home-player-empty { padding: 2rem 0; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
   .home-col-header {
@@ -745,7 +744,6 @@
   .home-col-header .h-name { flex: 1; }
   .home-col-header .h-team { width: 34px; flex-shrink: 0; }
   .home-col-header .h-adp { width: 40px; flex-shrink: 0; }
-  .home-col-header .h-rank { width: 42px; flex-shrink: 0; }
   .home-col-header .h-val { width: 48px; flex-shrink: 0; text-align: right; cursor: help; }
 
   @media (max-width: 768px) {
@@ -801,13 +799,11 @@
 
     /* Slim down player rows on mobile — hide less important columns */
     .home-player-team { display: none; }
-    .home-player-rank { display: none; }
     .home-player-adp { width: 36px; font-size: 0.75rem; }
     .home-value { width: 44px; font-size: 0.72rem; }
     .home-player-row { padding: 0 0.75rem; min-height: 48px; }
     .home-player-name { font-size: 0.85rem; }
     .home-col-header .h-team { display: none; }
-    .home-col-header .h-rank { display: none; }
     .home-col-header { padding: 0.25rem 0.75rem; }
     .home-col-header .h-adp { width: 36px; }
     .home-col-header .h-val { width: 44px; }
@@ -1398,16 +1394,6 @@
     border-bottom-color: rgba(239,68,68,0.15);
     background: rgba(239,68,68,0.04);
     opacity: 0.6;
-  }
-
-  .player-rank {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.25);
-    min-width: 22px;
-    text-align: right;
-    flex-shrink: 0;
-    font-variant-numeric: tabular-nums;
   }
 
   .player-main { overflow: hidden; flex: 1; min-width: 0; }
@@ -3440,7 +3426,6 @@
         <span class="h-name" data-hsort="name" data-label="Player" onclick="setHomeSort('name')">Player</span>
         <span class="h-team" data-hsort="team" data-label="Team" onclick="setHomeSort('team')">Team</span>
         <span class="h-adp" data-hsort="adp" data-label="ADP" onclick="setHomeSort('adp')" title="Average Draft Position — where this player is typically selected across real drafts">ADP</span>
-        <span class="h-rank" data-hsort="rank" data-label="Rank" onclick="setHomeSort('rank')">Rank</span>
         <span class="h-val" data-hsort="val" data-label="Experts" data-label-short="Exp" onclick="setHomeSort('val')" title="How many draft rounds earlier or later this player is going vs expert consensus (FantasyPros). Positive = potential value; negative = high demand.">Experts</span>
       </div>
       <div id="home-player-list"><div class="home-player-empty">Loading player data…</div></div>
@@ -5873,7 +5858,6 @@ function createPlayerCard(player) {
       : `<span class="card-val-reach" title="Going ${Math.abs(cardVal).toFixed(1)} rounds earlier than FantasyPros — market reach">${cardVal.toFixed(1)}</span>`;
 
   div.innerHTML = `
-    <div class="player-rank" title="Overall rank by composite ADP">${player.rank}</div>
     <span class="pos-dot pos-dot-${player.position}">${player.position}</span>
     <div class="player-main">
       <div class="player-name">${escHtml(player.name)}</div>
@@ -11493,7 +11477,6 @@ function renderHomePlayers() {
       <span class="home-player-name">${escHtml(p.name)}${injuryDotHtml(p)}</span>
       <span class="home-player-team">${escHtml(p.team || 'FA')}</span>
       <span class="home-player-adp">${adp != null ? adp.toFixed(1) : '—'}</span>
-      <span class="home-player-rank">${escHtml(p.position)}${posRank[p.name] || ''}</span>
       ${valHtml}
     </button>`;
   }).join('');

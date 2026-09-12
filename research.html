@@ -695,7 +695,7 @@ function renderResearchList() {
 
   // Quick filters
   if (RESEARCH.filter === 'value') players = players.filter(p => (researchValue(p) ?? 0) > 1);
-  else if (RESEARCH.filter === 'trending') players = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5);
+  else if (RESEARCH.filter === 'trending') players = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 1.0 && (p.composite_adp ?? p.adp ?? 0) > 150);
   else if (RESEARCH.filter === 'targets') players = players.filter(p => isTarget(p.name));
 
   const sorters = {
@@ -714,7 +714,7 @@ function renderResearchList() {
   const summaryEl = document.getElementById('rsch-summary');
   if (summaryEl) {
     const valueCt = players.filter(p => (researchValue(p) ?? 0) > 1).length;
-    const trendCt = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 0.5).length;
+    const trendCt = players.filter(p => p.weighted_adp != null && p.adp != null && p.adp - p.weighted_adp > 1.0 && (p.composite_adp ?? p.adp ?? 0) > 150).length;
     const parts = [`${players.length} players`];
     if (RESEARCH.filter === 'all' && valueCt > 0) parts.push(`${valueCt} value picks`);
     if (RESEARCH.filter === 'all' && trendCt > 0) parts.push(`${trendCt} trending up`);
