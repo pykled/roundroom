@@ -255,20 +255,34 @@ a, button, .btn, [role="button"] { touch-action: manipulation; }
   position: relative; display: flex; justify-content: center; width: 100%; margin-top: 56px;
   animation: rise-in 0.8s ease-out 0.45s both;
 }
-/* Card glow. `closest-side` sizes the ellipse so it reaches fully transparent exactly
-   at the pseudo-element's nearest edges (the top edge, 60px above the card, and the
-   sides). The previous default (farthest-corner, transparent at 62%) was still ~7%
-   alpha where the box ended above the card, so the box edge clipped the gradient
-   mid-fade and drew a full-width tinted stripe between the proof line and the card. */
-.hero-visual::before {
-  content: ""; position: absolute; inset: -60px -40px;
-  background: radial-gradient(ellipse closest-side at 50% 30%, var(--brand-glow), transparent);
-  pointer-events: none;
-}
+/* Card treatment. There is deliberately NO glow box behind the card any more: every
+   version of a positioned pseudo-element with a vertically fading gradient ended up
+   clipped by its own box edge and drew a stripe across the hero (see git history).
+   Everything below is attached to the card itself:
+   - a brand-tinted border + a tight, symmetric box-shadow halo (0 y-offset, ~34px
+     reach, well inside the 80px/56px hero bottom padding so #hero's overflow:hidden
+     never cuts it);
+   - a light beam that orbits the card's 1px border. It is a conic-gradient masked to
+     the border ring, animated by rotating the gradient angle (a registered custom
+     property), so nothing translates or scales and nothing is painted outside the
+     card's own edge. Browsers without @property just show the beam static. */
+@property --beam { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 .frame {
   position: relative; width: 100%; max-width: 460px; text-align: left;
-  background: var(--bg-card); border: 1px solid var(--border-bright);
+  background: var(--bg-card); border: 1px solid rgba(129,140,248,0.22);
   border-radius: var(--radius-xl); padding: 20px 22px 18px;
+  box-shadow: 0 0 44px -10px rgba(99,102,241,0.34);
+}
+.frame::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: conic-gradient(from var(--beam),
+    transparent 0turn, transparent 0.70turn,
+    rgba(129,140,248,0.95) 0.85turn, rgba(99,102,241,0.30) 0.94turn, transparent 1turn);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+  animation: beam-orbit 7s linear infinite;
 }
 .frame-hdr {
   display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap;
@@ -405,6 +419,8 @@ footer .f-links .dim { opacity: 0.5; }
   0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0), 0 4px 18px rgba(99,102,241,0.22); }
   50%      { box-shadow: 0 0 0 4px rgba(99,102,241,0.12), 0 8px 30px rgba(139,92,246,0.45); }
 }
+/* Product card border beam: only the gradient angle changes per frame. */
+@keyframes beam-orbit { to { --beam: 360deg; } }
 /* Nav drops in from the top on load. `backwards` fill so no transform lingers on the
    sticky nav after the animation ends (a lingering transform would trap fixed children). */
 #rr-nav { animation: nav-in 0.6s ease-out backwards; }
@@ -424,7 +440,6 @@ footer .f-links .dim { opacity: 0.5; }
 @media (max-width: 960px) {
   .frame { max-width: 420px; }
   .hero-visual { margin-top: 44px; }
-  .hero-visual::before { inset: -40px -20px; }
   .tool-grid { grid-template-columns: 1fr; gap: 16px; }
   .method-grid { grid-template-columns: 1fr; gap: 32px; }
 }
