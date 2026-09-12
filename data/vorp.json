@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T22:30:22.740Z",
+  "generated_at": "2026-09-12T12:30:15.632Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -213,9 +213,9 @@
       "vorp_sf": 138
     },
     {
-      "name": "Emeka Egbuka",
+      "name": "Jaylen Waddle",
       "position": "WR",
-      "team": "TB",
+      "team": "DEN",
       "vorp_std": 135,
       "vorp_sf": 135
     },
@@ -227,9 +227,9 @@
       "vorp_sf": 132
     },
     {
-      "name": "Jaylen Waddle",
+      "name": "Emeka Egbuka",
       "position": "WR",
-      "team": "DEN",
+      "team": "TB",
       "vorp_std": 130.5,
       "vorp_sf": 130.5
     },
@@ -556,9 +556,9 @@
       "vorp_sf": 45
     },
     {
-      "name": "Tony Pollard",
+      "name": "Rico Dowdle",
       "position": "RB",
-      "team": "TEN",
+      "team": "PIT",
       "vorp_std": 42,
       "vorp_sf": 42
     },
@@ -584,9 +584,9 @@
       "vorp_sf": 37.5
     },
     {
-      "name": "Rico Dowdle",
+      "name": "Tony Pollard",
       "position": "RB",
-      "team": "PIT",
+      "team": "TEN",
       "vorp_std": 36,
       "vorp_sf": 36
     },
@@ -836,9 +836,9 @@
       "vorp_sf": -15
     },
     {
-      "name": "Kyle Monangai",
+      "name": "Jacory Croskey-Merritt",
       "position": "RB",
-      "team": "CHI",
+      "team": "WAS",
       "vorp_std": -18,
       "vorp_sf": -18
     },
@@ -871,9 +871,9 @@
       "vorp_sf": -22.5
     },
     {
-      "name": "Jacory Croskey-Merritt",
+      "name": "Kyle Monangai",
       "position": "RB",
-      "team": "WAS",
+      "team": "CHI",
       "vorp_std": -24,
       "vorp_sf": -24
     },
@@ -1109,9 +1109,9 @@
       "vorp_sf": -72
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "AJ Barner",
       "position": "TE",
-      "team": "WAS",
+      "team": "SEA",
       "vorp_std": -75,
       "vorp_sf": -75
     },
@@ -1137,16 +1137,16 @@
       "vorp_sf": -78
     },
     {
-      "name": "Travis Hunter",
+      "name": "Keenan Allen",
       "position": "WR",
-      "team": "JAX",
+      "team": "IND",
       "vorp_std": -81,
       "vorp_sf": -81
     },
     {
-      "name": "AJ Barner",
+      "name": "Dalton Schultz",
       "position": "TE",
-      "team": "SEA",
+      "team": "HOU",
       "vorp_std": -82.5,
       "vorp_sf": -82.5
     },
@@ -1165,9 +1165,9 @@
       "vorp_sf": -19.5
     },
     {
-      "name": "Keenan Allen",
+      "name": "Travis Hunter",
       "position": "WR",
-      "team": "IND",
+      "team": "JAX",
       "vorp_std": -85.5,
       "vorp_sf": -85.5
     },
@@ -1221,16 +1221,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Jerry Jeudy",
+      "name": "Devaughn Vele",
       "position": "WR",
-      "team": "CLE",
+      "team": "NO",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Devaughn Vele",
+      "name": "Jerry Jeudy",
       "position": "WR",
-      "team": "NO",
+      "team": "CLE",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1347,9 +1347,9 @@
       "vorp_sf": -90
     },
     {
-      "name": "Dalton Schultz",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "HOU",
+      "team": "WAS",
       "vorp_std": -90,
       "vorp_sf": -90
     },
@@ -1480,13 +1480,6 @@
       "vorp_sf": -110
     },
     {
-      "name": "George Holani",
-      "position": "RB",
-      "team": "SEA",
-      "vorp_std": -110,
-      "vorp_sf": -110
-    },
-    {
       "name": "Justice Hill",
       "position": "RB",
       "team": "BAL",
@@ -1494,9 +1487,9 @@
       "vorp_sf": -110
     },
     {
-      "name": "Jaydon Blue",
+      "name": "George Holani",
       "position": "RB",
-      "team": "DAL",
+      "team": "SEA",
       "vorp_std": -110,
       "vorp_sf": -110
     },
@@ -1522,9 +1515,9 @@
       "vorp_sf": -110
     },
     {
-      "name": "Jordan James",
+      "name": "Jaydon Blue",
       "position": "RB",
-      "team": "SF",
+      "team": "DAL",
       "vorp_std": -110,
       "vorp_sf": -110
     },
@@ -1532,6 +1525,13 @@
       "name": "Kaytron Allen",
       "position": "RB",
       "team": "WAS",
+      "vorp_std": -110,
+      "vorp_sf": -110
+    },
+    {
+      "name": "Jordan James",
+      "position": "RB",
+      "team": "SF",
       "vorp_std": -110,
       "vorp_sf": -110
     },
