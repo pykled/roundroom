@@ -405,16 +405,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
 .method p { font-size: 0.95rem; line-height: 1.5; color: var(--text-body); }
 .method .fresh { margin-top: 12px; color: var(--text-secondary); text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
 
-/* ---- Footer ---- */
-footer { border-top: 1px solid var(--border); padding: 40px 0; }
-footer .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-footer .mono { color: var(--text-muted); text-transform: none; letter-spacing: 0.02em; }
-footer .f-left { display: flex; align-items: center; gap: 12px; }
-footer .f-left .wm { color: var(--text-secondary); font-weight: 500; }
-footer .f-links { display: flex; align-items: center; gap: 8px; }
-footer .f-links a { text-decoration: none; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
-footer .f-links a:hover { color: var(--text-secondary); }
-footer .f-links .dim { opacity: 0.5; }
+/* ---- Footer: shared .rr-footer, styled in /shared/styles.css ---- */
 
 /* ---- Motion ----
    Transform/opacity only (compositor-friendly). Page-load entrances use keyframes;
@@ -486,10 +477,6 @@ footer .f-links .dim { opacity: 0.5; }
   #method { padding: 48px 0; }
   .method-grid { gap: 28px; }
   .card h3 { font-size: 1.1rem; }
-  footer { padding: 32px 0; }
-  footer .container { flex-direction: column; align-items: flex-start; gap: 4px; }
-  footer .f-links a { padding: 10px 8px; }
-  footer .f-links a:first-child { padding-left: 0; }
 }
 @media (max-width: 640px) {
   .hero-form .hf-row { flex-direction: column; gap: 10px; }
@@ -674,17 +661,14 @@ footer .f-links .dim { opacity: 0.5; }
   </div>
 </section>
 
-<footer>
-  <div class="container">
-    <div class="f-left mono">
-      <span class="wm">Pocket</span>
-      <span>Built for Sleeper leagues</span>
-    </div>
-    <div class="f-links mono">
-      <a href="/draft">Draft</a><span>·</span>
-      <a href="/trade">Trade</a><span>·</span>
-      <a href="/lineup">Lineup</a>
-    </div>
+<footer class="rr-footer">
+  <div class="rr-footer-inner">
+    <span class="rr-footer-brand">© 2026 Pocket</span>
+    <nav class="rr-footer-links" aria-label="Footer">
+      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+    </nav>
   </div>
 </footer>
 

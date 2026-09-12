@@ -35,11 +35,18 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 2rem 2rem 0;
     background: var(--bg-primary);
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
+  }
+  /* Shared footer lives inside the setup screen so it disappears with it once a draft starts.
+     Bleed through the 2rem side padding so the top border runs edge to edge. */
+  #setup-screen > .rr-footer {
+    width: calc(100% + 4rem);
+    margin: 2.5rem -2rem 0;
+    position: relative;
   }
 
   #setup-screen::before {
@@ -90,50 +97,42 @@
     margin: 0;
   }
 
-  /* ── How-it-works strip: ① Connect Sleeper → ② Pick league + slot → ③ Start ── */
-  .draft-howto {
-    list-style: none;
-    margin: 1.1rem 0 0;
-    padding: 0.7rem 0.6rem;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr;
-    align-items: start;
-    gap: 0.35rem;
+  /* ── How the companion works: compact 3-step card under the preview ── */
+  .home-howto {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 12px;
+    padding: 0.9rem 1rem 1rem;
   }
-  .draft-howto-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.4rem;
-    min-width: 0;
+  .home-howto-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem 0.75rem;
+    flex-wrap: wrap; /* narrow widths: badge drops under the title instead of squeezing it */
+    margin-bottom: 0.7rem;
   }
-  .draft-howto-step .dhs-num {
-    width: 22px; height: 22px;
-    border-radius: 50%;
+  .home-howto-title {
+    font-size: 0.82rem; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--text-primary); margin: 0;
+  }
+  .home-howto-badge {
+    font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #34d399; background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.25); border-radius: 20px;
+    padding: 0.18rem 0.55rem; white-space: nowrap;
+  }
+  .home-howto-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  .hhs { display: flex; align-items: center; gap: 0.65rem; min-height: 24px; }
+  .hhs-num {
+    width: 22px; height: 22px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 0.68rem; font-weight: 700;
-    color: #a78bfa;
-    background: rgba(124,111,247,0.15);
+    font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+    color: #a78bfa; background: rgba(124,111,247,0.15);
     border: 1px solid rgba(124,111,247,0.35);
     flex-shrink: 0;
   }
-  .draft-howto-step .dhs-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    line-height: 1.3;
-  }
-  .draft-howto-arrow {
-    color: var(--text-muted);
-    opacity: 0.55;
-    font-size: 0.8rem;
-    line-height: 22px;
-  }
+  .hhs-label { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.35; }
+  .hhs-label strong { color: var(--text-primary); font-weight: 600; }
+  .home-howto-hint { font-size: 0.68rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.75rem; }
+  .home-howto-hint strong { color: var(--text-secondary); font-weight: 600; }
 
   .home-pill {
     display: inline-block;
@@ -390,11 +389,11 @@
     align-items: start;
   }
 
-  /* ── Setup layout: form spans the left column; demo preview sits above the rankings on the right ── */
+  /* ── Setup layout: CTAs span the left column; companion preview + how-it-works stack on the right ── */
   .home-layout { row-gap: 1.25rem; grid-template-rows: auto 1fr; }
   .home-left { grid-column: 1; grid-row: 1 / span 2; }
   .home-preview-demo { grid-column: 2; grid-row: 1; }
-  .home-right { grid-column: 2; grid-row: 2; }
+  .home-howto, .home-right { grid-column: 2; grid-row: 2; }
 
   /* Compact, secondary demo preview (overrides the old full-width hero sizing) */
   .home-preview-demo {
@@ -422,11 +421,15 @@
   }
 
   @media (max-width: 768px) {
-    /* Single column: form → demo preview → rankings */
-    .home-left, .home-preview-demo, .home-right { grid-column: 1; grid-row: auto; }
+    /* Single column: form → demo preview → how it works */
+    .home-left, .home-preview-demo, .home-howto, .home-right { grid-column: 1; grid-row: auto; }
     .home-layout { row-gap: 0; grid-template-rows: none; }
-    .draft-howto { padding: 0.6rem 0.4rem; gap: 0.25rem; }
-    .draft-howto-step .dhs-label { font-size: 0.66rem; }
+    .home-howto { margin: 0.75rem 0.75rem 0; }
+    /* width:100% + side margins overflowed the grid track by 1.5rem; let the grid size it */
+    .home-preview-demo { width: auto; }
+    /* Bookmarklet drag is desktop-only; the badge already says so */
+    .home-howto .home-bookmarklet-btn { display: none; }
+    .home-howto-hint { display: none; }
   }
 
   .home-left .home-wordmark { font-size: 3.5rem; letter-spacing: -0.05em; -webkit-text-fill-color: transparent; }
@@ -473,83 +476,7 @@
   }
   .home-connect-cancel:hover { color: var(--text-primary); }
 
-  .home-secondary-links { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; align-items: center; }
-  .home-secondary-links button,
-  .home-secondary-links a {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    background: none; border: 1px solid; border-radius: 999px;
-    font-size: 0.72rem; font-weight: 500;
-    cursor: pointer; font-family: inherit; padding: 0.35rem 0.85rem;
-    text-decoration: none; transition: opacity 0.15s ease, filter 0.15s ease;
-  }
-  .home-secondary-links button:hover,
-  .home-secondary-links a:hover { opacity: 0.75; filter: brightness(1.2); }
-  .home-secondary-links .sl-research { color: #60a5fa; border-color: rgba(96,165,250,0.45); }
-  .home-secondary-links .sl-targets  { color: #fbbf24; border-color: rgba(251,191,36,0.45); }
-  .home-secondary-links .sl-discord  { color: #a78bfa; border-color: rgba(167,139,250,0.45); }
-  .home-secondary-links .sl-ig       { color: #f9a8d4; border-color: rgba(249,168,212,0.45); }
-
-  /* ===== Primary feature tier — Companion + Research (secondary-primary actions) ===== */
-  .home-feature-tiles {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-    margin-top: 1.25rem;
-    align-items: start;
-  }
-  .home-feature-tile {
-    display: flex; flex-direction: column; gap: 0.28rem;
-    text-align: left; width: 100%;
-    padding: 0.8rem 0.9rem;
-    border-radius: 14px;
-    border: 1px solid;
-    background: none; cursor: pointer; font-family: inherit;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-  }
-  .home-feature-tile:hover { transform: translateY(-1px); }
-  .hft-head { display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; font-weight: 700; }
-  .hft-sub { font-size: 0.66rem; line-height: 1.4; color: var(--text-muted); }
-  .hft-icon { width: 16px; height: 16px; flex-shrink: 0; }
-  .hft-badge { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.03em; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.12); margin-left: auto; white-space: nowrap; }
-  .home-feature-tile.hft-research { color: #60a5fa; border-color: rgba(96,165,250,0.4); background: rgba(96,165,250,0.06); }
-  .home-feature-tile.hft-research:hover { background: rgba(96,165,250,0.13); border-color: rgba(96,165,250,0.6); }
-  .home-feature-tile.hft-companion { color: #34d399; border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.06); }
-  .home-feature-tile.hft-companion:hover { background: rgba(52,211,153,0.13); border-color: rgba(52,211,153,0.6); }
-  .home-companion-panel { display: none; margin-top: 0.6rem; }
-  .home-companion-panel.open { display: block; }
-  .home-feature-tile.hft-companion.active { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.7); }
-
-  .home-bookmarklet {
-    margin-top: 1.25rem;
-    border: 1px solid rgba(52,211,153,0.25);
-    border-radius: 14px;
-    padding: 1rem 1.1rem;
-    background: rgba(52,211,153,0.04);
-  }
-  .home-bookmarklet-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    margin-top: 0.75rem;
-  }
-  .hbs-step {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-  .hbs-num {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: rgba(52,211,153,0.15);
-    border: 1px solid rgba(52,211,153,0.3);
-    color: #34d399;
-    font-size: 0.65rem;
-    font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
+  /* Draggable bookmarklet chip (sits at the end of step 3 in .home-howto) */
   .home-bookmarklet-btn {
     display: inline-flex;
     align-items: center;
@@ -673,10 +600,6 @@
     content: ''; flex: 1; height: 1px; background: var(--border);
   }
 
-  .home-feedback { display: none; }
-  .home-feedback a { text-decoration: none; }
-  .home-feedback a:hover { opacity: 1 !important; }
-
   .home-right {
     min-width: 0;
     background: var(--bg-secondary);
@@ -781,14 +704,6 @@
     .home-action-cards { grid-template-columns: 1fr; gap: 0.6rem; margin-bottom: 0; }
     .home-card-connect, .home-card-mock { padding: 0.9rem; }
     .home-home-pill { margin-bottom: 0.5rem; }
-    .home-secondary-links { gap: 1rem; margin-top: 0.85rem; }
-    /* Feature tiles stack; Companion is desktop-only (bookmarklet drag), so show Research full-width */
-    .home-feature-tiles { grid-template-columns: 1fr; margin-top: 1rem; }
-    .home-feature-tile-details { display: none; }
-    .home-feature-tile { min-height: 56px; padding: 0.9rem 1rem; }
-    .home-feature-tile.hft-companion { opacity: 0.7; cursor: default; pointer-events: none; }
-    .hft-badge { display: inline-flex; }
-    .hft-sub { font-size: 0.73rem; }
 
     /* Right column — player list */
     .home-right {
@@ -808,8 +723,8 @@
     .home-col-header .h-adp { width: 36px; }
     .home-col-header .h-val { width: 44px; }
 
-    /* Bookmarklet — hide on mobile (not useful) */
-    .home-bookmarklet { display: none; }
+    /* Footer: setup screen has no side padding on mobile, so no negative-margin bleed needed */
+    #setup-screen > .rr-footer { width: 100%; margin: 1rem 0 0; }
   }
 
   /* ===== Loading spinner (used by companion mode) ===== */
@@ -2637,7 +2552,9 @@
     body.user-pick-active .pick-banner-mock-controls { display: inline-flex; align-items: center; margin-left: 0.5rem; }
 
     /* Setup screen */
-    #setup-screen { padding: 1rem; }
+    #setup-screen { padding: 1rem 1rem 0; }
+    /* Footer bleeds through the 1rem side padding (keep in sync with the padding above) */
+    #setup-screen > .rr-footer { width: calc(100% + 2rem); margin: 1rem -1rem 0; }
     .setup-card { padding: 1.5rem 1.25rem; }
 
     /* Your-pick banner: sticky at top of content area on mobile */
@@ -2843,8 +2760,6 @@
     .icon-btn { padding: 0.5rem 0.4rem; min-height: 36px; }
 
     /* Touch targets: home secondary links and cancel */
-    .home-secondary-links button,
-    .home-secondary-links a { min-height: 44px; padding: 0.55rem 0.85rem; }
     .home-connect-cancel { min-height: 44px; padding: 0.5rem 0; }
     .home-connect-btn { min-height: 44px; padding: 0.7rem 0.75rem; font-size: 0.88rem; }
     .home-pos-filter { min-height: 36px; padding: 0.38rem 0.65rem; }
@@ -3276,18 +3191,9 @@
 
     <div class="home-left">
       <h1 class="draft-setup-title">Draft Assistant</h1>
-      <p class="draft-setup-sub">Set up your draft below — or try a mock to see how it works.</p>
+      <p class="draft-setup-sub">Connect your Sleeper account to draft live, or run a mock to practice.</p>
 
-      <!-- How it works: 3-step strip (functional guide, replaces marketing copy) -->
-      <ol class="draft-howto" aria-label="How it works">
-        <li class="draft-howto-step"><span class="dhs-num">1</span><span class="dhs-label">Connect Sleeper</span></li>
-        <li class="draft-howto-arrow" aria-hidden="true">→</li>
-        <li class="draft-howto-step"><span class="dhs-num">2</span><span class="dhs-label">Pick your league + slot</span></li>
-        <li class="draft-howto-arrow" aria-hidden="true">→</li>
-        <li class="draft-howto-step"><span class="dhs-num">3</span><span class="dhs-label">Start your draft</span></li>
-      </ol>
-
-      <div class="home-action-cards" style="margin-top:1rem;">
+      <div class="home-action-cards" style="margin-top:1.25rem;">
         <div class="home-action-card home-card-connect" id="home-card-connect">
           <div class="home-card-title" style="margin-bottom:0.65rem;">Connect to Sleeper</div>
           <div id="connect-step-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.9rem;">Enter your username to pull in your leagues and get recommendations in ~30 seconds.</div>
@@ -3338,56 +3244,6 @@
           <div class="home-card-sub">No Sleeper account needed — practice the full draft experience</div>
         </div>
       </div>
-
-      <!-- Primary feature tier -->
-      <div class="home-feature-tiles">
-        <button class="home-feature-tile hft-research" onclick="openResearchStandalone()">
-          <div class="hft-head"><svg class="hft-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Research Players</div>
-          <div class="hft-sub">Rankings, tiers &amp; value vs ADP for every player</div>
-        </button>
-        <button class="home-feature-tile hft-companion" id="btn-companion-tile" onclick="toggleCompanionPanel()">
-          <div class="hft-head"><svg class="hft-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Add the Companion<span class="hft-badge">Desktop only</span></div>
-          <div class="hft-sub">Live pick help in a Sleeper.com sidebar</div>
-        </button>
-      </div>
-
-      <!-- Companion panel — full width, below both tiles -->
-      <div class="home-companion-panel home-bookmarklet" id="home-companion-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
-          <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Live Draft Companion</div>
-          <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#34d399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:0.18rem 0.55rem;white-space:nowrap;">Sleeper only</span>
-        </div>
-        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.45rem;line-height:1.5;">Opens a sidebar on Sleeper.com that tracks picks live and tells you who to draft next — updated after every selection.</div>
-        <div class="home-bookmarklet-steps">
-          <div class="hbs-step">
-            <div class="hbs-num">1</div>
-            <span>Drag this to your bookmarks bar</span>
-            <a id="rr-bookmarklet" href="#"
-              class="home-bookmarklet-btn"
-              onclick="return false;"
-              title="Drag to your bookmarks bar">
-              <span style="opacity:0.5;letter-spacing:-1px;font-size:0.7rem;">⠿</span> ⚡ Pocket
-            </a>
-          </div>
-          <div class="hbs-step">
-            <div class="hbs-num">2</div>
-            <span>Open your live draft on <strong style="color:var(--text-primary);">Sleeper.com</strong></span>
-          </div>
-          <div class="hbs-step">
-            <div class="hbs-num">3</div>
-            <span>Click the bookmark — companion launches instantly</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tertiary: app utility + social links (Research moved up to the feature tier) -->
-      <div class="home-secondary-links">
-        <button class="sl-targets" onclick="openListsOverlay()">My Targets</button>
-        <a class="sl-discord" href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.11 18.1.128 18.11a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
-        <a class="sl-ig" href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>@dillonbuilds</a>
-      </div>
-
-      <div class="home-feedback"><a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener" style="color:var(--text-muted);font-size:0.65rem;text-decoration:none;opacity:0.6;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">Report a bug</a></div>
     </div>
 
     <!-- Demo preview — compact, secondary (right column on desktop, below the form on mobile). Click to open in-page lightbox -->
@@ -3403,8 +3259,42 @@
       </div>
     </div>
 
+    <!-- How the companion works — 3 compact steps under the preview (right column on desktop, last on mobile) -->
+    <section class="home-howto" aria-labelledby="home-howto-title">
+      <div class="home-howto-head">
+        <h2 class="home-howto-title" id="home-howto-title">How the companion works</h2>
+        <span class="home-howto-badge">Sleeper · desktop</span>
+      </div>
+      <ol class="home-howto-steps">
+        <li class="hhs">
+          <span class="hhs-num">1</span>
+          <span class="hhs-label">Connect your Sleeper username</span>
+        </li>
+        <li class="hhs">
+          <span class="hhs-num">2</span>
+          <span class="hhs-label">Open your live draft on <strong>Sleeper.com</strong></span>
+        </li>
+        <li class="hhs">
+          <span class="hhs-num">3</span>
+          <span class="hhs-label">Click the bookmarklet — the companion launches</span>
+          <a id="rr-bookmarklet" href="#" class="home-bookmarklet-btn" onclick="return false;" title="Drag to your bookmarks bar"><span style="opacity:0.5;letter-spacing:-1px;font-size:0.7rem;">⠿</span> ⚡ Pocket</a>
+        </li>
+      </ol>
+      <div class="home-howto-hint">Drag the <strong>⚡ Pocket</strong> button to your bookmarks bar once — it works for every draft after that.</div>
+    </section>
 
   </div>
+
+  <footer class="rr-footer">
+    <div class="rr-footer-inner">
+      <span class="rr-footer-brand">© 2026 Pocket</span>
+      <nav class="rr-footer-links" aria-label="Footer">
+        <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+        <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+        <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+      </nav>
+    </div>
+  </footer>
 </div>
 
 <!-- MAIN APP -->
@@ -11230,14 +11120,6 @@ async function loadResearchPlayerNews(p) {
 // Standalone overlay mode: the setup screen (and desktop header) open the
 // research panel over everything. app-screen is display:none pre-draft, so the
 // panel is reparented to <body> while in overlay mode.
-function toggleCompanionPanel() {
-  var panel = document.getElementById('home-companion-panel');
-  var btn = document.getElementById('btn-companion-tile');
-  if (!panel) return;
-  var open = panel.classList.toggle('open');
-  if (btn) btn.classList.toggle('active', open);
-}
-
 function openResearchStandalone() {
   const screen = document.getElementById('research-screen');
   if (!screen) return;
