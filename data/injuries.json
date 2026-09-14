@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-14T19:30:13.462Z",
+  "fetched_at": "2026-09-14T23:17:08.912Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -450,6 +450,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Dallen Bentley",
+      "position": "TE",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Damien Alford",
       "position": "WR",
       "team": null,
@@ -532,6 +539,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Personal"
+    },
+    {
+      "name": "Derius Davis",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Desmond Reid",
@@ -735,6 +749,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Garrett Nussmeier",
+      "position": "QB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Gee Scott",
@@ -1022,6 +1043,13 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Jared Wiley",
+      "position": "TE",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jaren Kanak",
@@ -1689,6 +1717,13 @@
       "body_part": "Hip"
     },
     {
+      "name": "Sam Ehlinger",
+      "position": "QB",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Sam Scott",
       "position": "RB",
       "team": null,
@@ -1937,6 +1972,13 @@
       "name": "Ty Simpson",
       "position": "QB",
       "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Tyler Badie",
+      "position": "RB",
+      "team": "DEN",
       "status": "Out",
       "body_part": "Coach's Decision"
     },

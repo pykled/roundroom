@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T14:41:47.214Z",
+  "generated_at": "2026-09-14T23:17:05.760Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -276,9 +276,9 @@
       "vorp_sf": 114
     },
     {
-      "name": "Luther Burden",
+      "name": "DJ Moore",
       "position": "WR",
-      "team": "CHI",
+      "team": "BUF",
       "vorp_std": 112.5,
       "vorp_sf": 112.5
     },
@@ -290,9 +290,9 @@
       "vorp_sf": 108
     },
     {
-      "name": "DJ Moore",
+      "name": "Luther Burden",
       "position": "WR",
-      "team": "BUF",
+      "team": "CHI",
       "vorp_std": 108,
       "vorp_sf": 108
     },
@@ -857,9 +857,9 @@
       "vorp_sf": 45.5
     },
     {
-      "name": "Jakobi Meyers",
+      "name": "Deebo Samuel",
       "position": "WR",
-      "team": "JAX",
+      "team": "SF",
       "vorp_std": -22.5,
       "vorp_sf": -22.5
     },
@@ -885,9 +885,9 @@
       "vorp_sf": 39
     },
     {
-      "name": "Deebo Samuel",
+      "name": "Jakobi Meyers",
       "position": "WR",
-      "team": "SF",
+      "team": "JAX",
       "vorp_std": -27,
       "vorp_sf": -27
     },
@@ -948,9 +948,9 @@
       "vorp_sf": 26
     },
     {
-      "name": "Rashid Shaheed",
+      "name": "Ja'Kobi Lane",
       "position": "WR",
-      "team": "SEA",
+      "team": "BAL",
       "vorp_std": -40.5,
       "vorp_sf": -40.5
     },
@@ -962,9 +962,9 @@
       "vorp_sf": -42
     },
     {
-      "name": "Ja'Kobi Lane",
+      "name": "Rashid Shaheed",
       "position": "WR",
-      "team": "BAL",
+      "team": "SEA",
       "vorp_std": -45,
       "vorp_sf": -45
     },
@@ -1074,9 +1074,9 @@
       "vorp_sf": -66
     },
     {
-      "name": "Kayshon Boutte",
+      "name": "Caleb Douglas",
       "position": "WR",
-      "team": "HOU",
+      "team": "MIA",
       "vorp_std": -67.5,
       "vorp_sf": -67.5
     },
@@ -1102,16 +1102,16 @@
       "vorp_sf": -72
     },
     {
-      "name": "Caleb Douglas",
+      "name": "Kayshon Boutte",
       "position": "WR",
-      "team": "MIA",
+      "team": "HOU",
       "vorp_std": -72,
       "vorp_sf": -72
     },
     {
-      "name": "AJ Barner",
+      "name": "Chig Okonkwo",
       "position": "TE",
-      "team": "SEA",
+      "team": "WAS",
       "vorp_std": -75,
       "vorp_sf": -75
     },
@@ -1144,9 +1144,9 @@
       "vorp_sf": -81
     },
     {
-      "name": "Chig Okonkwo",
+      "name": "AJ Barner",
       "position": "TE",
-      "team": "WAS",
+      "team": "SEA",
       "vorp_std": -82.5,
       "vorp_sf": -82.5
     },
@@ -1214,16 +1214,16 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Devaughn Vele",
+      "name": "Chris Bell",
       "position": "WR",
-      "team": "NO",
+      "team": "MIA",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
     {
-      "name": "Chris Bell",
+      "name": "Devaughn Vele",
       "position": "WR",
-      "team": "MIA",
+      "team": "NO",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1277,13 +1277,6 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Jaylin Noel",
-      "position": "WR",
-      "team": "HOU",
-      "vorp_std": -88.5,
-      "vorp_sf": -88.5
-    },
-    {
       "name": "Tre' Harris",
       "position": "WR",
       "team": "LAC",
@@ -1294,6 +1287,13 @@
       "name": "Germie Bernard",
       "position": "WR",
       "team": "PIT",
+      "vorp_std": -88.5,
+      "vorp_sf": -88.5
+    },
+    {
+      "name": "Jaylin Noel",
+      "position": "WR",
+      "team": "HOU",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1410,6 +1410,13 @@
       "vorp_sf": -110
     },
     {
+      "name": "Najee Harris",
+      "position": "RB",
+      "team": "NYG",
+      "vorp_std": -110,
+      "vorp_sf": -110
+    },
+    {
       "name": "Malik Davis",
       "position": "RB",
       "team": "DAL",
@@ -1420,13 +1427,6 @@
       "name": "Nicholas Singleton",
       "position": "RB",
       "team": "TEN",
-      "vorp_std": -110,
-      "vorp_sf": -110
-    },
-    {
-      "name": "Najee Harris",
-      "position": "RB",
-      "team": "NYG",
       "vorp_std": -110,
       "vorp_sf": -110
     },
@@ -1462,13 +1462,6 @@
       "name": "Kimani Vidal",
       "position": "RB",
       "team": "LAC",
-      "vorp_std": -110,
-      "vorp_sf": -110
-    },
-    {
-      "name": "Jaylen Wright",
-      "position": "RB",
-      "team": "MIA",
       "vorp_std": -110,
       "vorp_sf": -110
     },
