@@ -413,7 +413,14 @@ th .tip { margin-left: 0.25rem; }
 .info-details summary:hover { color: var(--text-secondary); }
 .info-details summary::before { content: '▶'; font-size: 0.55rem; transition: transform 0.15s; }
 .info-details[open] summary::before { transform: rotate(90deg); }
-.info-details .details-body { padding-top: var(--space-3); }
+.info-details .details-body { padding-top: var(--space-3); font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.6; }
+.info-details .details-body p { margin: 0 0 var(--space-2); }
+.legend-table { width: 100%; border-collapse: collapse; margin: var(--space-2) 0; }
+.legend-table th { text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); padding: 0 var(--space-2) var(--space-1); border-bottom: 1px solid var(--border); }
+.legend-table td { padding: var(--space-1) var(--space-2); vertical-align: top; }
+.legend-table td:first-child { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; color: var(--text-secondary); width: 4rem; }
+.legend-table tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+.legend-note { font-size: 0.65rem; color: var(--text-muted); opacity: 0.75; margin-top: var(--space-1) !important; }
 
 /* Tool page header: title + one-line sub on the left, controls (league picker) on the right. */
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-4); }

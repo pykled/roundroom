@@ -159,7 +159,25 @@
     <details class="legend info-details">
       <summary>How to read this</summary>
       <div class="details-body">
-        <b>score</b> is the composite weekly score the lineup ranks on: this week's projection adjusted for matchup, Vegas implied total, recent form, injuries, home/away, short rest, and weather. <b>proj</b> is the raw Sleeper weekly projection under your league's scoring (season average ÷ 17 when the weekly numbers aren't out yet). Chips explain each adjustment — hover for detail. <b>MU</b> = fantasy points the opponent allows to the position (this season blended with a 3-year baseline; week 1 counts 1/8, week 8+ fully). <b>Form</b> = last three games' actual vs projected, weighted 50/30/20, ramping in from week 3. <b>Q / D / OUT</b> = own injury status (0.85× / 0.5× / 0×). <b>vs CB out</b> etc. = a starting opponent defender at a slot that covers this position is out (+10%). <b>TNF</b> = Thursday game on four days' rest (−6%). <b>WX</b> = wind over 15 mph or heavy rain at an outdoor stadium hurts QB/WR/TE (−6% to −18%); wind over 20 mph nudges RBs up (+4%). Home teams also get a quiet +3% (away −2%) with no chip. <b>Consider</b> on a bench player = within 10% of the weakest starter he could replace. ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
+        <p><b>score</b> — composite weekly ranking number. Your Sleeper projection adjusted by matchup difficulty, Vegas lines, recent form, injuries, rest, and weather. Higher = start him.</p>
+        <p><b>proj</b> — raw Sleeper projection under your league's scoring. The score adjusts this up or down based on the factors below.</p>
+        <table class="legend-table">
+          <thead><tr><th>Tag</th><th>What it means</th></tr></thead>
+          <tbody>
+            <tr><td>MU</td><td>Matchup — how many pts this defense allows to the position on average. +% = soft D, −% = tough D. Builds confidence through the season (full weight at Week 8).</td></tr>
+            <tr><td>Form</td><td>Recent performance vs projection. +% = outperforming, −% = underperforming. Weighted 50/30/20 across the last 3 weeks. Kicks in at Week 3.</td></tr>
+            <tr><td>Q</td><td>Questionable — 15% reduction applied.</td></tr>
+            <tr><td>D</td><td>Doubtful — 50% reduction applied.</td></tr>
+            <tr><td>OUT</td><td>Out / IR — scored as 0, move to bench.</td></tr>
+            <tr><td>vs CB out</td><td>A starting corner, linebacker, or safety covering this position is injured — +10% boost.</td></tr>
+            <tr><td>TNF</td><td>Thursday Night Football — only 4 days' rest since Sunday. −6% applied.</td></tr>
+            <tr><td>WX</td><td>Weather — wind over 15 mph or heavy rain at an outdoor stadium. QB/WR/TE take −6% to −18%; RBs get +4% when wind tops 20 mph.</td></tr>
+            <tr><td>BYE</td><td>No game this week — scores 0.</td></tr>
+            <tr><td>Consider</td><td>Bench player within 10% of the weakest starter at his eligible slot — worth a look.</td></tr>
+            <tr><td>⭐</td><td>On your target/watchlist.</td></tr>
+          </tbody>
+        </table>
+        <p class="legend-note">Home teams get a quiet +3% boost (away −2%) — no tag shown, just nudges the ranking.</p>
       </div>
     </details>
   </div>
