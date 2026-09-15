@@ -111,7 +111,8 @@ var WeeklyScore = (function () {
     values.forEach(function (v) { if (v > mine) better++; else if (v === mine) equal++; });
     var rank = better + 1 + (equal - 1) / 2;   // ties share the average rank
     var frac = (rank - 1) / (n - 1);            // 0 = best, 1 = worst
-    var mult = MATCHUP_BEST - frac * (MATCHUP_BEST - MATCHUP_WORST);
+    var rawMult = MATCHUP_BEST - frac * (MATCHUP_BEST - MATCHUP_WORST);
+    var mult = 1 + (rawMult - 1) * seasonWeight(weeksPlayed); // damp toward 1× early; full swing at wk 8
     var shown = Math.round(rank);
     return {
       mult: mult, label: 'MU', rank: shown, fpa: mine,
