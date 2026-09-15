@@ -1,0 +1,15 @@
+{
+  "_notes": [
+    "Fantasy points allowed (FPA) per game by opponent defence, used by shared/weekly-score.js matchupMultiplier.",
+    "positions  = league-average FPA per position (neutral matchup). Used when a team has no entry below.",
+    "historical = 3-year average FPA per team per position. Fill from a static export; never hand-type guesses.",
+    "current    = this season's FPA per team per position. Refresh weekly from https://www.fantasypros.com/nfl/matchups/<qb|rb|wr|te|k>.php (table: team, fantasy pts allowed per game).",
+    "Blend: season_weight = min(1, weeks_played/8); effective = season_weight*current + (1-season_weight)*historical.",
+    "Team keys are Sleeper abbreviations (KC, SF, LAR, JAX, WSH …). Empty objects = factor stays neutral (1.0x) and the UI marks it as not wired."
+  ],
+  "updated": "2026-09-14",
+  "source": "placeholder",
+  "positions": { "QB": 22, "RB": 14, "WR": 13, "TE": 8, "K": 8 },
+  "historical": { "QB": {}, "RB": {}, "WR": {}, "TE": {}, "K": {} },
+  "current": { "QB": {}, "RB": {}, "WR": {}, "TE": {}, "K": {} }
+}

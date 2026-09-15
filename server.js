@@ -786,26 +786,111 @@ app.get('/api/market-values', async (req, res) => {
   }
 });
 
+// Weekly projections + weekly actuals. The legacy api.sleeper.app/v1 weekly
+// projections route returns empty objects for 2026, so both use the
+// api.sleeper.com host (array of { player_id, team, opponent, stats }). Both
+// respond as { player_id: stats } so shared/scoring.js can score them under
+// any league's scoring_settings. Opponents come from /api/schedule/:week.
+const SLEEPER_WEEK_POS = 'position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K&position[]=DEF';
+async function fetchSleeperWeek(kind, week) {
+  const url = `https://api.sleeper.com/${kind}/nfl/2026/${week}?season_type=regular&${SLEEPER_WEEK_POS}`;
+  const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error(`Sleeper ${kind} ${r.status}`);
+  const raw = await r.json();
+  const slim = {};
+  for (const item of (Array.isArray(raw) ? raw : [])) {
+    if (item && item.player_id && item.stats && Object.keys(item.stats).length) slim[item.player_id] = item.stats;
+  }
+  return slim;
+}
+
 app.get('/api/projections/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);
   if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
   try {
-    const data = await apiCached(`proj:2026:${week}`, 60 * 60 * 1000, async () => {
-      const url = `https://api.sleeper.app/v1/projections/nfl/2026/${week}?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`Sleeper projections ${r.status}`);
-      const raw = await r.json();
-      const slim = {};
-      for (const item of (Array.isArray(raw) ? raw : [])) {
-        if (item && item.player_id) slim[item.player_id] = item.stats || {};
-      }
-      return slim;
-    });
+    const data = await apiCached(`proj:2026:${week}`, 60 * 60 * 1000, () => fetchSleeperWeek('projections', week));
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.json(data);
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch projections' });
   }
+});
+
+// Actual weekly stats (what the player really scored) — feeds the lineup
+// optimizer's form factor. Empty object until the week's games are played.
+app.get('/api/stats/:week', async (req, res) => {
+  const week = parseInt(req.params.week, 10);
+  if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
+  try {
+    const data = await apiCached(`stats:2026:${week}`, 60 * 60 * 1000, () => fetchSleeperWeek('stats', week));
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// Who plays whom this week: { week, teams: { KC: { opp: 'IND', home: true, status, date } } }.
+// Teams missing from `teams` are on bye. Same schedule feed scripts/fetch-injuries.js uses.
+app.get('/api/schedule/:week', async (req, res) => {
+  const week = parseInt(req.params.week, 10);
+  if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
+  try {
+    const games = await apiCached('schedule:2026', 6 * 60 * 60 * 1000, async () => {
+      const r = await fetch('https://api.sleeper.app/schedule/nfl/regular/2026', { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(`Sleeper schedule ${r.status}`);
+      const arr = await r.json();
+      if (!Array.isArray(arr) || !arr.length) throw new Error('empty schedule');
+      return arr;
+    });
+    const teams = {};
+    for (const g of games) {
+      if (Number(g.week) !== week || !g.home || !g.away) continue;
+      teams[g.home] = { opp: g.away, home: true, status: g.status || null, date: g.date || null };
+      teams[g.away] = { opp: g.home, home: false, status: g.status || null, date: g.date || null };
+    }
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json({ week, teams });
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch schedule' });
+  }
+});
+
+// Injured defenders by team, for the lineup optimizer's opponent-injury boost:
+// { KC: [{ name, pos, slot, order, status }] }. Only depth-chart 1–2 defensive
+// backs / linebackers with a Sleeper injury_status; `slot` is Sleeper's
+// depth_chart_position (LCB, RCB, NB, FS, SS, MLB, ROLB …).
+app.get('/api/def-injuries', async (req, res) => {
+  const now = Date.now();
+  let dict = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL ? playerCache : null;
+  if (!dict) {
+    try {
+      const r = await fetch('https://api.sleeper.app/v1/players/nfl', { signal: AbortSignal.timeout(15000) });
+      if (!r.ok) throw new Error(r.status);
+      dict = await r.json();
+      playerCache = dict; playerCacheTime = now;
+    } catch (err) {
+      if (playerCache) dict = playerCache;
+      else return res.status(502).json({ error: 'Failed to fetch players' });
+    }
+  }
+  const DEF_POS = new Set(['CB', 'DB', 'S', 'SS', 'FS', 'LB', 'OLB', 'ILB', 'MLB']);
+  const STATUSES = new Set(['Out', 'IR', 'Doubtful', 'PUP', 'Questionable']);
+  const byTeam = {};
+  for (const p of Object.values(dict)) {
+    if (!p || !p.team || !DEF_POS.has(p.position) || !STATUSES.has(p.injury_status)) continue;
+    const order = Number(p.depth_chart_order);
+    if (!order || order > 2) continue;
+    (byTeam[p.team] = byTeam[p.team] || []).push({
+      name: p.full_name || [p.first_name, p.last_name].filter(Boolean).join(' '),
+      pos: p.position,
+      slot: p.depth_chart_position || null,
+      order,
+      status: p.injury_status,
+    });
+  }
+  res.setHeader('Cache-Control', 'public, max-age=1800');
+  res.json(byTeam);
 });
 
 // Slim players dict for trade/lineup UI — [name, pos, team, injury_status] for
