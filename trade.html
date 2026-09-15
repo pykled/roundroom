@@ -1119,7 +1119,8 @@ function renderYourTeam() {
     } else {
       html += partners.map(function(p) {
         var tags = p.overlap.map(function(pos){ return '<span class="yt-tag need">' + pos + '</span>'; });
-        p.mutual.forEach(function(pos){ tags.push('<span class="yt-tag surplus">' + pos + '</span>'); });
+        var theirSurplus = (p.team.surplus || []).filter(function(pos){ return p.overlap.indexOf(pos) < 0; });
+        theirSurplus.forEach(function(pos){ tags.push('<span class="yt-tag surplus">' + pos + '</span>'); });
         return '<div class="yt-partner"><span class="yt-name">' + esc(p.team.name) + '</span>' +
           tags.join('') + '</div>';
       }).join('');
