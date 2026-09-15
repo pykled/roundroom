@@ -137,6 +137,26 @@
 /* "How scoring works" footnote: tier/multiplier glossary reads better as its own wrapped line */
 .legend .lg-tiers { display: block; margin-top: 0.35rem; }
 
+/* League format chip: what the values were built for (superflex / dynasty / PPR) */
+.league-fmt { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 999px; padding: 0.12rem 0.55rem; white-space: nowrap; align-self: center; cursor: default; }
+.league-fmt.sf { color: var(--qb, var(--accent)); border-color: currentColor; }
+.page-head #league-bar:not([hidden]) + .league-fmt { flex-basis: 100%; align-self: flex-start; }
+
+/* Injury pill on trade rows + search hits; value tooltip carries the discount */
+.pl-inj { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.08rem 0.4rem; border-radius: 999px; background: rgba(239,68,68,.12); color: var(--danger); white-space: nowrap; }
+.pl-inj.q { background: rgba(251,191,36,.12); color: var(--gold); }
+.si-inj { margin-left: 0.35rem; }
+
+/* Roster Fit slot tag: starter (quiet) vs bench (the scarcity discount) */
+.rf-slot { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: var(--radius-pill); white-space: nowrap; background: rgba(255,255,255,0.05); color: var(--text-muted); }
+.rf-slot.bench { background: rgba(251,191,36,.1); color: var(--gold); }
+
+/* Season lean pill in the Your Team line */
+.yt-lean { font-size: 0.62rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; cursor: default; }
+.yt-lean.buy { background: rgba(16,185,129,.12); color: var(--rb); }
+.yt-lean.sell { background: rgba(251,191,36,.12); color: var(--gold); }
+.yt-lean.hold { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+
 /* mobile: 16px stops iOS focus-zoom (shared/styles.css covers .form-row + #league-bar) */
 @media (max-width: 768px) {
   .srch-input { min-height: 40px; font-size: 16px; }
@@ -193,6 +213,9 @@
         <select id="league-sel"></select>
         <span id="league-hint" hidden></span>
       </div>
+      <!-- Format chip: always in connected mode; in manual mode only when the
+           presets select superflex or dynasty, so the value basis is never silent -->
+      <span id="league-fmt" class="league-fmt" hidden></span>
     </div>
 
     <!-- Preset controls (manual mode) -->
@@ -213,6 +236,11 @@
         <button data-g="teams" data-v="10">10</button>
         <button class="on" data-g="teams" data-v="12">12</button>
         <button data-g="teams" data-v="14">14</button>
+      </div>
+      <span class="pb-label">Format</span>
+      <div class="pg">
+        <button class="on" data-g="dynasty" data-v="0">Redraft</button>
+        <button data-g="dynasty" data-v="1">Dynasty</button>
       </div>
     </div>
 
@@ -299,14 +327,17 @@
       <div class="details-body">
         Both sides are scored on league-specific VORP (value over a replacement player for your slots and team count), blended 70/30 with FantasyCalc market consensus — the same numbers as the lineup optimizer and team page. The verdict is FAIR when the two totals are within 10%, WIN when you receive more, LOSE when you give more. Connect Sleeper to score with your league's exact settings and check the fit for your actual roster.
         <span class="lg-tiers">
+        <strong>Superflex</strong> leagues count the SUPER_FLEX slot as a second QB starter (replacement QB drops to QB24 in a 12-team league) and use FantasyCalc's 2-QB market, where a top QB is worth about twice what he is in 1-QB. <strong>Dynasty</strong> switches to FantasyCalc dynasty values at a 50/50 blend and applies a positional age curve (RBs fall off from 27, WRs from 29, QBs and TEs slowest). <strong>Injured</strong> players are discounted on both sides by status (Q −3% · D −10% · Out −20% · IR −45% in redraft; milder in dynasty), so you're never charged full price for a player who isn't playing.
+        </span>
+        <span class="lg-tiers">
         Roster Fit scales each player by your need at that position:
         <span class="st-critical">▲ Critical ×1.30</span> ·
         <span class="st-upgrade">▲ Upgrade ×1.15</span> ·
         <span class="st-thin">△ Thin ×1.10</span> ·
         <span class="st-solid">– Solid ×1.00</span> ·
         <span class="st-deep">▼ Deep ×0.90</span> ·
-        <span class="st-loaded">◆ Loaded ×0.80</span>.
-        A position you need makes incoming players worth more and outgoing players cost more, so a like-for-like swap nets out. Hover or tap a position chip for the full read on that spot.
+        <span class="st-loaded">◆ Loaded ×0.80</span>,
+        then by where he'd land on your depth chart: a starter keeps full value, a 1st bench player at that position ×0.85, 2nd ×0.72, 3rd or deeper ×0.60 — so a 7th WR is worth far less to you than a 2nd, whatever the market says. A position you need makes incoming players worth more and outgoing players cost more, so a like-for-like swap nets out. Hover or tap a position chip for the full read on that spot.
         </span>
       </div>
     </details>
@@ -329,6 +360,7 @@
 <script src="/shared/scoring.js"></script>
 <script src="/shared/lineup.js"></script>
 <script src="/shared/analysis.js"></script>
+<script src="/shared/trade-fit.js"></script>
 <script>
 var S = {
   clerk: null,
@@ -344,8 +376,10 @@ var S = {
   myAnalysis: null,      // entry in leagueAnalysis.teams for S.myRosterId
   give: [],
   recv: [],
-  vorp: new Map(),
-  preset: { scoring: 1, qbs: 1, teams: 12 },
+  vorp: new Map(),      // final trade values: blend → age (dynasty) → injury discount
+  vorpHealthy: new Map(), // same, before the injury discount (for the value tooltip)
+  format: null,         // TradeFit.leagueFormat() for the current league / presets
+  preset: { scoring: 1, qbs: 1, teams: 12, dynasty: 0 },
   week: 1,
   mode: 'manual',
 };
@@ -382,16 +416,16 @@ async function boot() {
     // season endpoint always has full-season stats, so trade values stay live.
     var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var plP = fetch('/api/players/slim').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
-    // FantasyCalc market values with preset defaults (PPR, 1QB); re-fetched
-    // once league settings are known. Empty object → pure VORP.
-    var marketP = fetchMarketValues({ ppr: 1, sf: 0 });
+    // FantasyCalc market values with preset defaults (PPR, 1QB, redraft);
+    // re-fetched once league settings are known. Empty object → pure VORP.
+    var marketP = fetchMarketValues({ ppr: 1, sf: 0, dynasty: 0 });
     // Injuries feed the Your Team panel only; a failure here is not fatal.
     var injP = fetch('/api/injuries').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     var results = await Promise.all([projP, plP, marketP, injP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
     S.market = results[2] || {};
-    S.marketKey = '1:0';
+    S.marketKey = '1:0:0';
     S.injuries = (results[3] && results[3].players && typeof results[3].players === 'object') ? results[3].players : {};
 
     document.getElementById('loading').hidden = true;
@@ -449,7 +483,7 @@ async function loadSharedTrade() {
     S.give = (t.give || []).filter(known);
     S.recv = (t.recv || []).filter(known);
     if (t.preset && typeof t.preset === 'object') {
-      ['scoring','qbs','teams'].forEach(function(g) {
+      ['scoring','qbs','teams','dynasty'].forEach(function(g) {
         if (typeof t.preset[g] === 'number') {
           S.preset[g] = t.preset[g];
           document.querySelectorAll('[data-g="' + g + '"]').forEach(function(b) {
@@ -490,19 +524,17 @@ async function loadLeague(lid) {
 
 function syncPresetButtons() {
   if (!S.league) return;
-  var sc = S.league.scoring_settings || {};
-  var positions = S.league.roster_positions || [];
-  var rec = sc.rec != null ? parseFloat(sc.rec) : 1;
-  var isSF = positions.indexOf('SUPER_FLEX') >= 0 || positions.filter(function(p){ return p === 'QB'; }).length >= 2;
-  var teams = S.league.total_rosters || 12;
+  var fmt = TradeFit.leagueFormat(S.league);
+  var teams = fmt.teams || 12;
 
   // Snap to nearest preset value for scoring (1 = PPR, 0.5 = Half, 0 = Std)
-  var scoringSnap = rec >= 0.9 ? 1 : rec >= 0.3 ? 0.5 : 0;
-  var qbsSnap = isSF ? 2 : 1;
+  var scoringSnap = fmt.ppr;
+  var qbsSnap = fmt.sf ? 2 : 1;
   // Snap teams to 10/12/14
   var teamsSnap = teams <= 11 ? 10 : teams <= 13 ? 12 : 14;
+  var dynastySnap = fmt.dynasty ? 1 : 0;
 
-  [['scoring', scoringSnap], ['qbs', qbsSnap], ['teams', teamsSnap]].forEach(function(pair) {
+  [['scoring', scoringSnap], ['qbs', qbsSnap], ['teams', teamsSnap], ['dynasty', dynastySnap]].forEach(function(pair) {
     var g = pair[0], v = pair[1];
     document.querySelectorAll('[data-g="' + g + '"]').forEach(function(b) {
       b.classList.toggle('on', Number(b.dataset.v) === v);
@@ -585,18 +617,29 @@ async function enterConnected(opts) {
   recompute();
 }
 
-// FantasyCalc params from current scoring/roster settings: PPR if rec >= 0.9,
-// superflex if the roster has a SUPER_FLEX slot.
+// League format for the current mode. Connected: the Sleeper league payload.
+// Manual: a synthetic league built from the preset buttons, so the same
+// detection code (superflex = SUPER_FLEX slot OR 2+ QB slots; dynasty =
+// settings.type 2) drives both the market fetch and the VORP slots.
+function getFormat() {
+  if (S.mode === 'connected' && S.league) return TradeFit.leagueFormat(S.league);
+  return TradeFit.leagueFormat({
+    roster_positions: getRosterPositions(),
+    scoring_settings: getScoringSettings(),
+    settings: { type: S.preset.dynasty ? 2 : 0 },
+    total_rosters: getTeams(),
+  });
+}
+
+// FantasyCalc params from the league format: PPR if rec >= 0.9, the 2-QB list
+// for superflex / 2-QB leagues, the dynasty list for dynasty leagues.
 function getMarketParams() {
-  var sc = getScoringSettings();
-  var ppr = (sc.rec != null && parseFloat(sc.rec) >= 0.9) ? 1 : 0;
-  var positions = getRosterPositions();
-  var sf = positions.indexOf('SUPER_FLEX') >= 0 ? 1 : 0;
-  return { ppr: ppr, sf: sf };
+  var fmt = getFormat();
+  return { ppr: fmt.ppr === 1 ? 1 : 0, sf: fmt.sf ? 1 : 0, dynasty: fmt.dynasty ? 1 : 0 };
 }
 
 function fetchMarketValues(p) {
-  return fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf)
+  return fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf + '&dynasty=' + (p.dynasty ? 1 : 0))
     .then(function(r){ return r.ok ? r.json() : {}; })
     .catch(function(){ return {}; });
 }
@@ -604,11 +647,31 @@ function fetchMarketValues(p) {
 // Re-fetch market values for the current league settings (server caches per combo).
 async function refreshMarket() {
   var p = getMarketParams();
-  var key = p.ppr + ':' + p.sf;
+  var key = p.ppr + ':' + p.sf + ':' + p.dynasty;
   if (S.marketKey === key && S.market && Object.keys(S.market).length) return;
   var m = await fetchMarketValues(p);
   S.market = m && typeof m === 'object' && !Array.isArray(m) ? m : {};
   S.marketKey = key;
+}
+
+// Format chip: "Superflex · Dynasty · PPR · 12 teams" so the user can see which
+// value tier the numbers were built for. Connected mode: always shown for the
+// selected league. Manual mode: shown only when the presets select superflex
+// or dynasty (the 1-QB redraft default needs no flag).
+function renderFormatChip() {
+  var el = document.getElementById('league-fmt');
+  if (!el || !S.format) { if (el) el.hidden = true; return; }
+  var connected = S.mode === 'connected' && S.league;
+  if (!connected && !S.format.sf && !S.format.dynasty) { el.hidden = true; return; }
+  el.textContent = connected
+    ? TradeFit.formatLabel(S.format) + ' · ' + S.format.teams + ' teams'
+    : (S.format.sf ? 'SF league' : '') + (S.format.sf && S.format.dynasty ? ' · ' : '') + (S.format.dynasty ? 'Dynasty' : '');
+  el.className = 'league-fmt' + (S.format.sf ? ' sf' : '');
+  el.title = (S.format.sf
+    ? 'Superflex: QBs valued against a 2-QB replacement level and FantasyCalc\'s 2-QB market (top QBs ≈ 2× their 1-QB value).'
+    : '1-QB league: one QB starter; QBs valued against a 1-QB replacement level.') +
+    (S.format.dynasty ? ' Dynasty: FantasyCalc dynasty values at 50/50 blend, age curve on, milder injury discounts.' : '');
+  el.hidden = false;
 }
 
 function getScoringSettings() {
@@ -631,19 +694,45 @@ function getTeams() {
 }
 
 
+// Value pipeline:
+//   computeVORP (superflex-aware slots) → rescale 0–10000
+//   → [dynasty] age curve on the VORP half
+//   → blend with FantasyCalc (redraft 70/30; dynasty 50/50 — a single-season
+//     projection says less about a dynasty asset than the market does)
+//   → injury discount by current status (both sides, so a hurt player you
+//     give away is charged at his reduced value, not full price)
 function recompute() {
   var players = Object.keys(S.players).map(function(id) {
     return { player_id: id, position: S.players[id][1] };
   });
+  S.format = getFormat();
   var raw = ScoringEngine.computeVORP(players, S.proj, getScoringSettings(), getRosterPositions(), getTeams());
   var scaled = ScoringEngine.rescaleVORP(raw);
-  // 70% league-specific VORP / 30% FantasyCalc market consensus; pure VORP when market is empty
-  S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
+  if (S.format.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
+  S.vorpHealthy = ScoringEngine.blendWithMarket(scaled, S.market || {}, S.format.dynasty ? 0.5 : 0.3);
+  S.vorp = TradeFit.applyInjury(S.vorpHealthy, S.players, { dynasty: S.format.dynasty });
+  renderFormatChip();
   recomputeAnalysis();
   renderYourTeam();
   renderSide('give');
   renderSide('recv');
   renderVerdict();
+}
+
+// Injury pill + value tooltip for a player row. Empty strings when healthy.
+function injuryBits(id) {
+  var info = S.players[id];
+  var st = info && info[3];
+  if (!st) return { pill: '', title: '' };
+  var m = TradeFit.injuryMult(st, { dynasty: S.format && S.format.dynasty });
+  var short = String(st).replace(/\.$/, '');
+  var abbr = { Questionable: 'Q', Doubtful: 'D', Out: 'OUT', IR: 'IR', PUP: 'PUP', Sus: 'SUS', COV: 'COV', DNR: 'DNR', NA: 'NA' }[short] || short.toUpperCase();
+  var cls = (short === 'Questionable' || short === 'NA') ? 'pl-inj q' : 'pl-inj';
+  var healthy = S.vorpHealthy.get(id) || 0;
+  var title = m === 1
+    ? short + ' — no value discount'
+    : short + ': ' + healthy.toLocaleString() + ' healthy × ' + m.toFixed(2) + ' = ' + (S.vorp.get(id) || 0).toLocaleString();
+  return { pill: '<span class="' + cls + '" title="' + esc(title) + '">' + abbr + '</span>', title: title, abbr: abbr, cls: cls };
 }
 
 // League-wide team analysis on the same blended VORP the verdict uses, so the
@@ -689,10 +778,12 @@ function renderSide(side) {
     var info = S.players[id] || [id, '?', '?'];
     var val = S.vorp.get(id) || 0;
     var pos = info[1] || '?';
+    var inj = injuryBits(id);
     return '<div class="pl-row">' +
       '<span class="pos-badge ' + pos + '">' + pos + '</span>' +
       '<span class="pl-name">' + info[0] + '</span>' +
-      '<span class="pl-val">' + val.toLocaleString() + '</span>' +
+      inj.pill +
+      '<span class="pl-val"' + (inj.title ? ' title="' + esc(inj.title) + '"' : '') + '>' + val.toLocaleString() + '</span>' +
       '<button class="rm-btn" onclick="removePlayer(\'' + side + '\',\'' + id + '\')">×</button>' +
       '</div>';
   }).join('');
@@ -822,33 +913,65 @@ function needTier(depth, id) {
   return (pos && depth[pos]) ? tierOf(depth[pos]) : 'solid';
 }
 
-// Same verdict rule as the raw comparison, run on need-scaled values.
-function evaluateNeedAdjusted(depth) {
+// Lineup-slot scarcity on top of the positional tier. The tier says how the
+// whole position group compares to the league; the slot factor says whether
+// THIS player would start for you or sit (TradeFit.slotFactors runs the
+// lineup optimizer on your roster after the trade for received players, and
+// as-is for players you give). Starter ×1.00, 1st bench ×0.85, 2nd ×0.72,
+// 3rd+ ×0.60. The product is clamped so a bench player in a loaded room
+// bottoms out at half value rather than vanishing.
+var FIT_MIN = 0.5, FIT_MAX = 1.5;
+function slotFactorsForTrade() {
+  var ctx = { roster: S.roster || [], give: S.give, recv: S.recv, players: S.players, vorp: S.vorp, rosterPositions: getRosterPositions() };
+  return { give: TradeFit.slotFactors('give', ctx), recv: TradeFit.slotFactors('recv', ctx) };
+}
+function fitMult(id, side, depth, slots) {
+  var need = NEED_MULT[needTier(depth, id)];
+  var sl = (slots && slots[side] && slots[side][id]) || { factor: 1, slot: 'starter', benchRank: 0 };
+  var m = Math.max(FIT_MIN, Math.min(FIT_MAX, need * sl.factor));
+  return { need: need, slot: sl, mult: Math.round(m * 100) / 100 };
+}
+
+// Same verdict rule as the raw comparison, run on need- and slot-scaled values.
+function evaluateNeedAdjusted(depth, slots) {
   var adj = new Map();
-  S.give.concat(S.recv).forEach(function(id) {
-    adj.set(id, Math.round((S.vorp.get(id) || 0) * NEED_MULT[needTier(depth, id)]));
-  });
+  S.give.forEach(function(id) { adj.set(id, Math.round((S.vorp.get(id) || 0) * fitMult(id, 'give', depth, slots).mult)); });
+  S.recv.forEach(function(id) { adj.set(id, Math.round((S.vorp.get(id) || 0) * fitMult(id, 'recv', depth, slots).mult)); });
   var r = ScoringEngine.evaluateTrade(S.give, S.recv, adj, getRosterPositions());
   r.adjusted = adj;
   return r;
 }
 
-function rfRow(id, side, depth) {
+function slotLabel(sl) {
+  return sl.slot === 'starter' ? 'Starts' : 'Bench' + (sl.benchRank > 1 ? ' #' + sl.benchRank : '');
+}
+function slotTitle(sl, side, pos) {
+  if (sl.slot === 'starter') return (side === 'recv' ? 'Would start for you' : 'Starts for you today') + ' — full value';
+  return (side === 'recv' ? 'Would sit as your ' : 'Sits as your ') + ord(sl.benchRank) + ' bench ' + pos +
+    ' — ×' + sl.factor.toFixed(2) + ' (bench depth is worth less than a starter)';
+}
+
+function rfRow(id, side, depth, slots) {
   var info = S.players[id] || [id, '?', '?'];
   var st = needTier(depth, id);
+  var f = fitMult(id, side, depth, slots);
   var raw = S.vorp.get(id) || 0;
-  var adj = Math.round(raw * NEED_MULT[st]);
+  var adj = Math.round(raw * f.mult);
   // Impact on the user, not the tier itself: receiving where you should add
   // (or giving from where you can deal) helps; the reverse hurts.
-  var impact = NEED_MULT[st] === 1 ? 'neutral' : ((side === 'recv') === (NEED_MULT[st] > 1)) ? 'good' : 'bad';
-  // Multiplier + raw value live in the tooltip; the row shows only the adjusted number.
-  var valTitle = NEED_MULT[st] !== 1
-    ? 'Raw ' + raw.toLocaleString() + ' × ' + NEED_MULT[st].toFixed(2) + ' (' + NEED_LABEL[st] + ' ' + info[1] + ') = ' + adj.toLocaleString()
-    : 'Raw ' + raw.toLocaleString() + ' · no need adjustment (' + NEED_LABEL[st] + ' ' + info[1] + ')';
+  var impact = f.mult === 1 ? 'neutral' : ((side === 'recv') === (f.mult > 1)) ? 'good' : 'bad';
+  // Multipliers + raw value live in the tooltip; the row shows only the adjusted number.
+  var parts = ['Raw ' + raw.toLocaleString()];
+  if (f.need !== 1) parts.push('× ' + f.need.toFixed(2) + ' (' + NEED_LABEL[st] + ' ' + info[1] + ')');
+  if (f.slot.factor !== 1) parts.push('× ' + f.slot.factor.toFixed(2) + ' (' + ord(f.slot.benchRank) + ' bench ' + info[1] + ')');
+  var valTitle = f.mult !== 1
+    ? parts.join(' ') + ' = ' + adj.toLocaleString()
+    : 'Raw ' + raw.toLocaleString() + ' · no adjustment (' + NEED_LABEL[st] + ' ' + info[1] + ', ' + slotLabel(f.slot).toLowerCase() + ')';
   return '<div class="rf-row">' +
     '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
     '<span class="rf-name">' + info[0] + '</span>' +
     '<span class="rf-tag rf-' + impact + '" title="' + esc(NEED_LABEL[st] + ': ' + NEED_HINT[st]) + '">' + NEED_GLYPH[st] + ' ' + NEED_LABEL[st] + '</span>' +
+    '<span class="rf-slot' + (f.slot.slot === 'bench' ? ' bench' : '') + '" title="' + esc(slotTitle(f.slot, side, info[1])) + '">' + slotLabel(f.slot) + '</span>' +
     '<span class="rf-val" title="' + esc(valTitle) + '">' + adj.toLocaleString() + '</span>' +
     '</div>';
 }
@@ -878,6 +1001,7 @@ function ord(n) {
 // so nothing verbose shows by default.
 var YT_INIT = false;
 var YT_HINT_POS = null;   // position whose hint line is open, or null
+var YT_AI_KEY = null;     // "leagueId:rosterId" of the last render; a change closes the open chip hint
 
 function ytChip(p, d) {
   var t = tierOf(d);
@@ -973,6 +1097,13 @@ function renderYourTeam() {
       line += '<span class="yt-inj" title="' + esc(me.injured.map(function(i){ return i.name + ' (' + i.status + ')'; }).join(', ')) + '">' +
         me.injured.length + ' injured</span>';
     }
+    // Season lean: week + record → buy / sell / hold. Null until week 4 and 3+ games.
+    var lean = TradeFit.seasonContext({
+      week: S.week, record: me.record,
+      dynasty: S.format && S.format.dynasty,
+      regularSeasonWeeks: S.format && S.format.regularSeasonWeeks,
+    });
+    if (lean) line += '<span class="yt-lean ' + lean.lean + '" title="' + esc(lean.text) + '">' + esc(lean.label) + '</span>';
     document.getElementById('yt-line').innerHTML = line;
 
     var partners = S.leagueAnalysis ? S.leagueAnalysis.partners(me.rosterId, 3) : [];
@@ -995,10 +1126,8 @@ function renderYourTeam() {
     }
     pEl.innerHTML = html;
 
-    // Clear stale AI prose when the league or roster changes — not on every
-    // recompute, since editing the trade doesn't change the team analysis.
-    var aiKey = String(S.league.league_id || '') + ':' + String(me.rosterId);
-    if (YT_AI_KEY !== aiKey) { YT_AI_KEY = aiKey; resetYourTeamAI(); }
+    // Remember which league/roster this render described (see ytKey above).
+    YT_AI_KEY = ytKey;
 
     sec.hidden = false;
   } catch(e) {
@@ -1054,7 +1183,8 @@ function renderRosterFit() {
   if (S.mode !== 'connected' || !S.league || !S.roster) { sec.hidden = true; return; }
   try {
     var depth = assessDepth(S.roster, getRosterPositions());
-    var r = evaluateNeedAdjusted(depth);
+    var slots = slotFactorsForTrade();
+    var r = evaluateNeedAdjusted(depth, slots);
 
     document.getElementById('rf-depth').innerHTML = NEED_POSITIONS.map(function(p) {
       var d = depth[p], t = tierOf(d);
@@ -1066,8 +1196,8 @@ function renderRosterFit() {
 
     var giveEl = document.getElementById('rf-give');
     var recvEl = document.getElementById('rf-recv');
-    giveEl.innerHTML = S.give.length ? S.give.map(function(id){ return rfRow(id, 'give', depth); }).join('') : '<div class="rf-empty">Nothing</div>';
-    recvEl.innerHTML = S.recv.length ? S.recv.map(function(id){ return rfRow(id, 'recv', depth); }).join('') : '<div class="rf-empty">Nothing</div>';
+    giveEl.innerHTML = S.give.length ? S.give.map(function(id){ return rfRow(id, 'give', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
+    recvEl.innerHTML = S.recv.length ? S.recv.map(function(id){ return rfRow(id, 'recv', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
 
     var badge = document.getElementById('rf-badge');
     badge.textContent = r.verdict;
@@ -1103,9 +1233,11 @@ function setupSearch(side, inputId, dropId) {
     drop.innerHTML = hits.map(function(id) {
       var info = S.players[id];
       var val = S.vorp.get(id) || 0;
+      var inj = injuryBits(id);
       return '<div class="srch-item" onclick="pick(\'' + side + '\',\'' + id + '\')">' +
         '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
-        '<span class="truncate" style="flex:1">' + info[0] + '<span class="si-team">' + (info[2] || 'FA') + '</span></span>' +
+        '<span class="truncate" style="flex:1">' + info[0] + '<span class="si-team">' + (info[2] || 'FA') + '</span>' +
+        (inj.pill ? '<span class="' + inj.cls + ' si-inj">' + inj.abbr + '</span>' : '') + '</span>' +
         '<span class="si-val">' + val.toLocaleString() + '</span>' +
         '</div>';
     }).join('');
@@ -1132,8 +1264,8 @@ document.querySelectorAll('.pg button').forEach(function(btn) {
     btn.classList.add('on');
     S.preset[g] = Number(btn.dataset.v);
     recompute();
-    // Scoring/QB presets change the FantasyCalc format (PPR / superflex); re-blend once fetched
-    if (g === 'scoring' || g === 'qbs') refreshMarket().then(recompute);
+    // Scoring/QB/format presets change the FantasyCalc list (PPR / superflex / dynasty); re-blend once fetched
+    if (g === 'scoring' || g === 'qbs' || g === 'dynasty') refreshMarket().then(recompute);
   });
 });
 

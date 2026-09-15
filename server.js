@@ -759,23 +759,28 @@ app.get('/api/projections/season', async (req, res) => {
   }
 });
 
-// FantasyCalc redraft market values — community trade consensus, blended with
-// VORP on the client (shared/scoring.js blendWithMarket). Returns a slim
-// { sleeperId: redraftValue } dict; each ppr/sf combination is cached separately.
+// FantasyCalc market values — community trade consensus, blended with VORP on
+// the client (shared/scoring.js blendWithMarket). Returns a slim
+// { sleeperId: value } dict; each ppr/sf/dynasty combination is cached separately.
+// sf=1 → FC's 2-QB list (numQbs=2), where QB1 ≈ RB1 instead of ≈ ½ RB1.
+// dynasty=1 → FC's dynasty list (`value`, which prices age and picks in);
+// otherwise the redraft list (`redraftValue`).
 app.get('/api/market-values', async (req, res) => {
   const ppr = req.query.ppr === '0' ? 0 : 1;
   const sf = req.query.sf === '1' ? 1 : 0;
-  const cacheKey = `fc:${ppr}:${sf}`;
+  const dynasty = req.query.dynasty === '1' ? 1 : 0;
+  const cacheKey = `fc:${ppr}:${sf}:${dynasty}`;
   try {
     const data = await apiCached(cacheKey, 60 * 60 * 1000, async () => {
-      const url = `https://api.fantasycalc.com/values/current?isDynasty=false&numQbs=${sf ? 2 : 1}&ppr=${ppr}`;
+      const url = `https://api.fantasycalc.com/values/current?isDynasty=${dynasty ? 'true' : 'false'}&numQbs=${sf ? 2 : 1}&ppr=${ppr}`;
       const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
       if (!r.ok) throw new Error(`FC ${r.status}`);
       const arr = await r.json();
       const slim = {};
       for (const item of (Array.isArray(arr) ? arr : [])) {
         const sid = item?.player?.sleeperId;
-        if (sid && item.redraftValue != null) slim[sid] = item.redraftValue;
+        const v = dynasty ? item?.value : item?.redraftValue;
+        if (sid && v != null) slim[sid] = v;
       }
       return slim;
     });
@@ -1105,9 +1110,10 @@ app.get('/api/vegas', async (req, res) => {
   }
 });
 
-// Slim players dict for trade/lineup UI — [name, pos, team, injury_status] for
-// skill positions. injury_status is Sleeper's raw value (Out, IR, Doubtful,
+// Slim players dict for trade/lineup UI — [name, pos, team, injury_status, age]
+// for skill positions. injury_status is Sleeper's raw value (Out, IR, Doubtful,
 // Questionable, …) or null, so pages can flag injuries without a name join.
+// age (integer years or null) feeds the dynasty age curve in shared/trade-fit.js.
 // ?def=1 also includes team defenses (keyed by team abbreviation, e.g. "SF"),
 // which rosters reference but the trade search doesn't want.
 app.get('/api/players/slim', async (req, res) => {
@@ -1135,7 +1141,7 @@ app.get('/api/players/slim', async (req, res) => {
       continue;
     }
     if (!p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
-    slim[id] = [p.full_name, p.position, p.team || 'FA', p.injury_status || null];
+    slim[id] = [p.full_name, p.position, p.team || 'FA', p.injury_status || null, typeof p.age === 'number' ? p.age : null];
   }
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.json(slim);
