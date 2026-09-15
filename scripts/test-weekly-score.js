@@ -25,15 +25,21 @@ const fpa = {
   historical: { WR: { A: 20, B: 16, C: 12, D: 8 } },
   current: { WR: { A: 8, B: 16, C: 12, D: 20 } },   // this season flips A and D
 };
+// The rank→multiplier swing is damped by seasonWeight (0 at week 1, full from week 9),
+// so the ranking is visible at week 1 but the multiplier stays 1.0.
 m = W.matchupMultiplier('WR', 'A', fpa, 0);           // week 1: 100% historical → A is best
-near(m.mult, 1.2); assert.strictEqual(m.rank, 1); assert.strictEqual(m.source, 'live');
+near(m.mult, 1); assert.strictEqual(m.rank, 1); assert.strictEqual(m.source, 'live');
 m = W.matchupMultiplier('WR', 'D', fpa, 0);
-near(m.mult, 0.8); assert.strictEqual(m.rank, 4);
-m = W.matchupMultiplier('WR', 'A', fpa, 8);           // week 9+: 100% current → A is worst
+near(m.mult, 1); assert.strictEqual(m.rank, 4);
+m = W.matchupMultiplier('WR', 'A', fpa, 8);           // week 9+: 100% current → A is worst, full swing
 near(m.mult, 0.8);
+m = W.matchupMultiplier('WR', 'D', fpa, 8);
+near(m.mult, 1.2);
+m = W.matchupMultiplier('WR', 'B', fpa, 8);           // rank 2 of 4 at full weight → 1.2 − 1/3 × 0.4
+near(m.mult, 1.2 - 0.4 / 3);
 m = W.matchupMultiplier('WR', 'A', fpa, 4);           // 50/50 → A = 14, B = 16, C = 12, D = 14 → tie for 2nd/3rd
 near(W.effectiveFPA(fpa, 'WR', 'A', 4), 14);
-near(m.mult, 1.2 - (2.5 - 1) / 3 * 0.4);
+near(m.mult, 1 + (1.2 - (2.5 - 1) / 3 * 0.4 - 1) * 0.5);   // raw 1.0, half damped → 1.0
 // team with current data but no history leans on the neutral baseline
 const partial = { positions: { WR: 13 }, historical: { WR: {} }, current: { WR: { A: 21, B: 5 } } };
 near(W.effectiveFPA(partial, 'WR', 'A', 1), 0.125 * 21 + 0.875 * 13);
@@ -118,6 +124,51 @@ wx = W.weatherMultiplier({ windspeed: 21, precip: 60, indoor: false }, 'RB'); ne
 wx = W.weatherMultiplier({ windspeed: 18, precip: 0, indoor: false }, 'RB'); near(wx.mult, 1);
 wx = W.weatherMultiplier({ windspeed: 30, precip: 90, indoor: false }, 'K'); near(wx.mult, 1);          // no rule for K/DEF
 
+// --- usage (recent share vs season share)
+const uWR = { recent: { tgtShare: 0.30, carryShare: 0, snapPct: 0.85, games: 2 }, season: { tgtShare: 0.20, carryShare: 0, snapPct: 0.85, games: 5 } };
+let u = W.usageMultiplier(null, 'WR', 6); near(u.mult, 1); assert.strictEqual(u.source, 'neutral');
+u = W.usageMultiplier(uWR, 'WR', 1); near(u.mult, 1); assert.strictEqual(u.source, 'neutral');   // ≤1 completed week → silent
+u = W.usageMultiplier(uWR, 'WR', 6); near(u.mult, 1.08); assert.strictEqual(u.source, 'live');  // +10 pts share → full +8%
+u = W.usageMultiplier(uWR, 'WR', 2); near(u.mult, 1 + 0.08 / 3);                                 // 1/3 strength at 2 completed weeks
+u = W.usageMultiplier({ recent: { tgtShare: 0.27, snapPct: 0.8, games: 2 }, season: { tgtShare: 0.20, snapPct: 0.8, games: 5 } }, 'TE', 6);
+near(u.mult, 1 + 0.08 * 0.4);                                                                    // +7 pts → 40% of the ramp
+u = W.usageMultiplier({ recent: { tgtShare: 0.24, snapPct: 0.8, games: 2 }, season: { tgtShare: 0.20, snapPct: 0.8, games: 5 } }, 'WR', 6);
+near(u.mult, 1); assert.strictEqual(u.source, 'neutral');                                        // +4 pts → inside the deadband
+u = W.usageMultiplier({ recent: { tgtShare: 0.10, snapPct: 0.8, games: 2 }, season: { tgtShare: 0.20, snapPct: 0.8, games: 5 } }, 'WR', 6);
+near(u.mult, 0.96);                                                                              // −10 pts → milder −4%
+// snap-share drop: −20 pp → a third of the way from 15 to 30 → −2%
+u = W.usageMultiplier({ recent: { tgtShare: 0.2, snapPct: 0.60, games: 2 }, season: { tgtShare: 0.2, snapPct: 0.80, games: 5 } }, 'WR', 6);
+near(u.mult, 1 - 0.06 / 3); assert.strictEqual(u.source, 'live');
+u = W.usageMultiplier({ recent: { tgtShare: 0.2, snapPct: 0.40, games: 2 }, season: { tgtShare: 0.2, snapPct: 0.80, games: 5 } }, 'WR', 6);
+near(u.mult, 0.94);                                                                              // −40 pp → capped −6%
+// RB reads carry share, ignores target share
+u = W.usageMultiplier({ recent: { tgtShare: 0.30, carryShare: 0.55, snapPct: 0.7, games: 2 }, season: { tgtShare: 0.10, carryShare: 0.45, snapPct: 0.7, games: 5 } }, 'RB', 6);
+near(u.mult, 1.08);
+u = W.usageMultiplier({ recent: { tgtShare: 0.30, carryShare: 0.45, snapPct: 0.7, games: 2 }, season: { tgtShare: 0.10, carryShare: 0.45, snapPct: 0.7, games: 5 } }, 'RB', 6);
+near(u.mult, 1);
+// share loss + snap drop multiply (−4% × −6%), sitting just above the 0.90 floor
+u = W.usageMultiplier({ recent: { carryShare: 0.30, snapPct: 0.30, games: 2 }, season: { carryShare: 0.45, snapPct: 0.80, games: 5 } }, 'RB', 6);
+near(u.mult, 0.96 * 0.94);
+// QB has no share rule but still gets the snap concern
+u = W.usageMultiplier({ recent: { snapPct: 0.50, games: 2 }, season: { snapPct: 1.0, games: 5 } }, 'QB', 6);
+near(u.mult, 0.94);
+u = W.usageMultiplier({ recent: { games: 0 }, season: { tgtShare: 0.2, games: 5 } }, 'WR', 6); near(u.mult, 1);   // missed both recent games
+
+// --- game script (own implied − opponent implied ≈ spread)
+const lines = { KC: 28, DEN: 20, SF: 24, LAR: 22, NYJ: 18.5, MIA: 24.5 };
+let g = W.gameScriptMultiplier('KC', 'DEN', lines, 'RB'); near(g.mult, 1.03); assert.strictEqual(g.source, 'live'); near(g.spread, 8);
+g = W.gameScriptMultiplier('KC', 'DEN', lines, 'WR'); near(g.mult, 0.98);
+g = W.gameScriptMultiplier('DEN', 'KC', lines, 'WR'); near(g.mult, 1.04);
+g = W.gameScriptMultiplier('DEN', 'KC', lines, 'TE'); near(g.mult, 1.04);
+g = W.gameScriptMultiplier('DEN', 'KC', lines, 'RB'); near(g.mult, 0.97);
+g = W.gameScriptMultiplier('KC', 'DEN', lines, 'QB'); near(g.mult, 1); assert.strictEqual(g.source, 'neutral');
+g = W.gameScriptMultiplier('SF', 'LAR', lines, 'RB'); near(g.mult, 1); assert.strictEqual(g.source, 'neutral');   // 2-pt line → no lean
+g = W.gameScriptMultiplier('MIA', 'NYJ', lines, 'RB'); near(g.mult, 1 + 0.03 * (6 - 3.5) / 3.5);                   // 6-pt line → partial
+g = W.gameScriptMultiplier('KC', null, lines, 'RB'); near(g.mult, 1); assert.strictEqual(g.source, 'neutral');
+g = W.gameScriptMultiplier('KC', 'DEN', null, 'RB'); near(g.mult, 1); assert.strictEqual(g.source, 'neutral');
+// a favourite's RB bump and its opponent's RB cut are symmetric around 1.0
+near((W.gameScriptMultiplier('KC', 'DEN', lines, 'RB').mult + W.gameScriptMultiplier('DEN', 'KC', lines, 'RB').mult) / 2, 1);
+
 // --- composite
 let r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
   { week: 5, weeksPlayed: 4, base: 12, opponent: 'DEN', fpa: placeholder, vegas: null, defInjuries: defInj, history: hist });
@@ -126,8 +177,14 @@ near(r.score, 12 * 1.25 * 1.1); assert.strictEqual(r.bye, false);
 r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
   { week: 5, weeksPlayed: 4, base: 12, opponent: 'DEN', fpa: placeholder, vegas: null, defInjuries: defInj, history: hist,
     isHome: false, gameDate: '2026-10-01', weather: { windspeed: 22, precip: 10, indoor: false } });
-near(r.score, 12 * 1.25 * 1.1 * 0.98 * 0.94 * 0.89);
+near(r.score, 12 * 1.25 * 1.1 * 0.975 * 0.94 * 0.89);   // away = 0.975 since the home/away recentering
 assert.strictEqual(r.factors.homeAway.source, 'live'); assert.strictEqual(r.factors.shortWeek.source, 'live'); assert.strictEqual(r.factors.weather.source, 'live');
+assert.strictEqual(r.factors.usage.source, 'neutral'); assert.strictEqual(r.factors.gameScript.source, 'neutral');
+// usage + game script stack in too (WR on a 7-pt underdog with a +10 pt target-share bump)
+r = W.computeLineupScore({ id: '1', position: 'WR', team: 'DEN', injuryStatus: null },
+  { weeksPlayed: 6, base: 12, opponent: 'KC', vegas: { KC: 28, DEN: 20 }, vegasAvg: 24, usage: uWR });
+near(r.score, 12 * 0.85 * 1.08 * 1.04);   // vegas 20/24 clamps to 0.85; isHome not supplied → HA neutral
+assert.strictEqual(r.factors.usage.source, 'live'); assert.strictEqual(r.factors.gameScript.source, 'live');
 // bye week: new factors stay neutral even if stale context is passed
 r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
   { weeksPlayed: 4, base: 12, opponent: null, isHome: true, gameDate: '2026-10-01', weather: { windspeed: 30, indoor: false } });

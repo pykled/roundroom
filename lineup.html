@@ -34,6 +34,7 @@
 #swap-note .sw-tag.in { background: rgba(16,185,129,.12); color: var(--success); }
 #swap-note .sw-tag.out { background: rgba(239,68,68,.1); color: var(--danger); }
 #swap-note .sw-tag.ok-tag { background: rgba(16,185,129,.12); color: var(--success); }
+#swap-note .sw-tag.stack { background: rgba(245,158,11,.12); color: var(--gold); cursor: help; }
 #swap-note .sw-foot { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 0.4rem; }
 
 /* single vertical stack: starters section, then bench section, in one card */
@@ -172,6 +173,8 @@
           <tbody>
             <tr><td>MU</td><td>Matchup — how many pts this defense allows to the position on average. +% = soft D, −% = tough D. Builds confidence through the season (full weight at Week 8).</td></tr>
             <tr><td>Form</td><td>Recent performance vs projection. +% = outperforming, −% = underperforming. Weighted 50/30/20 across the last 3 weeks. Kicks in at Week 3.</td></tr>
+            <tr><td>Usage</td><td>Role change. WR/TE target share (RB carry share) over the last 2 weeks vs the season average — up 5+ pts earns up to +8%, down 5+ pts up to −4%. A snap-share drop of 15+ pp costs up to −6%. Ramps in from Week 3, full weight at Week 5.</td></tr>
+            <tr><td>Script</td><td>Game script from the Vegas spread. Favoured by 7+: RB +3%, WR/TE −2% (run out the clock). Underdog by 7+: WR/TE +4%, RB −3% (must throw). Ramps in from a 3.5-pt line.</td></tr>
             <tr><td>Q</td><td>Questionable — 15% reduction applied.</td></tr>
             <tr><td>D</td><td>Doubtful — 50% reduction applied.</td></tr>
             <tr><td>OUT</td><td>Out / IR — scored as 0, move to bench.</td></tr>
@@ -180,6 +183,7 @@
             <tr><td>WX</td><td>Weather — wind over 15 mph or heavy rain at an outdoor stadium. QB/WR/TE take −6% to −18%; RBs get +4% when wind tops 20 mph.</td></tr>
             <tr><td>BYE</td><td>No game this week — scores 0.</td></tr>
             <tr><td>Consider</td><td>Bench player within 10% of the weakest starter at his eligible slot — worth a look.</td></tr>
+            <tr><td>Stack</td><td>Your starting QB's top wide receiver (by projection) is sitting on your bench — a tip, not a score change.</td></tr>
             <tr><td>⭐</td><td>On your target/watchlist.</td></tr>
           </tbody>
         </table>
@@ -231,6 +235,7 @@ var S = {
   vegasAvg: null,      // this week's mean implied team total (baseline for the Vegas factor)
   weather: null,       // { TEAM: { windspeed, precip, indoor } } from /api/weather (home stadium forecast)
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
+  usage: null,         // { id: { recent, season } } share-of-team averages from /api/recent-stats
   scores: {},          // player_id → computeLineupScore result for the current league
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
 };
@@ -336,6 +341,7 @@ async function loadWeeklyContext() {
     })),
     jsonOr('/data/fpa-current.json', null),
     jsonOr('/api/weather?week=' + S.week, null),
+    jsonOr('/api/recent-stats?week=' + S.week, null),
   ]);
   S.schedule = results[0] && results[0].teams ? results[0].teams : undefined;
   S.defInj = results[1] || {};
@@ -344,6 +350,7 @@ async function loadWeeklyContext() {
   S.vegasAvg = results[3] && isFinite(results[3].avgImplied) ? results[3].avgImplied : null;
   S.past = results[4];
   S.weather = results[6] && results[6].teams ? results[6].teams : null;
+  S.usage = results[7] && results[7].players ? results[7].players : null;
 }
 
 // fpa-baseline.json carries the per-position neutral values and (eventually)
@@ -576,6 +583,7 @@ function scoreFor(id) {
       weather: game && S.weather && S.weather[team] ? S.weather[team] : null,
       fpa: S.fpa, vegas: S.vegas, vegasAvg: S.vegasAvg, defInjuries: S.defInj,
       history: formHistory(id, S.league.scoring_settings || {}),
+      usage: S.usage ? S.usage[id] : null,
     });
   S.scores[id] = r;
   return r;
@@ -656,6 +664,8 @@ function factorChips(id, r, team, opts) {
   }
   if (f.matchup.source === 'live') chip('MU ' + WeeklyScore.pct(f.matchup.mult), f.matchup);
   if (f.form.source === 'live') chip('Form ' + WeeklyScore.pct(f.form.mult), f.form);
+  if (f.usage && f.usage.source === 'live') chip('Usage ' + WeeklyScore.pct(f.usage.mult), f.usage);
+  if (f.gameScript && f.gameScript.source === 'live') chip('Script ' + WeeklyScore.pct(f.gameScript.mult), f.gameScript);
   var inj = f.injury;
   if (inj.own === 0) chips.push('<span class="fx out" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
   else if (inj.own < 1) chip((STATUS_ABBR[(S.players[id] || [])[3]] || 'Inj') + ' ' + WeeklyScore.pct(inj.own), { mult: inj.own, detail: inj.detail }, 'q');
@@ -739,26 +749,60 @@ function renderBench(result, irIds) {
   document.getElementById('bench-count').textContent = result.bench.length + ' players';
 }
 
+// QB/WR stack tip (UI only, no scoring change): for each starting QB, find the
+// highest-projected WR on his NFL team across the whole player pool. If that WR
+// is on THIS roster's bench, suggest the stack. Returns [{ qb, wr }] ids.
+function stackTips(result) {
+  var tips = [];
+  var benchSet = {};
+  result.bench.forEach(function(id){ benchSet[id] = true; });
+  result.starters.forEach(function(s) {
+    if (!s.id) return;
+    var qb = S.players[s.id];
+    if (!qb || qb[1] !== 'QB' || !qb[2] || qb[2] === 'FA') return;
+    var team = qb[2], bestId = null, bestPts = 0;
+    for (var id in S.players) {
+      var p = S.players[id];
+      if (p[1] !== 'WR' || p[2] !== team) continue;
+      var pts = seasonPts(id);
+      if (pts > bestPts) { bestPts = pts; bestId = id; }
+    }
+    if (bestId && benchSet[bestId] && scoreFor(bestId).score > 0) tips.push({ qb: s.id, wr: bestId });
+  });
+  return tips;
+}
+
 function renderSwaps(result) {
   var note = document.getElementById('swap-note');
   var cur = S.roster.starters || [];
   var hasCurrent = cur.some(function(id){ return id && id !== '0'; });
-  if (!hasCurrent) { note.hidden = true; return; }
-  var d = LineupOptimizer.diff(result, cur);
   var nameOf = function(id){ var i = S.players[id]; return i ? i[0] : id; };
+  var tips = stackTips(result);
+  var tipHtml = tips.map(function(t) {
+    return '<div class="sw-row"><span class="sw-tag stack" title="Your starting QB\'s top target is on your bench — pairing them raises your ceiling">Stack</span><span>Consider stacking <b>' + esc(nameOf(t.wr)) + '</b> with <b>' + esc(nameOf(t.qb)) + '</b>.</span></div>';
+  }).join('');
+  var foot = '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
+  if (!hasCurrent) {
+    if (!tips.length) { note.hidden = true; return; }
+    note.className = '';
+    note.innerHTML = '<div class="sw-title">Lineup tips</div>' + tipHtml + foot;
+    note.hidden = false;
+    return;
+  }
+  var d = LineupOptimizer.diff(result, cur);
   if (!d.in.length && !d.out.length) {
     note.className = 'ok';
     note.innerHTML =
       '<div class="sw-title">Lineup check</div>' +
       '<div class="sw-row"><span class="sw-tag ok-tag">✓ Optimal</span><span>Your Sleeper lineup already matches the optimal lineup.</span></div>' +
-      '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
+      tipHtml + foot;
   } else {
     note.className = '';
     note.innerHTML =
       '<div class="sw-title">Suggested changes vs your Sleeper lineup</div>' +
       (d.in.length ? '<div class="sw-row"><span class="sw-tag in">Start</span><span>' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
       (d.out.length ? '<div class="sw-row"><span class="sw-tag out">Bench</span><span>' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
-      '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
+      tipHtml + foot;
   }
   note.hidden = false;
 }

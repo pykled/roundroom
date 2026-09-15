@@ -13,6 +13,8 @@ weekly_score = base_projection
              × home_away_multiplier(is_home)
              × short_week_multiplier(game_date)
              × weather_multiplier(home stadium forecast, position)
+             × usage_multiplier(recent target/carry share + snap share vs season)
+             × game_script_multiplier(vegas spread proxy, position)
 ```
 
 A player on bye (no opponent in `/api/schedule/:week`) scores 0. Blended VORP
@@ -31,6 +33,47 @@ replace are tagged **Consider**; the rest **Sit**.
 | homeAway | 0.98 / 1.03 | **live** | `teams[TEAM].home` from `/api/schedule/:week`. Never shown as a chip. |
 | shortWeek | 0.94 | **live** | `teams[TEAM].date` from `/api/schedule/:week`; Thursday (UTC weekday of the date-only string) → 0.94, chip **TNF**. |
 | weather | 0.78 – 1.04 | **live** | `/api/weather?week=N` → `S.weather[TEAM] = { windspeed (mph), precip (%), indoor }` — the home stadium's Open-Meteo forecast, shared by both teams. Chip **WX** only when mult < 0.95 or > 1.03. |
+| usage | 0.90 – 1.08, ramped | **live** from week 3 | `/api/recent-stats?week=N` → `S.usage[id] = { recent, season }` share-of-team averages (api.sleeper.com weekly stats: `rec_tgt`, `rush_att`, `off_snp`, `tm_off_snp`). Chip **Usage**. |
+| gameScript | 0.97 – 1.04 | **live** | Derived from `S.vegas` (own implied − opponent implied ≈ spread). No extra fetch. Chip **Script**. |
+
+### Usage (recent role)
+
+`/api/recent-stats` computes, per completed week, each RB/WR/TE's target share
+(`rec_tgt` ÷ team targets), carry share (`rush_att` ÷ team carries) and snap
+share (`off_snp` ÷ `tm_off_snp`). Team sums skip Sleeper's `TEAM` aggregate row
+and DEF rows so targets aren't double counted. A week counts as complete once
+24+ teams have stat lines. `recent` averages the last two completed weeks,
+`season` all of them; `games` = weeks with an offensive snap.
+
+```
+share_delta = recent_share − season_share        // WR/TE: target share, RB: carry share
+share_mult  = +8% max once delta > +5 pts (full at +10), −4% max once delta < −5 pts
+snap_mult   = −6% max once snap share fell > 15 pp (full at −30 pp), any position
+usage_mult  = 1 + (clamp(share_mult × snap_mult, 0.90, 1.08) − 1) × strength
+strength    = clamp((weeks_played − 1) / 3, 0, 1)   // same ramp as form
+```
+
+Because `recent` and `season` are identical with ≤2 completed weeks, the deltas
+are zero until week 4 regardless of the ramp.
+
+### Game script
+
+```
+spread = implied[team] − implied[opponent]       // > 0 = favoured
+|spread| ≤ 3.5 → 1.0; linear ramp to full at 7+
+favoured:  RB 1.03, WR/TE 0.98
+underdog:  RB 0.97, WR/TE 1.04
+```
+
+QB, K and DEF are untouched. Because both sides of a game are scored, the RB
+bump on one side and the RB cut on the other average to exactly 1.0.
+
+### QB/WR stack tip (UI only)
+
+`stackTips()` in lineup.html: for each starting QB, the highest-projected WR on
+the same NFL team (across the whole player pool, under the league's scoring). If
+that WR is on this roster's bench, the swap-note shows "Consider stacking X with
+Y". No score change.
 
 ### Matchup FPA source
 

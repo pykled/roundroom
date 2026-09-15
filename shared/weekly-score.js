@@ -10,6 +10,8 @@
 //                × home_away_multiplier (home teams score ~3% more; no chip in the UI)
 //                × short_week_multiplier (Thursday game = 4 days rest, −6%)
 //                × weather_multiplier   (wind / rain at outdoor stadiums; passing positions)
+//                × usage_multiplier     (recent target / carry share vs season; snap-share drop)
+//                × game_script_multiplier (Vegas spread: big favourites run, big underdogs throw)
 //
 // Every factor returns { mult, label, detail, source } so the UI can show WHY a
 // player ranks where he does. `source` is 'live' when real data drove the
@@ -27,6 +29,8 @@
 //   homeAway    LIVE   ctx.isHome from /api/schedule/:week (teams[TEAM].home)
 //   shortWeek   LIVE   ctx.gameDate from /api/schedule/:week (teams[TEAM].date, YYYY-MM-DD)
 //   weather     LIVE   ctx.weather = /api/weather teams[TEAM] → { windspeed (mph), precip (%), indoor }
+//   usage       LIVE   ctx.usage = /api/recent-stats players[id] → { recent, season } share averages
+//   gameScript  LIVE   derived from ctx.vegas (own implied − opponent implied ≈ spread)
 var WeeklyScore = (function () {
   'use strict';
 
@@ -49,6 +53,23 @@ var WeeklyScore = (function () {
   var HOME_MULT = 1.025, AWAY_MULT = 0.975;
   var SHORT_WEEK_MULT = 0.94;                  // Thursday game: 4 days' rest since Sunday
   var PASSING_POS = ['QB', 'WR', 'TE'];         // positions the wind/rain penalties apply to
+
+  // Usage (recent role) factor. Shares are fractions (0.25 = 25% of team targets).
+  // A share gain only counts once it clears USAGE_SHARE_DEADBAND (5 pts) and
+  // reaches the full +8% at USAGE_SHARE_FULL (10 pts). A share loss mirrors it at
+  // a milder −4%. Snap share must fall SNAP_DROP_DEADBAND (15 pp) before the
+  // concern kicks in, reaching −6% at a 30 pp drop.
+  var USAGE_SHARE_DEADBAND = 0.05, USAGE_SHARE_FULL = 0.10;
+  var USAGE_UP_MAX = 0.08, USAGE_DOWN_MAX = 0.04;
+  var SNAP_DROP_DEADBAND = 0.15, SNAP_DROP_FULL = 0.30, SNAP_DROP_MAX = 0.06;
+  var USAGE_MIN = 0.90, USAGE_MAX = 1.08;
+
+  // Game script (Vegas spread). Full effect once the spread reaches
+  // SCRIPT_FULL_SPREAD, ramping in from SCRIPT_MIN_SPREAD so a 6.5 vs 7 line
+  // doesn't flip the factor. Favourites lean on the run late; underdogs throw.
+  var SCRIPT_MIN_SPREAD = 3.5, SCRIPT_FULL_SPREAD = 7;
+  var SCRIPT_FAV = { RB: 1.03, WR: 0.98, TE: 0.98 };
+  var SCRIPT_DOG = { RB: 0.97, WR: 1.04, TE: 1.04 };
 
   // Own-injury status → multiplier. Anything not listed (null, 'NA', 'COV' …) is 1.0.
   var STATUS_MULT = { Questionable: 0.85, Doubtful: 0.5, Out: 0, IR: 0, PUP: 0, Sus: 0, 'Sus.': 0 };
@@ -246,6 +267,74 @@ var WeeklyScore = (function () {
     return { mult: mult, label: 'WX', wind: wind, precip: precip, detail: detail, source: 'live' };
   }
 
+  // usage: { recent: { tgtShare, carryShare, snapPct, games }, season: { … } } from
+  // /api/recent-stats — share-of-team averages over the last two completed weeks
+  // and over every completed week. WR/TE read target share, RBs read carry
+  // share; every position reads snap share. Strength ramps exactly like form
+  // (silent with ≤1 completed week, full from 4) — and since the recent window
+  // IS the season with ≤2 completed weeks, the deltas are zero until week 4 anyway.
+  function usageMultiplier(usage, pos, weeksPlayed) {
+    var strength = clamp(((weeksPlayed || 0) - 1) / 3, 0, 1);
+    var rec = usage && usage.recent, sea = usage && usage.season;
+    if (!rec || !sea || !(rec.games > 0) || !(sea.games > 0)) {
+      return { mult: 1, label: 'Usage', detail: 'No usage data', source: 'neutral' };
+    }
+    if (strength === 0) return { mult: 1, label: 'Usage', detail: 'Too early in the season to weigh usage', source: 'neutral' };
+    var shareKey = pos === 'RB' ? 'carryShare' : (pos === 'WR' || pos === 'TE') ? 'tgtShare' : null;
+    var parts = [], mult = 1, shareDelta = null, snapDelta = null;
+    if (shareKey && rec[shareKey] != null && sea[shareKey] != null) {
+      shareDelta = rec[shareKey] - sea[shareKey];
+      var mag = Math.abs(shareDelta);
+      if (mag > USAGE_SHARE_DEADBAND) {
+        var frac = clamp((mag - USAGE_SHARE_DEADBAND) / (USAGE_SHARE_FULL - USAGE_SHARE_DEADBAND), 0, 1);
+        mult *= shareDelta > 0 ? 1 + frac * USAGE_UP_MAX : 1 - frac * USAGE_DOWN_MAX;
+        parts.push((pos === 'RB' ? 'Carry' : 'Target') + ' share ' + Math.round(rec[shareKey] * 100) + '% last 2 wks vs ' + Math.round(sea[shareKey] * 100) + '% season');
+      }
+    }
+    if (rec.snapPct != null && sea.snapPct != null) {
+      snapDelta = rec.snapPct - sea.snapPct;
+      if (snapDelta < -SNAP_DROP_DEADBAND) {
+        var sfrac = clamp((-snapDelta - SNAP_DROP_DEADBAND) / (SNAP_DROP_FULL - SNAP_DROP_DEADBAND), 0, 1);
+        mult *= 1 - sfrac * SNAP_DROP_MAX;
+        parts.push('Snap share down to ' + Math.round(rec.snapPct * 100) + '% (season ' + Math.round(sea.snapPct * 100) + '%)');
+      }
+    }
+    if (mult === 1) {
+      return { mult: 1, label: 'Usage', shareDelta: shareDelta, snapDelta: snapDelta, detail: 'Role steady vs season average', source: 'neutral' };
+    }
+    mult = clamp(mult, USAGE_MIN, USAGE_MAX);
+    var damped = 1 + (mult - 1) * strength;
+    return {
+      mult: damped, label: 'Usage', shareDelta: shareDelta, snapDelta: snapDelta,
+      detail: parts.join(' · ') + ' (' + pct(damped) + (strength < 1 ? ', ' + Math.round(strength * 100) + '% weight this early' : '') + ')',
+      source: 'live',
+    };
+  }
+
+  // Spread proxy from the implied totals already fetched for the Vegas factor:
+  // own implied − opponent implied (positive = favoured by that much). Big
+  // favourites protect leads on the ground (RB up, WR/TE down); big underdogs
+  // have to throw (WR/TE up, RB down). QB/K/DEF are untouched.
+  function gameScriptMultiplier(team, opponent, vegas, pos) {
+    var mine = vegas && team ? vegas[team] : null;
+    var theirs = vegas && opponent ? vegas[opponent] : null;
+    if (mine == null || theirs == null || !isFinite(mine) || !isFinite(theirs)) {
+      return { mult: 1, label: 'Script', detail: 'No line for this game', source: 'neutral' };
+    }
+    var spread = mine - theirs;
+    var table = spread > 0 ? SCRIPT_FAV : SCRIPT_DOG;
+    var full = table[pos];
+    var mag = Math.abs(spread);
+    if (!full || mag <= SCRIPT_MIN_SPREAD) {
+      return { mult: 1, label: 'Script', spread: spread, detail: full ? 'Spread ' + spread.toFixed(1) + ' — close game, no lean' : 'No game-script rule for ' + pos, source: 'neutral' };
+    }
+    var frac = clamp((mag - SCRIPT_MIN_SPREAD) / (SCRIPT_FULL_SPREAD - SCRIPT_MIN_SPREAD), 0, 1);
+    var mult = 1 + (full - 1) * frac;
+    var who = spread > 0 ? 'Favoured by ' : 'Underdog by ';
+    var why = spread > 0 ? (pos === 'RB' ? 'expect a run-heavy finish' : 'fewer catch-up targets') : (pos === 'RB' ? 'likely to abandon the run' : 'expect a pass-heavy script');
+    return { mult: mult, label: 'Script', spread: spread, detail: who + mag.toFixed(1) + ' — ' + why + ' (' + pct(mult) + ')', source: 'live' };
+  }
+
   // player: { id, position, team, injuryStatus }
   // ctx: {
   //   week, weeksPlayed,
@@ -255,6 +344,7 @@ var WeeklyScore = (function () {
   //   gameDate        'YYYY-MM-DD'   from the schedule
   //   weather         { windspeed, precip, indoor } for this game
   //   vegasAvg        number   this week's mean implied team total (baseline)
+  //   usage           { recent, season } share averages for this player (see usageMultiplier)
   //   fpa, vegas, defInjuries, history   see the factor functions above
   // }
   function computeLineupScore(player, ctx) {
@@ -269,11 +359,13 @@ var WeeklyScore = (function () {
     var homeAway = homeAwayMultiplier(bye ? null : ctx.isHome);
     var shortWeek = shortWeekMultiplier(bye ? null : ctx.gameDate, ctx.weeksPlayed);
     var weather = weatherMultiplier(bye ? null : ctx.weather, pos);
-    var mult = matchup.mult * vegas.mult * form.mult * injury.mult * homeAway.mult * shortWeek.mult * weather.mult;
+    var usage = usageMultiplier(ctx.usage, pos, ctx.weeksPlayed);
+    var gameScript = gameScriptMultiplier(player.team, bye ? null : ctx.opponent, ctx.vegas, pos);
+    var mult = matchup.mult * vegas.mult * form.mult * injury.mult * homeAway.mult * shortWeek.mult * weather.mult * usage.mult * gameScript.mult;
     var score = bye ? 0 : base * mult;
     return {
       score: score, base: base, mult: mult, bye: bye,
-      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury, homeAway: homeAway, shortWeek: shortWeek, weather: weather },
+      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury, homeAway: homeAway, shortWeek: shortWeek, weather: weather, usage: usage, gameScript: gameScript },
     };
   }
 
@@ -296,6 +388,8 @@ var WeeklyScore = (function () {
     homeAwayMultiplier: homeAwayMultiplier,
     shortWeekMultiplier: shortWeekMultiplier,
     weatherMultiplier: weatherMultiplier,
+    usageMultiplier: usageMultiplier,
+    gameScriptMultiplier: gameScriptMultiplier,
     seasonWeight: seasonWeight,
     effectiveFPA: effectiveFPA,
     impliedPoints: impliedPoints,

@@ -835,6 +835,92 @@ app.get('/api/stats/:week', async (req, res) => {
   }
 });
 
+// Per-player usage for one completed week: targets, carries and offensive snaps
+// as a share of the player's team that week. Sleeper's feed includes a "TEAM"
+// aggregate row per club (and DEF rows) — excluded from the team sums so
+// targets aren't double counted. Only RB/WR/TE are kept (the lineup usage
+// factor has no rule for other positions). Completed weeks never change, so
+// they cache for 24h; the most recent week (still filling in) for 1h.
+const USAGE_POS = { RB: 1, WR: 1, TE: 1 };
+async function fetchUsageWeek(week, ttlMs) {
+  return apiCached(`usage:2026:${week}`, ttlMs, async () => {
+    const r = await fetch(`https://api.sleeper.com/stats/nfl/2026/${week}?season_type=regular`, { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error(`Sleeper stats ${r.status}`);
+    const raw = await r.json();
+    const team = {};   // TEAM → { tgt, rush }
+    const rows = [];
+    for (const item of (Array.isArray(raw) ? raw : [])) {
+      const st = item && item.stats, pos = item && item.player && item.player.position;
+      if (!st || !item.team || !pos || pos === 'TEAM' || pos === 'DEF') continue;
+      const t = team[item.team] || (team[item.team] = { tgt: 0, rush: 0 });
+      t.tgt += Number(st.rec_tgt) || 0;
+      t.rush += Number(st.rush_att) || 0;
+      if (USAGE_POS[pos] && Number(st.off_snp) > 0) rows.push({ id: String(item.player_id), pos, team: item.team, st });
+    }
+    const players = {};
+    for (const row of rows) {
+      const t = team[row.team];
+      players[row.id] = {
+        pos: row.pos, team: row.team,
+        tgtShare: t.tgt > 0 ? (Number(row.st.rec_tgt) || 0) / t.tgt : null,
+        carryShare: t.rush > 0 ? (Number(row.st.rush_att) || 0) / t.rush : null,
+        snapPct: Number(row.st.tm_off_snp) > 0 ? Number(row.st.off_snp) / Number(row.st.tm_off_snp) : null,
+      };
+    }
+    return { week, players, teams: Object.keys(team).length };
+  });
+}
+
+function averageUsage(weeks, id) {
+  const acc = { tgtShare: [0, 0], carryShare: [0, 0], snapPct: [0, 0] };
+  let games = 0;
+  for (const w of weeks) {
+    const p = w.players[id];
+    if (!p) continue;
+    games++;
+    for (const k in acc) if (p[k] != null) { acc[k][0] += p[k]; acc[k][1]++; }
+  }
+  const out = { games };
+  for (const k in acc) out[k] = acc[k][1] ? +(acc[k][0] / acc[k][1]).toFixed(4) : null;
+  return out;
+}
+
+// GET /api/recent-stats?week=N (N = the week being set; defaults to Sleeper's
+// current week) → { week, recentWeeks, seasonWeeks, players: { id: { pos, team,
+// recent: { tgtShare, carryShare, snapPct, games }, season: { … } } } }.
+// `recent` averages the last two completed weeks, `season` every completed week
+// (games = weeks the player logged an offensive snap). Feeds usageMultiplier in
+// shared/weekly-score.js. A week only counts as complete once 24+ teams have
+// stat lines, so a half-played week never pollutes the averages.
+app.get('/api/recent-stats', async (req, res) => {
+  let week = parseInt(req.query.week, 10);
+  try {
+    if (!week) {
+      const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+        fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      );
+      week = state.week || 1;
+    }
+    if (week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
+    const candidates = [];
+    for (let w = 1; w < week; w++) candidates.push(w);
+    const fetched = await Promise.all(candidates.map(w => fetchUsageWeek(w, w < week - 1 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000).catch(() => null)));
+    const weeks = fetched.filter(w => w && w.teams >= 24);
+    const recent = weeks.slice(-2);
+    const ids = new Set();
+    for (const w of weeks) for (const id in w.players) ids.add(id);
+    const players = {};
+    for (const id of ids) {
+      const last = [...weeks].reverse().find(w => w.players[id]).players[id];
+      players[id] = { pos: last.pos, team: last.team, recent: averageUsage(recent, id), season: averageUsage(weeks, id) };
+    }
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json({ week, recentWeeks: recent.map(w => w.week), seasonWeeks: weeks.map(w => w.week), players });
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch recent stats' });
+  }
+});
+
 // Full regular-season schedule from Sleeper, cached 6h. Shared by /api/schedule
 // and /api/weather. Each game: { week, date: 'YYYY-MM-DD', home, away, status }.
 function fetchSeasonSchedule() {
