@@ -313,8 +313,6 @@
             <div><div class="rf-col-lbl">You Give</div><div id="rf-give"></div></div>
             <div><div class="rf-col-lbl">You Receive</div><div id="rf-recv"></div></div>
           </div>
-          <div class="rf-summary">For your roster: <span id="rf-badge" class="vd-badge rf-badge vd-FAIR">FAIR</span></div>
-          <div class="vd-delta" id="rf-delta"></div>
         </div>
       </div>
     </div>
@@ -1200,14 +1198,6 @@ function renderRosterFit() {
     giveEl.innerHTML = S.give.length ? S.give.map(function(id){ return rfRow(id, 'give', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
     recvEl.innerHTML = S.recv.length ? S.recv.map(function(id){ return rfRow(id, 'recv', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
 
-    var badge = document.getElementById('rf-badge');
-    badge.textContent = r.verdict;
-    badge.className = 'vd-badge rf-badge vd-' + r.verdict;
-    var pct = Math.abs(r.deltaPct * 100).toFixed(1);
-    document.getElementById('rf-delta').textContent =
-      r.verdict === 'WIN'  ? 'Need-adjusted: you gain ' + pct + '% (' + r.giverValue.toLocaleString() + ' → ' + r.receiverValue.toLocaleString() + ')' :
-      r.verdict === 'LOSE' ? 'Need-adjusted: you give up ' + pct + '% (' + r.giverValue.toLocaleString() + ' → ' + r.receiverValue.toLocaleString() + ')' :
-      'Need-adjusted: within ' + pct + '% — fair for your roster';
     sec.hidden = false;
   } catch(e) {
     console.warn('roster fit failed', e);
