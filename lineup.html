@@ -188,7 +188,7 @@ var S = {
   schedule: undefined, // { TEAM: { opp, home } } for S.week; undefined = not loaded, so no bye detection
   defInj: {},          // { TEAM: [{ name, pos, slot, order, status }] }
   fpa: null,           // data/fpa-baseline.json
-  vegas: null,         // { TEAM: impliedPts } — no feed yet (Phase 2: The Odds API)
+  vegas: null,         // { TEAM: impliedPts } from The Odds API via /api/vegas
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
   scores: {},          // player_id → computeLineupScore result for the current league
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
@@ -280,6 +280,7 @@ async function loadWeeklyContext() {
     jsonOr('/api/schedule/' + S.week, null),
     jsonOr('/api/def-injuries', {}),
     jsonOr('/data/fpa-baseline.json', null),
+    jsonOr('/api/vegas', null),
     Promise.all(pastWeeks.map(function(w) {
       return Promise.all([jsonOr('/api/stats/' + w, {}), jsonOr('/api/projections/' + w, {})])
         .then(function(r){ return { week: w, stats: r[0] || {}, proj: r[1] || {} }; });
@@ -288,7 +289,8 @@ async function loadWeeklyContext() {
   S.schedule = results[0] && results[0].teams ? results[0].teams : undefined;
   S.defInj = results[1] || {};
   S.fpa = results[2];
-  S.past = results[3];
+  S.vegas = results[3] && results[3].teams ? results[3].teams : null;
+  S.past = results[4];
 }
 
 function mountNav(clerk) {

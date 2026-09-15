@@ -89,7 +89,7 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https://sleepercdn.com https://img.clerk.com; " +
-    "connect-src 'self' https://api.sleeper.app https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
+    "connect-src 'self' https://api.sleeper.app https://api.the-odds-api.com https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
     "worker-src 'self' blob:; " +
     "frame-src 'self' https://challenges.cloudflare.com " + clerkOrigins + "; " +
     "frame-ancestors 'none';"
@@ -893,6 +893,70 @@ app.get('/api/def-injuries', async (req, res) => {
   res.json(byTeam);
 });
 
+// Vegas implied team totals from The Odds API.
+// Returns { week: N, teams: { KC: 27.5, BUF: 23.0, … } }.
+// Cached for 12 hours — odds are fetched once and served to all users.
+// Requires ODDS_API_KEY env var (the-odds-api.com, free tier = 500 req/mo).
+const NFL_ABBR = {
+  'Arizona Cardinals': 'ARI', 'Atlanta Falcons': 'ATL', 'Baltimore Ravens': 'BAL',
+  'Buffalo Bills': 'BUF', 'Carolina Panthers': 'CAR', 'Chicago Bears': 'CHI',
+  'Cincinnati Bengals': 'CIN', 'Cleveland Browns': 'CLE', 'Dallas Cowboys': 'DAL',
+  'Denver Broncos': 'DEN', 'Detroit Lions': 'DET', 'Green Bay Packers': 'GB',
+  'Houston Texans': 'HOU', 'Indianapolis Colts': 'IND', 'Jacksonville Jaguars': 'JAX',
+  'Kansas City Chiefs': 'KC', 'Las Vegas Raiders': 'LV', 'Los Angeles Chargers': 'LAC',
+  'Los Angeles Rams': 'LAR', 'Miami Dolphins': 'MIA', 'Minnesota Vikings': 'MIN',
+  'New England Patriots': 'NE', 'New Orleans Saints': 'NO', 'New York Giants': 'NYG',
+  'New York Jets': 'NYJ', 'Philadelphia Eagles': 'PHI', 'Pittsburgh Steelers': 'PIT',
+  'San Francisco 49ers': 'SF', 'Seattle Seahawks': 'SEA', 'Tampa Bay Buccaneers': 'TB',
+  'Tennessee Titans': 'TEN', 'Washington Commanders': 'WAS',
+};
+
+app.get('/api/vegas', async (req, res) => {
+  const key = process.env.ODDS_API_KEY;
+  if (!key) return res.status(503).json({ error: 'ODDS_API_KEY not configured' });
+  try {
+    const data = await apiCached('vegas:nfl', 12 * 60 * 60 * 1000, async () => {
+      const url = 'https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds/' +
+        '?apiKey=' + key + '&regions=us&markets=spreads,totals&oddsFormat=decimal';
+      const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!r.ok) throw new Error('Odds API ' + r.status);
+      return r.json();
+    });
+
+    const teams = {};
+    for (const game of data) {
+      const homeAbbr = NFL_ABBR[game.home_team];
+      const awayAbbr = NFL_ABBR[game.away_team];
+      if (!homeAbbr || !awayAbbr) continue;
+
+      // Collect spread + total consensus across bookmakers
+      const spreads = [], totals = [];
+      for (const bk of (game.bookmakers || [])) {
+        for (const mkt of (bk.markets || [])) {
+          if (mkt.key === 'totals') {
+            const over = mkt.outcomes.find(o => o.name === 'Over');
+            if (over && over.point) totals.push(over.point);
+          } else if (mkt.key === 'spreads') {
+            const home = mkt.outcomes.find(o => o.name === game.home_team);
+            if (home && home.point != null) spreads.push(home.point);
+          }
+        }
+      }
+      if (!totals.length || !spreads.length) continue;
+      const total = totals.reduce((a, b) => a + b, 0) / totals.length;
+      const homeSpread = spreads.reduce((a, b) => a + b, 0) / spreads.length;
+      // home_implied = total/2 - homeSpread/2 (homeSpread negative when home favoured)
+      teams[homeAbbr] = parseFloat((total / 2 - homeSpread / 2).toFixed(2));
+      teams[awayAbbr] = parseFloat((total / 2 + homeSpread / 2).toFixed(2));
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=43200');
+    res.json({ teams, gameCount: Object.keys(teams).length / 2 | 0, fetchedAt: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch Vegas odds' });
+  }
+});
+
 // Slim players dict for trade/lineup UI — [name, pos, team, injury_status] for
 // skill positions. injury_status is Sleeper's raw value (Out, IR, Doubtful,
 // Questionable, …) or null, so pages can flag injuries without a name join.
@@ -1287,6 +1351,27 @@ app.get('/draft', (req, res) => {
 });
 
 // Serve the app
+// Feature update announcements → Discord
+const ANNOUNCE_SECRET = process.env.ANNOUNCE_SECRET;
+const { announce: postAnnouncement } = require('./pocket-announce');
+
+app.post('/api/announce', express.json({ limit: '10kb' }), async (req, res) => {
+  if (ANNOUNCE_SECRET && req.headers['x-announce-secret'] !== ANNOUNCE_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const { title, description, features, version } = req.body || {};
+  if (!title || typeof title !== 'string') {
+    return res.status(400).json({ error: 'title required' });
+  }
+  try {
+    await postAnnouncement({ title, description, features: features || [], version });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('/api/announce error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use(express.static(path.join(__dirname)));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
