@@ -675,8 +675,16 @@ function playerRow(id, opts) {
   var isTarget = S.targets[String(name).toLowerCase()];
   var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
   var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '');
-  // Left column: always the player's actual position as a colored badge — starters and bench alike.
-  var slotHtml = '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>';
+  // Left column: split badge for FLEX/SUPER_FLEX slots; colored pos-badge for everything else.
+  var flexSegs = { FLEX: ['WR','RB','TE'], SUPER_FLEX: ['QB','WR','RB','TE'] };
+  var slotHtml;
+  if (opts.slot && flexSegs[opts.slot]) {
+    slotHtml = '<span class="slot-split-badge">' +
+      flexSegs[opts.slot].map(function(p) { return '<span class="sb ' + p + '">' + p[0] + '</span>'; }).join('') +
+      '</span>';
+  } else {
+    slotHtml = '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>';
+  }
   var posBadgeHtml = '';
   var chips = factorChips(id, r, team, opts);
   var teamTxt = team ? esc(team) + (!r.bye && S.schedule && S.schedule[team] ? ' ' + (S.schedule[team].home ? 'vs ' : '@ ') + esc(S.schedule[team].opp) : '') : '';
