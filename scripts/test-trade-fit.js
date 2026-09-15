@@ -138,7 +138,86 @@ console.log('seasonContext');
   check('4-3 → hold', hold && hold.lean === 'hold');
 }
 
-// ---- 6. live audit --------------------------------------------------------------
+// ---- 6. recent form (sell high / buy low) --------------------------------------
+console.log('formSignal / formMap');
+{
+  check('one game → null (needs 2)', Fit.formSignal([30], 15) === null);
+  check('tiny projection (<5/g) → null', Fit.formSignal([8, 9], 3) === null);
+  const hot = Fit.formSignal([24, 20], 15);
+  check('22 vs 15 proj → hot ×0.95', hot && hot.label === 'hot' && hot.mult === 0.95 && near(hot.ratio, 1.47, 0.01) && hot.games === 2, JSON.stringify(hot));
+  const cold = Fit.formSignal([8, 10, 40], 15);
+  check('9 vs 15 proj → cold ×1.05 (3rd game ignored)', cold && cold.label === 'cold' && cold.mult === 1.05 && cold.games === 2, JSON.stringify(cold));
+  const flat = Fit.formSignal([16, 15], 15);
+  check('on pace → label null, mult 1', flat && flat.label === null && flat.mult === 1, JSON.stringify(flat));
+  check('boundary: exactly 1.2 → hot, exactly 0.8 → cold', Fit.formSignal([18, 18], 15).label === 'hot' && Fit.formSignal([12, 12], 15).label === 'cold');
+  const dyn = Fit.formSignal([24, 20], 15, { dynasty: true });
+  check('dynasty halves the nudge (×0.975)', dyn && dyn.mult === 0.975, JSON.stringify(dyn));
+  check('pointsKey by PPR', Fit.pointsKey(1) === 'pts_ppr' && Fit.pointsKey(0.5) === 'pts_half_ppr' && Fit.pointsKey(0) === 'pts_std' && Fit.pointsKey(undefined) === 'pts_ppr');
+
+  const players = { h: ['Hot', 'WR', 'KC', null], c: ['Cold', 'RB', 'DEN', null], b: ['Bye', 'WR', 'SF', null], k: ['Kick', 'K', 'SF', null], z: ['Zero', 'RB', 'X', null] };
+  // 17-game season projections: h 255 (15/g), c 255, b 255, k 170, z 255
+  const proj = { h: { pts_ppr: 255, pts_half_ppr: 255, pts_std: 255 }, c: { pts_ppr: 255 }, b: { pts_ppr: 255 }, k: { pts_ppr: 170 }, z: { pts_ppr: 255 } };
+  const stats = {
+    3: { h: { gp: 1, pts_ppr: 24 }, c: { gp: 1, pts_ppr: 8 }, z: { gp: 1 } },            // z: played, no points → 0
+    2: { h: { gp: 1, pts_ppr: 20 }, c: { gp: 1, pts_ppr: 10 }, b: { gp: 1, pts_ppr: 30 }, z: { gp: 1 } },
+    1: { h: { gp: 1, pts_ppr: 5 }, c: { gp: 1, pts_ppr: 40 }, b: { gp: 1, pts_ppr: 30 }, k: { gp: 1, pts_ppr: 20 } },
+  };
+  const fm = Fit.formMap(players, stats, [3, 2, 1], proj, { ppr: 1 });
+  check('formMap: hot WR ×0.95, cold RB ×1.05', fm.get('h') && fm.get('h').label === 'hot' && fm.get('c') && fm.get('c').label === 'cold', JSON.stringify([fm.get('h'), fm.get('c')]));
+  check('formMap: bye in week 3 → uses weeks 2+1 (30, 30 → hot)', fm.get('b') && fm.get('b').label === 'hot' && fm.get('b').avg === 30, JSON.stringify(fm.get('b')));
+  check('formMap: kicker skipped; gp without points counts as 0 (cold)', !fm.has('k') && fm.get('z') && fm.get('z').label === 'cold' && fm.get('z').avg === 0, JSON.stringify(fm.get('z')));
+  check('formMap: empty inputs → empty map', Fit.formMap(players, null, [1], proj, {}).size === 0 && Fit.formMap(players, stats, [], proj, {}).size === 0);
+  const applied = Fit.applyFactors(new Map([['h', 1000], ['c', 1000], ['q', 1000]]), [fm]);
+  check('applyFactors: hot 950, cold 1050, unknown untouched', applied.get('h') === 950 && applied.get('c') === 1050 && applied.get('q') === 1000, [...applied.entries()].join(' '));
+}
+
+// ---- 7. playoff schedule --------------------------------------------------------
+console.log('playoffWeeks / playoffSOS');
+{
+  check('null league → 15,16,17', Fit.playoffWeeks(null).join() === '15,16,17');
+  check('6 teams from 15 → 15,16,17', Fit.playoffWeeks({ settings: { playoff_week_start: 15, playoff_teams: 6 } }).join() === '15,16,17');
+  check('4 teams from 16 → 16,17', Fit.playoffWeeks({ settings: { playoff_week_start: 16, playoff_teams: 4 } }).join() === '16,17');
+  check('12 teams from 14 → 14–17 (4 rounds)', Fit.playoffWeeks({ settings: { playoff_week_start: 14, playoff_teams: 12 } }).join() === '14,15,16,17');
+  check('two-week final adds a week', Fit.playoffWeeks({ settings: { playoff_week_start: 15, playoff_teams: 4, playoff_round_type: 1 } }).join() === '15,16,17');
+  check('two weeks per round, capped at 18', Fit.playoffWeeks({ settings: { playoff_week_start: 15, playoff_teams: 6, playoff_round_type: 2 } }).join() === '15,16,17,18');
+
+  // 32-team FPA table for WR: AAA allows the most (rank 1) … ZZZ the least (rank 32)
+  const teams = []; for (let i = 0; i < 32; i++) teams.push('T' + String(i + 1).padStart(2, '0'));
+  const cur = {}; teams.forEach((t, i) => { cur[t] = 40 - i; });
+  const fpa = { current: { WR: cur }, fpMatchupRanks: { WR: { T01: 3 } } };
+  check('defenseRank: Sleeper-only rank 1 and 32', Fit.defenseRank({ current: { WR: cur } }, 'WR', 'T01') === 1 && Fit.defenseRank({ current: { WR: cur } }, 'WR', 'T32') === 32);
+  check('defenseRank: averages with the FP rank when present (1 + 3 → 2)', Fit.defenseRank(fpa, 'WR', 'T01') === 2);
+  check('defenseRank: unknown team / no data → null', Fit.defenseRank(fpa, 'WR', 'NOPE') === null && Fit.defenseRank(null, 'WR', 'T01') === null && Fit.defenseRank(fpa, 'QB', 'T01') === null);
+
+  const sched = {
+    15: { KC: { opp: 'T02', home: true }, T02: { opp: 'KC', home: false }, SF: { opp: 'T31', home: false } },
+    16: { KC: { opp: 'T03', home: false }, SF: { opp: 'T32', home: true } },
+    17: { KC: { opp: 'T04', home: true } },   // SF has no game → bye → rank 32
+  };
+  const easy = Fit.playoffSOS('KC', 'WR', [15, 16, 17], sched, fpa);
+  check('easy slate (ranks 2,3,4 → avg 3) → +4.4%, label easy', easy && easy.label === 'easy' && easy.avgRank === 3 && near(easy.mult, 1.044, 0.001) && easy.opps.length === 3, JSON.stringify(easy));
+  const hard = Fit.playoffSOS('SF', 'WR', [15, 16, 17], sched, fpa);
+  check('hard slate incl. bye (31,32,32 → 31.7) → −4.9%, label hard', hard && hard.label === 'hard' && hard.opps[2].opp === null && near(hard.mult, 0.951, 0.001), JSON.stringify(hard));
+  // Middle of the table (16 teams allow more → rank 17) sits a hair under neutral
+  check('rank 17 (mid-table) → 0.998, i.e. neutral', Fit.playoffSOS('X', 'WR', [15], { 15: { X: { opp: 'T17' } } }, { current: { WR: cur } }).mult === 0.998 && Fit.playoffSOS('X', 'WR', [15], { 15: { X: { opp: 'T17' } } }, { current: { WR: cur } }).label === null);
+  check('dynasty halves the swing', near(Fit.playoffSOS('KC', 'WR', [15, 16, 17], sched, fpa, { dynasty: true }).mult, 1.022, 0.001));
+  check('FA / K / no schedule → null', Fit.playoffSOS('FA', 'WR', [15], sched, fpa) === null && Fit.playoffSOS('KC', 'K', [15], sched, fpa) === null && Fit.playoffSOS('KC', 'WR', [15], {}, fpa) === null);
+  check('week loaded, opponent unranked → skipped, not a bye', Fit.playoffSOS('KC', 'WR', [15], { 15: { KC: { opp: 'NOPE' } } }, fpa) === null);
+  const pm = Fit.playoffMap({ a: ['A', 'WR', 'KC', null], b: ['B', 'WR', 'KC', null], c: ['C', 'K', 'KC', null], d: ['D', 'WR', 'FA', null] }, [15, 16, 17], sched, fpa);
+  check('playoffMap: both KC WRs share the memoised read; K and FA absent', pm.get('a') === pm.get('b') && pm.get('a').label === 'easy' && !pm.has('c') && !pm.has('d'));
+}
+
+// ---- 8. roster imbalance ----------------------------------------------------------
+console.log('rosterImbalance');
+{
+  check('1-for-1 and empty sides → null', Fit.rosterImbalance(1, 1) === null && Fit.rosterImbalance(0, 2) === null && Fit.rosterImbalance(2, 0) === null);
+  const two = Fit.rosterImbalance(2, 1);
+  check('2-for-1 → warn, thinner bench, 1 open spot', two && two.tone === 'warn' && two.net === -1 && /thinner/.test(two.text) && /1 open roster spot to/.test(two.text), two && two.text);
+  const gain = Fit.rosterImbalance(1, 3);
+  check('1-for-3 → good, +2 bodies, drop 2', gain && gain.tone === 'good' && gain.net === 2 && /2 roster bodies/.test(gain.text) && /drop 2 players/.test(gain.text), gain && gain.text);
+}
+
+// ---- 9. live audit --------------------------------------------------------------
 async function getJSON(path) {
   const r = await fetch(BASE + path);
   if (!r.ok) throw new Error(`${path} → ${r.status}`);

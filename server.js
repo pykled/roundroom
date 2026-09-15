@@ -953,6 +953,63 @@ app.get('/api/schedule/:week', async (req, res) => {
   }
 });
 
+// Slim per-week fantasy points for the trade calculator's form signal
+// (shared/trade-fit.js formMap): the last N completed weeks, each as
+// { player_id: { gp, pts_ppr, pts_half_ppr, pts_std } } for QB/RB/WR/TE. Only
+// Sleeper's own point columns are kept (a full stat line is ~1 KB per player),
+// so the client reads actual vs projected on the same scale by picking the
+// column that matches the league's PPR setting. Completed weeks never change
+// and cache 24h; the most recent one (stat corrections) 1h.
+// GET /api/recent-points?n=3 (1–4, default 3) →
+//   { season, week, weeks: [most recent first], stats: { week: { id: {…} } } }
+// A week counts as complete when it is before Sleeper's current week AND has
+// 100+ stat lines, so a week that hasn't been played yet is never returned.
+const POINTS_KEYS = ['gp', 'pts_ppr', 'pts_half_ppr', 'pts_std'];
+const POINTS_POS = 'position[]=QB&position[]=RB&position[]=WR&position[]=TE';
+function fetchPointsWeek(week, ttlMs) {
+  return apiCached(`points:2026:${week}`, ttlMs, async () => {
+    const r = await fetch(`https://api.sleeper.com/stats/nfl/2026/${week}?season_type=regular&${POINTS_POS}`, { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error(`Sleeper stats ${r.status}`);
+    const raw = await r.json();
+    const players = {};
+    let rows = 0;
+    for (const item of (Array.isArray(raw) ? raw : [])) {
+      const st = item && item.stats;
+      if (!st || !item.player_id) continue;
+      const slim = {};
+      for (const k of POINTS_KEYS) if (st[k] != null) slim[k] = st[k];
+      if (!Object.keys(slim).length) continue;
+      players[String(item.player_id)] = slim;
+      rows++;
+    }
+    return { week, players, rows };
+  });
+}
+
+app.get('/api/recent-points', async (req, res) => {
+  let n = parseInt(req.query.n, 10);
+  if (!n || n < 1) n = 3;
+  if (n > 4) n = 4;
+  try {
+    const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    );
+    const week = Number(state.week) || 1;
+    const candidates = [];
+    for (let w = week - 1; w >= 1 && candidates.length < n + 1; w--) candidates.push(w);
+    const fetched = await Promise.all(candidates.map(w =>
+      fetchPointsWeek(w, w < week - 1 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000).catch(() => null)
+    ));
+    const weeks = fetched.filter(w => w && w.rows >= 100).slice(0, n);
+    const stats = {};
+    for (const w of weeks) stats[w.week] = w.players;
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json({ season: String(state.season || 2026), week, weeks: weeks.map(w => w.week), stats });
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch recent points' });
+  }
+});
+
 // Game-day weather for the lineup optimizer's weather factor.
 // GET /api/weather?week=N (defaults to Sleeper's current week) →
 //   { week, teams: { KC: { windspeed: 8, precip: 0, indoor: false, date, forecast: true }, … }, fetchedAt }

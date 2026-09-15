@@ -10,6 +10,10 @@
 //   slotFactor       would this player START for this roster, or sit? A 7th WR
 //                    is worth far less to you than a 2nd WR even at equal VORP
 //   seasonContext    week + record → buy / sell / hold lean
+//   formSignal       last 2 games vs season projection → hot (sell high) /
+//                    cold (buy low); ±5% regression-to-the-mean nudge
+//   playoffSOS       opponents in the fantasy playoff weeks ranked by fantasy
+//                    points allowed to the position → easy +5% … hard −5%
 //
 // Superflex note: the base pipeline is ALREADY superflex-aware in two places —
 // computeVORP counts SUPER_FLEX as a second QB starter slot (replacement QB
@@ -230,6 +234,190 @@ var TradeFit = (function () {
     return { lean: 'hold', label: 'Hold', text: w + '-' + l + ' — in the mix: take value wins, don\'t overpay to force a move' };
   }
 
+  // ---- Recent form: sell high / buy low ------------------------------------
+  // The market half of the blend chases the last box score; the projection
+  // half ignores it. A player whose last two games ran ≥20% above his season
+  // projection is priced at his peak (sell high), one ≥20% below at his trough
+  // (buy low). Either way the number that matters is the regression-adjusted
+  // one, so the value is nudged 5% toward the projection: hot ×0.95, cold
+  // ×1.05. Symmetric on purpose — giving a hot player counts as giving less
+  // (you sold high), receiving a cold one counts as getting more (you bought
+  // low). Dynasty halves it: two games say little about a multi-year asset.
+  var FORM_GAMES = 2;               // games compared
+  var FORM_HOT = 1.2, FORM_COLD = 0.8;
+  var FORM_MULT = { hot: 0.95, cold: 1.05 };
+  var FORM_MIN_PROJ = 5;            // projected pts/game floor — below this the ratio is noise
+  var SEASON_GAMES = 17;            // season projection → per-game
+  var POINTS_KEY = { 1: 'pts_ppr', 0.5: 'pts_half_ppr', 0: 'pts_std' };
+
+  function pointsKey(ppr) { return POINTS_KEY[ppr] || 'pts_ppr'; }
+  function mean(a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // games: actual points per game played, most recent first (byes / DNP
+  // omitted). projPerGame: season projection ÷ 17 under the same scoring.
+  // Returns null without two games or a readable projection, else
+  // { label: 'hot' | 'cold' | null, ratio, avg, proj, games, mult }.
+  function formSignal(games, projPerGame, opts) {
+    var used = (games || []).filter(function (g) { return typeof g === 'number' && isFinite(g); }).slice(0, FORM_GAMES);
+    if (used.length < FORM_GAMES || !(projPerGame >= FORM_MIN_PROJ)) return null;
+    var avg = mean(used);
+    var ratio = avg / projPerGame;
+    var label = ratio >= FORM_HOT ? 'hot' : ratio <= FORM_COLD ? 'cold' : null;
+    var mult = label ? FORM_MULT[label] : 1;
+    if (label && opts && opts.dynasty) mult = 1 + (mult - 1) / 2;
+    return { label: label, ratio: Math.round(ratio * 100) / 100, avg: Math.round(avg * 10) / 10, proj: Math.round(projPerGame * 10) / 10, games: used.length, mult: Math.round(mult * 1000) / 1000 };
+  }
+
+  // statsByWeek: { week: { id: { gp, pts_ppr, pts_half_ppr, pts_std } } } from
+  // /api/recent-points; weeks: completed weeks, most recent first; proj: the
+  // season projection dict (Sleeper pts_* fields). opts.ppr picks the points
+  // column so actual and projection are read on the same scale.
+  // Returns Map<id, formSignal> for skill players with enough data.
+  function formMap(players, statsByWeek, weeks, proj, opts) {
+    var out = new Map();
+    if (!players || !statsByWeek || !weeks || !weeks.length || !proj) return out;
+    var key = pointsKey(opts && opts.ppr);
+    Object.keys(players).forEach(function (id) {
+      var info = players[id];
+      if (!info || !SKILL[info[1]]) return;
+      var p = proj[id];
+      var season = p && Number(p[key]);
+      if (!(season > 0)) return;
+      var games = [];
+      for (var i = 0; i < weeks.length; i++) {
+        var wk = statsByWeek[weeks[i]];
+        var s = wk && wk[id];
+        // A stat line with a game played (gp) or any points counts, even at 0;
+        // no line at all = bye / inactive → skipped, not a zero.
+        if (s && (Number(s.gp) > 0 || s[key] != null)) games.push(Number(s[key]) || 0);
+      }
+      var sig = formSignal(games, season / SEASON_GAMES, opts);
+      if (sig) out.set(id, sig);
+    });
+    return out;
+  }
+
+  // ---- Playoff schedule strength --------------------------------------------
+  // A season-long asset pays out in the fantasy playoffs. Each playoff-week
+  // opponent is ranked by fantasy points allowed to the position (1 = allows
+  // the most = easiest), averaging this season's Sleeper FPA with FantasyPros'
+  // matchup rank when both are present (the FP rank carries priors, which
+  // steadies the read early in the year). Average rank → linear multiplier:
+  // rank 1 → +5%, rank 16.5 → 0, rank 32 → −5%. Dynasty halves it.
+  var PLAYOFF_SWING = 0.05;
+  var PLAYOFF_EASY_RANK = 11, PLAYOFF_HARD_RANK = 22;   // badge thresholds on the average rank
+  var NFL_TEAMS = 32;
+  var DEFAULT_PLAYOFF_START = 15;
+
+  // Fantasy playoff weeks from Sleeper league settings: playoff_week_start
+  // (default 15), playoff_teams → rounds (4 → 2, 6 → 3, 8 → 3, 12 → 4),
+  // playoff_round_type 0 = one week per round, 1 = two-week final, 2 = two
+  // weeks per round. Capped at week 18. Null league → weeks 15–17.
+  function playoffWeeks(league) {
+    var s = (league && league.settings) || {};
+    var start = Number(s.playoff_week_start) > 1 ? Number(s.playoff_week_start) : DEFAULT_PLAYOFF_START;
+    var teams = Number(s.playoff_teams) > 1 ? Number(s.playoff_teams) : 6;
+    var rounds = Math.max(1, Math.ceil(Math.log(teams) / Math.LN2));
+    var type = Number(s.playoff_round_type) || 0;
+    var n = type === 2 ? rounds * 2 : type === 1 ? rounds + 1 : rounds;
+    var weeks = [];
+    for (var w = start; w < start + n && w <= 18; w++) weeks.push(w);
+    return weeks;
+  }
+
+  // fpa: { current: { WR: { KC: 21.3, … } }, fpMatchupRanks: { WR: { KC: 24, … } } }
+  // (data/fpa-current.json). Rank of `team`'s defence against `pos`, 1 = easiest.
+  function defenseRank(fpa, pos, team) {
+    if (!fpa || !team) return null;
+    var ranks = [];
+    var cur = fpa.current && fpa.current[pos];
+    if (cur && cur[team] != null && isFinite(cur[team])) {
+      var mine = Number(cur[team]), better = 0, n = 0;
+      for (var t in cur) { if (!isFinite(cur[t])) continue; n++; if (Number(cur[t]) > mine) better++; }
+      if (n >= 16) ranks.push(better + 1);
+    }
+    var fp = fpa.fpMatchupRanks && fpa.fpMatchupRanks[pos];
+    if (fp && fp[team] != null && isFinite(fp[team])) ranks.push(Number(fp[team]));
+    return ranks.length ? mean(ranks) : null;
+  }
+
+  // schedule: { week: { TEAM: { opp, home } } } (one /api/schedule/:week payload
+  // per playoff week). A week that is loaded but has no game for the team is a
+  // bye — the worst possible playoff week, ranked 32. Weeks that never loaded
+  // are skipped. Returns null with nothing to rank, else
+  // { label: 'easy' | 'hard' | null, avgRank, mult, weeks, opps: [{ week, opp, home, rank }] }.
+  function playoffSOS(team, pos, weeks, schedule, fpa, opts) {
+    if (!team || team === 'FA' || !SKILL[pos] || !weeks || !weeks.length) return null;
+    var opps = [], ranks = [];
+    weeks.forEach(function (w) {
+      var wk = schedule && schedule[w];
+      if (!wk || !Object.keys(wk).length) return;
+      var g = wk[team];
+      if (!g) { opps.push({ week: w, opp: null, home: null, rank: NFL_TEAMS }); ranks.push(NFL_TEAMS); return; }
+      var r = defenseRank(fpa, pos, g.opp);
+      opps.push({ week: w, opp: g.opp, home: !!g.home, rank: r == null ? null : Math.round(r * 10) / 10 });
+      if (r != null) ranks.push(r);
+    });
+    if (!ranks.length) return null;
+    var avg = mean(ranks);
+    var mult = 1 + PLAYOFF_SWING * ((NFL_TEAMS + 1) / 2 - avg) / ((NFL_TEAMS - 1) / 2);
+    if (opts && opts.dynasty) mult = 1 + (mult - 1) / 2;
+    mult = clamp(mult, 1 - PLAYOFF_SWING, 1 + PLAYOFF_SWING);
+    var label = avg <= PLAYOFF_EASY_RANK ? 'easy' : avg >= PLAYOFF_HARD_RANK ? 'hard' : null;
+    return { label: label, avgRank: Math.round(avg * 10) / 10, mult: Math.round(mult * 1000) / 1000, weeks: weeks.slice(), opps: opps };
+  }
+
+  // Map<id, playoffSOS> for every skill player, memoised per team × position.
+  function playoffMap(players, weeks, schedule, fpa, opts) {
+    var out = new Map();
+    if (!players || !weeks || !weeks.length || !schedule) return out;
+    var memo = {};
+    Object.keys(players).forEach(function (id) {
+      var info = players[id];
+      if (!info || !SKILL[info[1]]) return;
+      var k = info[2] + ':' + info[1];
+      if (!memo.hasOwnProperty(k)) memo[k] = playoffSOS(info[2], info[1], weeks, schedule, fpa, opts);
+      if (memo[k]) out.set(id, memo[k]);
+    });
+    return out;
+  }
+
+  // Multiply each value by the `mult` of every factor map that has the id.
+  // Returns a NEW Map; ids absent from every map are copied through.
+  function applyFactors(vorpMap, factorMaps) {
+    var out = new Map();
+    vorpMap.forEach(function (v, id) {
+      var m = 1;
+      (factorMaps || []).forEach(function (fm) {
+        var f = fm && typeof fm.get === 'function' ? fm.get(id) : null;
+        if (f && typeof f.mult === 'number' && isFinite(f.mult)) m *= f.mult;
+      });
+      out.set(id, m === 1 ? v : Math.round(v * m));
+    });
+    return out;
+  }
+
+  // ---- Roster-spot imbalance ------------------------------------------------
+  // Pure context for the verdict text: an N-for-M trade changes how many
+  // roster spots you use, which the value totals never show. Never alters value.
+  // Returns null for an even swap, else { give, recv, net, tone, text }.
+  function rosterImbalance(giveCount, recvCount) {
+    var g = Number(giveCount) || 0, r = Number(recvCount) || 0;
+    if (!g || !r || g === r) return null;
+    var net = r - g;
+    if (net < 0) {
+      return {
+        give: g, recv: r, net: net, tone: 'warn',
+        text: g + '-for-' + r + ' — trading depth for upside: you\'ll be thinner on the bench, with ' + (-net) + ' open roster spot' + (net === -1 ? '' : 's') + ' to fill from waivers',
+      };
+    }
+    return {
+      give: g, recv: r, net: net, tone: 'good',
+      text: g + '-for-' + r + ' — you gain ' + net + ' roster bod' + (net === 1 ? 'y' : 'ies') + ': more depth for byes and injuries, but you\'ll need to drop ' + (net === 1 ? 'someone' : net + ' players') + ' to make room',
+    };
+  }
+
   return {
     leagueFormat: leagueFormat,
     formatLabel: formatLabel,
@@ -241,9 +429,23 @@ var TradeFit = (function () {
     depthChart: depthChart,
     benchFactor: benchFactor,
     seasonContext: seasonContext,
+    formSignal: formSignal,
+    formMap: formMap,
+    pointsKey: pointsKey,
+    playoffWeeks: playoffWeeks,
+    defenseRank: defenseRank,
+    playoffSOS: playoffSOS,
+    playoffMap: playoffMap,
+    applyFactors: applyFactors,
+    rosterImbalance: rosterImbalance,
     INJURY_MULT: INJURY_MULT,
     AGE_CURVE: AGE_CURVE,
     BENCH_FACTOR: BENCH_FACTOR,
+    FORM_MULT: FORM_MULT,
+    FORM_HOT: FORM_HOT,
+    FORM_COLD: FORM_COLD,
+    PLAYOFF_SWING: PLAYOFF_SWING,
+    SEASON_GAMES: SEASON_GAMES,
   };
 })();
 

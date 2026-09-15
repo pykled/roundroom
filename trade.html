@@ -182,6 +182,19 @@
 .pl-inj.q { background: rgba(251,191,36,.12); color: var(--gold); }
 .si-inj { margin-left: 0.35rem; }
 
+/* Form (sell-high / buy-low) and playoff-schedule pills on trade rows; the
+   value tooltip carries the multiplier chain */
+.pl-form, .pl-po { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.08rem 0.4rem; border-radius: 999px; white-space: nowrap; cursor: default; }
+.pl-form.hot { background: rgba(249,115,22,.14); color: #fb923c; }
+.pl-form.cold { background: rgba(56,189,248,.14); color: #38bdf8; }
+.pl-po.easy { background: rgba(16,185,129,.12); color: var(--rb); }
+.pl-po.hard { background: rgba(239,68,68,.12); color: var(--danger); }
+
+/* Roster-spot note under the verdict delta (2-for-1 context; never changes the numbers) */
+.vd-note { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.45rem; line-height: 1.5; }
+.vd-note.warn { color: var(--gold); }
+.vd-note.good { color: var(--rb); }
+
 /* Roster Fit slot tag: starter (quiet) vs bench (the scarcity discount) */
 .rf-slot { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: var(--radius-pill); white-space: nowrap; background: rgba(255,255,255,0.05); color: var(--text-muted); }
 .rf-slot.bench { background: rgba(251,191,36,.1); color: var(--gold); }
@@ -346,6 +359,8 @@
         </div>
         <div id="vd-badge" class="vd-badge vd-FAIR">FAIR</div>
         <div class="vd-delta" id="vd-delta"></div>
+        <!-- Roster-spot imbalance (2-for-1 etc.): context only, the totals above are unchanged -->
+        <div class="vd-note" id="vd-note" hidden></div>
         <!-- Counterparty hint: needs of the team that owns the received player(s). Connected mode only. -->
         <div class="vd-partner" id="vd-partner" hidden></div>
 
@@ -373,6 +388,9 @@
         Both sides are scored on league-specific VORP (value over a replacement player for your slots and team count), blended 70/30 with FantasyCalc market consensus — the same numbers as the lineup optimizer and team page. The verdict is FAIR when the two totals are within 10%, WIN when you receive more, LOSE when you give more. Connect Sleeper to score with your league's exact settings and check the fit for your actual roster.
         <span class="lg-tiers">
         <strong>Superflex</strong> leagues count the SUPER_FLEX slot as a second QB starter (replacement QB drops to QB24 in a 12-team league) and use FantasyCalc's 2-QB market, where a top QB is worth about twice what he is in 1-QB. <strong>Dynasty</strong> switches to FantasyCalc dynasty values at a 50/50 blend and applies a positional age curve (RBs fall off from 27, WRs from 29, QBs and TEs slowest). <strong>Injured</strong> players are discounted on both sides by status (Q −3% · D −10% · Out −20% · IR −45% in redraft; milder in dynasty), so you're never charged full price for a player who isn't playing.
+        </span>
+        <span class="lg-tiers">
+        <strong>Form</strong> reads the last two games against the season projection: 🔥 Hot (20%+ over) shades value ×0.95 — you'd be selling at the peak, or buying it — and 📉 Cold (20%+ under) ×1.05, a buy-low. <strong>Playoffs</strong> ranks each player's opponents in your league's playoff weeks by fantasy points allowed to his position (this season's numbers averaged with FantasyPros' matchup ranks): the easiest slate adds up to 5%, the hardest takes 5% off. Both are halved in dynasty. The line under the verdict flags 2-for-1s — value totals can't see that you're consolidating or adding depth.
         </span>
         <span class="lg-tiers">
         Roster Fit scales each player by your need at that position:
@@ -422,12 +440,19 @@ var S = {
   myAnalysis: null,      // entry in leagueAnalysis.teams for S.myRosterId
   give: [],
   recv: [],
-  vorp: new Map(),      // final trade values: blend → age (dynasty) → injury discount
-  vorpHealthy: new Map(), // same, before the injury discount (for the value tooltip)
+  vorp: new Map(),      // final trade values: blend → age (dynasty) → injury → form → playoff schedule
+  vorpHealthy: new Map(), // same, before the injury / form / playoff adjustments (for the value tooltip)
   format: null,         // TradeFit.leagueFormat() for the current league / presets
   preset: { scoring: 1, qbs: 1, teams: 12, dynasty: 0 },
   week: 1,
+  season: '2026',
   mode: 'manual',
+  recent: null,         // /api/recent-points { weeks, stats } — last completed weeks' fantasy points
+  fpa: null,            // data/fpa-current.json (this season only) — opponent strength for the playoff factor
+  schedule: {},         // week → { TEAM: { opp, home } } from /api/schedule/:week, playoff weeks only
+  playoffWeeks: [],     // remaining fantasy playoff weeks for the current league / default 15–17
+  form: new Map(),      // id → TradeFit.formSignal (hot / cold / on pace)
+  playoff: new Map(),   // id → TradeFit.playoffSOS (easy / hard / neutral slate)
 };
 
 async function boot() {
@@ -467,12 +492,21 @@ async function boot() {
     var marketP = fetchMarketValues({ ppr: 1, sf: 0, dynasty: 0 });
     // Injuries feed the Your Team panel only; a failure here is not fatal.
     var injP = fetch('/api/injuries').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
-    var results = await Promise.all([projP, plP, marketP, injP]);
+    // Recent points (form signal) and this season's FPA (playoff-schedule
+    // factor): both optional — a miss just leaves those factors neutral.
+    var recentP = fetch('/api/recent-points').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+    var fpaP = fetch('/data/fpa-current.json').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+    var results = await Promise.all([projP, plP, marketP, injP, recentP, fpaP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
     S.market = results[2] || {};
     S.marketKey = '1:0:0';
     S.injuries = (results[3] && results[3].players && typeof results[3].players === 'object') ? results[3].players : {};
+    S.season = String(nfl.season || S.season);
+    S.recent = results[4] && results[4].stats && Array.isArray(results[4].weeks) ? results[4] : null;
+    // Last season's leftover file (no completed week yet this year) must not rank this year's defences.
+    S.fpa = results[5] && results[5].current && String(results[5].season) === S.season ? results[5] : null;
+    await loadPlayoffSchedule();
 
     document.getElementById('loading').hidden = true;
 
@@ -559,6 +593,8 @@ async function loadLeague(lid) {
     S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
   } catch(e) {}
   if (!S.league) { setLeagueHint('Could not load league settings — using defaults', true); return; }
+  // This league's playoff weeks may differ from the default 15–17.
+  await loadPlayoffSchedule();
   // The league payload already carries rosters + users; pull ours out for Roster Fit.
   // Stays null (section hidden) if we're not an owner in this league.
   S.roster = loadMyRoster(S.league);
@@ -740,6 +776,27 @@ function getTeams() {
   return S.preset.teams;
 }
 
+// Fantasy playoff weeks still to be played: the league's own settings in
+// connected mode (playoff_week_start, playoff_teams, round type), Sleeper's
+// default 15–17 otherwise. Past weeks drop out, so once the playoffs are over
+// the factor is simply off.
+function getPlayoffWeeks() {
+  var league = S.mode === 'connected' && S.league ? S.league : null;
+  return TradeFit.playoffWeeks(league).filter(function(w){ return w >= S.week; });
+}
+
+// One /api/schedule/:week per playoff week, fetched once and kept in
+// S.schedule[week] = { TEAM: { opp, home } }. A week that fails to load is
+// left out (playoffSOS skips it) rather than read as a slate of byes.
+async function loadPlayoffSchedule() {
+  var weeks = getPlayoffWeeks().filter(function(w){ return !S.schedule[w]; });
+  if (!weeks.length) return;
+  var got = await Promise.all(weeks.map(function(w) {
+    return fetch('/api/schedule/' + w).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }));
+  weeks.forEach(function(w, i) { if (got[i] && got[i].teams) S.schedule[w] = got[i].teams; });
+}
+
 
 // Value pipeline:
 //   computeVORP (superflex-aware slots) → rescale 0–10000
@@ -748,6 +805,10 @@ function getTeams() {
 //     projection says less about a dynasty asset than the market does)
 //   → injury discount by current status (both sides, so a hurt player you
 //     give away is charged at his reduced value, not full price)
+//   → recent form: last 2 games ≥20% over the season projection = hot
+//     (sell high, ×0.95), ≥20% under = cold (buy low, ×1.05)
+//   → playoff schedule: opponents in the league's playoff weeks ranked by
+//     points allowed to the position, easiest slate ×1.05 … hardest ×0.95
 function recompute() {
   var players = Object.keys(S.players).map(function(id) {
     return { player_id: id, position: S.players[id][1] };
@@ -757,7 +818,11 @@ function recompute() {
   var scaled = ScoringEngine.rescaleVORP(raw);
   if (S.format.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
   S.vorpHealthy = ScoringEngine.blendWithMarket(scaled, S.market || {}, S.format.dynasty ? 0.5 : 0.3);
-  S.vorp = TradeFit.applyInjury(S.vorpHealthy, S.players, { dynasty: S.format.dynasty });
+  var opts = { dynasty: S.format.dynasty };
+  S.form = TradeFit.formMap(S.players, S.recent && S.recent.stats, S.recent && S.recent.weeks, S.proj, { ppr: S.format.ppr, dynasty: S.format.dynasty });
+  S.playoffWeeks = getPlayoffWeeks();
+  S.playoff = TradeFit.playoffMap(S.players, S.playoffWeeks, S.schedule, S.fpa, opts);
+  S.vorp = TradeFit.applyFactors(TradeFit.applyInjury(S.vorpHealthy, S.players, opts), [S.form, S.playoff]);
   renderFormatChip();
   recomputeAnalysis();
   renderYourTeam();
@@ -768,20 +833,61 @@ function recompute() {
   renderVerdict();
 }
 
-// Injury pill + value tooltip for a player row. Empty strings when healthy.
+// Injury pill for a player row. Empty strings when healthy. The full value
+// chain (injury × form × playoffs) lives in valueTitle() on the number.
 function injuryBits(id) {
   var info = S.players[id];
   var st = info && info[3];
-  if (!st) return { pill: '', title: '' };
+  if (!st) return { pill: '', title: '', mult: 1 };
   var m = TradeFit.injuryMult(st, { dynasty: S.format && S.format.dynasty });
   var short = String(st).replace(/\.$/, '');
   var abbr = { Questionable: 'Q', Doubtful: 'D', Out: 'OUT', IR: 'IR', PUP: 'PUP', Sus: 'SUS', COV: 'COV', DNR: 'DNR', NA: 'NA' }[short] || short.toUpperCase();
   var cls = (short === 'Questionable' || short === 'NA') ? 'pl-inj q' : 'pl-inj';
-  var healthy = S.vorpHealthy.get(id) || 0;
-  var title = m === 1
-    ? short + ' — no value discount'
-    : short + ': ' + healthy.toLocaleString() + ' healthy × ' + m.toFixed(2) + ' = ' + (S.vorp.get(id) || 0).toLocaleString();
-  return { pill: '<span class="' + cls + '" title="' + esc(title) + '">' + abbr + '</span>', title: title, abbr: abbr, cls: cls };
+  var title = m === 1 ? short + ' — no value discount' : short + ' — value × ' + fmtMult(m);
+  return { pill: '<span class="' + cls + '" title="' + esc(title) + '">' + abbr + '</span>', title: title, abbr: abbr, cls: cls, mult: m, short: short };
+}
+
+// "0.95", "1.044", "0.80" — three decimals with one trailing zero dropped.
+function fmtMult(m) { return Number(m).toFixed(3).replace(/0$/, ''); }
+
+// 🔥 Hot / 📉 Cold pill from the form signal. Empty when on pace or unknown.
+function formBits(id) {
+  var f = S.form.get(id);
+  if (!f || !f.label) return { pill: '', title: '' };
+  var hot = f.label === 'hot';
+  var title = (hot ? 'Hot: ' : 'Cold: ') + f.avg + ' pts/g over the last ' + f.games + ' games vs ' + f.proj + ' projected (' + Math.round(f.ratio * 100) + '%) — ' +
+    (hot ? 'sell high — value × ' + fmtMult(f.mult) + ', expect regression toward the projection'
+         : 'buy low — value × ' + fmtMult(f.mult) + ', expect a bounce back toward the projection');
+  return { pill: '<span class="pl-form ' + f.label + '" title="' + esc(title) + '">' + (hot ? '🔥 Hot' : '📉 Cold') + '</span>', title: title };
+}
+
+// ▲ Playoffs / ▼ Playoffs pill from the playoff-schedule read. Empty when the
+// slate is middling, already played, or unknown (no schedule / FPA yet).
+function playoffBits(id) {
+  var p = S.playoff.get(id);
+  if (!p || !p.label) return { pill: '', title: '' };
+  var pos = (S.players[id] || [])[1] || '';
+  var opps = p.opps.map(function(o) {
+    if (!o.opp) return 'wk ' + o.week + ' BYE';
+    return 'wk ' + o.week + ' ' + (o.home ? 'vs ' : '@ ') + o.opp + (o.rank != null ? ' (#' + Math.round(o.rank) + ')' : '');
+  }).join(', ');
+  var title = 'Playoff weeks ' + p.weeks[0] + (p.weeks.length > 1 ? '–' + p.weeks[p.weeks.length - 1] : '') + ': ' + opps +
+    ' — avg #' + p.avgRank + ' of 32 in fantasy pts allowed to ' + pos + ' (' + p.label + ' slate) → value × ' + fmtMult(p.mult);
+  return { pill: '<span class="pl-po ' + p.label + '" title="' + esc(title) + '">' + (p.label === 'easy' ? '▲' : '▼') + ' Playoffs</span>', title: title };
+}
+
+// Tooltip for the value number: base × every active adjustment = final.
+function valueTitle(id) {
+  var base = S.vorpHealthy.get(id) || 0, fin = S.vorp.get(id) || 0;
+  var parts = [];
+  var inj = injuryBits(id);
+  if (inj.mult !== 1) parts.push('× ' + fmtMult(inj.mult) + ' (' + inj.short + ')');
+  var f = S.form.get(id);
+  if (f && f.mult !== 1) parts.push('× ' + fmtMult(f.mult) + ' (' + f.label + ': ' + f.avg + ' vs ' + f.proj + ' proj pts/g)');
+  var p = S.playoff.get(id);
+  if (p && p.mult !== 1) parts.push('× ' + fmtMult(p.mult) + ' (' + (p.label ? p.label + ' ' : '') + 'playoff slate, avg #' + p.avgRank + ')');
+  if (!parts.length) return 'Value ' + base.toLocaleString() + ' — no adjustments';
+  return base.toLocaleString() + ' base ' + parts.join(' ') + ' = ' + fin.toLocaleString();
 }
 
 // League-wide team analysis on the same blended VORP the verdict uses, so the
@@ -842,8 +948,8 @@ function renderSide(side) {
     return '<div class="pl-row">' +
       '<span class="pos-badge ' + pos + '">' + pos + '</span>' +
       '<span class="pl-name">' + info[0] + '</span>' +
-      inj.pill +
-      '<span class="pl-val"' + (inj.title ? ' title="' + esc(inj.title) + '"' : '') + '>' + val.toLocaleString() + '</span>' +
+      inj.pill + formBits(id).pill + playoffBits(id).pill +
+      '<span class="pl-val" title="' + esc(valueTitle(id)) + '">' + val.toLocaleString() + '</span>' +
       '<button class="rm-btn" onclick="removePlayer(\'' + side + '\',\'' + id + '\')">×</button>' +
       '</div>';
   }).join('');
@@ -873,6 +979,14 @@ function renderVerdict() {
   var maxV = Math.max(r.giverValue, r.receiverValue, 1);
   document.getElementById('vbar-give').style.width = Math.max(2, r.giverValue / maxV * 100).toFixed(1) + '%';
   document.getElementById('vbar-recv').style.width = Math.max(2, r.receiverValue / maxV * 100).toFixed(1) + '%';
+  // 2-for-1 context: the totals can't see that you're consolidating (thinner
+  // bench, open spot) or adding bodies (depth, but someone gets dropped).
+  var noteEl = document.getElementById('vd-note');
+  var imb = TradeFit.rosterImbalance(S.give.length, S.recv.length);
+  if (noteEl) {
+    if (imb) { noteEl.textContent = imb.text; noteEl.className = 'vd-note ' + imb.tone; noteEl.hidden = false; }
+    else noteEl.hidden = true;
+  }
   renderCounterparty();
   renderRosterFit();
 }
@@ -1363,11 +1477,11 @@ function pickerRow(side, id, selected, extra) {
   var inj = injuryBits(id);
   return '<button type="button" class="pk-row' + (extra ? ' pk-extra' : '') + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
     ' data-side="' + side + '" data-id="' + esc(id) + '"' +
-    (inj.title ? ' title="' + esc(inj.title) + '"' : '') + '>' +
+    ' title="' + esc(valueTitle(id)) + '">' +
     '<span class="pk-check" aria-hidden="true">✓</span>' +
     '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>' +
     '<span class="pl-name">' + esc(info[0]) + '</span>' +
-    inj.pill +
+    inj.pill + formBits(id).pill + playoffBits(id).pill +
     '<span class="pl-val">' + val.toLocaleString() + '</span>' +
     '</button>';
 }
@@ -1441,7 +1555,8 @@ function setupSearch(side, inputId, dropId) {
         '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
         '<span class="truncate" style="flex:1">' + info[0] + '<span class="si-team">' + (info[2] || 'FA') + '</span>' +
         (inj.pill ? '<span class="' + inj.cls + ' si-inj">' + inj.abbr + '</span>' : '') + '</span>' +
-        '<span class="si-val">' + val.toLocaleString() + '</span>' +
+        formBits(id).pill +
+        '<span class="si-val" title="' + esc(valueTitle(id)) + '">' + val.toLocaleString() + '</span>' +
         '</div>';
     }).join('');
     drop.hidden = false;
