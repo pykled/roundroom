@@ -38,10 +38,15 @@ var WeeklyScore = (function () {
   var FORM_WEIGHTS = [0.5, 0.3, 0.2];   // 1 week ago, 2 weeks ago, 3 weeks ago
   var FORM_MIN = 0.8, FORM_MAX = 1.25;
   var VEGAS_MIN = 0.85, VEGAS_MAX = 1.2;
-  var LEAGUE_AVG_IMPLIED = 22;
+  // Fallback league-average implied team total, used only when the live per-week
+  // mean isn't supplied (/api/vegas now returns avgImplied). Set near the modern
+  // NFL average (~23.5) so the fallback path isn't systematically biased either.
+  var LEAGUE_AVG_IMPLIED = 23.5;
   var MATCHUP_BEST = 1.2, MATCHUP_WORST = 0.8;   // rank 1 → 1.2x, rank 32 → 0.8x
   var OPP_DEF_BOOST = 1.1;
-  var HOME_MULT = 1.03, AWAY_MULT = 0.98;
+  // Home-field edge, centered on 1.0 so a home team and its away opponent average
+  // to exactly 1.0 (no net league-wide inflation): +2.5% home, −2.5% away.
+  var HOME_MULT = 1.025, AWAY_MULT = 0.975;
   var SHORT_WEEK_MULT = 0.94;                  // Thursday game: 4 days' rest since Sunday
   var PASSING_POS = ['QB', 'WR', 'TE'];         // positions the wind/rain penalties apply to
 
@@ -123,11 +128,17 @@ var WeeklyScore = (function () {
 
   // vegas: { TEAM: impliedPoints } — pre-computed from spread + total:
   //   implied = total/2 − spread/2   (spread negative for the favourite)
-  function vegasMultiplier(team, vegas) {
+  // leagueAvg: this week's actual mean implied total across all teams playing
+  // (from /api/vegas → avgImplied). Making the baseline the real weekly mean
+  // keeps the factor relative — about half the teams land above 1.0× and half
+  // below — instead of everyone clearing a stale hardcoded 22. Falls back to
+  // LEAGUE_AVG_IMPLIED when the live mean isn't supplied.
+  function vegasMultiplier(team, vegas, leagueAvg) {
     var pts = vegas && team ? vegas[team] : null;
     if (pts == null || !isFinite(pts)) return { mult: 1, label: 'Vegas', detail: 'Vegas odds not wired yet — neutral', source: 'neutral' };
-    var mult = clamp(pts / LEAGUE_AVG_IMPLIED, VEGAS_MIN, VEGAS_MAX);
-    return { mult: mult, label: 'Vegas', implied: pts, detail: 'Implied team total ' + pts.toFixed(1) + ' pts (league avg ' + LEAGUE_AVG_IMPLIED + ')', source: 'live' };
+    var avg = (leagueAvg != null && isFinite(leagueAvg) && leagueAvg > 0) ? leagueAvg : LEAGUE_AVG_IMPLIED;
+    var mult = clamp(pts / avg, VEGAS_MIN, VEGAS_MAX);
+    return { mult: mult, label: 'Vegas', implied: pts, detail: 'Implied team total ' + pts.toFixed(1) + ' pts (league avg ' + avg.toFixed(1) + ')', source: 'live' };
   }
 
   // Implied team points for both sides of a game from a spread + total.
@@ -243,6 +254,7 @@ var WeeklyScore = (function () {
   //   isHome          boolean|null   from the schedule
   //   gameDate        'YYYY-MM-DD'   from the schedule
   //   weather         { windspeed, precip, indoor } for this game
+  //   vegasAvg        number   this week's mean implied team total (baseline)
   //   fpa, vegas, defInjuries, history   see the factor functions above
   // }
   function computeLineupScore(player, ctx) {
@@ -251,7 +263,7 @@ var WeeklyScore = (function () {
     var base = Number(ctx.base) || 0;
     var bye = ctx.opponent === null;
     var matchup = matchupMultiplier(pos, ctx.opponent, ctx.fpa, ctx.weeksPlayed);
-    var vegas = vegasMultiplier(player.team, ctx.vegas);
+    var vegas = vegasMultiplier(player.team, ctx.vegas, ctx.vegasAvg);
     var form = formMultiplier(ctx.history, ctx.weeksPlayed);
     var injury = injuryModifier(player.injuryStatus, pos, ctx.opponent, ctx.defInjuries);
     var homeAway = homeAwayMultiplier(bye ? null : ctx.isHome);

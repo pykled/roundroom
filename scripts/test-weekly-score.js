@@ -40,9 +40,13 @@ near(W.effectiveFPA(partial, 'WR', 'A', 1), 0.125 * 21 + 0.875 * 13);
 
 // --- vegas
 let v = W.vegasMultiplier('KC', null); near(v.mult, 1); assert.strictEqual(v.source, 'neutral');
-v = W.vegasMultiplier('KC', { KC: 22 }); near(v.mult, 1); assert.strictEqual(v.source, 'live');
+v = W.vegasMultiplier('KC', { KC: 23.5 }); near(v.mult, 1); assert.strictEqual(v.source, 'live'); // fallback baseline 23.5
 v = W.vegasMultiplier('KC', { KC: 30 }); near(v.mult, 1.2);      // capped
 v = W.vegasMultiplier('KC', { KC: 14 }); near(v.mult, 0.85);     // capped
+// dynamic per-week baseline: multiplier is relative to the supplied league mean
+v = W.vegasMultiplier('KC', { KC: 24 }, 24); near(v.mult, 1);    // exactly at the week's mean → neutral
+v = W.vegasMultiplier('KC', { KC: 26.4 }, 24); near(v.mult, 1.1); // 10% above the mean
+v = W.vegasMultiplier('KC', { KC: 21.6 }, 24); near(v.mult, 0.9); // 10% below the mean
 const ip = W.impliedPoints(47, -3);                              // home favoured by 3
 near(ip.home, 25); near(ip.away, 22);
 
@@ -82,8 +86,10 @@ i = W.injuryModifier('IR', 'RB', null, null); near(i.mult, 0);
 i = W.injuryModifier('NA', 'RB', null, null); near(i.mult, 1);            // non-medical status ignored
 
 // --- home / away
-let ha = W.homeAwayMultiplier(true); near(ha.mult, 1.03); assert.strictEqual(ha.source, 'live');
-ha = W.homeAwayMultiplier(false); near(ha.mult, 0.98);
+let ha = W.homeAwayMultiplier(true); near(ha.mult, 1.025); assert.strictEqual(ha.source, 'live');
+ha = W.homeAwayMultiplier(false); near(ha.mult, 0.975);
+// home + away average to exactly 1.0 → no net league-wide inflation
+near((W.homeAwayMultiplier(true).mult + W.homeAwayMultiplier(false).mult) / 2, 1);
 ha = W.homeAwayMultiplier(null); near(ha.mult, 1); assert.strictEqual(ha.source, 'neutral');
 ha = W.homeAwayMultiplier(undefined); near(ha.mult, 1); assert.strictEqual(ha.source, 'neutral');
 

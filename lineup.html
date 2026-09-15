@@ -222,6 +222,7 @@ var S = {
   defInj: {},          // { TEAM: [{ name, pos, slot, order, status }] }
   fpa: null,           // data/fpa-baseline.json with data/fpa-current.json merged into `current`
   vegas: null,         // { TEAM: impliedPts } from The Odds API via /api/vegas
+  vegasAvg: null,      // this week's mean implied team total (baseline for the Vegas factor)
   weather: null,       // { TEAM: { windspeed, precip, indoor } } from /api/weather (home stadium forecast)
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
   scores: {},          // player_id → computeLineupScore result for the current league
@@ -334,6 +335,7 @@ async function loadWeeklyContext() {
   S.defInj = results[1] || {};
   S.fpa = mergeFPA(results[2], results[5]);
   S.vegas = results[3] && results[3].teams ? results[3].teams : null;
+  S.vegasAvg = results[3] && isFinite(results[3].avgImplied) ? results[3].avgImplied : null;
   S.past = results[4];
   S.weather = results[6] && results[6].teams ? results[6].teams : null;
 }
@@ -566,7 +568,7 @@ function scoreFor(id) {
       isHome: game ? game.home : null,
       gameDate: game ? game.date : null,
       weather: game && S.weather && S.weather[team] ? S.weather[team] : null,
-      fpa: S.fpa, vegas: S.vegas, defInjuries: S.defInj,
+      fpa: S.fpa, vegas: S.vegas, vegasAvg: S.vegasAvg, defInjuries: S.defInj,
       history: formHistory(id, S.league.scoring_settings || {}),
     });
   S.scores[id] = r;

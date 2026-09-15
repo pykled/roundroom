@@ -1090,8 +1090,16 @@ app.get('/api/vegas', async (req, res) => {
       teams[awayAbbr] = parseFloat((total / 2 + homeSpread / 2).toFixed(2));
     }
 
+    // Real mean implied team total for the slate — the scoring engine uses this
+    // as the Vegas baseline so the multiplier is relative (half the teams above
+    // the mean, half below) instead of everyone clearing a stale hardcoded 22.
+    const impliedVals = Object.values(teams).filter(v => isFinite(v));
+    const avgImplied = impliedVals.length
+      ? parseFloat((impliedVals.reduce((a, b) => a + b, 0) / impliedVals.length).toFixed(2))
+      : null;
+
     res.setHeader('Cache-Control', 'public, max-age=43200');
-    res.json({ teams, gameCount: Object.keys(teams).length / 2 | 0, fetchedAt: new Date().toISOString() });
+    res.json({ teams, avgImplied, gameCount: Object.keys(teams).length / 2 | 0, fetchedAt: new Date().toISOString() });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch Vegas odds' });
   }
