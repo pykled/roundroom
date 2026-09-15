@@ -162,7 +162,7 @@
     <details class="legend info-details">
       <summary>How to read this</summary>
       <div class="details-body">
-        <b>score</b> is the composite weekly score the lineup ranks on: this week's projection × matchup × Vegas × recent form × injury. <b>proj</b> is the raw Sleeper weekly projection under your league's scoring (season average ÷ 17 when the weekly numbers aren't out yet). Chips explain each adjustment — hover for detail. <b>MU</b> = fantasy points the opponent allows to the position (this season blended with a 3-year baseline; week 1 counts 1/8, week 8+ fully). <b>Form</b> = last three games' actual vs projected, weighted 50/30/20, ramping in from week 3. <b>Q / D / OUT</b> = own injury status (0.85× / 0.5× / 0×). <b>vs CB out</b> etc. = a starting opponent defender at a slot that covers this position is out (+10%). <b>Consider</b> on a bench player = within 10% of the weakest starter he could replace. ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
+        <b>score</b> is the composite weekly score the lineup ranks on: this week's projection adjusted for matchup, Vegas implied total, recent form, and injuries. <b>proj</b> is the raw Sleeper weekly projection under your league's scoring (season average ÷ 17 when the weekly numbers aren't out yet). Chips explain each adjustment — hover for detail. <b>MU</b> = fantasy points the opponent allows to the position (this season blended with a 3-year baseline; week 1 counts 1/8, week 8+ fully). <b>Form</b> = last three games' actual vs projected, weighted 50/30/20, ramping in from week 3. <b>Q / D / OUT</b> = own injury status (0.85× / 0.5× / 0×). <b>vs CB out</b> etc. = a starting opponent defender at a slot that covers this position is out (+10%). <b>Consider</b> on a bench player = within 10% of the weakest starter he could replace. ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
       </div>
     </details>
   </div>
@@ -607,7 +607,6 @@ function factorChips(id, r, team, opts) {
     chips.push('<span class="fx' + (cls ? ' ' + cls : '') + '" title="' + esc(fx.detail) + '">' + esc(text) + '</span>');
   }
   if (f.matchup.source === 'live') chip('MU ' + WeeklyScore.pct(f.matchup.mult), f.matchup);
-  if (f.vegas.source === 'live') chip('Vegas ' + WeeklyScore.pct(f.vegas.mult), f.vegas);
   if (f.form.source === 'live') chip('Form ' + WeeklyScore.pct(f.form.mult), f.form);
   var inj = f.injury;
   if (inj.own === 0) chips.push('<span class="fx out" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
@@ -662,7 +661,6 @@ function renderDataNote() {
   if (S.schedule) live.push('byes'); else off.push('schedule');
   var fpaLive = S.fpa && S.fpa.current && Object.keys(S.fpa.current.WR || {}).length;
   (fpaLive ? live : off).push('matchup FPA');
-  (S.vegas ? live : off).push('Vegas');
   if (S.weeksPlayed >= 2 && S.past.length) live.push('form (' + S.past.length + ' wk)'); else off.push('form (from week 3)');
   live.push('injuries');
   el.innerHTML = '<b>Score inputs live:</b> ' + esc(live.join(', ')) + (off.length ? ' · <b>neutral:</b> ' + esc(off.join(', ')) : '');
