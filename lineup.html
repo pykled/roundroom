@@ -679,7 +679,7 @@ function playerRow(id, opts) {
   var flexSegs = { FLEX: ['WR','RB','TE'], SUPER_FLEX: ['QB','WR','RB','TE'] };
   var slotHtml;
   if (opts.slot && flexSegs[opts.slot]) {
-    slotHtml = '<span class="slot-split-badge">' +
+    slotHtml = '<span class="slot-split-badge' + (opts.slot === 'SUPER_FLEX' ? ' sflx' : '') + '">' +
       flexSegs[opts.slot].map(function(p) { return '<span class="sb ' + p + '">' + p[0] + '</span>'; }).join('') +
       '</span>';
   } else {

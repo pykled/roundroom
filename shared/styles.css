@@ -315,8 +315,10 @@ button, input, select, textarea { font-family: inherit; }
 .K   { background: rgba(107,114,128,.18); color: var(--k); }
 .DEF, .DST { background: rgba(107,114,128,.18); color: var(--dst); }
 /* Split badge for FLEX / SUPER_FLEX slots: equal-width segments, one per eligible position. */
-.slot-split-badge { display: inline-flex; border-radius: var(--radius-xs); overflow: hidden; flex-shrink: 0; height: 18px; }
-.slot-split-badge .sb { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.5rem; font-weight: 800; letter-spacing: 0; width: 14px; }
+.slot-split-badge { display: inline-flex; border-radius: var(--radius-xs); overflow: hidden; flex-shrink: 0; height: 16px; }
+.slot-split-badge .sb { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.44rem; font-weight: 800; letter-spacing: 0; width: 9px; }
+.slot-split-badge.sflx { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 26px; }
+.slot-split-badge.sflx .sb { width: auto; }
 .slot-split-badge .sb.QB { background: rgba(239,68,68,.35);  color: var(--qb); }
 .slot-split-badge .sb.WR { background: rgba(59,130,246,.35); color: var(--wr); }
 .slot-split-badge .sb.RB { background: rgba(16,185,129,.35); color: var(--rb); }
