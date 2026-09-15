@@ -675,14 +675,9 @@ function playerRow(id, opts) {
   var isTarget = S.targets[String(name).toLowerCase()];
   var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
   var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '');
-  var isFlexSlot = opts.slot != null && LineupOptimizer.eligible(opts.slot).length > 1;
-  // Left column: slot label for starters, position badge for bench (gives bench rows a visual anchor).
-  // For dedicated slots (QB/RB/etc.) the slot label is sufficient — no inline badge needed.
-  // For flex slots (FLEX/SUPER_FLEX) the slot label says "FLEX" not the position, so keep the badge.
-  var slotHtml = opts.slot != null
-    ? '<span class="slot-lbl' + (isFlexSlot ? ' flex' : '') + '">' + esc(opts.slot === 'SUPER_FLEX' ? 'SFLX' : opts.slot) + '</span>'
-    : '<span class="pos-badge ' + esc(pos) + '">' + esc(pos === 'IR' || opts.ir ? 'IR' : pos) + '</span>';
-  var posBadgeHtml = isFlexSlot ? '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>' : '';
+  // Left column: always the player's actual position as a colored badge — starters and bench alike.
+  var slotHtml = '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>';
+  var posBadgeHtml = '';
   var chips = factorChips(id, r, team, opts);
   var teamTxt = team ? esc(team) + (!r.bye && S.schedule && S.schedule[team] ? ' ' + (S.schedule[team].home ? 'vs ' : '@ ') + esc(S.schedule[team].opp) : '') : '';
   var sub = (teamTxt ? '<span class="fx team-sub">' + teamTxt + '</span>' : '') + chips;
