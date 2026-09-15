@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T23:17:05.760Z",
+  "generated_at": "2026-09-15T13:30:12.135Z",
   "source": "adp_fallback",
   "players": [
     {
@@ -584,9 +584,9 @@
       "vorp_sf": 37.5
     },
     {
-      "name": "Tony Pollard",
+      "name": "RJ Harvey",
       "position": "RB",
-      "team": "TEN",
+      "team": "DEN",
       "vorp_std": 36,
       "vorp_sf": 36
     },
@@ -612,9 +612,9 @@
       "vorp_sf": 31.5
     },
     {
-      "name": "RJ Harvey",
+      "name": "Tony Pollard",
       "position": "RB",
-      "team": "DEN",
+      "team": "TEN",
       "vorp_std": 30,
       "vorp_sf": 30
     },
@@ -745,9 +745,9 @@
       "vorp_sf": 4.5
     },
     {
-      "name": "Brock Purdy",
+      "name": "Patrick Mahomes",
       "position": "QB",
-      "team": "SF",
+      "team": "KC",
       "vorp_std": 0,
       "vorp_sf": 65
     },
@@ -787,9 +787,9 @@
       "vorp_sf": -6
     },
     {
-      "name": "Patrick Mahomes",
+      "name": "Brock Purdy",
       "position": "QB",
-      "team": "KC",
+      "team": "SF",
       "vorp_std": -6.5,
       "vorp_sf": 58.5
     },
@@ -1186,13 +1186,6 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Tank Dell",
-      "position": "WR",
-      "team": "HOU",
-      "vorp_std": -88.5,
-      "vorp_sf": -88.5
-    },
-    {
       "name": "Malachi Fields",
       "position": "WR",
       "team": "NYG",
@@ -1200,9 +1193,9 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Omar Cooper",
+      "name": "Tank Dell",
       "position": "WR",
-      "team": "NYJ",
+      "team": "HOU",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1214,9 +1207,9 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Chris Bell",
+      "name": "Omar Cooper",
       "position": "WR",
-      "team": "MIA",
+      "team": "NYJ",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1231,6 +1224,13 @@
       "name": "Cooper Kupp",
       "position": "WR",
       "team": "SEA",
+      "vorp_std": -88.5,
+      "vorp_sf": -88.5
+    },
+    {
+      "name": "Chris Bell",
+      "position": "WR",
+      "team": "MIA",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1263,9 +1263,9 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Tyreek Hill",
+      "name": "Tre' Harris",
       "position": "WR",
-      "team": null,
+      "team": "LAC",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1277,20 +1277,6 @@
       "vorp_sf": -88.5
     },
     {
-      "name": "Tre' Harris",
-      "position": "WR",
-      "team": "LAC",
-      "vorp_std": -88.5,
-      "vorp_sf": -88.5
-    },
-    {
-      "name": "Germie Bernard",
-      "position": "WR",
-      "team": "PIT",
-      "vorp_std": -88.5,
-      "vorp_sf": -88.5
-    },
-    {
       "name": "Jaylin Noel",
       "position": "WR",
       "team": "HOU",
@@ -1298,9 +1284,23 @@
       "vorp_sf": -88.5
     },
     {
+      "name": "Tyreek Hill",
+      "position": "WR",
+      "team": null,
+      "vorp_std": -88.5,
+      "vorp_sf": -88.5
+    },
+    {
       "name": "Keon Coleman",
       "position": "WR",
       "team": "BUF",
+      "vorp_std": -88.5,
+      "vorp_sf": -88.5
+    },
+    {
+      "name": "Germie Bernard",
+      "position": "WR",
+      "team": "PIT",
       "vorp_std": -88.5,
       "vorp_sf": -88.5
     },
@@ -1417,16 +1417,16 @@
       "vorp_sf": -110
     },
     {
-      "name": "Malik Davis",
+      "name": "Nicholas Singleton",
       "position": "RB",
-      "team": "DAL",
+      "team": "TEN",
       "vorp_std": -110,
       "vorp_sf": -110
     },
     {
-      "name": "Nicholas Singleton",
+      "name": "Malik Davis",
       "position": "RB",
-      "team": "TEN",
+      "team": "DAL",
       "vorp_std": -110,
       "vorp_sf": -110
     },
