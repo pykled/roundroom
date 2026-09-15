@@ -19,8 +19,9 @@
 #team-name { font-family: var(--font-mono); }
 
 /* swap summary: callout with a colored rail (amber = changes suggested, green = already optimal).
-   Both states share the same HTML structure (title / rows / foot) so width is always constant. */
-#swap-note { display: block; width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: var(--space-4); font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
+   Both states share identical HTML structure (title / rows / foot) so width is always constant.
+   min-width:0 prevents any flex/grid ancestor from letting content widen the box beyond 100%. */
+#swap-note { display: block; width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: var(--space-4); font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
 #swap-note.ok { border-left-color: var(--success); }
 #swap-note b { color: var(--text-primary); font-weight: 600; }
 #swap-note .sw-title { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-bottom: 0.4rem; }
@@ -745,7 +746,7 @@ function renderSwaps(result) {
     note.className = 'ok';
     note.innerHTML =
       '<div class="sw-title">Lineup check</div>' +
-      '<div class="sw-row sw-ok-row"><span class="sw-tag ok-tag">✓ Optimal</span><span>Your Sleeper lineup already matches the optimal lineup.</span></div>' +
+      '<div class="sw-row"><span class="sw-tag ok-tag">✓ Optimal</span><span>Your Sleeper lineup already matches the optimal lineup.</span></div>' +
       '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
   } else {
     note.className = '';
@@ -753,7 +754,7 @@ function renderSwaps(result) {
       '<div class="sw-title">Suggested changes vs your Sleeper lineup</div>' +
       (d.in.length ? '<div class="sw-row"><span class="sw-tag in">Start</span><span>' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
       (d.out.length ? '<div class="sw-row"><span class="sw-tag out">Bench</span><span>' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
-      '<div class="sw-foot">Set the change in the Sleeper app — Pocket reads your roster but can\'t write to it.</div>';
+      '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
   }
   note.hidden = false;
 }
