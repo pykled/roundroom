@@ -1078,9 +1078,7 @@ function renderYourTeam() {
     // Headline numbers live in the header so they read even when collapsed.
     var rec = me.record;
     var recStr = (rec.wins || rec.losses || rec.ties) ? (rec.wins + '-' + rec.losses + (rec.ties ? '-' + rec.ties : '')) : null;
-    var sub = [me.name, ord(me.rank) + ' of ' + n, me.starterPts.toLocaleString() + ' pts/wk'];
-    if (recStr) sub.push(recStr);
-    document.getElementById('yt-sub').textContent = sub.join(' · ');
+    document.getElementById('yt-sub').textContent = me.name;
 
     document.getElementById('yt-chips').innerHTML = NEED_POSITIONS.map(function(p) {
       return ytChip(p, me.byPos[p]);
