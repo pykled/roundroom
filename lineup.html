@@ -30,40 +30,57 @@
 #swap-note .sw-tag.out { background: rgba(239,68,68,.1); color: var(--danger); }
 #swap-note .sw-foot { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 0.4rem; }
 
-/* two columns */
-.lineup-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
-@media (max-width: 768px) { .lineup-grid { grid-template-columns: 1fr; } }
-.lineup-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
+/* single vertical stack: starters section, then bench section, in one card */
+.lineup-stack { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); }
+.lineup-section + .lineup-section { margin-top: var(--space-5, 1.5rem); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .sub-hdr { font-size: 0.66rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0.9rem 0 0.35rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
 
 /* player rows */
-.pl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; row-gap: 0.2rem; min-height: 38px; padding: 0.35rem 0.45rem; border-radius: var(--radius-sm); border-bottom: 1px solid var(--border); }
+.pl-row { display: flex; align-items: center; gap: 0.45rem; min-height: 46px; padding: 0.35rem 0.45rem; border-radius: var(--radius-sm); border-bottom: 1px solid var(--border); }
 .pl-row:last-child { border-bottom: none; }
 .pl-row.starter { background: var(--accent-glow); border-bottom-color: transparent; margin-bottom: 2px; }
 .pl-row.ir { opacity: 0.5; }
-.slot-lbl { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; }
+.slot-lbl { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500; color: var(--text-muted); min-width: 34px; letter-spacing: 0.03em; flex-shrink: 0; }
 .slot-lbl.flex { color: var(--gold); }
+/* headshot: Sleeper CDN thumb; hidden via onerror when the CDN has no image, leaving the badge alone */
+.pl-hs { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: top; flex-shrink: 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border); }
+.pl-row .pos-badge { flex-shrink: 0; }
+/* main cell: name line on top, factor tags underneath */
+/* width: 0 + flex-grow so the nowrap name line never widens the row (or #app) on narrow screens */
+.pl-main { flex: 1 1 0; width: 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; gap: 0.12rem; }
 /* name cell: the name text ellipsizes, the team/opponent + pills never do */
-.pl-name { flex: 1; display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; min-width: 0; white-space: nowrap; }
+.pl-name { display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; min-width: 0; white-space: nowrap; }
 .pl-name .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .pl-name .team { color: var(--text-muted); font-size: 0.68rem; flex-shrink: 0; }
 .pl-name .star { font-size: 0.7rem; flex-shrink: 0; }
 .pl-name .cur { font-size: 0.58rem; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0.05rem 0.4rem; letter-spacing: 0.02em; flex-shrink: 0; }
 /* score = composite weekly score (what the lineup ranks on); pts = the raw projection it started from */
+.pl-nums { display: flex; align-items: center; gap: 0.45rem; flex-shrink: 0; }
 .pl-score { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--text-primary); min-width: 44px; text-align: right; }
 .pl-score.zero { color: var(--text-muted); font-weight: 400; }
 .pl-pts { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 400; color: var(--text-secondary); min-width: 58px; text-align: right; }
 .pl-pts small { color: var(--text-muted); font-size: 0.56rem; margin-left: 2px; }
+/* phones: score over proj in one narrow column, tighter slot label, so the name line keeps ~130px */
+/* team/opp is rendered twice: inline next to the name (desktop) and as the first tag under it (phones) */
+.fx.team-sub { display: none; cursor: default; }
+@media (max-width: 600px) {
+  .pl-nums { flex-direction: column; align-items: flex-end; gap: 0; }
+  .pl-score, .pl-pts { min-width: 0; }
+  .slot-lbl { min-width: 28px; }
+  .pl-row { padding-left: 0.25rem; padding-right: 0.25rem; }
+  .pl-name .team, .pl-name .cur { display: none; }
+  .fx.team-sub { display: inline; }
+}
 .empty-slot { color: var(--text-muted); font-style: italic; }
 
-/* factor chips: second line under the player, indented past the slot label on starter rows */
-.pl-fx { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0.3rem; padding-left: calc(34px + 0.45rem); }
-.pl-row.no-slot .pl-fx { padding-left: 0; }
-.fx { font-family: var(--font-mono); font-size: var(--fs-2xs); line-height: 1.5; padding: 0.02rem 0.4rem; border-radius: var(--radius-pill); border: 1px solid var(--border); color: var(--text-secondary); background: rgba(255,255,255,0.03); white-space: nowrap; cursor: help; }
-.fx.up { color: var(--success); border-color: rgba(16,185,129,.28); background: rgba(16,185,129,.08); }
-.fx.down { color: var(--danger); border-color: rgba(239,68,68,.22); background: rgba(239,68,68,.08); }
-.fx.rec { font-family: var(--font-sans); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: default; }
-.fx.rec.consider { color: var(--gold); border-color: rgba(251,191,36,.22); background: rgba(251,191,36,.08); }
+/* factor tags: quiet mono text under the name, no pill fill. Only injury states carry color. */
+.pl-fx { display: flex; flex-wrap: wrap; gap: 0 0.6rem; }
+.fx { font-family: var(--font-mono); font-size: 0.6rem; line-height: 1.4; color: var(--text-muted); opacity: 0.85; white-space: nowrap; cursor: help; letter-spacing: 0.01em; }
+.fx.out { color: var(--danger); opacity: 1; font-weight: 600; }
+.fx.q { color: var(--amber); opacity: 1; font-weight: 600; }
+.fx.bye { color: var(--text-muted); opacity: 1; font-weight: 600; }
+.fx.rec { font-family: var(--font-sans); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: default; opacity: 1; }
+.fx.rec.consider { color: var(--gold); }
 .fx.rec.sit { color: var(--text-muted); }
 .col-hdr .total small { color: var(--text-muted); font-weight: 400; margin-left: 0.3rem; }
 #data-note { font-size: var(--fs-xs); color: var(--text-muted); margin: -0.4rem 0 var(--space-4); }
@@ -131,15 +148,15 @@
     <div id="swap-note" hidden></div>
     <div id="data-note" hidden></div>
 
-    <div class="lineup-grid">
-      <div class="lineup-col">
-        <div class="col-hdr"><span>Optimal starters</span><span class="total" id="starters-total"></span></div>
+    <div class="lineup-stack">
+      <section class="lineup-section">
+        <div class="col-hdr"><span>Starters</span><span class="total" id="starters-total"></span></div>
         <div id="starters-list"><div class="empty-hint"><span class="eh-icon">☰</span>Pick a league<span class="eh-sub">Your optimal starters will show here</span></div></div>
-      </div>
-      <div class="lineup-col">
+      </section>
+      <section class="lineup-section">
         <div class="col-hdr"><span>Bench</span><span class="total" id="bench-count"></span></div>
         <div id="bench-list"><div class="empty-hint">No roster loaded</div></div>
-      </div>
+      </section>
     </div>
 
     <details class="legend info-details">
@@ -207,6 +224,13 @@ async function boot() {
     var cfg = await cfgP;
     var nfl = await stateP;
     S.week = nfl.display_week || nfl.week || 1;
+    // Sleeper sometimes leaves display_week on the completed week until Tuesday
+    // (its `week` field advances first). From Tuesday PT onward, treat that as a
+    // lag and move to the next week.
+    if (nfl.display_week && nfl.week > nfl.display_week) {
+      var ptDay = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' });
+      if (['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(ptDay) >= 0) S.week = nfl.display_week + 1;
+    }
     document.getElementById('week-label').textContent = 'Week ' + S.week;
 
     var key = window.__clerk_publishable_key || (cfg && cfg.clerkPublishableKey);
@@ -573,22 +597,29 @@ function factorChips(id, r, team, opts) {
     chips.push('<span class="fx rec ' + rec + '" title="' + (rec === 'consider' ? 'Within 10% of the weakest starter he could replace' : 'Below the starters at every eligible slot') + '">' + (rec === 'consider' ? 'Consider' : 'Sit') + '</span>');
   }
   if (r.bye) {
-    chips.push('<span class="fx down" title="No game this week — scores 0">' + (team ? 'BYE' : 'No game') + '</span>');
+    chips.push('<span class="fx bye" title="No game this week — scores 0">' + (team ? 'BYE' : 'No game') + '</span>');
     return chips.join('');
   }
   var f = r.factors;
-  function chip(text, fx) {
-    var cls = fx.mult > 1.001 ? 'up' : fx.mult < 0.999 ? 'down' : '';
-    chips.push('<span class="fx ' + cls + '" title="' + esc(fx.detail) + '">' + esc(text) + '</span>');
+  // Muted text tag; only rendered when the factor actually moved the score.
+  function chip(text, fx, cls) {
+    if (Math.abs(fx.mult - 1) < 0.005) return;
+    chips.push('<span class="fx' + (cls ? ' ' + cls : '') + '" title="' + esc(fx.detail) + '">' + esc(text) + '</span>');
   }
   if (f.matchup.source === 'live') chip('MU ' + WeeklyScore.pct(f.matchup.mult), f.matchup);
   if (f.vegas.source === 'live') chip('Vegas ' + WeeklyScore.pct(f.vegas.mult), f.vegas);
-  if (f.form.source === 'live' && Math.abs(f.form.mult - 1) >= 0.005) chip('Form ' + WeeklyScore.pct(f.form.mult), f.form);
+  if (f.form.source === 'live') chip('Form ' + WeeklyScore.pct(f.form.mult), f.form);
   var inj = f.injury;
-  if (inj.own === 0) chips.push('<span class="fx down" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
-  else if (inj.own < 1) chip((STATUS_ABBR[(S.players[id] || [])[3]] || 'Inj') + ' ' + WeeklyScore.pct(inj.own), { mult: inj.own, detail: inj.detail });
+  if (inj.own === 0) chips.push('<span class="fx out" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
+  else if (inj.own < 1) chip((STATUS_ABBR[(S.players[id] || [])[3]] || 'Inj') + ' ' + WeeklyScore.pct(inj.own), { mult: inj.own, detail: inj.detail }, 'q');
   if (inj.boost > 1) chip('vs ' + (inj.group || 'DEF') + ' out ' + WeeklyScore.pct(inj.boost), { mult: inj.boost, detail: inj.detail });
   return chips.join('');
+}
+
+function headshot(id) {
+  // Sleeper CDN thumb keyed by player id; DEF ids are team codes and have no thumb, so skip them.
+  if (!/^\d+$/.test(String(id))) return '';
+  return '<img class="pl-hs" src="https://sleepercdn.com/content/nfl/players/thumb/' + esc(id) + '.jpg" alt="" loading="lazy" onerror="this.hidden=true">';
 }
 
 function playerRow(id, opts) {
@@ -598,22 +629,28 @@ function playerRow(id, opts) {
   var r = scoreFor(id);
   var isTarget = S.targets[String(name).toLowerCase()];
   var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
-  var hasSlot = opts.slot != null || opts.ir;
-  var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '') + (hasSlot ? '' : ' no-slot');
+  var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '');
+  // Bench rows get an empty slot cell so headshots and badges line up with the starters above.
   var slotHtml = opts.slot != null
     ? '<span class="slot-lbl' + (LineupOptimizer.eligible(opts.slot).length > 1 ? ' flex' : '') + '">' + esc(opts.slot === 'SUPER_FLEX' ? 'SFLX' : opts.slot) + '</span>'
-    : (opts.ir ? '<span class="slot-lbl">IR</span>' : '');
+    : '<span class="slot-lbl">' + (opts.ir ? 'IR' : '') + '</span>';
   var chips = factorChips(id, r, team, opts);
-  return '<div class="' + cls + '">' + slotHtml +
+  var teamTxt = team ? esc(team) + (!r.bye && S.schedule && S.schedule[team] ? ' ' + (S.schedule[team].home ? 'vs ' : '@ ') + esc(S.schedule[team].opp) : '') : '';
+  var sub = (teamTxt ? '<span class="fx team-sub">' + teamTxt + '</span>' : '') + chips;
+  return '<div class="' + cls + '">' + slotHtml + headshot(id) +
     '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>' +
-    '<span class="pl-name"><span class="nm">' + esc(name) + '</span>' +
-      (team ? '<span class="team">' + esc(team) + (!r.bye && S.schedule && S.schedule[team] ? ' ' + (S.schedule[team].home ? 'vs ' : '@ ') + esc(S.schedule[team].opp) : '') + '</span>' : '') +
-      (isTarget ? '<span class="star" title="On your target list">⭐</span>' : '') +
-      (onSleeper ? '<span class="cur" title="Currently starting on Sleeper">on Sleeper</span>' : '') +
+    '<span class="pl-main">' +
+      '<span class="pl-name"><span class="nm">' + esc(name) + '</span>' +
+        (teamTxt ? '<span class="team">' + teamTxt + '</span>' : '') +
+        (isTarget ? '<span class="star" title="On your target list">⭐</span>' : '') +
+        (onSleeper ? '<span class="cur" title="Currently starting on Sleeper">on Sleeper</span>' : '') +
+      '</span>' +
+      (sub ? '<span class="pl-fx">' + sub + '</span>' : '') +
     '</span>' +
-    '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="Composite weekly score">' + r.score.toFixed(1) + '</span>' +
-    '<span class="pl-pts" title="Raw weekly projection">' + r.base.toFixed(1) + '<small>proj</small></span>' +
-    (chips ? '<div class="pl-fx">' + chips + '</div>' : '') +
+    '<span class="pl-nums">' +
+      '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="Composite weekly score">' + r.score.toFixed(1) + '</span>' +
+      '<span class="pl-pts" title="Raw weekly projection">' + r.base.toFixed(1) + '<small>proj</small></span>' +
+    '</span>' +
     '</div>';
 }
 
@@ -638,7 +675,7 @@ function renderStarters(result) {
   el.innerHTML = result.starters.map(function(s) {
     if (!s.id) {
       return '<div class="pl-row starter"><span class="slot-lbl">' + esc(s.slot) + '</span>' +
-        '<span class="pl-name empty-slot">No eligible player</span></div>';
+        '<span class="pl-main"><span class="pl-name empty-slot">No eligible player</span></span></div>';
     }
     var r = scoreFor(s.id);
     total += r.score; proj += r.base;
