@@ -57,6 +57,39 @@
 .rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; line-height: 1; width: 24px; height: 24px; border-radius: var(--radius-xs); display: inline-flex; align-items: center; justify-content: center; transition: color 0.12s, background 0.12s; }
 .rm-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
 
+/* roster picker (connected mode): both rosters as tap-to-toggle rows, so a
+   trade is built by clicking instead of searching one player at a time */
+.pk { display: none; flex-direction: column; min-height: 0; }
+.trade-col.picking .pk { display: flex; flex: 1; }
+.trade-col.picking .srch-wrap, .trade-col.picking .pl-list { display: none; }
+.pk-partner { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+.pk-partner label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); white-space: nowrap; }
+.pk-partner select { flex: 1; min-width: 0; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.45rem 0.6rem; color: var(--text-primary); font-size: 0.82rem; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+.pk-partner select:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
+.pk-partner select.unset { color: var(--text-secondary); }
+.pk-list { max-height: 340px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; margin: 0 -0.3rem; padding: 0 0.3rem; }
+.pk-row { display: flex; align-items: center; gap: 0.45rem; width: 100%; min-height: 36px; padding: 0.3rem 0.45rem; margin-bottom: 2px; background: none; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; transition: background 0.12s, border-color 0.12s; }
+.pk-row:hover { background: var(--bg-hover); }
+.pk-row:focus-visible { outline: none; border-color: var(--accent); }
+.pk-row[aria-pressed="true"] { background: rgba(255,255,255,0.08); border-color: var(--border-bright); }
+.pk-row .pl-name { font-weight: 500; }
+.pk-row[aria-pressed="true"] .pl-name { font-weight: 600; }
+.pk-check { width: 16px; height: 16px; flex: 0 0 16px; border: 1px solid var(--border-bright); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.62rem; line-height: 1; color: transparent; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+.pk-row[aria-pressed="true"] .pk-check { background: var(--accent); border-color: var(--accent); color: var(--bg-primary); }
+.pk-row.pk-extra { border-style: dashed; border-color: var(--border); }
+.pk-row.pk-extra[aria-pressed="true"] { border-color: var(--border-bright); }
+.pk-sub { font-size: 0.66rem; color: var(--text-muted); padding: 0.4rem 0.45rem 0.15rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.pk-foot { font-size: 0.68rem; color: var(--text-muted); text-align: center; padding-top: 0.5rem; }
+.pk-foot button { background: none; border: none; color: var(--text-secondary); font: inherit; font-size: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
+.pk-foot button:hover { color: var(--text-primary); }
+.yt-partner .yt-name.pk-link { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.yt-partner .yt-name.pk-link:hover { color: var(--rb); }
+@media (max-width: 768px) {
+  .pk-list { max-height: 300px; }
+  .pk-row { min-height: 42px; }
+  .pk-partner select { min-height: 40px; font-size: 16px; }
+}
+
 /* value bar */
 .vbar-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 0.75rem; }
 .vbar { height: 100%; border-radius: 2px; transition: width 0.25s; min-width: 2px; }
@@ -266,22 +299,34 @@
     </div>
 
     <div class="trade-grid">
-      <div class="trade-col">
-        <div class="col-hdr">You Give</div>
+      <div class="trade-col" id="col-give">
+        <div class="col-hdr"><span>You Give</span><span class="total" id="tot-give"></span></div>
         <div class="srch-wrap">
           <input class="srch-input" id="srch-give" type="text" placeholder="Search players…" autocomplete="off">
           <div class="srch-drop" id="drop-give" hidden></div>
         </div>
         <div id="give-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're sending</span></div></div>
+        <!-- Connected mode: your roster as tap-to-toggle rows (renderPicker) -->
+        <div class="pk" id="pk-give">
+          <div class="pk-list" id="pk-give-list"></div>
+        </div>
         <div class="vbar-wrap"><div class="vbar vbar-give" id="vbar-give" style="width:50%"></div></div>
       </div>
-      <div class="trade-col">
-        <div class="col-hdr">You Receive</div>
+      <div class="trade-col" id="col-recv">
+        <div class="col-hdr"><span>You Receive</span><span class="total" id="tot-recv"></span></div>
         <div class="srch-wrap">
           <input class="srch-input" id="srch-recv" type="text" placeholder="Search players…" autocomplete="off">
           <div class="srch-drop" id="drop-recv" hidden></div>
         </div>
         <div id="recv-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're getting back</span></div></div>
+        <!-- Connected mode: pick a league team, then tap their players (renderPicker) -->
+        <div class="pk" id="pk-recv">
+          <div class="pk-partner">
+            <label for="partner-sel">Trading with</label>
+            <select id="partner-sel" class="unset"><option value="">Pick a team…</option></select>
+          </div>
+          <div class="pk-list" id="pk-recv-list"></div>
+        </div>
         <div class="vbar-wrap"><div class="vbar vbar-recv" id="vbar-recv" style="width:50%"></div></div>
       </div>
     </div>
@@ -372,6 +417,7 @@ var S = {
   leagues: [],
   roster: null,   // signed-in user's active player_ids in S.league (null = unknown → Roster Fit hidden)
   myRosterId: null,
+  partnerId: null,  // roster_id of the team selected in the "Trading with" picker (connected mode only)
   leagueAnalysis: null,  // AnalysisEngine.analyzeLeague output (connected mode only)
   myAnalysis: null,      // entry in leagueAnalysis.teams for S.myRosterId
   give: [],
@@ -507,6 +553,7 @@ async function loadLeague(lid) {
   S.league = null;
   S.roster = null;
   S.myRosterId = null;
+  S.partnerId = null;
   if (!lid) return;
   try {
     S.league = await fetch('/api/league/' + encodeURIComponent(lid)).then(function(r){ return r.ok ? r.json() : null; });
@@ -714,6 +761,8 @@ function recompute() {
   renderFormatChip();
   recomputeAnalysis();
   renderYourTeam();
+  syncPartnerFromRecv();
+  renderPartnerSelect();
   renderSide('give');
   renderSide('recv');
   renderVerdict();
@@ -769,6 +818,17 @@ function removePlayer(side, id) {
 function renderSide(side) {
   var list = side === 'give' ? S.give : S.recv;
   var el = document.getElementById(side + '-list');
+  // Header total: "2 · 8,400" once anything is on this side (both modes).
+  var tot = document.getElementById('tot-' + side);
+  if (tot) {
+    var sum = list.reduce(function(a, id){ return a + (S.vorp.get(id) || 0); }, 0);
+    tot.textContent = list.length ? list.length + ' · ' + sum.toLocaleString() : '';
+  }
+  // Connected mode: the roster picker replaces search + list for this column.
+  var col = document.getElementById('col-' + side);
+  var picking = pickerActive(side);
+  if (col) col.classList.toggle('picking', picking);
+  if (picking) { renderPicker(side); return; }
   if (!list.length) {
     el.innerHTML = '<div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">' +
       (side === 'give' ? 'Search above to add who you\'re sending' : 'Search above to add who you\'re getting back') + '</span></div>';
@@ -1119,11 +1179,24 @@ function renderYourTeam() {
         var tags = p.overlap.map(function(pos){ return '<span class="yt-tag need">' + pos + '</span>'; });
         var theirSurplus = (p.team.surplus || []).filter(function(pos){ return p.overlap.indexOf(pos) < 0; });
         theirSurplus.forEach(function(pos){ tags.push('<span class="yt-tag surplus">' + pos + '</span>'); });
-        return '<div class="yt-partner"><span class="yt-name">' + esc(p.team.name) + '</span>' +
+        // Name doubles as a shortcut into the "Trading with" picker when it's active.
+        var canPick = pickerActive('recv') && p.team.rosterId != null;
+        return '<div class="yt-partner"><span class="yt-name' + (canPick ? ' pk-link' : '') + '"' +
+          (canPick ? ' data-rid="' + esc(p.team.rosterId) + '" title="Build a trade with this team"' : '') + '>' + esc(p.team.name) + '</span>' +
           tags.join('') + '</div>';
       }).join('');
     }
     pEl.innerHTML = html;
+    if (!pEl.__pkBound) {
+      pEl.__pkBound = true;
+      pEl.addEventListener('click', function(ev) {
+        var link = ev.target.closest('.pk-link[data-rid]');
+        if (!link) return;
+        setPartner(link.getAttribute('data-rid'));
+        var col = document.getElementById('col-recv');
+        if (col && col.scrollIntoView) col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
 
     // Remember which league/roster this render described (see ytKey above).
     YT_AI_KEY = ytKey;
@@ -1204,6 +1277,145 @@ function renderRosterFit() {
     sec.hidden = true;
   }
 }
+
+// ---- Roster picker (connected mode) ----------------------------------------
+// The league payload already has every roster, so a trade is built by tapping
+// players instead of searching for them one at a time. Give side = the
+// signed-in user's full roster (IR/taxi included — they can still be traded).
+// Receive side = the roster of the team chosen in the "Trading with" select.
+// Selection state is S.give / S.recv, so the verdict, Roster Fit and share
+// link work exactly as they do for the search flow. Players already on a side
+// that aren't on the roster being shown (a shared link, a league switch) are
+// appended as dashed "also in this trade" rows so they're never invisible.
+function pickerActive(side) {
+  if (S.mode !== 'connected' || !S.league || !Array.isArray(S.league.rosters) || !S.league.rosters.length) return false;
+  return side === 'give' ? S.myRosterId != null : true;
+}
+
+function rosterById(rid) {
+  if (!S.league || !Array.isArray(S.league.rosters) || rid == null) return null;
+  return S.league.rosters.find(function(r){ return String(r.roster_id) === String(rid); }) || null;
+}
+
+function isMine(rid) { return S.myRosterId != null && String(rid) === String(S.myRosterId); }
+
+function teamLabel(r) {
+  var t = S.leagueAnalysis && r ? S.leagueAnalysis.team(r.roster_id) : null;
+  if (t && t.name) return t.name;
+  var u = (S.league && S.league.users || []).find(function(x){ return r && String(x.user_id) === String(r.owner_id); });
+  if (u) return (u.metadata && u.metadata.team_name) || u.display_name || ('Team ' + r.roster_id);
+  return r && r.owner_id == null ? 'Open team' : 'Team ' + (r ? r.roster_id : '?');
+}
+
+// Every other team, by name. Option text carries the team's needs (from the
+// league analysis) so the right partner is findable without opening each one.
+function renderPartnerSelect() {
+  var sel = document.getElementById('partner-sel');
+  if (!sel) return;
+  if (!pickerActive('recv')) { sel.innerHTML = '<option value="">Pick a team…</option>'; return; }
+  var others = S.league.rosters.filter(function(r){ return !isMine(r.roster_id) && Array.isArray(r.players) && r.players.length; });
+  var rows = others.map(function(r) {
+    var t = S.leagueAnalysis ? S.leagueAnalysis.team(r.roster_id) : null;
+    var needs = t && t.needs && t.needs.length ? t.needs.join('/') : '';
+    return { rid: String(r.roster_id), label: teamLabel(r), needs: needs };
+  }).sort(function(a, b){ return a.label.localeCompare(b.label); });
+  var cur = S.partnerId != null && rows.some(function(x){ return x.rid === String(S.partnerId); }) ? String(S.partnerId) : '';
+  if (!cur) S.partnerId = null;
+  sel.innerHTML = '<option value="">Pick a team…</option>' + rows.map(function(x) {
+    return '<option value="' + esc(x.rid) + '">' + esc(x.label) + (x.needs ? ' — needs ' + esc(x.needs) : '') + '</option>';
+  }).join('');
+  sel.value = cur;
+  sel.classList.toggle('unset', !cur);
+}
+
+// A shared link (or a search-added player) already names the partner: pick
+// the team that owns the first received player so the picker opens on them.
+function syncPartnerFromRecv() {
+  if (!pickerActive('recv') || S.partnerId != null || !S.recv.length) return;
+  for (var i = 0; i < S.recv.length; i++) {
+    var r = ownerOf(S.recv[i]);
+    if (r && r.roster_id != null && !isMine(r.roster_id)) { S.partnerId = String(r.roster_id); return; }
+  }
+}
+
+function setPartner(rid) {
+  var next = rid == null || rid === '' ? null : String(rid);
+  if (next === S.partnerId) return;
+  S.partnerId = next;
+  // A trade is with one team: drop received players that aren't on the new partner's roster.
+  var r = rosterById(next);
+  var keep = r && Array.isArray(r.players) ? r.players : [];
+  S.recv = S.recv.filter(function(id){ return keep.indexOf(id) >= 0; });
+  renderPartnerSelect();
+  renderSide('recv');
+  renderVerdict();
+}
+
+function togglePick(side, id) {
+  var list = side === 'give' ? S.give : S.recv;
+  if (list.indexOf(id) >= 0) removePlayer(side, id); else addPlayer(side, id);
+}
+
+function pickerRow(side, id, selected, extra) {
+  var info = S.players[id] || [id, '?', '?'];
+  var pos = info[1] || '?';
+  var val = S.vorp.get(id) || 0;
+  var inj = injuryBits(id);
+  return '<button type="button" class="pk-row' + (extra ? ' pk-extra' : '') + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
+    ' data-side="' + side + '" data-id="' + esc(id) + '"' +
+    (inj.title ? ' title="' + esc(inj.title) + '"' : '') + '>' +
+    '<span class="pk-check" aria-hidden="true">✓</span>' +
+    '<span class="pos-badge ' + esc(pos) + '">' + esc(pos) + '</span>' +
+    '<span class="pl-name">' + esc(info[0]) + '</span>' +
+    inj.pill +
+    '<span class="pl-val">' + val.toLocaleString() + '</span>' +
+    '</button>';
+}
+
+function renderPicker(side) {
+  var el = document.getElementById('pk-' + side + '-list');
+  if (!el) return;
+  var list = side === 'give' ? S.give : S.recv;
+  var r = side === 'give' ? rosterById(S.myRosterId) : rosterById(S.partnerId);
+  var roster = r && Array.isArray(r.players) ? r.players.filter(function(id){ return S.players[id]; }) : [];
+  var html = '';
+  if (side === 'recv' && S.partnerId == null) {
+    html = '<div class="empty-hint"><span class="eh-icon">↑</span>Pick a team<span class="eh-sub">Their roster shows here — tap players to add them</span></div>';
+  } else if (!roster.length) {
+    html = '<div class="empty-hint">' + (side === 'give' ? 'No players on your roster' : 'No players on this roster') + '</div>';
+  } else {
+    roster.sort(function(a, b){ return (S.vorp.get(b) || 0) - (S.vorp.get(a) || 0); });
+    html = roster.map(function(id){ return pickerRow(side, id, list.indexOf(id) >= 0, false); }).join('');
+  }
+  var extras = list.filter(function(id){ return !(r && Array.isArray(r.players) && r.players.indexOf(id) >= 0); });
+  if (extras.length) {
+    html += '<div class="pk-sub">Also in this trade</div>' +
+      extras.map(function(id){ return pickerRow(side, id, true, true); }).join('');
+  }
+  if (list.length) {
+    html += '<div class="pk-foot"><button type="button" data-clear="' + side + '">Clear ' + (side === 'give' ? 'your' : 'their') + ' side</button></div>';
+  }
+  // Keep the scroll position: a tap deep in a long roster must not jump the list back to the top.
+  var st = el.scrollTop;
+  el.innerHTML = html;
+  el.scrollTop = st;
+}
+
+// One delegated handler per column: tap a row to toggle, tap "Clear" to reset the side.
+['give', 'recv'].forEach(function(side) {
+  document.getElementById('pk-' + side + '-list').addEventListener('click', function(ev) {
+    var clr = ev.target.closest('[data-clear]');
+    if (clr) {
+      if (side === 'give') S.give = []; else S.recv = [];
+      renderSide(side); renderVerdict();
+      return;
+    }
+    var row = ev.target.closest('.pk-row');
+    if (!row) return;
+    togglePick(row.getAttribute('data-side'), row.getAttribute('data-id'));
+  });
+});
+document.getElementById('partner-sel').addEventListener('change', function() { setPartner(this.value); });
 
 // Player search
 function setupSearch(side, inputId, dropId) {
