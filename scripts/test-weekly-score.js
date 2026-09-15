@@ -81,10 +81,51 @@ i = W.injuryModifier('Out', 'WR', 'DEN', defInj); near(i.mult, 0); assert.strict
 i = W.injuryModifier('IR', 'RB', null, null); near(i.mult, 0);
 i = W.injuryModifier('NA', 'RB', null, null); near(i.mult, 1);            // non-medical status ignored
 
+// --- home / away
+let ha = W.homeAwayMultiplier(true); near(ha.mult, 1.03); assert.strictEqual(ha.source, 'live');
+ha = W.homeAwayMultiplier(false); near(ha.mult, 0.98);
+ha = W.homeAwayMultiplier(null); near(ha.mult, 1); assert.strictEqual(ha.source, 'neutral');
+ha = W.homeAwayMultiplier(undefined); near(ha.mult, 1); assert.strictEqual(ha.source, 'neutral');
+
+// --- short week (Sleeper dates are YYYY-MM-DD; 2026-09-17 is a Thursday)
+let r0;
+let sw =W.shortWeekMultiplier('2026-09-17'); near(sw.mult, 0.94); assert.strictEqual(sw.source, 'live'); assert.strictEqual(sw.label, 'TNF');
+sw = W.shortWeekMultiplier('2026-09-20'); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');   // Sunday
+sw = W.shortWeekMultiplier('2026-09-21'); near(sw.mult, 1);                                             // Monday
+sw = W.shortWeekMultiplier(null); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');
+sw = W.shortWeekMultiplier('not a date'); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');
+sw = W.shortWeekMultiplier('2026-09-10', 0); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');   // Thursday opener, full offseason rest
+sw = W.shortWeekMultiplier('2026-09-17', 1); near(sw.mult, 0.94);
+r0 = W.computeLineupScore({ id: '1', position: 'WR', team: 'SF', injuryStatus: null }, { weeksPlayed: 0, base: 10, opponent: 'LAR', gameDate: '2026-09-10' });
+near(r0.score, 10); assert.strictEqual(r0.factors.shortWeek.source, 'neutral');
+
+// --- weather
+let wx = W.weatherMultiplier(null, 'WR'); near(wx.mult, 1); assert.strictEqual(wx.source, 'neutral');
+wx = W.weatherMultiplier({ windspeed: 30, precip: 90, indoor: true }, 'WR'); near(wx.mult, 1);          // dome
+wx = W.weatherMultiplier({ windspeed: 10, precip: 20, indoor: false }, 'WR'); near(wx.mult, 1); assert.strictEqual(wx.source, 'neutral');
+wx = W.weatherMultiplier({ windspeed: 16, precip: 0, indoor: false }, 'WR'); near(wx.mult, 0.94); assert.strictEqual(wx.source, 'live'); assert.strictEqual(wx.label, 'WX');
+wx = W.weatherMultiplier({ windspeed: 21, precip: 0, indoor: false }, 'QB'); near(wx.mult, 0.89);
+wx = W.weatherMultiplier({ windspeed: 26, precip: 0, indoor: false }, 'TE'); near(wx.mult, 0.82);
+wx = W.weatherMultiplier({ windspeed: 26, precip: 60, indoor: false }, 'TE'); near(wx.mult, 0.82 * 0.95);
+wx = W.weatherMultiplier({ windspeed: 5, precip: 60, indoor: false }, 'WR'); near(wx.mult, 0.95);       // rain only
+wx = W.weatherMultiplier({ windspeed: 21, precip: 60, indoor: false }, 'RB'); near(wx.mult, 1.04);      // RBs: wind bump, no rain penalty
+wx = W.weatherMultiplier({ windspeed: 18, precip: 0, indoor: false }, 'RB'); near(wx.mult, 1);
+wx = W.weatherMultiplier({ windspeed: 30, precip: 90, indoor: false }, 'K'); near(wx.mult, 1);          // no rule for K/DEF
+
 // --- composite
 let r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
   { week: 5, weeksPlayed: 4, base: 12, opponent: 'DEN', fpa: placeholder, vegas: null, defInjuries: defInj, history: hist });
 near(r.score, 12 * 1.25 * 1.1); assert.strictEqual(r.bye, false);
+// new factors stack multiplicatively after injury
+r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
+  { week: 5, weeksPlayed: 4, base: 12, opponent: 'DEN', fpa: placeholder, vegas: null, defInjuries: defInj, history: hist,
+    isHome: false, gameDate: '2026-10-01', weather: { windspeed: 22, precip: 10, indoor: false } });
+near(r.score, 12 * 1.25 * 1.1 * 0.98 * 0.94 * 0.89);
+assert.strictEqual(r.factors.homeAway.source, 'live'); assert.strictEqual(r.factors.shortWeek.source, 'live'); assert.strictEqual(r.factors.weather.source, 'live');
+// bye week: new factors stay neutral even if stale context is passed
+r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
+  { weeksPlayed: 4, base: 12, opponent: null, isHome: true, gameDate: '2026-10-01', weather: { windspeed: 30, indoor: false } });
+near(r.score, 0); assert.strictEqual(r.factors.homeAway.source, 'neutral'); assert.strictEqual(r.factors.weather.source, 'neutral');
 r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null }, { weeksPlayed: 4, base: 12, opponent: null });
 near(r.score, 0); assert.strictEqual(r.bye, true);
 r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null }, { weeksPlayed: 0, base: 12 });

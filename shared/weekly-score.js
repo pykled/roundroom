@@ -7,6 +7,9 @@
 //                × vegas_multiplier     (implied team total from the betting line)
 //                × form_multiplier      (recent actual vs projected, recency weighted)
 //                × injury_modifier      (own status; opponent key defenders out)
+//                × home_away_multiplier (home teams score ~3% more; no chip in the UI)
+//                × short_week_multiplier (Thursday game = 4 days rest, −6%)
+//                × weather_multiplier   (wind / rain at outdoor stadiums; passing positions)
 //
 // Every factor returns { mult, label, detail, source } so the UI can show WHY a
 // player ranks where he does. `source` is 'live' when real data drove the
@@ -15,13 +18,15 @@
 //
 // DATA WIRING STATUS (what feeds each factor today — see docs/weekly-score.md):
 //   base        LIVE   Sleeper weekly projection (api.sleeper.com), season/17 fallback
-//   matchup     PLACEHOLDER  data/fpa-baseline.json ships neutral per-position FPA only.
-//                      Fill `current` (FantasyPros /nfl/matchups/<pos>.php, weekly) and
-//                      `historical` (3-yr avg per team) to activate. Until then mult = 1.0.
-//   vegas       NEUTRAL  no odds feed yet. Pass ctx.vegas = { TEAM: impliedPts } from
-//                      The Odds API (spreads+totals) to activate. Until then mult = 1.0.
+//   matchup     LIVE   data/fpa-current.json (`current`, rebuilt weekly by scripts/scrape-fpa.js
+//                      via .github/workflows/update-fpa.yml) merged over data/fpa-baseline.json.
+//                      `historical` (3-yr avg per team) still empty → neutral baseline fills in.
+//   vegas       LIVE   /api/vegas → ctx.vegas = { TEAM: impliedPts } (The Odds API, ODDS_API_KEY)
 //   form        LIVE   Sleeper weekly stats + past-week projections (api.sleeper.com)
 //   injury      LIVE   own status from /api/players/slim; opponent defenders from /api/def-injuries
+//   homeAway    LIVE   ctx.isHome from /api/schedule/:week (teams[TEAM].home)
+//   shortWeek   LIVE   ctx.gameDate from /api/schedule/:week (teams[TEAM].date, YYYY-MM-DD)
+//   weather     LIVE   ctx.weather = /api/weather teams[TEAM] → { windspeed (mph), precip (%), indoor }
 var WeeklyScore = (function () {
   'use strict';
 
@@ -36,6 +41,9 @@ var WeeklyScore = (function () {
   var LEAGUE_AVG_IMPLIED = 22;
   var MATCHUP_BEST = 1.2, MATCHUP_WORST = 0.8;   // rank 1 → 1.2x, rank 32 → 0.8x
   var OPP_DEF_BOOST = 1.1;
+  var HOME_MULT = 1.03, AWAY_MULT = 0.98;
+  var SHORT_WEEK_MULT = 0.94;                  // Thursday game: 4 days' rest since Sunday
+  var PASSING_POS = ['QB', 'WR', 'TE'];         // positions the wind/rain penalties apply to
 
   // Own-injury status → multiplier. Anything not listed (null, 'NA', 'COV' …) is 1.0.
   var STATUS_MULT = { Questionable: 0.85, Doubtful: 0.5, Out: 0, IR: 0, PUP: 0, Sus: 0, 'Sus.': 0 };
@@ -182,11 +190,58 @@ var WeeklyScore = (function () {
     };
   }
 
+  // isHome: true / false from the schedule; null or undefined when unknown (bye, no feed).
+  // Home teams score ~3% more fantasy points on average. Deliberately not shown
+  // as a chip — it's too small to explain to users, it just nudges the ranking.
+  function homeAwayMultiplier(isHome) {
+    if (isHome == null) return { mult: 1, label: 'HA', detail: 'Home/away unknown', source: 'neutral' };
+    var mult = isHome ? HOME_MULT : AWAY_MULT;
+    return { mult: mult, label: 'HA', detail: isHome ? 'Home game (' + pct(mult) + ')' : 'Away game (' + pct(mult) + ')', source: 'live' };
+  }
+
+  // gameDate: 'YYYY-MM-DD' (Sleeper schedule) or anything Date can parse.
+  // A Thursday game means both teams had four days' rest since Sunday — about
+  // a 6% efficiency drop. Date-only strings parse as UTC midnight, so the UTC
+  // weekday is the calendar day printed in the schedule. The season opener is
+  // also a Thursday but follows a full offseason, so weeksPlayed 0 is exempt.
+  function shortWeekMultiplier(gameDate, weeksPlayed) {
+    if (!gameDate) return { mult: 1, label: 'TNF', detail: 'Game date unknown', source: 'neutral' };
+    if (weeksPlayed === 0) return { mult: 1, label: 'TNF', detail: 'Season opener — full rest', source: 'neutral' };
+    var d = new Date(gameDate);
+    if (isNaN(d.getTime()) || d.getUTCDay() !== 4) return { mult: 1, label: 'TNF', detail: 'Not a Thursday game', source: 'neutral' };
+    return { mult: SHORT_WEEK_MULT, label: 'TNF', detail: 'Thursday night game — short rest (' + pct(SHORT_WEEK_MULT) + ')', source: 'live' };
+  }
+
+  // weather: { windspeed (mph), precip (% chance), indoor } for the player's game
+  // (the home stadium's forecast, from /api/weather). Wind and heavy rain hurt
+  // passing offences (QB/WR/TE); strong wind nudges RBs up since more runs get
+  // called. Indoor / retractable stadiums are immune.
+  function weatherMultiplier(weather, pos) {
+    if (!weather || weather.indoor) return { mult: 1, label: 'WX', detail: weather && weather.indoor ? 'Indoor stadium' : 'No forecast', source: 'neutral' };
+    var wind = Number(weather.windspeed) || 0;
+    var precip = Number(weather.precip) || 0;
+    var passing = PASSING_POS.indexOf(pos) >= 0;
+    var mult = 1;
+    if (passing) {
+      if (wind > 25) mult *= 0.82;
+      else if (wind > 20) mult *= 0.89;
+      else if (wind > 15) mult *= 0.94;
+      if (precip > 50) mult *= 0.95;
+    }
+    if (pos === 'RB' && wind > 20) mult *= 1.04;
+    if (mult === 1) return { mult: 1, label: 'WX', detail: 'Wind ' + Math.round(wind) + 'mph, ' + Math.round(precip) + '% rain — no impact', source: 'neutral' };
+    var detail = 'Wind ' + Math.round(wind) + 'mph' + (precip > 50 ? ', ' + Math.round(precip) + '% chance of rain' : '') + ' (' + pct(mult) + ')';
+    return { mult: mult, label: 'WX', wind: wind, precip: precip, detail: detail, source: 'live' };
+  }
+
   // player: { id, position, team, injuryStatus }
   // ctx: {
   //   week, weeksPlayed,
   //   base            number   this week's projected points under league scoring
   //   opponent        string|null|undefined  (null = bye, undefined = schedule unknown)
+  //   isHome          boolean|null   from the schedule
+  //   gameDate        'YYYY-MM-DD'   from the schedule
+  //   weather         { windspeed, precip, indoor } for this game
   //   fpa, vegas, defInjuries, history   see the factor functions above
   // }
   function computeLineupScore(player, ctx) {
@@ -198,11 +253,14 @@ var WeeklyScore = (function () {
     var vegas = vegasMultiplier(player.team, ctx.vegas);
     var form = formMultiplier(ctx.history, ctx.weeksPlayed);
     var injury = injuryModifier(player.injuryStatus, pos, ctx.opponent, ctx.defInjuries);
-    var mult = matchup.mult * vegas.mult * form.mult * injury.mult;
+    var homeAway = homeAwayMultiplier(bye ? null : ctx.isHome);
+    var shortWeek = shortWeekMultiplier(bye ? null : ctx.gameDate, ctx.weeksPlayed);
+    var weather = weatherMultiplier(bye ? null : ctx.weather, pos);
+    var mult = matchup.mult * vegas.mult * form.mult * injury.mult * homeAway.mult * shortWeek.mult * weather.mult;
     var score = bye ? 0 : base * mult;
     return {
       score: score, base: base, mult: mult, bye: bye,
-      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury },
+      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury, homeAway: homeAway, shortWeek: shortWeek, weather: weather },
     };
   }
 
@@ -222,6 +280,9 @@ var WeeklyScore = (function () {
     vegasMultiplier: vegasMultiplier,
     formMultiplier: formMultiplier,
     injuryModifier: injuryModifier,
+    homeAwayMultiplier: homeAwayMultiplier,
+    shortWeekMultiplier: shortWeekMultiplier,
+    weatherMultiplier: weatherMultiplier,
     seasonWeight: seasonWeight,
     effectiveFPA: effectiveFPA,
     impliedPoints: impliedPoints,

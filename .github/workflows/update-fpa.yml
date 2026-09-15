@@ -1,0 +1,25 @@
+name: Update FPA (points allowed)
+on:
+  schedule:
+    - cron: '0 9 * * 2'   # Tuesdays 9am UTC (1am PT) — after Monday night, before waiver/lineup traffic
+  workflow_dispatch:
+jobs:
+  fpa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      # scripts/scrape-fpa.js uses only Node built-ins (native fetch) — no install step.
+      - run: node scripts/scrape-fpa.js
+      - name: Commit FPA data
+        run: |
+          git config user.name "Pocket Bot"
+          git config user.email "bot@roundroom.app"
+          git add data/fpa-current.json
+          git diff --staged --quiet || git commit -m "chore: update FPA $(date -u +%Y-%m-%d)"
+          git pull --no-rebase -X ours origin main
+          git push origin main || (sleep 10 && git pull --no-rebase -X ours origin main && git push origin main)

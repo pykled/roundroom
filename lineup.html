@@ -159,7 +159,7 @@
     <details class="legend info-details">
       <summary>How to read this</summary>
       <div class="details-body">
-        <b>score</b> is the composite weekly score the lineup ranks on: this week's projection adjusted for matchup, Vegas implied total, recent form, and injuries. <b>proj</b> is the raw Sleeper weekly projection under your league's scoring (season average ÷ 17 when the weekly numbers aren't out yet). Chips explain each adjustment — hover for detail. <b>MU</b> = fantasy points the opponent allows to the position (this season blended with a 3-year baseline; week 1 counts 1/8, week 8+ fully). <b>Form</b> = last three games' actual vs projected, weighted 50/30/20, ramping in from week 3. <b>Q / D / OUT</b> = own injury status (0.85× / 0.5× / 0×). <b>vs CB out</b> etc. = a starting opponent defender at a slot that covers this position is out (+10%). <b>Consider</b> on a bench player = within 10% of the weakest starter he could replace. ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
+        <b>score</b> is the composite weekly score the lineup ranks on: this week's projection adjusted for matchup, Vegas implied total, recent form, injuries, home/away, short rest, and weather. <b>proj</b> is the raw Sleeper weekly projection under your league's scoring (season average ÷ 17 when the weekly numbers aren't out yet). Chips explain each adjustment — hover for detail. <b>MU</b> = fantasy points the opponent allows to the position (this season blended with a 3-year baseline; week 1 counts 1/8, week 8+ fully). <b>Form</b> = last three games' actual vs projected, weighted 50/30/20, ramping in from week 3. <b>Q / D / OUT</b> = own injury status (0.85× / 0.5× / 0×). <b>vs CB out</b> etc. = a starting opponent defender at a slot that covers this position is out (+10%). <b>TNF</b> = Thursday game on four days' rest (−6%). <b>WX</b> = wind over 15 mph or heavy rain at an outdoor stadium hurts QB/WR/TE (−6% to −18%); wind over 20 mph nudges RBs up (+4%). Home teams also get a quiet +3% (away −2%) with no chip. <b>Consider</b> on a bench player = within 10% of the weakest starter he could replace. ⭐ = on your target list. "on Sleeper" = currently in your Sleeper starting lineup.
       </div>
     </details>
   </div>
@@ -197,12 +197,14 @@ var S = {
   marketKey: '',
   targets: {},
   week: 1,
+  season: null,        // '2026' from /api/nfl-state; guards against a stale fpa-current.json from last season
   weeksPlayed: 0,
   // Weekly-score inputs (see shared/weekly-score.js header for what is live vs placeholder)
-  schedule: undefined, // { TEAM: { opp, home } } for S.week; undefined = not loaded, so no bye detection
+  schedule: undefined, // { TEAM: { opp, home, date } } for S.week; undefined = not loaded, so no bye detection
   defInj: {},          // { TEAM: [{ name, pos, slot, order, status }] }
-  fpa: null,           // data/fpa-baseline.json
+  fpa: null,           // data/fpa-baseline.json with data/fpa-current.json merged into `current`
   vegas: null,         // { TEAM: impliedPts } from The Odds API via /api/vegas
+  weather: null,       // { TEAM: { windspeed, precip, indoor } } from /api/weather (home stadium forecast)
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
   scores: {},          // player_id → computeLineupScore result for the current league
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
@@ -221,6 +223,7 @@ async function boot() {
     var cfg = await cfgP;
     var nfl = await stateP;
     S.week = nfl.display_week || nfl.week || 1;
+    S.season = nfl.season ? String(nfl.season) : null;
     // Sleeper sometimes leaves display_week on the completed week until Tuesday
     // (its `week` field advances first). From Tuesday PT onward, treat that as a
     // lag and move to the next week.
@@ -306,12 +309,31 @@ async function loadWeeklyContext() {
       return Promise.all([jsonOr('/api/stats/' + w, {}), jsonOr('/api/projections/' + w, {})])
         .then(function(r){ return { week: w, stats: r[0] || {}, proj: r[1] || {} }; });
     })),
+    jsonOr('/data/fpa-current.json', null),
+    jsonOr('/api/weather?week=' + S.week, null),
   ]);
   S.schedule = results[0] && results[0].teams ? results[0].teams : undefined;
   S.defInj = results[1] || {};
-  S.fpa = results[2];
+  S.fpa = mergeFPA(results[2], results[5]);
   S.vegas = results[3] && results[3].teams ? results[3].teams : null;
   S.past = results[4];
+  S.weather = results[6] && results[6].teams ? results[6].teams : null;
+}
+
+// fpa-baseline.json carries the per-position neutral values and (eventually)
+// the 3-year historical map; fpa-current.json is this season's per-team FPA,
+// rebuilt weekly by scripts/scrape-fpa.js. The current file wins for `current`
+// unless it is last season's leftover (no completed week yet this year).
+function mergeFPA(baseline, current) {
+  if (!baseline && !current) return null;
+  var out = Object.assign({}, baseline || {});
+  var stale = current && current.season && S.season && String(current.season) !== S.season;
+  if (!stale && current && current.current && typeof current.current === 'object') {
+    out.current = Object.assign({}, out.current || {}, current.current);
+    out.currentWeek = current.week;
+    out.currentUpdatedAt = current.updatedAt;
+  }
+  return out;
 }
 
 function mountNav(clerk) {
@@ -515,13 +537,17 @@ function scoreFor(id) {
   if (S.scores[id]) return S.scores[id];
   var info = S.players[id] || [id, '?', '', null];
   var team = info[2] && info[2] !== 'FA' ? info[2] : null;
-  var opponent = S.schedule === undefined ? undefined : (team && S.schedule[team] ? S.schedule[team].opp : null);
+  var game = team && S.schedule && S.schedule[team] ? S.schedule[team] : null;
+  var opponent = S.schedule === undefined ? undefined : (game ? game.opp : null);
   var r = WeeklyScore.computeLineupScore(
     { id: id, position: info[1], team: team, injuryStatus: info[3] || null },
     {
       week: S.week, weeksPlayed: S.weeksPlayed,
       base: seasonPts(id),
       opponent: opponent,
+      isHome: game ? game.home : null,
+      gameDate: game ? game.date : null,
+      weather: game && S.weather && S.weather[team] ? S.weather[team] : null,
       fpa: S.fpa, vegas: S.vegas, defInjuries: S.defInj,
       history: formHistory(id, S.league.scoring_settings || {}),
     });
@@ -608,6 +634,10 @@ function factorChips(id, r, team, opts) {
   if (inj.own === 0) chips.push('<span class="fx out" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
   else if (inj.own < 1) chip((STATUS_ABBR[(S.players[id] || [])[3]] || 'Inj') + ' ' + WeeklyScore.pct(inj.own), { mult: inj.own, detail: inj.detail }, 'q');
   if (inj.boost > 1) chip('vs ' + (inj.group || 'DEF') + ' out ' + WeeklyScore.pct(inj.boost), { mult: inj.boost, detail: inj.detail });
+  // Home/away (f.homeAway) is applied but never shown — too small to explain.
+  if (f.shortWeek.source === 'live') chip('TNF ' + WeeklyScore.pct(f.shortWeek.mult), f.shortWeek);
+  // Weather only earns a chip when it's actually adverse (beyond the rain-only 0.95 nudge).
+  if (f.weather.source === 'live' && (f.weather.mult < 0.95 || f.weather.mult > 1.03)) chip('WX ' + WeeklyScore.pct(f.weather.mult), f.weather);
   return chips.join('');
 }
 

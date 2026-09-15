@@ -89,7 +89,7 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https://sleepercdn.com https://img.clerk.com; " +
-    "connect-src 'self' https://api.sleeper.app https://api.the-odds-api.com https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
+    "connect-src 'self' https://api.sleeper.app https://api.the-odds-api.com https://api.open-meteo.com https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
     "worker-src 'self' blob:; " +
     "frame-src 'self' https://challenges.cloudflare.com " + clerkOrigins + "; " +
     "frame-ancestors 'none';"
@@ -830,19 +830,25 @@ app.get('/api/stats/:week', async (req, res) => {
   }
 });
 
+// Full regular-season schedule from Sleeper, cached 6h. Shared by /api/schedule
+// and /api/weather. Each game: { week, date: 'YYYY-MM-DD', home, away, status }.
+function fetchSeasonSchedule() {
+  return apiCached('schedule:2026', 6 * 60 * 60 * 1000, async () => {
+    const r = await fetch('https://api.sleeper.app/schedule/nfl/regular/2026', { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`Sleeper schedule ${r.status}`);
+    const arr = await r.json();
+    if (!Array.isArray(arr) || !arr.length) throw new Error('empty schedule');
+    return arr;
+  });
+}
+
 // Who plays whom this week: { week, teams: { KC: { opp: 'IND', home: true, status, date } } }.
 // Teams missing from `teams` are on bye. Same schedule feed scripts/fetch-injuries.js uses.
 app.get('/api/schedule/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);
   if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
   try {
-    const games = await apiCached('schedule:2026', 6 * 60 * 60 * 1000, async () => {
-      const r = await fetch('https://api.sleeper.app/schedule/nfl/regular/2026', { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) throw new Error(`Sleeper schedule ${r.status}`);
-      const arr = await r.json();
-      if (!Array.isArray(arr) || !arr.length) throw new Error('empty schedule');
-      return arr;
-    });
+    const games = await fetchSeasonSchedule();
     const teams = {};
     for (const g of games) {
       if (Number(g.week) !== week || !g.home || !g.away) continue;
@@ -853,6 +859,140 @@ app.get('/api/schedule/:week', async (req, res) => {
     res.json({ week, teams });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch schedule' });
+  }
+});
+
+// Game-day weather for the lineup optimizer's weather factor.
+// GET /api/weather?week=N (defaults to Sleeper's current week) →
+//   { week, teams: { KC: { windspeed: 8, precip: 0, indoor: false, date, forecast: true }, … }, fetchedAt }
+// Both teams in a game get the HOME stadium's forecast (windspeed in mph,
+// precip = % chance of precipitation). Indoor / retractable-roof stadiums skip
+// the forecast entirely. Teams on bye are absent. Source: Open-Meteo, free, no
+// key, fetched server-side once per week per 6 hours.
+// Kickoff times aren't in the Sleeper schedule, so Sunday games average the
+// 1pm and 4pm ET hours (the two main windows); Thu/Sat/Mon games use 8pm ET.
+// Caveat: international games use the listed home team's stadium, not the
+// neutral site.
+const STADIUMS = {
+  ARI: { lat: 33.5277, lon: -112.2626, indoor: true },   // State Farm Stadium (retractable)
+  ATL: { lat: 33.7553, lon: -84.4006, indoor: true },    // Mercedes-Benz Stadium (retractable)
+  BAL: { lat: 39.2780, lon: -76.6227, indoor: false },   // M&T Bank Stadium
+  BUF: { lat: 42.7738, lon: -78.7870, indoor: false },   // Highmark Stadium
+  CAR: { lat: 35.2258, lon: -80.8528, indoor: false },   // Bank of America Stadium
+  CHI: { lat: 41.8623, lon: -87.6167, indoor: false },   // Soldier Field
+  CIN: { lat: 39.0954, lon: -84.5160, indoor: false },   // Paycor Stadium
+  CLE: { lat: 41.5061, lon: -81.6995, indoor: false },   // Huntington Bank Field
+  DAL: { lat: 32.7473, lon: -97.0945, indoor: true },    // AT&T Stadium (retractable)
+  DEN: { lat: 39.7439, lon: -105.0201, indoor: false },  // Empower Field at Mile High
+  DET: { lat: 42.3400, lon: -83.0456, indoor: true },    // Ford Field (dome)
+  GB:  { lat: 44.5013, lon: -88.0622, indoor: false },   // Lambeau Field
+  HOU: { lat: 29.6847, lon: -95.4107, indoor: true },    // NRG Stadium (retractable)
+  IND: { lat: 39.7601, lon: -86.1639, indoor: true },    // Lucas Oil Stadium (retractable)
+  JAX: { lat: 30.3239, lon: -81.6373, indoor: false },   // EverBank Stadium
+  KC:  { lat: 39.0489, lon: -94.4839, indoor: false },   // GEHA Field at Arrowhead — open-air
+  LAC: { lat: 33.9534, lon: -118.3390, indoor: true },   // SoFi Stadium (roofed)
+  LAR: { lat: 33.9534, lon: -118.3390, indoor: true },   // SoFi Stadium (roofed)
+  LV:  { lat: 36.0908, lon: -115.1833, indoor: true },   // Allegiant Stadium (dome)
+  MIA: { lat: 25.9580, lon: -80.2389, indoor: false },   // Hard Rock Stadium
+  MIN: { lat: 44.9736, lon: -93.2575, indoor: true },    // U.S. Bank Stadium (dome)
+  NE:  { lat: 42.0909, lon: -71.2643, indoor: false },   // Gillette Stadium
+  NO:  { lat: 29.9511, lon: -90.0812, indoor: true },    // Caesars Superdome
+  NYG: { lat: 40.8135, lon: -74.0745, indoor: false },   // MetLife Stadium
+  NYJ: { lat: 40.8135, lon: -74.0745, indoor: false },   // MetLife Stadium
+  PHI: { lat: 39.9008, lon: -75.1675, indoor: false },   // Lincoln Financial Field
+  PIT: { lat: 40.4468, lon: -80.0158, indoor: false },   // Acrisure Stadium
+  SEA: { lat: 47.5952, lon: -122.3316, indoor: false },  // Lumen Field
+  SF:  { lat: 37.4033, lon: -121.9694, indoor: false },  // Levi's Stadium
+  TB:  { lat: 27.9759, lon: -82.5033, indoor: false },   // Raymond James Stadium
+  TEN: { lat: 36.1665, lon: -86.7713, indoor: false },   // Nissan Stadium
+  WAS: { lat: 38.9076, lon: -76.8645, indoor: false },   // Northwest Stadium
+};
+const WEATHER_TTL = 6 * 60 * 60 * 1000;
+
+// Hours (ET) to sample for a game on the given date; averaged. Sunday = the
+// two main windows; Friday/Saturday slates (Black Friday, Christmas, week 15)
+// spread across the day; everything else is a night game.
+function kickoffHoursET(dateStr) {
+  const day = new Date(dateStr + 'T12:00:00Z').getUTCDay(); // date-only → weekday, safe from TZ shifts
+  if (day === 0) return [13, 16];
+  if (day === 5 || day === 6) return [13, 16, 20];
+  return [20];
+}
+
+// One Open-Meteo call for every outdoor stadium at once (comma-separated
+// coordinates → array of forecasts in the same order). Separate per-stadium
+// requests trip Open-Meteo's burst limit (429) when 16 fire together.
+async function fetchOpenMeteoHourly(points) {
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + points.map(p => p.lat).join(',') +
+    '&longitude=' + points.map(p => p.lon).join(',') +
+    '&hourly=windspeed_10m,precipitation_probability&windspeed_unit=mph&timezone=America%2FNew_York&forecast_days=10';
+  const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!r.ok) throw new Error('Open-Meteo ' + r.status);
+  const data = await r.json();
+  if (data && data.error) throw new Error('Open-Meteo: ' + (data.reason || 'error'));
+  const list = Array.isArray(data) ? data : [data];
+  if (list.length !== points.length) throw new Error('Open-Meteo returned ' + list.length + ' forecasts for ' + points.length + ' stadiums');
+  return list.map(d => d && d.hourly ? d.hourly : null);
+}
+
+// Kickoff-window averages from one stadium's hourly series → { windspeed (mph), precip (%) },
+// or null when the date is outside the forecast window.
+function sampleKickoff(hourly, dateStr) {
+  if (!hourly || !hourly.time) return null;
+  const winds = [], precips = [];
+  for (const hour of kickoffHoursET(dateStr)) {
+    const i = hourly.time.indexOf(dateStr + 'T' + String(hour).padStart(2, '0') + ':00');
+    if (i < 0) continue;
+    if (hourly.windspeed_10m && hourly.windspeed_10m[i] != null) winds.push(hourly.windspeed_10m[i]);
+    if (hourly.precipitation_probability && hourly.precipitation_probability[i] != null) precips.push(hourly.precipitation_probability[i]);
+  }
+  if (!winds.length) return null;
+  const avg = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  return { windspeed: Math.round(avg(winds) * 10) / 10, precip: precips.length ? Math.round(avg(precips)) : 0 };
+}
+
+app.get('/api/weather', async (req, res) => {
+  try {
+    let week = parseInt(req.query.week, 10);
+    if (req.query.week != null && (!week || week < 1 || week > 18)) return res.status(400).json({ error: 'Invalid week' });
+    if (!week) {
+      const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+        fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      );
+      week = Number(state.week) || 1;
+    }
+    const data = await apiCached('weather:' + week, WEATHER_TTL, async () => {
+      const games = (await fetchSeasonSchedule()).filter(g => Number(g.week) === week && g.home && g.away);
+      // Unique outdoor stadiums hosting this week (NYG/NYJ share coordinates)
+      const outdoor = new Map();
+      for (const g of games) {
+        const s = STADIUMS[g.home];
+        if (s && !s.indoor && g.date) outdoor.set(s.lat + ',' + s.lon, s);
+      }
+      const points = [...outdoor.values()];
+      const hourlyByKey = new Map();
+      if (points.length) {
+        // A failed fetch throws so apiCached serves the previous result (or 503) rather than caching 6h of "no forecast".
+        const series = await fetchOpenMeteoHourly(points);
+        points.forEach((p, i) => hourlyByKey.set(p.lat + ',' + p.lon, series[i]));
+      }
+      const teams = {};
+      for (const g of games) {
+        const stadium = STADIUMS[g.home];
+        const base = { indoor: !!(stadium && stadium.indoor), date: g.date || null, forecast: false };
+        const wx = stadium && !stadium.indoor && g.date ? sampleKickoff(hourlyByKey.get(stadium.lat + ',' + stadium.lon), g.date) : null;
+        const entry = wx
+          ? { ...base, windspeed: wx.windspeed, precip: wx.precip, forecast: true }
+          : { ...base, windspeed: 0, precip: 0 };
+        teams[g.home] = entry;
+        teams[g.away] = { ...entry };
+      }
+      return { week, teams, fetchedAt: new Date().toISOString() };
+    });
+    res.setHeader('Cache-Control', 'public, max-age=21600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch weather' });
   }
 });
 

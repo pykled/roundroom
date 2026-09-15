@@ -10,6 +10,9 @@ weekly_score = base_projection
              × vegas_multiplier(team)
              × form_multiplier(player, last 3 weeks)
              × injury_modifier(player status, opponent key defenders)
+             × home_away_multiplier(is_home)
+             × short_week_multiplier(game_date)
+             × weather_multiplier(home stadium forecast, position)
 ```
 
 A player on bye (no opponent in `/api/schedule/:week`) scores 0. Blended VORP
@@ -18,13 +21,34 @@ replace are tagged **Consider**; the rest **Sit**.
 
 ## Factors
 
-| Factor | Range | Status (2026-09-14) | Data |
+| Factor | Range | Status (2026-09-15) | Data |
 |---|---|---|---|
 | base | – | **live** | `/api/projections/:week` (api.sleeper.com, includes DEF). Falls back to `/api/projections/season` ÷ 17 when the week isn't published. |
-| matchup | 0.8 – 1.2 | **placeholder** (always 1.0) | `data/fpa-baseline.json` — neutral per-position FPA only; `current` / `historical` team maps are empty. |
-| vegas | 0.85 – 1.2 | **neutral** (always 1.0) | none. `S.vegas = { TEAM: impliedPts }` is the hook. |
+| matchup | 0.8 – 1.2 | **live** | `data/fpa-current.json` (`current[pos][TEAM]`, half-PPR points allowed per game, rebuilt every Tuesday by `scripts/scrape-fpa.js` via `.github/workflows/update-fpa.yml`) merged over `data/fpa-baseline.json`. `historical` is still empty, so early weeks blend against the neutral position baseline. |
+| vegas | 0.85 – 1.2 | **live** | `/api/vegas` (The Odds API, `ODDS_API_KEY`) → `S.vegas = { TEAM: impliedPts }`. Chip hidden. |
 | form | 0.8 – 1.25, ramped | **live** from week 3 | `/api/stats/:w` + `/api/projections/:w` for the last 3 completed weeks, scored under the league's own settings. |
 | injury | 0 – 1.1 | **live** | own status from `/api/players/slim` (Q 0.85, D 0.5, Out/IR/PUP/Sus 0); opponent starters from `/api/def-injuries`. |
+| homeAway | 0.98 / 1.03 | **live** | `teams[TEAM].home` from `/api/schedule/:week`. Never shown as a chip. |
+| shortWeek | 0.94 | **live** | `teams[TEAM].date` from `/api/schedule/:week`; Thursday (UTC weekday of the date-only string) → 0.94, chip **TNF**. |
+| weather | 0.78 – 1.04 | **live** | `/api/weather?week=N` → `S.weather[TEAM] = { windspeed (mph), precip (%), indoor }` — the home stadium's Open-Meteo forecast, shared by both teams. Chip **WX** only when mult < 0.95 or > 1.03. |
+
+### Matchup FPA source
+
+`scripts/scrape-fpa.js` sums Sleeper's weekly stat lines (`api.sleeper.com/stats/nfl/{season}/{week}`,
+`pts_half_ppr` grouped by `opponent` × position) over every completed week and divides by games
+played. That reproduces FantasyPros' published points-allowed table exactly; the public
+FantasyPros pages could not be used directly because `points-allowed.php` server-renders only
+10 of 32 teams without an account and the `matchups/{pos}.php` pages expose only FantasyPros'
+blended matchup rank, which the file keeps as `fpMatchupRanks` for reference. A week counts as
+complete once 24+ defences have stat lines, so a Tuesday run never picks up a half-played week.
+
+### Weather
+
+`/api/weather` reads the week's games from the cached Sleeper schedule, looks up the home
+stadium in `STADIUMS` (server.js; indoor/retractable stadiums skip the forecast), and makes one
+Open-Meteo request for all outdoor stadiums (comma-separated coordinates). Kickoff times aren't
+in the schedule, so Sunday games average the 1pm and 4pm ET hours and Thu/Sat/Mon games use 8pm
+ET. Cached 6 h per week. International games use the listed home team's stadium.
 
 ### Sample-size weighting (matchup)
 
@@ -56,34 +80,15 @@ gives RB/TE 1.1×. One boost max, never applied to a player who is himself out.
 
 ## Phase 2 — to wire for full accuracy
 
-### 1. Matchup FPA (biggest missing signal)
+### 1. Matchup FPA — historical baseline (current season is wired)
 
-- **Current season:** scrape `https://www.fantasypros.com/nfl/matchups/{qb|rb|wr|te|k}.php`
-  weekly (public HTML, ~1.9 MB, table of team → fantasy points allowed per game).
-  Do it server-side in a `scripts/fetch-fpa.js` run by the existing GitHub
-  Actions data job, writing `data/fpa-baseline.json → current[pos][TEAM]`.
-  Map FantasyPros team names to Sleeper abbreviations (`WAS`, `JAX`, `LAR`, `LV`).
 - **Historical baseline:** one-time export of the last three seasons' FPA per
-  team per position, averaged, into `historical[pos][TEAM]`. Until real
-  numbers exist leave it empty; the engine falls back to the neutral baseline.
-  Do not hand-type team values.
-- **Serving:** keep it a static JSON under `data/` (already served by
-  `express.static`, browser-cacheable). No new endpoint needed. Set `source`
-  to `"fantasypros"` and `updated` to the fetch date so the UI note can show
-  freshness.
+  team per position, averaged, into `historical[pos][TEAM]` in
+  `data/fpa-baseline.json`. `scripts/scrape-fpa.js` can produce it by running
+  its Sleeper aggregation for seasons 2023–2025. Until real numbers exist the
+  engine falls back to the neutral baseline. Do not hand-type team values.
 
-### 2. Vegas implied totals
-
-- The Odds API free tier: `GET https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds?regions=us&markets=spreads,totals&oddsFormat=american&apiKey=…`
-  (500 req/month; one call per hour is plenty). Key goes in Railway env
-  `ODDS_API_KEY`, never in the client.
-- Add `/api/vegas` in server.js behind `apiCached('vegas', 1 h)`: for each game
-  take the consensus (median across books) home spread + total, then
-  `WeeklyScore.impliedPoints(total, homeSpread)` → `{ HOME: pts, AWAY: pts }`.
-  Map bookmaker team names to Sleeper abbreviations.
-- Client: `S.vegas = await jsonOr('/api/vegas', null)` in `loadWeeklyContext()`.
-  Everything downstream already handles it (chip, note, cap 0.85–1.2).
-- Without the key the endpoint should return `{}` so the factor stays neutral.
+### 2. Vegas implied totals — done (`/api/vegas`, 2026-09-15)
 
 ### 3. Server-side caching / freshness
 
