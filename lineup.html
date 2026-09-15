@@ -83,8 +83,6 @@
 .fx.rec.consider { color: var(--gold); }
 .fx.rec.sit { color: var(--text-muted); }
 .col-hdr .total small { color: var(--text-muted); font-weight: 400; margin-left: 0.3rem; }
-#data-note { font-size: var(--fs-xs); color: var(--text-muted); margin: -0.4rem 0 var(--space-4); }
-#data-note b { color: var(--text-secondary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -146,7 +144,6 @@
     </div>
 
     <div id="swap-note" hidden></div>
-    <div id="data-note" hidden></div>
 
     <div class="lineup-stack">
       <section class="lineup-section">
@@ -578,7 +575,6 @@ function recompute() {
   renderStarters(result);
   renderBench(result, Object.keys(reserve));
   renderSwaps(result);
-  renderDataNote();
   renderLeagueStrip();
 
   var owner = leagueUser(S.roster.owner_id);
@@ -653,19 +649,6 @@ function playerRow(id, opts) {
     '</div>';
 }
 
-// One line under the swap summary saying which score inputs are live this week.
-function renderDataNote() {
-  var el = document.getElementById('data-note');
-  var live = [], off = [];
-  live.push(S.weeklyMode ? 'weekly projections' : 'season projections ÷ 17 (weekly not published yet)');
-  if (S.schedule) live.push('byes'); else off.push('schedule');
-  var fpaLive = S.fpa && S.fpa.current && Object.keys(S.fpa.current.WR || {}).length;
-  (fpaLive ? live : off).push('matchup FPA');
-  if (S.weeksPlayed >= 2 && S.past.length) live.push('form (' + S.past.length + ' wk)'); else off.push('form (from week 3)');
-  live.push('injuries');
-  el.innerHTML = '<b>Score inputs live:</b> ' + esc(live.join(', ')) + (off.length ? ' · <b>neutral:</b> ' + esc(off.join(', ')) : '');
-  el.hidden = false;
-}
 
 function renderStarters(result) {
   var el = document.getElementById('starters-list');
