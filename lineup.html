@@ -18,16 +18,17 @@
 /* Page head carries the week title; the team name + league settings sit in the strip row below it. */
 #team-name { font-family: var(--font-mono); }
 
-/* swap summary: callout with a colored rail (amber = changes suggested, green = already optimal) */
-#swap-note { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: var(--space-4); font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
-#swap-note.ok { border-left-color: var(--success); color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
-#swap-note.ok::before { content: '✓'; color: var(--success); font-weight: 800; }
+/* swap summary: callout with a colored rail (amber = changes suggested, green = already optimal).
+   Both states share the same HTML structure (title / rows / foot) so width is always constant. */
+#swap-note { display: block; width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: var(--space-4); font-size: 0.78rem; line-height: 1.55; color: var(--text-secondary); }
+#swap-note.ok { border-left-color: var(--success); }
 #swap-note b { color: var(--text-primary); font-weight: 600; }
 #swap-note .sw-title { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-muted); margin-bottom: 0.4rem; }
-#swap-note .sw-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.15rem 0; }
-#swap-note .sw-tag { display: inline-flex; align-items: center; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.12rem 0.5rem; border-radius: var(--radius-pill); min-width: 52px; justify-content: center; }
+#swap-note .sw-row { display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap; padding: 0.15rem 0; }
+#swap-note .sw-tag { display: inline-flex; align-items: center; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.12rem 0.5rem; border-radius: var(--radius-pill); min-width: 52px; justify-content: center; flex-shrink: 0; }
 #swap-note .sw-tag.in { background: rgba(16,185,129,.12); color: var(--success); }
 #swap-note .sw-tag.out { background: rgba(239,68,68,.1); color: var(--danger); }
+#swap-note .sw-tag.ok-tag { background: rgba(16,185,129,.12); color: var(--success); }
 #swap-note .sw-foot { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 0.4rem; }
 
 /* single vertical stack: starters section, then bench section, in one card */
@@ -742,10 +743,14 @@ function renderSwaps(result) {
   var nameOf = function(id){ var i = S.players[id]; return i ? i[0] : id; };
   if (!d.in.length && !d.out.length) {
     note.className = 'ok';
-    note.textContent = 'Your Sleeper lineup already matches the optimal lineup.';
+    note.innerHTML =
+      '<div class="sw-title">Lineup check</div>' +
+      '<div class="sw-row sw-ok-row"><span class="sw-tag ok-tag">✓ Optimal</span><span>Your Sleeper lineup already matches the optimal lineup.</span></div>' +
+      '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
   } else {
     note.className = '';
-    note.innerHTML = '<div class="sw-title">Suggested changes vs your Sleeper lineup</div>' +
+    note.innerHTML =
+      '<div class="sw-title">Suggested changes vs your Sleeper lineup</div>' +
       (d.in.length ? '<div class="sw-row"><span class="sw-tag in">Start</span><span>' + d.in.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
       (d.out.length ? '<div class="sw-row"><span class="sw-tag out">Bench</span><span>' + d.out.map(function(id){ return '<b>' + esc(nameOf(id)) + '</b>'; }).join(', ') + '</span></div>' : '') +
       '<div class="sw-foot">Set the change in the Sleeper app — Pocket reads your roster but can\'t write to it.</div>';
