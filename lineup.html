@@ -13,7 +13,11 @@
 <style>
 /* Shared tokens, reset, nav, setup card, form row, buttons, league bar, position
    badges and mobile input sizing come from /shared/styles.css. */
-#app { max-width: 900px; }
+/* body:has(> #app) is a column flexbox (shared/styles.css) and #app centres with margin:auto, which
+   makes it a shrink-to-fit flex item: its width tracked the widest content on the page, so any
+   100%-wide child (the #swap-note callout) changed width with its own text. width:100% pins #app
+   to the viewport (capped at max-width) so children are a constant width in every state. */
+#app { max-width: 900px; width: 100%; }
 
 /* Page head carries the week title; the team name + league settings sit in the strip row below it. */
 #team-name { font-family: var(--font-mono); }
