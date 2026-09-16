@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-16T13:36:09.151Z",
+  "fetched_at": "2026-09-16T18:16:00.596Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -786,13 +786,6 @@
       "body_part": "Ankle"
     },
     {
-      "name": "Jalen McMillan",
-      "position": "WR",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Jalen Virgil",
       "position": "WR",
       "team": null,
@@ -1425,7 +1418,7 @@
     {
       "name": "Shane Zylstra",
       "position": "TE",
-      "team": "NE",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1624,6 +1617,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Tyrone Tracy",
+      "position": "RB",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Tyson Bagent",
