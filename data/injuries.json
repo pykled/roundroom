@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-16T21:28:54.478Z",
+  "fetched_at": "2026-09-16T22:52:03.747Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -72,6 +72,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Anthony Richardson",
+      "position": "QB",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Anthony Torres",
       "position": "TE",
       "team": null,
@@ -84,6 +91,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Ashton Dulin",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Audric Estime",
@@ -429,13 +443,6 @@
       "body_part": "Personal"
     },
     {
-      "name": "Derius Davis",
-      "position": "WR",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Desmond Reid",
       "position": "RB",
       "team": null,
@@ -448,13 +455,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Devontez Walker",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Dez Fitzpatrick",
@@ -541,6 +541,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Eddy Pineiro",
+      "position": "K",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Illness"
+    },
+    {
       "name": "EJ Smith",
       "position": "RB",
       "team": null,
@@ -609,6 +616,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "George Kittle",
+      "position": "TE",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Achilles"
     },
     {
       "name": "Graham Gano",
@@ -996,6 +1010,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Juwan Johnson",
+      "position": "TE",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Illness"
+    },
+    {
       "name": "Kadarius Calloway",
       "position": "RB",
       "team": null,
@@ -1283,6 +1304,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nico Collins",
+      "position": "WR",
+      "team": "HOU",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Nikola Kalinic",
       "position": "TE",
       "team": "CHI",
@@ -1442,13 +1470,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Sean Tucker",
-      "position": "RB",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Sergio Bailey II",
