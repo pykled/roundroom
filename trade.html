@@ -57,11 +57,13 @@
 .rm-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; line-height: 1; width: 24px; height: 24px; border-radius: var(--radius-xs); display: inline-flex; align-items: center; justify-content: center; transition: color 0.12s, background 0.12s; }
 .rm-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
 
-/* roster picker (connected mode): both rosters as tap-to-toggle rows, so a
-   trade is built by clicking instead of searching one player at a time */
+/* roster picker (connected mode): both rosters as tap-to-toggle rows under the
+   search box, so a trade is built by tapping your own players and searching
+   for anyone else. The picker replaces only the plain list — the search stays. */
 .pk { display: none; flex-direction: column; min-height: 0; }
 .trade-col.picking .pk { display: flex; flex: 1; }
-.trade-col.picking .srch-wrap, .trade-col.picking .pl-list { display: none; }
+.trade-col.picking .pl-list { display: none; }
+.srch-item .si-own { color: var(--text-muted); font-size: 0.66rem; margin-left: 0.25rem; white-space: nowrap; }
 .pk-partner { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
 .pk-partner label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); white-space: nowrap; }
 .pk-partner select { flex: 1; min-width: 0; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.45rem 0.6rem; color: var(--text-primary); font-size: 0.82rem; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
@@ -315,11 +317,11 @@
       <div class="trade-col" id="col-give">
         <div class="col-hdr"><span>You Give</span><span class="total" id="tot-give"></span></div>
         <div class="srch-wrap">
-          <input class="srch-input" id="srch-give" type="text" placeholder="Search players…" autocomplete="off">
+          <input class="srch-input" id="srch-give" type="text" placeholder="Search any player…" autocomplete="off">
           <div class="srch-drop" id="drop-give" hidden></div>
         </div>
         <div id="give-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're sending</span></div></div>
-        <!-- Connected mode: your roster as tap-to-toggle rows (renderPicker) -->
+        <!-- Connected mode: your roster as tap-to-toggle rows under the search (renderPicker) -->
         <div class="pk" id="pk-give">
           <div class="pk-list" id="pk-give-list"></div>
         </div>
@@ -328,11 +330,11 @@
       <div class="trade-col" id="col-recv">
         <div class="col-hdr"><span>You Receive</span><span class="total" id="tot-recv"></span></div>
         <div class="srch-wrap">
-          <input class="srch-input" id="srch-recv" type="text" placeholder="Search players…" autocomplete="off">
+          <input class="srch-input" id="srch-recv" type="text" placeholder="Search any player…" autocomplete="off">
           <div class="srch-drop" id="drop-recv" hidden></div>
         </div>
         <div id="recv-list" class="pl-list"><div class="empty-hint"><span class="eh-icon">↑</span>No players added<span class="eh-sub">Search above to add who you're getting back</span></div></div>
-        <!-- Connected mode: pick a league team, then tap their players (renderPicker) -->
+        <!-- Connected mode: search any player above, or pick a league team and tap their players (renderPicker) -->
         <div class="pk" id="pk-recv">
           <div class="pk-partner">
             <label for="partner-sel">Trading with</label>
@@ -906,10 +908,19 @@ function recomputeAnalysis() {
   }
 }
 
+// Single entry point for both input modes (search hit or roster tile). A
+// player already on the side is a no-op, so searching for someone whose tile
+// is already ticked never duplicates him — the tile just reads as selected.
 function addPlayer(side, id) {
   var list = side === 'give' ? S.give : S.recv;
   if (list.indexOf(id) >= 0) return;
   list.push(id);
+  // Receive side, no partner chosen yet: a searched player names the team —
+  // open their roster below so the rest of the trade is a tap away.
+  if (side === 'recv' && pickerActive('recv') && S.partnerId == null) {
+    var r = ownerOf(id);
+    if (r && r.roster_id != null && !isMine(r.roster_id)) { S.partnerId = String(r.roster_id); renderPartnerSelect(); }
+  }
   renderSide(side);
   renderVerdict();
 }
@@ -1393,14 +1404,16 @@ function renderRosterFit() {
 }
 
 // ---- Roster picker (connected mode) ----------------------------------------
-// The league payload already has every roster, so a trade is built by tapping
-// players instead of searching for them one at a time. Give side = the
+// Both columns have the same shape: a full-pool search on top, and in
+// connected mode a roster of tap-to-toggle rows under it. Give side = the
 // signed-in user's full roster (IR/taxi included — they can still be traded).
 // Receive side = the roster of the team chosen in the "Trading with" select.
-// Selection state is S.give / S.recv, so the verdict, Roster Fit and share
-// link work exactly as they do for the search flow. Players already on a side
-// that aren't on the roster being shown (a shared link, a league switch) are
-// appended as dashed "also in this trade" rows so they're never invisible.
+// Search and tiles feed the same S.give / S.recv through addPlayer, so the
+// verdict, Roster Fit and share link don't care which input added a player,
+// and a searched player whose tile is already ticked is never duplicated.
+// Players on a side who aren't on the roster being shown (searched from
+// another team or the FA pool, a shared link, a league switch) are appended
+// as dashed rows so they're never invisible.
 function pickerActive(side) {
   if (S.mode !== 'connected' || !S.league || !Array.isArray(S.league.rosters) || !S.league.rosters.length) return false;
   return side === 'give' ? S.myRosterId != null : true;
@@ -1455,11 +1468,13 @@ function syncPartnerFromRecv() {
 function setPartner(rid) {
   var next = rid == null || rid === '' ? null : String(rid);
   if (next === S.partnerId) return;
+  // A trade is with one team: the previous partner's players leave with them.
+  // Search-added players from elsewhere (free agents, an outside-perspective
+  // trade) stay — they were never tied to the team being swapped out.
+  var prev = rosterById(S.partnerId);
+  var gone = prev && Array.isArray(prev.players) ? prev.players : [];
   S.partnerId = next;
-  // A trade is with one team: drop received players that aren't on the new partner's roster.
-  var r = rosterById(next);
-  var keep = r && Array.isArray(r.players) ? r.players : [];
-  S.recv = S.recv.filter(function(id){ return keep.indexOf(id) >= 0; });
+  S.recv = S.recv.filter(function(id){ return gone.indexOf(id) < 0; });
   renderPartnerSelect();
   renderSide('recv');
   renderVerdict();
@@ -1494,16 +1509,18 @@ function renderPicker(side) {
   var roster = r && Array.isArray(r.players) ? r.players.filter(function(id){ return S.players[id]; }) : [];
   var html = '';
   if (side === 'recv' && S.partnerId == null) {
-    html = '<div class="empty-hint"><span class="eh-icon">↑</span>Pick a team<span class="eh-sub">Their roster shows here — tap players to add them</span></div>';
+    html = '<div class="empty-hint"><span class="eh-icon">↑</span>Search a player or pick a team<span class="eh-sub">Their roster shows here — tap players to add them</span></div>';
   } else if (!roster.length) {
     html = '<div class="empty-hint">' + (side === 'give' ? 'No players on your roster' : 'No players on this roster') + '</div>';
   } else {
     roster.sort(function(a, b){ return (S.vorp.get(b) || 0) - (S.vorp.get(a) || 0); });
     html = roster.map(function(id){ return pickerRow(side, id, list.indexOf(id) >= 0, false); }).join('');
   }
+  // Search-added players who aren't on the roster shown (someone else's
+  // player, a free agent, a shared link) — dashed rows so they're never invisible.
   var extras = list.filter(function(id){ return !(r && Array.isArray(r.players) && r.players.indexOf(id) >= 0); });
   if (extras.length) {
-    html += '<div class="pk-sub">Also in this trade</div>' +
+    html += '<div class="pk-sub">' + (side === 'give' ? 'Not on your roster' : 'Not on this roster') + '</div>' +
       extras.map(function(id){ return pickerRow(side, id, true, true); }).join('');
   }
   if (list.length) {
@@ -1531,35 +1548,89 @@ function renderPicker(side) {
 });
 document.getElementById('partner-sel').addEventListener('change', function() { setPartner(this.value); });
 
-// Player search
+// ---- Player search (both modes, both sides) --------------------------------
+// Searches the full Sleeper pool from /api/players/slim, not just a roster, so
+// a trade can be scored from any perspective. Matching is forgiving: names are
+// folded to lowercase alphanumerics ("Ja'Marr" → "jamarr"), the query matches
+// as a substring or as in-order token prefixes ("j chase", "jam ch"), and ties
+// are broken by value so the player you mean is near the top.
+var SEARCH_INDEX = null, SEARCH_INDEX_N = 0;
+function foldName(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ').trim(); }
+function searchIndex() {
+  var keys = Object.keys(S.players);
+  if (SEARCH_INDEX && SEARCH_INDEX_N === keys.length) return SEARCH_INDEX;
+  SEARCH_INDEX = keys.map(function(id) {
+    var name = foldName(S.players[id][0]);
+    return { id: id, name: name, tokens: name.split(' '), nospace: name.replace(/ /g, '') };
+  });
+  SEARCH_INDEX_N = keys.length;
+  return SEARCH_INDEX;
+}
+// 0 = no match; higher is better (prefix of the name > word start > in-order token prefixes > substring).
+function matchScore(entry, q, qTokens) {
+  if (entry.name.indexOf(q) === 0) return 4;
+  if (entry.name.indexOf(' ' + q) >= 0) return 3;
+  var ti = 0;
+  for (var i = 0; i < qTokens.length; i++) {
+    while (ti < entry.tokens.length && entry.tokens[ti].indexOf(qTokens[i]) !== 0) ti++;
+    if (ti >= entry.tokens.length) break;
+    ti++;
+    if (i === qTokens.length - 1) return 2;
+  }
+  return entry.nospace.indexOf(q.replace(/ /g, '')) >= 0 ? 1 : 0;
+}
+function searchPlayers(query, excludeIds, limit) {
+  var q = foldName(query);
+  if (q.length < 2) return [];
+  var qTokens = q.split(' ');
+  var idx = searchIndex();
+  var hits = [];
+  for (var i = 0; i < idx.length; i++) {
+    if (excludeIds && excludeIds.indexOf(idx[i].id) >= 0) continue;
+    var sc = matchScore(idx[i], q, qTokens);
+    if (sc) hits.push({ id: idx[i].id, sc: sc, v: S.vorp.get(idx[i].id) || 0 });
+  }
+  hits.sort(function(a, b) { return b.sc - a.sc || b.v - a.v; });
+  return hits.slice(0, limit || 10).map(function(h){ return h.id; });
+}
+
+// Connected mode: whose roster the player sits on — "yours", the team name, or FA.
+function ownerLabel(id) {
+  if (S.mode !== 'connected' || !S.league) return '';
+  var r = ownerOf(id);
+  if (!r) return 'FA';
+  return isMine(r.roster_id) ? 'yours' : teamLabel(r);
+}
+
 function setupSearch(side, inputId, dropId) {
   var input = document.getElementById(inputId);
   var drop = document.getElementById(dropId);
   input.addEventListener('input', function() {
-    var q = input.value.trim().toLowerCase();
-    if (q.length < 2) { drop.hidden = true; return; }
-    var hits = [];
-    var keys = Object.keys(S.players);
-    for (var i = 0; i < keys.length; i++) {
-      var id = keys[i];
-      if (S.players[id][0].toLowerCase().indexOf(q) >= 0) hits.push(id);
-    }
-    hits.sort(function(a, b) { return (S.vorp.get(b) || 0) - (S.vorp.get(a) || 0); });
-    hits = hits.slice(0, 10);
-    if (!hits.length) { drop.hidden = true; return; }
+    var list = side === 'give' ? S.give : S.recv;
+    var hits = searchPlayers(input.value, list, 10);
+    if (!hits.length) { drop.hidden = true; drop.innerHTML = ''; return; }
     drop.innerHTML = hits.map(function(id) {
       var info = S.players[id];
       var val = S.vorp.get(id) || 0;
       var inj = injuryBits(id);
+      var own = ownerLabel(id);
       return '<div class="srch-item" onclick="pick(\'' + side + '\',\'' + id + '\')">' +
         '<span class="pos-badge ' + info[1] + '">' + info[1] + '</span>' +
-        '<span class="truncate" style="flex:1">' + info[0] + '<span class="si-team">' + (info[2] || 'FA') + '</span>' +
+        '<span class="truncate" style="flex:1">' + esc(info[0]) + '<span class="si-team">' + esc(info[2] || 'FA') + '</span>' +
+        (own ? '<span class="si-own">· ' + esc(own) + '</span>' : '') +
         (inj.pill ? '<span class="' + inj.cls + ' si-inj">' + inj.abbr + '</span>' : '') + '</span>' +
         formBits(id).pill +
         '<span class="si-val" title="' + esc(valueTitle(id)) + '">' + val.toLocaleString() + '</span>' +
         '</div>';
     }).join('');
     drop.hidden = false;
+  });
+  // Enter adds the top hit — the fast path when typing a name you already know.
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { drop.hidden = true; return; }
+    if (e.key !== 'Enter' || drop.hidden) return;
+    var first = drop.querySelector('.srch-item');
+    if (first) { e.preventDefault(); first.click(); }
   });
   document.addEventListener('click', function(e) {
     if (!input.contains(e.target) && !drop.contains(e.target)) drop.hidden = true;
