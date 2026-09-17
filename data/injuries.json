@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-16T22:52:03.747Z",
+  "fetched_at": "2026-09-17T00:41:51.180Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -329,6 +329,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cooper Kupp",
+      "position": "WR",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Corey Rucker",
@@ -1479,6 +1486,13 @@
       "body_part": null
     },
     {
+      "name": "Seydou Traore",
+      "position": "TE",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Thumb"
+    },
+    {
       "name": "Shane Zylstra",
       "position": "TE",
       "team": null,
@@ -1582,13 +1596,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Tory Horton",
-      "position": "WR",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Tra Barnett",
