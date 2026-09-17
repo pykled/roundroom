@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-17T18:22:45.942Z",
+  "fetched_at": "2026-09-17T21:32:22.042Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -44,6 +44,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Alec Pierce",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Heel"
+    },
+    {
       "name": "Alex Bullock",
       "position": "WR",
       "team": null,
@@ -63,13 +70,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Anthony Richardson",
-      "position": "QB",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Anthony Torres",
@@ -282,6 +282,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Chris Olave",
+      "position": "WR",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Chris Thompson",
       "position": "WR",
       "team": null,
@@ -469,6 +476,13 @@
       "team": "CLE",
       "status": "IR",
       "body_part": "Back"
+    },
+    {
+      "name": "DJ Giddens",
+      "position": "RB",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "DJ Rogers",
