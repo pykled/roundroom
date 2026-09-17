@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pocket — Brand Concepts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d12;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    color: #f0f0f0;
+    padding: 56px 48px 80px;
+    min-width: 1200px;
+  }
+  .section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 4px; color: #444; margin-bottom: 28px; margin-top: 64px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* Logo grid */
+  .logo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .logo-card {
+    border-radius: 16px; padding: 48px 40px 36px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 24px;
+  }
+  .logo-card.bg-dark { background: #0a0a10; border: 1px solid #1e1e2e; }
+  .logo-card.bg-mid  { background: #13131c; border: 1px solid #1e1e2e; }
+  .logo-card.bg-light { background: #f2f2ee; border: 1px solid #e0e0d8; }
+  .card-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 3px; color: #3a3a4a; align-self: flex-start;
+  }
+  .card-tag.light { color: #aaa; }
+
+  /* Hero grid */
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .hero-wrap { border-radius: 16px; overflow: hidden; border: 1px solid #1e1e2e; }
+  .hero-label {
+    padding: 14px 24px; background: #13131c;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #3a3a4a;
+    border-top: 1px solid #1e1e2e;
+  }
+
+  /* Color swatch row */
+  .swatch-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .swatch { border-radius: 12px; padding: 32px; display: flex; align-items: center; gap: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ─── SECTION: LOGO CONCEPTS ─────────────────────────────── -->
+<div class="section-label">Logo Concepts</div>
+<div class="logo-grid">
+
+  <!-- A: Arc wordmark -->
+  <div class="logo-card bg-dark">
+    <svg width="220" height="72" viewBox="0 0 220 72" fill="none">
+      <!-- Arc pocket mark — "P" built from arc + stem -->
+      <line x1="16" y1="8" x2="16" y2="64" stroke="#3b82f6" stroke-width="5" stroke-linecap="round"/>
+      <path d="M16 8 Q16 8 42 8 Q62 8 62 28 Q62 48 42 48 L16 48" stroke="#3b82f6" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Wordmark -->
+      <text x="80" y="50" font-family="-apple-system,'Helvetica Neue',sans-serif" font-size="38" font-weight="800" fill="#ffffff" letter-spacing="-1.5">POCKET</text>
+    </svg>
+    <div class="card-tag light">A — P-Mark Wordmark</div>
+  </div>
+
+  <!-- B: QB icon + wordmark -->
+  <div class="logo-card bg-dark">
+    <svg width="220" height="72" viewBox="0 0 220 72" fill="none">
+      <!-- QB silhouette (minimal, geometric) -->
+      <!-- head -->
+      <circle cx="28" cy="10" r="8" fill="#f59e0b"/>
+      <!-- helmet arc -->
+      <path d="M20 10 Q20 2 28 2 Q36 2 36 10" fill="#f59e0b"/>
+      <!-- torso -->
+      <rect x="21" y="18" width="14" height="24" rx="4" fill="#f59e0b"/>
+      <!-- throwing arm (right, raised) -->
+      <path d="M35 22 L52 10 L55 15 L40 28" fill="#f59e0b"/>
+      <!-- off arm (left, guard) -->
+      <path d="M21 24 L9 30 L7 26 L19 19" fill="#f59e0b"/>
+      <!-- left leg -->
+      <path d="M23 42 L17 64 L23 64 L28 46" fill="#f59e0b"/>
+      <!-- right leg -->
+      <path d="M33 42 L39 64 L33 64 L28 46" fill="#f59e0b"/>
+      <!-- ball -->
+      <ellipse cx="58" cy="9" rx="6" ry="3.5" fill="#f59e0b" transform="rotate(-25 58 9)"/>
+      <!-- wordmark -->
+      <text x="76" y="50" font-family="-apple-system,'Helvetica Neue',sans-serif" font-size="38" font-weight="800" fill="#ffffff" letter-spacing="-1.5">POCKET</text>
+    </svg>
+    <div class="card-tag light">B — QB Icon + Wordmark</div>
+  </div>
+
+  <!-- C: Pocket shield + tagline -->
+  <div class="logo-card bg-dark">
+    <svg width="220" height="72" viewBox="0 0 220 72" fill="none">
+      <!-- Shield / pocket shape -->
+      <polygon points="36,4 52,14 52,42 36,52 20,42 20,14"
+        fill="none" stroke="#10b981" stroke-width="2.5"/>
+      <!-- P inside -->
+      <line x1="28" y1="20" x2="28" y2="44" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+      <path d="M28 20 Q28 20 38 20 Q44 20 44 28 Q44 36 38 36 L28 36"
+        stroke="#10b981" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Wordmark split — colored P + white rest -->
+      <text x="68" y="48" font-family="-apple-system,'Helvetica Neue',sans-serif" font-size="38" font-weight="800" fill="#10b981" letter-spacing="-1.5">P</text>
+      <text x="89" y="48" font-family="-apple-system,'Helvetica Neue',sans-serif" font-size="38" font-weight="800" fill="#ffffff" letter-spacing="-1.5">OCKET</text>
+      <!-- Tagline -->
+      <text x="68" y="64" font-family="-apple-system,'Helvetica Neue',sans-serif" font-size="9" font-weight="600" fill="#2d6a56" letter-spacing="2.5">STAY IN THE POCKET</text>
+    </svg>
+    <div class="card-tag light">C — Shield + Split Color</div>
+  </div>
+
+</div>
+
+<!-- ─── SECTION: HERO SILHOUETTES ─────────────────────────── -->
+<div class="section-label">Landing Page Hero — Silhouette Concepts</div>
+<div class="hero-grid">
+
+  <!-- HERO A: Dark / Blue -->
+  <div class="hero-wrap">
+    <svg width="100%" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block; background:#07070e;">
+      <defs>
+        <radialGradient id="gA" cx="50%" cy="58%" r="48%">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="gAqb" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="640" height="420" fill="url(#gA)"/>
+
+      <!-- Yard lines -->
+      <line x1="0" y1="140" x2="640" y2="140" stroke="#3b82f6" stroke-opacity="0.05" stroke-width="1"/>
+      <line x1="0" y1="280" x2="640" y2="280" stroke="#3b82f6" stroke-opacity="0.05" stroke-width="1"/>
+
+      <!-- Pocket arcs (protective zone) -->
+      <path d="M230 390 Q320 180 410 390" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-opacity="0.4"/>
+      <path d="M190 390 Q320 140 450 390" stroke="#3b82f6" stroke-width="1" fill="none" stroke-opacity="0.2"/>
+      <path d="M155 390 Q320 105 485 390" stroke="#3b82f6" stroke-width="0.5" fill="none" stroke-opacity="0.1"/>
+
+      <!-- Blocker silhouettes -->
+      <!-- Left blocker -->
+      <ellipse cx="205" cy="330" rx="26" ry="36" fill="#0f1520"/>
+      <circle cx="205" cy="287" r="18" fill="#0f1520"/>
+      <!-- Right blocker -->
+      <ellipse cx="435" cy="330" rx="26" ry="36" fill="#0f1520"/>
+      <circle cx="435" cy="287" r="18" fill="#0f1520"/>
+      <!-- Back left -->
+      <ellipse cx="248" cy="372" rx="20" ry="28" fill="#0c111a"/>
+      <circle cx="248" cy="340" r="14" fill="#0c111a"/>
+      <!-- Back right -->
+      <ellipse cx="392" cy="372" rx="20" ry="28" fill="#0c111a"/>
+      <circle cx="392" cy="340" r="14" fill="#0c111a"/>
+
+      <!-- QB (white, centered) -->
+      <!-- head -->
+      <circle cx="320" cy="188" r="22" fill="white"/>
+      <!-- torso -->
+      <path d="M298 210 L342 210 L336 280 L304 280 Z" fill="white"/>
+      <!-- throwing arm (right, up and back) -->
+      <path d="M340 218 L380 190 L388 200 L350 232" fill="white"/>
+      <!-- off arm (left, guard position) -->
+      <path d="M300 220 L265 236 L261 226 L295 208" fill="white"/>
+      <!-- left leg -->
+      <path d="M306 280 L292 342 L308 342 L320 288" fill="white"/>
+      <!-- right leg -->
+      <path d="M334 280 L348 342 L332 342 L320 288" fill="white"/>
+      <!-- ball -->
+      <ellipse cx="392" cy="188" rx="13" ry="7.5" fill="white" transform="rotate(-28 392 188)"/>
+
+      <!-- QB glow -->
+      <circle cx="320" cy="240" r="80" fill="url(#gAqb)"/>
+
+      <!-- Brand text -->
+      <text x="320" y="72" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="52" font-weight="900" fill="white" letter-spacing="-2">POCKET</text>
+      <text x="320" y="96" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="600" fill="#3b82f6" letter-spacing="4">STAY IN THE POCKET. STAY AHEAD.</text>
+    </svg>
+    <div class="hero-label">Hero A — Blue / Tools in the pocket</div>
+  </div>
+
+  <!-- HERO B: Dark / Gold -->
+  <div class="hero-wrap">
+    <svg width="100%" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block; background:#060604;">
+      <defs>
+        <radialGradient id="gB" cx="50%" cy="58%" r="48%">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.14"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="gBqb" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="640" height="420" fill="url(#gB)"/>
+
+      <!-- Field marks -->
+      <line x1="0" y1="140" x2="640" y2="140" stroke="#f59e0b" stroke-opacity="0.05" stroke-width="1"/>
+      <line x1="0" y1="280" x2="640" y2="280" stroke="#f59e0b" stroke-opacity="0.05" stroke-width="1"/>
+      <!-- Hash marks -->
+      <line x1="260" y1="136" x2="260" y2="144" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="380" y1="136" x2="380" y2="144" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="260" y1="276" x2="260" y2="284" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="380" y1="276" x2="380" y2="284" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1"/>
+
+      <!-- Pocket arcs (gold) -->
+      <path d="M230 390 Q320 180 410 390" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.5"/>
+      <path d="M190 390 Q320 140 450 390" stroke="#f59e0b" stroke-width="1" fill="none" stroke-opacity="0.25"/>
+
+      <!-- Blockers -->
+      <ellipse cx="205" cy="330" rx="26" ry="36" fill="#12100a"/>
+      <circle cx="205" cy="287" r="18" fill="#12100a"/>
+      <ellipse cx="435" cy="330" rx="26" ry="36" fill="#12100a"/>
+      <circle cx="435" cy="287" r="18" fill="#12100a"/>
+      <ellipse cx="248" cy="372" rx="20" ry="28" fill="#0e0d08"/>
+      <circle cx="248" cy="340" r="14" fill="#0e0d08"/>
+      <ellipse cx="392" cy="372" rx="20" ry="28" fill="#0e0d08"/>
+      <circle cx="392" cy="340" r="14" fill="#0e0d08"/>
+
+      <!-- QB gold -->
+      <circle cx="320" cy="188" r="22" fill="#f59e0b"/>
+      <path d="M298 210 L342 210 L336 280 L304 280 Z" fill="#f59e0b"/>
+      <path d="M340 218 L380 190 L388 200 L350 232" fill="#f59e0b"/>
+      <path d="M300 220 L265 236 L261 226 L295 208" fill="#f59e0b"/>
+      <path d="M306 280 L292 342 L308 342 L320 288" fill="#f59e0b"/>
+      <path d="M334 280 L348 342 L332 342 L320 288" fill="#f59e0b"/>
+      <ellipse cx="392" cy="188" rx="13" ry="7.5" fill="#f59e0b" transform="rotate(-28 392 188)"/>
+
+      <!-- QB glow -->
+      <circle cx="320" cy="240" r="80" fill="url(#gBqb)"/>
+
+      <!-- Brand -->
+      <text x="320" y="72" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="52" font-weight="900" fill="white" letter-spacing="-2">POCKET</text>
+      <text x="320" y="96" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="600" fill="#f59e0b" letter-spacing="4">STAY IN THE POCKET. STAY AHEAD.</text>
+    </svg>
+    <div class="hero-label">Hero B — Gold / Championship energy</div>
+  </div>
+
+</div>
+
+<!-- ─── SECTION: COLOR VARIANTS ───────────────────────────── -->
+<div class="section-label">Color Variants — Logo B (QB Icon)</div>
+<div class="swatch-row">
+
+  <!-- Dark / Blue -->
+  <div class="swatch" style="background:#0a0a10; border:1px solid #1e1e2e; border-radius:16px;">
+    <svg width="44" height="64" viewBox="0 0 44 64" fill="none">
+      <circle cx="22" cy="10" r="8" fill="#3b82f6"/>
+      <path d="M14 10 Q14 2 22 2 Q30 2 30 10" fill="#3b82f6"/>
+      <rect x="15" y="18" width="14" height="22" rx="4" fill="#3b82f6"/>
+      <path d="M29 22 L42 14 L44 19 L32 28" fill="#3b82f6"/>
+      <path d="M15 23 L4 29 L2 25 L13 18" fill="#3b82f6"/>
+      <path d="M16 40 L11 58 L17 58 L22 44" fill="#3b82f6"/>
+      <path d="M28 40 L33 58 L27 58 L22 44" fill="#3b82f6"/>
+    </svg>
+    <div>
+      <div style="font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px;">POCKET</div>
+      <div style="font-size:9px; color:#3b82f6; letter-spacing:2px; margin-top:4px; font-weight:600;">DARK / BLUE</div>
+    </div>
+  </div>
+
+  <!-- Dark / Gold -->
+  <div class="swatch" style="background:#080804; border:1px solid #1e1e14; border-radius:16px;">
+    <svg width="44" height="64" viewBox="0 0 44 64" fill="none">
+      <circle cx="22" cy="10" r="8" fill="#f59e0b"/>
+      <path d="M14 10 Q14 2 22 2 Q30 2 30 10" fill="#f59e0b"/>
+      <rect x="15" y="18" width="14" height="22" rx="4" fill="#f59e0b"/>
+      <path d="M29 22 L42 14 L44 19 L32 28" fill="#f59e0b"/>
+      <path d="M15 23 L4 29 L2 25 L13 18" fill="#f59e0b"/>
+      <path d="M16 40 L11 58 L17 58 L22 44" fill="#f59e0b"/>
+      <path d="M28 40 L33 58 L27 58 L22 44" fill="#f59e0b"/>
+    </svg>
+    <div>
+      <div style="font-size:20px; font-weight:800; color:white; letter-spacing:-0.5px;">POCKET</div>
+      <div style="font-size:9px; color:#f59e0b; letter-spacing:2px; margin-top:4px; font-weight:600;">DARK / GOLD</div>
+    </div>
+  </div>
+
+  <!-- Light / Navy -->
+  <div class="swatch" style="background:#f2f2ee; border:1px solid #e0e0d8; border-radius:16px;">
+    <svg width="44" height="64" viewBox="0 0 44 64" fill="none">
+      <circle cx="22" cy="10" r="8" fill="#1e3a8a"/>
+      <path d="M14 10 Q14 2 22 2 Q30 2 30 10" fill="#1e3a8a"/>
+      <rect x="15" y="18" width="14" height="22" rx="4" fill="#1e3a8a"/>
+      <path d="M29 22 L42 14 L44 19 L32 28" fill="#1e3a8a"/>
+      <path d="M15 23 L4 29 L2 25 L13 18" fill="#1e3a8a"/>
+      <path d="M16 40 L11 58 L17 58 L22 44" fill="#1e3a8a"/>
+      <path d="M28 40 L33 58 L27 58 L22 44" fill="#1e3a8a"/>
+    </svg>
+    <div>
+      <div style="font-size:20px; font-weight:800; color:#0f0f0f; letter-spacing:-0.5px;">POCKET</div>
+      <div style="font-size:9px; color:#1e3a8a; letter-spacing:2px; margin-top:4px; font-weight:600;">LIGHT / NAVY</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pocket — Logo Mocks</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #07070d;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    color: #f0f0f0;
+    padding: 52px 48px 80px;
+    min-width: 960px;
+  }
+  h1 {
+    font-size: 11px; font-weight: 700; letter-spacing: 5px;
+    text-transform: uppercase; color: #2a2a3a; margin-bottom: 52px;
+  }
+  .concept { margin-bottom: 56px; }
+  .concept-label {
+    font-size: 9px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase;
+    color: #2a2a3a; margin-bottom: 20px;
+  }
+  .concept-row { display: flex; gap: 16px; }
+  .card {
+    flex: 1; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 36px 0 20px;
+    border: 1px solid #111118;
+    background: #0d0d15;
+  }
+  .card-label {
+    margin-top: 20px;
+    font-size: 9px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: #2a2a3a;
+  }
+  .card.light { background: #f4f4f0; border-color: #e0e0dc; }
+  .card.light .card-label { color: #bbb; }
+</style>
+</head>
+<body>
+
+<h1>Pocket — Icon Mark Concepts</h1>
+
+<!-- ── CONCEPT 1: POCKET ZONE ARC ───────────────────────── -->
+<div class="concept">
+  <div class="concept-label">1 — Pocket Zone Arc</div>
+  <div class="concept-row">
+
+    <!-- 1A: Horseshoe / U with arms — blue -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 22 18 L 22 44 A 18 18 0 0 1 58 44 L 58 18"
+          stroke="#3b82f6" stroke-width="6.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="card-label">1A · Blue</div>
+    </div>
+
+    <!-- 1B: Horseshoe + QB dot inside — white -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 22 18 L 22 44 A 18 18 0 0 1 58 44 L 58 18"
+          stroke="#e8e8ec" stroke-width="6" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="40" cy="56" r="5.5" fill="#e8e8ec"/>
+      </svg>
+      <div class="card-label">1B · Arc + QB dot</div>
+    </div>
+
+    <!-- 1C: Pure semicircle arc, no arms — gold -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 18 40 A 22 22 0 0 1 62 40"
+          stroke="#f59e0b" stroke-width="7" fill="none"
+          stroke-linecap="round"/>
+      </svg>
+      <div class="card-label">1C · Pure Arc, Gold</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── CONCEPT 2: FORMATION DOTS ──────────────────────────── -->
+<div class="concept">
+  <div class="concept-label">2 — Formation Dots (5 + 1)</div>
+  <div class="concept-row">
+
+    <!-- 2A: 5 open circles + 1 solid QB — blue -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <!-- OL row -->
+        <circle cx="12" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="26" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="40" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="54" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="68" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <!-- QB -->
+        <circle cx="40" cy="54" r="9" fill="#3b82f6"/>
+      </svg>
+      <div class="card-label">2A · Blue</div>
+    </div>
+
+    <!-- 2B: Formation + pocket arc boundary — white -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <!-- OL row -->
+        <circle cx="12" cy="28" r="6.5" stroke="#e8e8ec" stroke-width="2.5" fill="none"/>
+        <circle cx="26" cy="28" r="6.5" stroke="#e8e8ec" stroke-width="2.5" fill="none"/>
+        <circle cx="40" cy="28" r="6.5" stroke="#e8e8ec" stroke-width="2.5" fill="none"/>
+        <circle cx="54" cy="28" r="6.5" stroke="#e8e8ec" stroke-width="2.5" fill="none"/>
+        <circle cx="68" cy="28" r="6.5" stroke="#e8e8ec" stroke-width="2.5" fill="none"/>
+        <!-- Pocket arc boundary -->
+        <path d="M 12 34 A 30 30 0 0 1 68 34"
+          stroke="#e8e8ec" stroke-width="1.5" fill="none"
+          stroke-opacity="0.3" stroke-dasharray="4 3"/>
+        <!-- QB -->
+        <circle cx="40" cy="56" r="8.5" fill="#e8e8ec"/>
+      </svg>
+      <div class="card-label">2B · Formation + Arc</div>
+    </div>
+
+    <!-- 2C: Two-tone — OL blue, QB gold -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="12" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="26" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="40" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="54" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="68" cy="30" r="7" stroke="#3b82f6" stroke-width="2.5" fill="none"/>
+        <circle cx="40" cy="54" r="10" fill="#f59e0b"/>
+      </svg>
+      <div class="card-label">2C · Blue + Gold</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── CONCEPT 4: CONCENTRIC ARCS ─────────────────────────── -->
+<div class="concept">
+  <div class="concept-label">4 — Concentric Protection Arcs</div>
+  <div class="concept-row">
+
+    <!-- 4A: 3 equal arcs, blue -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 26 68 A 14 14 0 0 0 54 68"
+          stroke="#3b82f6" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M 18 68 A 22 22 0 0 0 62 68"
+          stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 10 68 A 30 30 0 0 0 70 68"
+          stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="card-label">4A · Blue, Equal</div>
+    </div>
+
+    <!-- 4B: 3 arcs, fading opacity — white -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 26 68 A 14 14 0 0 0 54 68"
+          stroke="#e8e8ec" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 18 68 A 22 22 0 0 0 62 68"
+          stroke="#e8e8ec" stroke-width="3" fill="none" stroke-linecap="round"
+          stroke-opacity="0.5"/>
+        <path d="M 10 68 A 30 30 0 0 0 70 68"
+          stroke="#e8e8ec" stroke-width="2.5" fill="none" stroke-linecap="round"
+          stroke-opacity="0.22"/>
+      </svg>
+      <div class="card-label">4B · White, Fading</div>
+    </div>
+
+    <!-- 4C: 3 arcs + origin dot — gold -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 26 68 A 14 14 0 0 0 54 68"
+          stroke="#f59e0b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M 18 68 A 22 22 0 0 0 62 68"
+          stroke="#f59e0b" stroke-width="3" fill="none" stroke-linecap="round"
+          stroke-opacity="0.6"/>
+        <path d="M 10 68 A 30 30 0 0 0 70 68"
+          stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linecap="round"
+          stroke-opacity="0.3"/>
+        <circle cx="40" cy="68" r="4.5" fill="#f59e0b"/>
+      </svg>
+      <div class="card-label">4C · Gold + Origin</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── CONCEPT 6: SHIELD MARK ─────────────────────────────── -->
+<div class="concept">
+  <div class="concept-label">6 — Shield / Protection Mark</div>
+  <div class="concept-row">
+
+    <!-- 6A: Classic shield outline — blue -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 40 12 L 66 21 L 66 42 Q 66 62 40 70 Q 14 62 14 42 L 14 21 Z"
+          stroke="#3b82f6" stroke-width="3" fill="none"
+          stroke-linejoin="round"/>
+      </svg>
+      <div class="card-label">6A · Shield Outline</div>
+    </div>
+
+    <!-- 6B: Shield outline filled — white, minimal -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 40 12 L 66 21 L 66 42 Q 66 62 40 70 Q 14 62 14 42 L 14 21 Z"
+          fill="#e8e8ec"/>
+        <!-- inner negative cut — small shield silhouette punched out -->
+        <path d="M 40 21 L 58 28 L 58 43 Q 58 57 40 63 Q 22 57 22 43 L 22 28 Z"
+          fill="#0d0d15"/>
+      </svg>
+      <div class="card-label">6B · Shield + Cutout</div>
+    </div>
+
+    <!-- 6C: Shield filled solid — gold -->
+    <div class="card">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <path d="M 40 12 L 66 21 L 66 42 Q 66 62 40 70 Q 14 62 14 42 L 14 21 Z"
+          fill="#f59e0b"/>
+      </svg>
+      <div class="card-label">6C · Shield Solid, Gold</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

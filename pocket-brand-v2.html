@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pocket — Brand v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d12;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    color: #f0f0f0;
+    padding: 56px 48px 80px;
+    min-width: 1200px;
+  }
+  .section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 4px; color: #444; margin-bottom: 28px; margin-top: 64px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .icon-card {
+    border-radius: 16px; padding: 40px 32px 28px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    background: #0a0a10; border: 1px solid #1e1e2e;
+  }
+  .icon-card.light { background: #f2f2ee; border-color: #e0e0d8; }
+  .card-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #3a3a4a; }
+  .card-tag.light { color: #aaa; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .hero-wrap { border-radius: 16px; overflow: hidden; border: 1px solid #1e1e2e; }
+  .hero-label {
+    padding: 14px 24px; background: #13131c;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #3a3a4a;
+    border-top: 1px solid #1e1e2e;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── ICON-ONLY LOGOS ──────────────────────────────────────── -->
+<div class="section-label">Icon Mark — No Text (4 Variants)</div>
+<div class="icon-grid">
+
+  <!-- Icon A: Abstract P arc — bold, minimal -->
+  <div class="icon-card">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+      <!-- Rounded square bg -->
+      <rect width="80" height="80" rx="20" fill="#13131c"/>
+      <!-- P built from arc + vertical stem — thick, confident -->
+      <line x1="22" y1="16" x2="22" y2="64" stroke="#3b82f6" stroke-width="7" stroke-linecap="round"/>
+      <path d="M22 16 Q22 16 44 16 Q58 16 58 30 Q58 44 44 44 L22 44"
+        stroke="#3b82f6" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="card-tag light">A — P Arc, Blue</div>
+  </div>
+
+  <!-- Icon B: P arc, gold -->
+  <div class="icon-card">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="20" fill="#100e04"/>
+      <line x1="22" y1="16" x2="22" y2="64" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
+      <path d="M22 16 Q22 16 44 16 Q58 16 58 30 Q58 44 44 44 L22 44"
+        stroke="#f59e0b" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="card-tag light">B — P Arc, Gold</div>
+  </div>
+
+  <!-- Icon C: Pocket arc / protective zone mark — abstract -->
+  <div class="icon-card">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="20" fill="#0a0a10"/>
+      <!-- Three concentric arcs suggesting pocket protection -->
+      <path d="M20 64 Q40 12 60 64" stroke="#3b82f6" stroke-width="5" fill="none" stroke-linecap="round" stroke-opacity="1"/>
+      <path d="M28 64 Q40 24 52 64" stroke="#3b82f6" stroke-width="4" fill="none" stroke-linecap="round" stroke-opacity="0.55"/>
+      <path d="M34 64 Q40 34 46 64" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round" stroke-opacity="0.3"/>
+      <!-- dot at top = QB -->
+      <circle cx="40" cy="42" r="5" fill="#3b82f6"/>
+    </svg>
+    <div class="card-tag light">C — Pocket Zone</div>
+  </div>
+
+  <!-- Icon D: Light mode P arc -->
+  <div class="icon-card light">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="20" fill="#ffffff" rx="20"/>
+      <line x1="22" y1="16" x2="22" y2="64" stroke="#1e3a8a" stroke-width="7" stroke-linecap="round"/>
+      <path d="M22 16 Q22 16 44 16 Q58 16 58 30 Q58 44 44 44 L22 44"
+        stroke="#1e3a8a" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="card-tag">D — P Arc, Light/Navy</div>
+  </div>
+
+</div>
+
+<!-- ─── LANDING PAGE HERO — PLAYBOOK ────────────────────────── -->
+<div class="section-label">Landing Page Hero — Playbook Formation</div>
+<div class="hero-grid">
+
+  <!-- HERO A: Chalkboard playbook, blue -->
+  <div class="hero-wrap">
+    <svg width="100%" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block; background:#050810;">
+      <defs>
+        <radialGradient id="fieldGlowA" cx="50%" cy="65%" r="55%">
+          <stop offset="0%" stop-color="#1d4ed8" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="640" height="420" fill="url(#fieldGlowA)"/>
+
+      <!-- Faint field line grid -->
+      <line x1="0" y1="210" x2="640" y2="210" stroke="#3b82f6" stroke-opacity="0.06" stroke-width="1"/>
+      <line x1="0" y1="310" x2="640" y2="310" stroke="#3b82f6" stroke-opacity="0.06" stroke-width="1"/>
+      <line x1="0" y1="110" x2="640" y2="110" stroke="#3b82f6" stroke-opacity="0.06" stroke-width="1"/>
+      <!-- Hash marks -->
+      <line x1="256" y1="206" x2="256" y2="214" stroke="#3b82f6" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="384" y1="206" x2="384" y2="214" stroke="#3b82f6" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="256" y1="306" x2="256" y2="314" stroke="#3b82f6" stroke-opacity="0.1" stroke-width="1"/>
+      <line x1="384" y1="306" x2="384" y2="314" stroke="#3b82f6" stroke-opacity="0.1" stroke-width="1"/>
+
+      <!-- ── OFFENSIVE LINE (5 O's) ── -->
+      <!-- LT -->
+      <circle cx="200" cy="290" r="16" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <!-- LG -->
+      <circle cx="248" cy="290" r="16" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <!-- C -->
+      <circle cx="296" cy="290" r="16" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <!-- RG -->
+      <circle cx="344" cy="290" r="16" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <!-- RT -->
+      <circle cx="392" cy="290" r="16" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+
+      <!-- ── BLOCKING BACKS (protect pocket) ── -->
+      <!-- HB left -->
+      <circle cx="220" cy="340" r="14" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.45"/>
+      <!-- FB right -->
+      <circle cx="372" cy="340" r="14" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.45"/>
+
+      <!-- ── QB (star / filled circle) ── -->
+      <circle cx="296" cy="350" r="13" fill="#3b82f6" fill-opacity="0.9"/>
+      <!-- QB label -->
+      <text x="296" y="355" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="800" fill="white">QB</text>
+
+      <!-- ── POCKET ARC ── -->
+      <path d="M196 380 Q296 260 396 380" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.5" stroke-dasharray="6 4"/>
+
+      <!-- ── RECEIVERS / ROUTES ── -->
+      <!-- WR left — route arrow curving out -->
+      <circle cx="148" cy="290" r="14" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M148 276 L148 230 Q148 180 100 155" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-opacity="0.4" marker-end="url(#arrow)"/>
+      <!-- WR right — out route -->
+      <circle cx="480" cy="290" r="14" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M480 276 L480 230 Q480 170 540 150" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-opacity="0.4" marker-end="url(#arrow)"/>
+      <!-- TE right — crossing route -->
+      <circle cx="440" cy="290" r="14" stroke="#3b82f6" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M440 276 L440 240 Q380 200 300 210" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-opacity="0.35" stroke-dasharray="5 3"/>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#3b82f6" fill-opacity="0.4"/>
+        </marker>
+      </defs>
+
+      <!-- ── DEFENSE (X's) ── -->
+      <!-- DE left -->
+      <text x="164" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.4">×</text>
+      <!-- DT left -->
+      <text x="224" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.35">×</text>
+      <!-- NT -->
+      <text x="296" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.35">×</text>
+      <!-- DT right -->
+      <text x="368" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.35">×</text>
+      <!-- DE right -->
+      <text x="428" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.4">×</text>
+      <!-- LB's -->
+      <text x="224" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.25">×</text>
+      <text x="296" y="235" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.25">×</text>
+      <text x="368" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.25">×</text>
+
+      <!-- ── BRAND ── -->
+      <text x="320" y="66" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="56" font-weight="900" fill="white" letter-spacing="-2">POCKET</text>
+      <text x="320" y="92" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="600" fill="#3b82f6" letter-spacing="4">STAY IN THE POCKET. STAY AHEAD.</text>
+
+      <!-- Subtle divider line -->
+      <line x1="240" y1="108" x2="400" y2="108" stroke="#3b82f6" stroke-opacity="0.15" stroke-width="1"/>
+    </svg>
+    <div class="hero-label">Hero A — Playbook, Blue</div>
+  </div>
+
+  <!-- HERO B: Chalkboard playbook, gold/amber -->
+  <div class="hero-wrap">
+    <svg width="100%" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block; background:#060504;">
+      <defs>
+        <radialGradient id="fieldGlowB" cx="50%" cy="65%" r="55%">
+          <stop offset="0%" stop-color="#d97706" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#d97706" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="640" height="420" fill="url(#fieldGlowB)"/>
+
+      <!-- Grid -->
+      <line x1="0" y1="210" x2="640" y2="210" stroke="#f59e0b" stroke-opacity="0.06" stroke-width="1"/>
+      <line x1="0" y1="310" x2="640" y2="310" stroke="#f59e0b" stroke-opacity="0.06" stroke-width="1"/>
+      <line x1="0" y1="110" x2="640" y2="110" stroke="#f59e0b" stroke-opacity="0.06" stroke-width="1"/>
+
+      <!-- OL -->
+      <circle cx="200" cy="290" r="16" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <circle cx="248" cy="290" r="16" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <circle cx="296" cy="290" r="16" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <circle cx="344" cy="290" r="16" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+      <circle cx="392" cy="290" r="16" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-opacity="0.7"/>
+
+      <!-- Backs -->
+      <circle cx="220" cy="340" r="14" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.45"/>
+      <circle cx="372" cy="340" r="14" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.45"/>
+
+      <!-- QB -->
+      <circle cx="296" cy="350" r="13" fill="#f59e0b" fill-opacity="0.9"/>
+      <text x="296" y="355" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="800" fill="#060504">QB</text>
+
+      <!-- Pocket arc -->
+      <path d="M196 380 Q296 260 396 380" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.5" stroke-dasharray="6 4"/>
+
+      <!-- WR left -->
+      <circle cx="148" cy="290" r="14" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M148 276 L148 230 Q148 180 100 155" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-opacity="0.4" marker-end="url(#arrowB)"/>
+      <!-- WR right -->
+      <circle cx="480" cy="290" r="14" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M480 276 L480 230 Q480 170 540 150" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-opacity="0.4" marker-end="url(#arrowB)"/>
+      <!-- TE crossing -->
+      <circle cx="440" cy="290" r="14" stroke="#f59e0b" stroke-width="2" fill="none" stroke-opacity="0.55"/>
+      <path d="M440 276 L440 240 Q380 200 300 210" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-opacity="0.35" stroke-dasharray="5 3"/>
+
+      <defs>
+        <marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#f59e0b" fill-opacity="0.4"/>
+        </marker>
+      </defs>
+
+      <!-- Defense X's -->
+      <text x="164" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.35">×</text>
+      <text x="224" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.3">×</text>
+      <text x="296" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.3">×</text>
+      <text x="368" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.3">×</text>
+      <text x="428" y="267" text-anchor="middle" font-size="18" font-weight="700" fill="#ef4444" fill-opacity="0.35">×</text>
+      <text x="224" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.2">×</text>
+      <text x="296" y="235" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.2">×</text>
+      <text x="368" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#ef4444" fill-opacity="0.2">×</text>
+
+      <!-- Brand -->
+      <text x="320" y="66" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="56" font-weight="900" fill="white" letter-spacing="-2">POCKET</text>
+      <text x="320" y="92" text-anchor="middle"
+        font-family="-apple-system,'Helvetica Neue',sans-serif"
+        font-size="10" font-weight="600" fill="#f59e0b" letter-spacing="4">STAY IN THE POCKET. STAY AHEAD.</text>
+      <line x1="240" y1="108" x2="400" y2="108" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="1"/>
+    </svg>
+    <div class="hero-label">Hero B — Playbook, Gold</div>
+  </div>
+
+</div>
+
+</body>
+</html>
