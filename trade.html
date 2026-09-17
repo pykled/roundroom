@@ -1556,6 +1556,8 @@ document.getElementById('partner-sel').addEventListener('change', function() { s
 // are broken by value so the player you mean is near the top.
 var SEARCH_INDEX = null, SEARCH_INDEX_N = 0;
 function foldName(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ').trim(); }
+// Generational suffixes are shared by many players; a lone "jr"/"iii" query is not a real search.
+var GENERIC_TOKENS = { jr: 1, sr: 1, ii: 1, iii: 1, iv: 1 };
 function searchIndex() {
   var keys = Object.keys(S.players);
   if (SEARCH_INDEX && SEARCH_INDEX_N === keys.length) return SEARCH_INDEX;
@@ -1583,6 +1585,7 @@ function searchPlayers(query, excludeIds, limit) {
   var q = foldName(query);
   if (q.length < 2) return [];
   var qTokens = q.split(' ');
+  if (qTokens.length === 1 && GENERIC_TOKENS[q]) return [];
   var idx = searchIndex();
   var hits = [];
   for (var i = 0; i < idx.length; i++) {
