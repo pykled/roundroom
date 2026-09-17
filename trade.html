@@ -1449,7 +1449,7 @@ function renderPartnerSelect() {
   var cur = S.partnerId != null && rows.some(function(x){ return x.rid === String(S.partnerId); }) ? String(S.partnerId) : '';
   if (!cur) S.partnerId = null;
   sel.innerHTML = '<option value="">Pick a team…</option>' + rows.map(function(x) {
-    return '<option value="' + esc(x.rid) + '">' + esc(x.label) + (x.needs ? ' — needs ' + esc(x.needs) : '') + '</option>';
+    return '<option value="' + esc(x.rid) + '">' + esc(x.label) + '</option>';
   }).join('');
   sel.value = cur;
   sel.classList.toggle('unset', !cur);
