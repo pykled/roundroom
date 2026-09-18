@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-18T17:44:19.277Z",
+  "fetched_at": "2026-09-18T21:02:53.980Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -37,18 +37,18 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Aidan O'Connell",
+      "position": "QB",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Personal"
+    },
+    {
       "name": "Ainias Smith",
       "position": "WR",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Alec Pierce",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Heel"
     },
     {
       "name": "Alex Bullock",
@@ -166,7 +166,7 @@
       "name": "Brock Bowers",
       "position": "TE",
       "team": "LV",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Knee - Meniscus"
     },
     {
@@ -350,13 +350,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "D'Andre Swift",
-      "position": "RB",
-      "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Da'Quan Felton",
@@ -807,6 +800,13 @@
       "body_part": "Thumb"
     },
     {
+      "name": "Jalen McMillan",
+      "position": "WR",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Jalen Virgil",
       "position": "WR",
       "team": null,
@@ -863,18 +863,18 @@
       "body_part": "Pectoral"
     },
     {
+      "name": "Jauan Jennings",
+      "position": "WR",
+      "team": "MIN",
+      "status": "Out",
+      "body_part": "Personal"
+    },
+    {
       "name": "Jayden Higgins",
       "position": "WR",
       "team": "HOU",
       "status": "IR",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Jaylin Lane",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Jeff Caldwell",
@@ -1017,13 +1017,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Juwan Johnson",
-      "position": "TE",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Kadarius Calloway",
       "position": "RB",
       "team": null,
@@ -1101,17 +1094,10 @@
       "body_part": "Foot"
     },
     {
-      "name": "Kyle Monangai",
-      "position": "RB",
-      "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Kyler Murray",
       "position": "QB",
       "team": "MIN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Concussion"
     },
     {
@@ -1265,7 +1251,7 @@
       "name": "Michael Penix",
       "position": "QB",
       "team": "ATL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee - ACL"
     },
     {
@@ -1321,7 +1307,7 @@
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1337,13 +1323,6 @@
       "team": "NYJ",
       "status": "Out",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Oscar Delp",
-      "position": "TE",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Parris Campbell",
@@ -1470,13 +1449,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Samaje Perine",
-      "position": "RB",
-      "team": "CIN",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Savion Williams",
@@ -1650,7 +1622,7 @@
       "name": "Tua Tagovailoa",
       "position": "QB",
       "team": "ATL",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Oblique"
     },
     {
@@ -1755,7 +1727,7 @@
       "name": "Zay Flowers",
       "position": "WR",
       "team": "BAL",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Hamstring"
     }
   ]
