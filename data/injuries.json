@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-17T22:54:44.460Z",
+  "fetched_at": "2026-09-18T00:30:25.510Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -329,13 +329,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Cooper Kupp",
-      "position": "WR",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Back"
     },
     {
       "name": "Corey Rucker",
@@ -1549,6 +1542,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Skyler Bell",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Squirrel White",
       "position": "WR",
       "team": null,
@@ -1664,7 +1664,7 @@
       "name": "Ty Johnson",
       "position": "RB",
       "team": "BUF",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
