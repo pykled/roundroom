@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-19T18:39:55.347Z",
+  "fetched_at": "2026-09-19T22:14:03.377Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -40,7 +40,7 @@
       "name": "Aidan O'Connell",
       "position": "QB",
       "team": "LV",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Personal"
     },
     {
@@ -404,7 +404,7 @@
       "name": "De'Zhaun Stribling",
       "position": "WR",
       "team": "SF",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -971,7 +971,7 @@
       "name": "Jordan Whittington",
       "position": "WR",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Quadriceps"
     },
     {
@@ -1300,7 +1300,7 @@
       "name": "Omar Cooper",
       "position": "WR",
       "team": "NYJ",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1706,7 +1706,7 @@
       "name": "Zay Flowers",
       "position": "WR",
       "team": "BAL",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Hamstring"
     }
   ]
