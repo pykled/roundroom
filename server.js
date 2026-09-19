@@ -933,21 +933,61 @@ function fetchSeasonSchedule() {
   });
 }
 
-// Who plays whom this week: { week, teams: { KC: { opp: 'IND', home: true, status, date } } }.
+// Kickoff times + live game state for one week from Sleeper's scores feed
+// (the schedule feed above only carries a date). Keyed by home team:
+//   { KC: { kickoff: '2026-09-21T00:20:00+00:00', status: 'pre_game'|'in_game'|'complete', started: bool } }
+// `started` is Sleeper's own flag (metadata.has_started / is_in_progress /
+// is_over) so a slot locks even if the client clock is off. Cached 5 min so a
+// Sunday-afternoon page load sees the 1pm games flip to in-progress.
+function fetchWeekGameState(week) {
+  return apiCached(`gamestate:2026:${week}`, 5 * 60 * 1000, async () => {
+    const r = await fetch(`https://api.sleeper.app/scores/nfl/regular/2026/${week}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`Sleeper scores ${r.status}`);
+    const arr = await r.json();
+    const byHome = {};
+    for (const g of (Array.isArray(arr) ? arr : [])) {
+      const m = (g && g.metadata) || {};
+      const home = m.home_team;
+      if (!home) continue;
+      const kickoff = m.date_time || (g.start_time ? new Date(Number(g.start_time)).toISOString() : null);
+      const status = g.status || m.status || null;
+      byHome[home] = {
+        kickoff: kickoff || null,
+        status,
+        started: !!(m.has_started || m.is_in_progress || m.is_over || status === 'in_game' || status === 'complete'),
+      };
+    }
+    return byHome;
+  });
+}
+
+// Who plays whom this week:
+//   { week, teams: { KC: { opp: 'IND', home: true, status, date, kickoff, started } } }
 // Teams missing from `teams` are on bye. Same schedule feed scripts/fetch-injuries.js uses.
+// `kickoff` (ISO) and `started` come from the scores feed when it responds; the
+// lineup page locks a player once his game has started (kickoff passed OR
+// Sleeper says started) so it never suggests swapping someone already playing.
 app.get('/api/schedule/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);
   if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
   try {
-    const games = await fetchSeasonSchedule();
+    const [games, state] = await Promise.all([
+      fetchSeasonSchedule(),
+      fetchWeekGameState(week).catch(() => ({})),
+    ]);
     const teams = {};
     for (const g of games) {
       if (Number(g.week) !== week || !g.home || !g.away) continue;
-      teams[g.home] = { opp: g.away, home: true, status: g.status || null, date: g.date || null };
-      teams[g.away] = { opp: g.home, home: false, status: g.status || null, date: g.date || null };
+      const live = state[g.home] || null;
+      const status = (live && live.status) || g.status || null;
+      const kickoff = live ? live.kickoff : null;
+      const started = live ? live.started : (status === 'in_game' || status === 'complete');
+      teams[g.home] = { opp: g.away, home: true, status, date: g.date || null, kickoff, started };
+      teams[g.away] = { opp: g.home, home: false, status, date: g.date || null, kickoff, started };
     }
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.json({ week, teams });
+    // Short browser cache: game state changes every few minutes on Sundays.
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json({ week, teams, fetchedAt: new Date().toISOString() });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch schedule' });
   }

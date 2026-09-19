@@ -12,6 +12,7 @@
 //                × weather_multiplier   (wind / rain at outdoor stadiums; passing positions)
 //                × usage_multiplier     (recent target / carry share vs season; snap-share drop)
 //                × game_script_multiplier (Vegas spread: big favourites run, big underdogs throw)
+//                × step_up_multiplier    (a high-usage teammate at the same position is Out/IR/Doubtful)
 //
 // Every factor returns { mult, label, detail, source } so the UI can show WHY a
 // player ranks where he does. `source` is 'live' when real data drove the
@@ -31,6 +32,8 @@
 //   weather     LIVE   ctx.weather = /api/weather teams[TEAM] → { windspeed (mph), precip (%), indoor }
 //   usage       LIVE   ctx.usage = /api/recent-stats players[id] → { recent, season } share averages
 //   gameScript  LIVE   derived from ctx.vegas (own implied − opponent implied ≈ spread)
+//   stepUp      LIVE   ctx.teammatesOut = same-team, same-position players who are Out/IR/Doubtful
+//                      (status from /api/players/slim) with their season usage from /api/recent-stats
 var WeeklyScore = (function () {
   'use strict';
 
@@ -71,6 +74,23 @@ var WeeklyScore = (function () {
   var SCRIPT_FAV = { RB: 1.03, WR: 0.98, TE: 0.98 };
   var SCRIPT_DOG = { RB: 0.97, WR: 1.04, TE: 1.04 };
 
+  // Step-up (vacated volume). When a teammate at the same position who was
+  // carrying a real share of the work is Out/IR/Doubtful, the healthy players
+  // behind him inherit his touches. A teammate counts as a volume player once
+  // his season touch share (RB carries, WR/TE targets) clears STEP_UP_MIN_SHARE,
+  // or clears STEP_UP_SNAP_SHARE while playing STEP_UP_MIN_SNAP of the snaps
+  // (an every-down player with a moderate share). Snap share alone never
+  // qualifies — a WR who plays 88% of snaps for 8% of targets vacates almost
+  // nothing when he sits (live week-2 data made that mistake obvious). The boost
+  // scales with the vacated touch share: 25% → +10%, capped at STEP_UP_MAX.
+  // Freshness: a teammate who hasn't played in the recent window is old news —
+  // the replacement's projection and usage already reflect the bigger role, so
+  // his weight is (games in recent window ÷ window length) → 0.
+  var STEP_UP_MIN_SHARE = 0.15, STEP_UP_SNAP_SHARE = 0.10, STEP_UP_MIN_SNAP = 0.60;
+  var STEP_UP_PER_SHARE = 0.4;                 // +10% for a vacated 25% share
+  var STEP_UP_MAX_SHARE = 0.35, STEP_UP_MAX = 1.14;
+  var STEP_UP_POS = { RB: 'carryShare', WR: 'tgtShare', TE: 'tgtShare' };
+
   // Own-injury status → multiplier. Anything not listed (null, 'NA', 'COV' …) is 1.0.
   var STATUS_MULT = { Questionable: 0.85, Doubtful: 0.5, Out: 0, IR: 0, PUP: 0, Sus: 0, 'Sus.': 0 };
   // Which opponent defensive slot groups matter for each offensive position.
@@ -85,7 +105,7 @@ var WeeklyScore = (function () {
     FS: 'S', SS: 'S', WS: 'S', S: 'S', DB: 'S',
     MLB: 'LB', LILB: 'LB', RILB: 'LB', ILB: 'LB', LOLB: 'LB', ROLB: 'LB', OLB: 'LB', SLB: 'LB', WLB: 'LB', LB: 'LB',
   };
-  var OUT_STATUS = { Out: 1, IR: 1, Doubtful: 1, PUP: 1 };
+  var OUT_STATUS = { Out: 1, IR: 1, Doubtful: 1, PUP: 1, Sus: 1, 'Sus.': 1 };
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function pct(mult) {
@@ -335,6 +355,42 @@ var WeeklyScore = (function () {
     return { mult: mult, label: 'Script', spread: spread, detail: who + mag.toFixed(1) + ' — ' + why + ' (' + pct(mult) + ')', source: 'live' };
   }
 
+  // teammatesOut: [{ id, name, status, usage: { recent: { games, … }, season: { carryShare, tgtShare, snapPct, games } } }]
+  //   — every same-team, same-position player whose status is in OUT_STATUS
+  //   (the caller filters by team/position; this function decides who mattered).
+  // recentWindow: number of completed weeks in the usage `recent` window (1–2).
+  // Returns the multiplier for the healthy player whose ctx this is.
+  function stepUpMultiplier(teammatesOut, pos, recentWindow) {
+    var shareKey = STEP_UP_POS[pos];
+    if (!shareKey) return { mult: 1, label: 'Step-up', detail: 'No step-up rule for ' + pos, source: 'neutral' };
+    if (!teammatesOut || !teammatesOut.length) return { mult: 1, label: 'Step-up', detail: 'No injured starters at ' + pos + ' on this team', source: 'neutral' };
+    var window = recentWindow > 0 ? recentWindow : 1;
+    var vacated = 0, parts = [], hits = [];
+    for (var i = 0; i < teammatesOut.length; i++) {
+      var t = teammatesOut[i];
+      if (!t || !OUT_STATUS[t.status]) continue;
+      var sea = t.usage && t.usage.season, rec = t.usage && t.usage.recent;
+      if (!sea || !(sea.games > 0)) continue;                       // never played this season → projections already exclude him
+      var share = sea[shareKey] != null ? sea[shareKey] : 0;
+      var snap = sea.snapPct != null ? sea.snapPct : 0;
+      var volume = share >= STEP_UP_MIN_SHARE || (share >= STEP_UP_SNAP_SHARE && snap >= STEP_UP_MIN_SNAP);
+      if (!volume) continue;                                          // depth piece, no real volume to inherit
+      var fresh = clamp(((rec && rec.games) || 0) / window, 0, 1);
+      if (fresh === 0) continue;                                      // out for 2+ weeks: role already re-projected
+      vacated += share * fresh;
+      hits.push(t);
+      var statusTxt = (t.status === 'IR' || t.status === 'PUP') ? 'on ' + t.status : String(t.status).toLowerCase();
+      parts.push((t.name || t.id) + ' ' + statusTxt + ' (' + Math.round(share * 100) + '% of ' + (pos === 'RB' ? 'carries' : 'targets') + ', ' + Math.round(snap * 100) + '% snaps' + (fresh < 1 ? ', ' + Math.round(fresh * 100) + '% weight — missed last week too' : '') + ')');
+    }
+    if (!hits.length) return { mult: 1, label: 'Step-up', detail: 'Injured teammates were not carrying real volume', source: 'neutral' };
+    var mult = Math.min(STEP_UP_MAX, 1 + Math.min(vacated, STEP_UP_MAX_SHARE) * STEP_UP_PER_SHARE);
+    return {
+      mult: mult, label: 'Step-up', vacated: vacated, teammates: hits,
+      detail: parts.join(' · ') + ' — vacated volume (' + pct(mult) + ')',
+      source: 'live',
+    };
+  }
+
   // player: { id, position, team, injuryStatus }
   // ctx: {
   //   week, weeksPlayed,
@@ -345,6 +401,8 @@ var WeeklyScore = (function () {
   //   weather         { windspeed, precip, indoor } for this game
   //   vegasAvg        number   this week's mean implied team total (baseline)
   //   usage           { recent, season } share averages for this player (see usageMultiplier)
+  //   teammatesOut    same-team same-position players who are out, with their usage (see stepUpMultiplier)
+  //   recentWindow    completed weeks in the usage `recent` window (freshness denominator)
   //   fpa, vegas, defInjuries, history   see the factor functions above
   // }
   function computeLineupScore(player, ctx) {
@@ -361,12 +419,27 @@ var WeeklyScore = (function () {
     var weather = weatherMultiplier(bye ? null : ctx.weather, pos);
     var usage = usageMultiplier(ctx.usage, pos, ctx.weeksPlayed);
     var gameScript = gameScriptMultiplier(player.team, bye ? null : ctx.opponent, ctx.vegas, pos);
-    var mult = matchup.mult * vegas.mult * form.mult * injury.mult * homeAway.mult * shortWeek.mult * weather.mult * usage.mult * gameScript.mult;
+    var stepUp = stepUpMultiplier(ctx.teammatesOut, pos, ctx.recentWindow);
+    var mult = matchup.mult * vegas.mult * form.mult * injury.mult * homeAway.mult * shortWeek.mult * weather.mult * usage.mult * gameScript.mult * stepUp.mult;
     var score = bye ? 0 : base * mult;
     return {
       score: score, base: base, mult: mult, bye: bye,
-      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury, homeAway: homeAway, shortWeek: shortWeek, weather: weather, usage: usage, gameScript: gameScript },
+      factors: { matchup: matchup, vegas: vegas, form: form, injury: injury, homeAway: homeAway, shortWeek: shortWeek, weather: weather, usage: usage, gameScript: gameScript, stepUp: stepUp },
     };
+  }
+
+  // Has this player's game started? game = /api/schedule/:week teams[TEAM]
+  // ({ kickoff: ISO, started: bool, status }); now = ms epoch (default Date.now()).
+  // Sleeper's own `started` flag wins; otherwise the kickoff time decides. A
+  // team on bye / with no schedule entry is never locked (nothing to lock).
+  function isGameLocked(game, now) {
+    if (!game) return false;
+    if (game.started === true) return true;
+    if (game.status === 'in_game' || game.status === 'complete') return true;
+    if (!game.kickoff) return false;
+    var t = Date.parse(game.kickoff);
+    if (isNaN(t)) return false;
+    return (now != null ? now : Date.now()) >= t;
   }
 
   // Start / Consider / Sit for a bench player relative to the weakest starter
@@ -390,6 +463,8 @@ var WeeklyScore = (function () {
     weatherMultiplier: weatherMultiplier,
     usageMultiplier: usageMultiplier,
     gameScriptMultiplier: gameScriptMultiplier,
+    stepUpMultiplier: stepUpMultiplier,
+    isGameLocked: isGameLocked,
     seasonWeight: seasonWeight,
     effectiveFPA: effectiveFPA,
     impliedPoints: impliedPoints,

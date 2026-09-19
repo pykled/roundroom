@@ -196,6 +196,65 @@ near(r.score, 12); assert.strictEqual(r.bye, false);              // schedule un
 r = W.computeLineupScore({ id: '1', position: 'DEF', team: 'KC', injuryStatus: null }, { weeksPlayed: 4, base: 7, opponent: 'DEN', defInjuries: defInj });
 near(r.score, 7);
 
+// --- step-up (vacated volume from an injured same-position teammate)
+const hallOut = { id: 'hall', name: 'Breece Hall', status: 'Out', usage: { recent: { games: 2, carryShare: 0.6, snapPct: 0.7 }, season: { games: 2, carryShare: 0.6, snapPct: 0.7 } } };
+let su = W.stepUpMultiplier([hallOut], 'RB', 2);
+near(su.mult, 1.14); assert.strictEqual(su.source, 'live');            // 60% share → capped at +14% (0.35 × 0.4)
+su = W.stepUpMultiplier([{ ...hallOut, usage: { recent: { games: 2 }, season: { games: 2, carryShare: 0.25, snapPct: 0.3 } } }], 'RB', 2);
+near(su.mult, 1.10);                                                   // 25% of carries → +10%
+assert.ok(/Breece Hall out/.test(su.detail));
+// WR/TE read target share; RB share is ignored for a WR
+su = W.stepUpMultiplier([{ id: 'w', name: 'X', status: 'IR', usage: { recent: { games: 1 }, season: { games: 3, tgtShare: 0.2, carryShare: 0.9, snapPct: 0.3 } } }], 'WR', 1);
+near(su.mult, 1.08);
+// freshness: played only 1 of the 2 recent weeks → half weight; 0 of 2 → neutral (already re-projected)
+su = W.stepUpMultiplier([{ ...hallOut, usage: { recent: { games: 1 }, season: { games: 4, carryShare: 0.25, snapPct: 0.4 } } }], 'RB', 2);
+near(su.mult, 1.05); assert.ok(/50% weight/.test(su.detail));
+// snap share never inflates the vacated volume: 25% carries at 70% snaps is still +10%
+su = W.stepUpMultiplier([{ ...hallOut, usage: { recent: { games: 2 }, season: { games: 4, carryShare: 0.25, snapPct: 0.7 } } }], 'RB', 2);
+near(su.mult, 1.10);
+su = W.stepUpMultiplier([{ ...hallOut, usage: { recent: { games: 0 }, season: { games: 4, carryShare: 0.25, snapPct: 0.6 } } }], 'RB', 2);
+near(su.mult, 1); assert.strictEqual(su.source, 'neutral');
+// depth piece (low share, low snaps) vacates nothing; Questionable teammate is not out
+su = W.stepUpMultiplier([{ ...hallOut, usage: { recent: { games: 2 }, season: { games: 2, carryShare: 0.08, snapPct: 0.2 } } }], 'RB', 2);
+near(su.mult, 1);
+su = W.stepUpMultiplier([{ ...hallOut, status: 'Questionable' }], 'RB', 2);
+near(su.mult, 1);
+// snaps alone never qualify: 88% of snaps but 8% of targets (live PIT WR case) → nothing vacated
+su = W.stepUpMultiplier([{ id: 'p', name: 'P', status: 'Out', usage: { recent: { games: 1 }, season: { games: 1, tgtShare: 0.08, snapPct: 0.88 } } }], 'WR', 1);
+near(su.mult, 1); assert.strictEqual(su.source, 'neutral');
+// every-down player with a moderate share (12% targets, 70% snaps) qualifies, and only his touch share is vacated: +4.8%
+su = W.stepUpMultiplier([{ id: 't', name: 'T', status: 'Out', usage: { recent: { games: 2 }, season: { games: 2, tgtShare: 0.12, snapPct: 0.7 } } }], 'TE', 2);
+near(su.mult, 1.048);
+// same share on a part-time player (12% targets, 40% snaps) does not
+su = W.stepUpMultiplier([{ id: 't', name: 'T', status: 'Out', usage: { recent: { games: 2 }, season: { games: 2, tgtShare: 0.12, snapPct: 0.4 } } }], 'TE', 2);
+near(su.mult, 1);
+// two injured backs stack but stay capped
+su = W.stepUpMultiplier([hallOut, { ...hallOut, id: 'b', name: 'B', usage: { recent: { games: 2 }, season: { games: 2, carryShare: 0.2, snapPct: 0.3 } } }], 'RB', 2);
+near(su.mult, 1.14); assert.strictEqual(su.teammates.length, 2);
+// no usage record → neutral; QB/K/DEF have no rule; missing list → neutral
+su = W.stepUpMultiplier([{ id: 'n', name: 'N', status: 'Out', usage: null }], 'RB', 2); near(su.mult, 1);
+su = W.stepUpMultiplier([hallOut], 'QB', 2); near(su.mult, 1); assert.strictEqual(su.source, 'neutral');
+su = W.stepUpMultiplier(null, 'RB', 2); near(su.mult, 1);
+// composite: step-up multiplies in, and is skipped on a bye like everything else
+r = W.computeLineupScore({ id: '2', position: 'RB', team: 'NYJ', injuryStatus: null },
+  { weeksPlayed: 2, base: 10, opponent: 'MIA', teammatesOut: [hallOut], recentWindow: 2 });
+near(r.score, 10 * 1.14); assert.strictEqual(r.factors.stepUp.source, 'live');
+r = W.computeLineupScore({ id: '2', position: 'RB', team: 'NYJ', injuryStatus: null },
+  { weeksPlayed: 2, base: 10, opponent: null, teammatesOut: [hallOut], recentWindow: 2 });
+near(r.score, 0);
+
+// --- game lock (kickoff passed or Sleeper says started)
+const t0 = Date.parse('2026-09-20T17:00:00+00:00');
+assert.strictEqual(W.isGameLocked(null, t0), false);                                   // bye / unknown
+assert.strictEqual(W.isGameLocked({ kickoff: '2026-09-20T17:00:00+00:00', started: false, status: 'pre_game' }, t0 - 1000), false);
+assert.strictEqual(W.isGameLocked({ kickoff: '2026-09-20T17:00:00+00:00', started: false, status: 'pre_game' }, t0), true);
+assert.strictEqual(W.isGameLocked({ kickoff: '2026-09-20T17:00:00+00:00', started: true, status: 'pre_game' }, t0 - 1e6), true);   // Sleeper flag wins
+assert.strictEqual(W.isGameLocked({ kickoff: null, started: false, status: 'complete' }, t0), true);
+assert.strictEqual(W.isGameLocked({ kickoff: null, started: false, status: 'in_game' }, t0), true);
+assert.strictEqual(W.isGameLocked({ kickoff: null, started: false, status: 'pre_game' }, t0), false);
+assert.strictEqual(W.isGameLocked({ kickoff: 'garbage', status: 'pre_game' }, t0), false);
+assert.strictEqual(W.isGameLocked({ date: '2026-09-20', status: 'pre_game' }, t0), false);   // old schedule shape (no kickoff) never locks
+
 // --- recommend
 assert.strictEqual(W.recommend(true, 1, []), 'start');
 assert.strictEqual(W.recommend(false, 9.5, [10, 14]), 'consider');

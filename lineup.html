@@ -86,6 +86,9 @@
 .fx.out { color: var(--danger); opacity: 1; font-weight: 600; }
 .fx.q { color: var(--amber); opacity: 1; font-weight: 600; }
 .fx.bye { color: var(--text-muted); opacity: 1; font-weight: 600; }
+/* game already started: the slot can't be changed on Sleeper, so the optimizer keeps him where he is */
+.fx.locked { color: var(--text-secondary); opacity: 1; font-weight: 600; }
+.pl-row.locked .pl-hs { filter: grayscale(0.6); }
 .fx.rec { font-family: var(--font-sans); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: default; opacity: 1; }
 .fx.rec.consider { color: var(--gold); }
 .fx.rec.sit { color: var(--text-muted); }
@@ -175,6 +178,8 @@
             <tr><td>Form</td><td>Recent performance vs projection. +% = outperforming, −% = underperforming. Weighted 50/30/20 across the last 3 weeks. Kicks in at Week 3.</td></tr>
             <tr><td>Usage</td><td>Role change. WR/TE target share (RB carry share) over the last 2 weeks vs the season average — up 5+ pts earns up to +8%, down 5+ pts up to −4%. A snap-share drop of 15+ pp costs up to −6%. Ramps in from Week 3, full weight at Week 5.</td></tr>
             <tr><td>Script</td><td>Game script from the Vegas spread. Favoured by 7+: RB +3%, WR/TE −2% (run out the clock). Underdog by 7+: WR/TE +4%, RB −3% (must throw). Ramps in from a 3.5-pt line.</td></tr>
+            <tr><td>Step-up</td><td>A teammate at the same position who was carrying real volume (15%+ of the team's carries/targets, or 10%+ while playing 60%+ of snaps) is Out, Doubtful or on IR. His touch share is up for grabs: 25% vacated ≈ +10%, capped at +14%. Fades once he's been out two weeks — by then the projection already reflects the new role.</td></tr>
+            <tr><td>🔒 Locked</td><td>His game has kicked off or finished. Sleeper won't let the slot change, so the optimizer keeps him where he is and never suggests swapping him.</td></tr>
             <tr><td>Q</td><td>Questionable — 15% reduction applied.</td></tr>
             <tr><td>D</td><td>Doubtful — 50% reduction applied.</td></tr>
             <tr><td>OUT</td><td>Out / IR — scored as 0, move to bench.</td></tr>
@@ -236,8 +241,12 @@ var S = {
   weather: null,       // { TEAM: { windspeed, precip, indoor } } from /api/weather (home stadium forecast)
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
   usage: null,         // { id: { recent, season } } share-of-team averages from /api/recent-stats
+  usageWindow: 1,      // completed weeks inside the usage `recent` window (freshness denominator for step-up)
+  teamOuts: {},        // TEAM → POS → [{ id, name, status, usage }] injured (Out/IR/D/PUP/Sus) same-position teammates
   scores: {},          // player_id → computeLineupScore result for the current league
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
+  locked: {},          // player_id → true when his game has started (slot can't change on Sleeper)
+  now: null,           // ms epoch override for lock checks (tests / previews); null = Date.now()
 };
 
 function esc(s) {
@@ -351,6 +360,38 @@ async function loadWeeklyContext() {
   S.past = results[4];
   S.weather = results[6] && results[6].teams ? results[6].teams : null;
   S.usage = results[7] && results[7].players ? results[7].players : null;
+  S.usageWindow = results[7] && Array.isArray(results[7].recentWeeks) && results[7].recentWeeks.length ? results[7].recentWeeks.length : 1;
+}
+
+// A player is locked once his NFL game has kicked off (or Sleeper flags it
+// started): Sleeper won't let him move, so neither will we. Uses the
+// kickoff/started fields /api/schedule/:week now carries. FA / bye → never locked.
+function isLocked(id) {
+  var info = S.players[id];
+  var team = info && info[2] && info[2] !== 'FA' ? info[2] : null;
+  var game = team && S.schedule ? S.schedule[team] : null;
+  return WeeklyScore.isGameLocked(game, S.now);
+}
+
+// Injured (Out/IR/Doubtful/PUP/Sus) players grouped by NFL team and position,
+// each with his usage record, so the step-up factor can see which starters'
+// touches are up for grabs. Scans the whole player pool, not just this roster —
+// the injured star is usually on someone else's team.
+var TEAM_OUT_STATUS = { Out: 1, IR: 1, Doubtful: 1, PUP: 1, Sus: 1 };
+var STEP_UP_POS = { RB: 1, WR: 1, TE: 1 };
+function buildTeamOuts() {
+  var out = {};
+  if (!S.usage) { S.teamOuts = out; return out; }   // no usage feed → nothing to measure vacated volume with
+  for (var id in S.players) {
+    var p = S.players[id];
+    if (!p || !TEAM_OUT_STATUS[p[3]] || !STEP_UP_POS[p[1]] || !p[2] || p[2] === 'FA') continue;
+    var usage = S.usage[id];
+    if (!usage) continue;                             // never logged a snap this season → nothing vacated
+    var byPos = out[p[2]] || (out[p[2]] = {});
+    (byPos[p[1]] || (byPos[p[1]] = [])).push({ id: id, name: p[0], status: p[3], usage: usage });
+  }
+  S.teamOuts = out;
+  return out;
 }
 
 // fpa-baseline.json carries the per-position neutral values and (eventually)
@@ -584,6 +625,8 @@ function scoreFor(id) {
       fpa: S.fpa, vegas: S.vegas, vegasAvg: S.vegasAvg, defInjuries: S.defInj,
       history: formHistory(id, S.league.scoring_settings || {}),
       usage: S.usage ? S.usage[id] : null,
+      teammatesOut: team && S.teamOuts[team] ? (S.teamOuts[team][info[1]] || []).filter(function(t){ return t.id !== id; }) : null,
+      recentWindow: S.usageWindow,
     });
   S.scores[id] = r;
   return r;
@@ -606,6 +649,9 @@ function recompute() {
 
   S.scores = {};
   S.rec = {};
+  S.locked = {};
+  buildTeamOuts();
+  ids.forEach(function(id){ if (isLocked(id)) S.locked[id] = true; });
   var rows = ids.map(function(id) {
     var info = S.players[id] || [id, '?', ''];
     // Rank by composite weekly score (bye/out → 0); blended VORP only breaks ties
@@ -613,16 +659,34 @@ function recompute() {
     return { id: id, position: info[1], value: value };
   });
 
-  var result = LineupOptimizer.optimize(rows, positions);
+  // Locked players can't move on Sleeper: current starters whose game has
+  // started stay pinned in their slot, and locked bench players are not
+  // candidates. The optimizer then fills only the slots that can still change.
+  var cur = S.roster.starters || [];
+  var pinned = LineupOptimizer.pinLocked(cur, function(id){ return !!S.locked[id]; });
+  var pinnedIds = {};
+  for (var idx in pinned) pinnedIds[pinned[idx]] = true;
+  var candidates = rows.filter(function(r){ return !S.locked[r.id] || pinnedIds[r.id]; });
+  var lockedBench = rows.filter(function(r){ return S.locked[r.id] && !pinnedIds[r.id]; }).map(function(r){ return r.id; });
+
+  var result = LineupOptimizer.optimize(candidates, positions, pinned);
+  // Locked bench players still belong on the bench list (sorted with the rest by value).
+  if (lockedBench.length) {
+    var val = {}; rows.forEach(function(r){ val[r.id] = r.value; });
+    result.bench = result.bench.concat(lockedBench).sort(function(a, b){ return (val[b] || 0) - (val[a] || 0); });
+  }
 
   // Start / Consider / Sit: a bench player is a "Consider" when he scores within
-  // 10% of the weakest starter in a slot he is eligible for.
+  // 10% of the weakest starter in a slot he is eligible for. Pinned (locked)
+  // starters don't set a floor — their slot can't be taken, so an OUT player
+  // locked in FLEX at 0.0 must not make every bench flex option a "Consider".
   var slotScores = {};
   result.starters.forEach(function(s) {
-    if (s.id) (slotScores[s.slot] = slotScores[s.slot] || []).push(scoreFor(s.id).score);
+    if (s.id && !s.pinned) (slotScores[s.slot] = slotScores[s.slot] || []).push(scoreFor(s.id).score);
     S.rec[s.id] = 'start';
   });
   result.bench.forEach(function(id) {
+    if (S.locked[id]) { S.rec[id] = 'sit'; return; }   // can't be started any more this week
     var pos = (S.players[id] || [])[1];
     var floors = [];
     for (var slot in slotScores) {
@@ -649,7 +713,11 @@ var STATUS_ABBR = { Questionable: 'Q', Doubtful: 'D', Out: 'OUT', IR: 'IR', PUP:
 function factorChips(id, r, team, opts) {
   var chips = [];
   var rec = S.rec[id];
-  if (!opts.starter && !opts.ir && rec && rec !== 'start') {
+  if (S.locked[id]) {
+    var g = team && S.schedule ? S.schedule[team] : null;
+    var when = g && g.status === 'complete' ? 'Game finished' : 'Game in progress';
+    chips.push('<span class="fx locked" title="' + when + ' — this slot can\'t be changed on Sleeper, so the optimizer keeps him where he is">🔒 Locked</span>');
+  } else if (!opts.starter && !opts.ir && rec && rec !== 'start') {
     chips.push('<span class="fx rec ' + rec + '" title="' + (rec === 'consider' ? 'Within 10% of the weakest starter he could replace' : 'Below the starters at every eligible slot') + '">' + (rec === 'consider' ? 'Consider' : 'Sit') + '</span>');
   }
   if (r.bye) {
@@ -666,6 +734,7 @@ function factorChips(id, r, team, opts) {
   if (f.form.source === 'live') chip('Form ' + WeeklyScore.pct(f.form.mult), f.form);
   if (f.usage && f.usage.source === 'live') chip('Usage ' + WeeklyScore.pct(f.usage.mult), f.usage);
   if (f.gameScript && f.gameScript.source === 'live') chip('Script ' + WeeklyScore.pct(f.gameScript.mult), f.gameScript);
+  if (f.stepUp && f.stepUp.source === 'live') chip('Step-up ' + WeeklyScore.pct(f.stepUp.mult), f.stepUp);
   var inj = f.injury;
   if (inj.own === 0) chips.push('<span class="fx out" title="' + esc(inj.detail) + '">' + esc(STATUS_ABBR[(S.players[id] || [])[3]] || 'OUT') + '</span>');
   else if (inj.own < 1) chip((STATUS_ABBR[(S.players[id] || [])[3]] || 'Inj') + ' ' + WeeklyScore.pct(inj.own), { mult: inj.own, detail: inj.detail }, 'q');
@@ -690,7 +759,7 @@ function playerRow(id, opts) {
   var r = scoreFor(id);
   var isTarget = S.targets[String(name).toLowerCase()];
   var onSleeper = (S.roster.starters || []).indexOf(id) >= 0;
-  var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '');
+  var cls = 'pl-row' + (opts.starter ? ' starter' : '') + (opts.ir ? ' ir' : '') + (S.locked[id] ? ' locked' : '');
   // Left column: split badge for FLEX/SUPER_FLEX slots; colored pos-badge for everything else.
   var flexSegs = { FLEX: ['WR','RB','TE'], SUPER_FLEX: ['QB','WR','RB','TE'] };
   var slotHtml;
@@ -767,7 +836,7 @@ function stackTips(result) {
       var pts = seasonPts(id);
       if (pts > bestPts) { bestPts = pts; bestId = id; }
     }
-    if (bestId && benchSet[bestId] && scoreFor(bestId).score > 0) tips.push({ qb: s.id, wr: bestId });
+    if (bestId && benchSet[bestId] && !S.locked[bestId] && scoreFor(bestId).score > 0) tips.push({ qb: s.id, wr: bestId });
   });
   return tips;
 }
@@ -781,7 +850,9 @@ function renderSwaps(result) {
   var tipHtml = tips.map(function(t) {
     return '<div class="sw-row"><span class="sw-tag stack" title="Your starting QB\'s top target is on your bench — pairing them raises your ceiling">Stack</span><span>Consider stacking <b>' + esc(nameOf(t.wr)) + '</b> with <b>' + esc(nameOf(t.qb)) + '</b>.</span></div>';
   }).join('');
-  var foot = '<div class="sw-foot">Pocket reads your roster but can\'t write to it.</div>';
+  var lockedCount = Object.keys(S.locked).length;
+  var lockNote = lockedCount ? ' ' + lockedCount + ' player' + (lockedCount > 1 ? 's' : '') + ' whose game' + (lockedCount > 1 ? 's have' : ' has') + ' started ' + (lockedCount > 1 ? 'are' : 'is') + ' locked in place (🔒) and left out of these suggestions.' : '';
+  var foot = '<div class="sw-foot">Pocket reads your roster but can\'t write to it.' + lockNote + '</div>';
   if (!hasCurrent) {
     if (!tips.length) { note.hidden = true; return; }
     note.className = '';

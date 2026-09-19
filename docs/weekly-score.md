@@ -15,6 +15,7 @@ weekly_score = base_projection
              × weather_multiplier(home stadium forecast, position)
              × usage_multiplier(recent target/carry share + snap share vs season)
              × game_script_multiplier(vegas spread proxy, position)
+             × step_up_multiplier(injured same-position teammates' vacated touch share)
 ```
 
 A player on bye (no opponent in `/api/schedule/:week`) scores 0. Blended VORP
@@ -35,6 +36,49 @@ replace are tagged **Consider**; the rest **Sit**.
 | weather | 0.78 – 1.04 | **live** | `/api/weather?week=N` → `S.weather[TEAM] = { windspeed (mph), precip (%), indoor }` — the home stadium's Open-Meteo forecast, shared by both teams. Chip **WX** only when mult < 0.95 or > 1.03. |
 | usage | 0.90 – 1.08, ramped | **live** from week 3 | `/api/recent-stats?week=N` → `S.usage[id] = { recent, season }` share-of-team averages (api.sleeper.com weekly stats: `rec_tgt`, `rush_att`, `off_snp`, `tm_off_snp`). Chip **Usage**. |
 | gameScript | 0.97 – 1.04 | **live** | Derived from `S.vegas` (own implied − opponent implied ≈ spread). No extra fetch. Chip **Script**. |
+| stepUp | 1.0 – 1.14 | **live** (2026-09-19) | Same-team, same-position players who are Out/IR/Doubtful/PUP/Sus in `/api/players/slim`, joined to their `/api/recent-stats` usage (`buildTeamOuts()` in lineup.html → `S.teamOuts[TEAM][POS]`). Chip **Step-up**. |
+
+### Locked slots (2026-09-19)
+
+`/api/schedule/:week` now merges Sleeper's scores feed
+(`api.sleeper.app/scores/nfl/regular/2026/{week}`, cached 5 min) into each team:
+`kickoff` (ISO, from `metadata.date_time`) and `started` (Sleeper's
+`has_started` / `is_in_progress` / `is_over`). `WeeklyScore.isGameLocked(game, now)`
+is true once Sleeper says started, the status is `in_game`/`complete`, or
+`now >= kickoff`. In `recompute()`:
+
+- current Sleeper starters whose game has started are **pinned** into their exact
+  slot (`LineupOptimizer.pinLocked(roster.starters, isLocked)` →
+  `optimize(candidates, positions, pinned)`), so a locked RB sitting in FLEX keeps
+  the FLEX, not an RB slot;
+- locked bench players are removed from the candidate list (they can't be started)
+  and re-appended to the bench display;
+- the swap note therefore never suggests moving a locked player, and its footer
+  says how many were left out. Locked rows get a `🔒 Locked` tag in place of
+  Consider/Sit and a desaturated headshot.
+
+Browser cache on `/api/schedule` dropped from 1 h to 5 min for this. `S.now`
+overrides the clock for previews/tests. Unit checks: `node scripts/test-lineup.js`.
+
+### Step-up (vacated volume)
+
+For a healthy RB/WR/TE, every same-team, same-position player whose status is
+Out/IR/Doubtful/PUP/Sus and who has a usage record this season is a candidate:
+
+```
+volume     = share ≥ 0.15  OR  (share ≥ 0.10 AND snap ≥ 0.60)   // share = season carry (RB) / target (WR/TE) share
+fresh      = recent.games ÷ recentWindow                          // 1 = played every week of the recent window
+vacated    = Σ share × fresh  over qualifying teammates
+step_up    = min(1.14, 1 + min(vacated, 0.35) × 0.4)              // 25% share → +10%
+```
+
+Snap share only helps a moderate-share every-down player qualify — it is never
+the vacated quantity (live week-2 data: a PIT WR with 88% snaps / 8% targets
+would otherwise have handed DK Metcalf +14%). `fresh` fades the boost out once
+the injured player has missed the whole recent window: by then Sleeper's
+projection and the replacement's own usage already reflect the new role. A
+player who never logged a snap (preseason IR) has no usage record and is
+ignored — his absence is already baked into everyone's projections.
 
 ### Usage (recent role)
 

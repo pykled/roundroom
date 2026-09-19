@@ -31,16 +31,31 @@ var LineupOptimizer = (function () {
   // Greedy: dedicated slots first (highest value eligible player), then flex
   // slots in order, so a WR never gets pulled into FLEX before the WR slots
   // are full. Returns { starters: [{ slot, id|null }], bench: [id] }.
-  function optimize(players, rosterPositions) {
+  //
+  // pinned (optional): { rosterIndex: id } — players whose game has already
+  // started are locked into the slot they occupy on Sleeper (index into
+  // rosterPositions, i.e. the position in roster.starters). Pinned slots are
+  // filled first and never reconsidered, and pinned ids never move even if a
+  // higher-value slot is open, mirroring Sleeper's own lock rules. Callers should
+  // also leave locked *bench* players out of `players` so they aren't started.
+  function optimize(players, rosterPositions, pinned) {
     var slots = starterSlots(rosterPositions);
     var placed = {};
     var byValue = players.slice().sort(function (a, b) { return (b.value || 0) - (a.value || 0); });
     var result = slots.map(function (s) { return { slot: s.slot, index: s.index, id: null }; });
 
+    if (pinned) {
+      for (var pi = 0; pi < result.length; pi++) {
+        var pid = pinned[result[pi].index];
+        if (pid == null || pid === '0' || placed[pid]) continue;
+        result[pi].id = String(pid); placed[String(pid)] = true; result[pi].pinned = true;
+      }
+    }
+
     function fill(pred) {
       for (var i = 0; i < result.length; i++) {
         var r = result[i];
-        if (!pred(r.slot)) continue;
+        if (r.pinned || !pred(r.slot)) continue;
         var ok = SLOT_ELIGIBLE[r.slot];
         for (var j = 0; j < byValue.length; j++) {
           var p = byValue[j];
@@ -56,9 +71,21 @@ var LineupOptimizer = (function () {
     var bench = [];
     for (var k = 0; k < byValue.length; k++) if (!placed[byValue[k].id]) bench.push(byValue[k].id);
     return {
-      starters: result.map(function (r) { return { slot: r.slot, id: r.id }; }),
+      starters: result.map(function (r) { return { slot: r.slot, id: r.id, pinned: !!r.pinned }; }),
       bench: bench,
     };
+  }
+
+  // Locked-slot map for optimize(): { rosterIndex: id } for every current
+  // Sleeper starter whose game has started. currentStarters is roster.starters
+  // (ids aligned with rosterPositions, "0" for an empty slot); isLocked(id) is
+  // the caller's predicate (kickoff passed / Sleeper says started).
+  function pinLocked(currentStarters, isLocked) {
+    var pinned = {};
+    (currentStarters || []).forEach(function (id, i) {
+      if (id && id !== '0' && isLocked(id)) pinned[i] = id;
+    });
+    return pinned;
   }
 
   // Compare the optimal lineup with the one currently set on Sleeper.
@@ -74,7 +101,7 @@ var LineupOptimizer = (function () {
     return { in: toStart, out: toBench };
   }
 
-  return { optimize: optimize, diff: diff, starterSlots: starterSlots, eligible: eligible };
+  return { optimize: optimize, diff: diff, pinLocked: pinLocked, starterSlots: starterSlots, eligible: eligible };
 })();
 
 if (typeof module !== 'undefined') module.exports = LineupOptimizer;
