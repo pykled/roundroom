@@ -456,12 +456,10 @@ app.get('/api/player-stats/:playerId', async (req, res) => {
   const hit = statsCache.get(id);
   if (hit && Date.now() - hit.time < PLAYER_CACHE_TTL) return res.json(hit.data);
   try {
-    const [s2022, s2023, s2024] = await Promise.all([
-      buildSeasonStats(id, 2022),
-      buildSeasonStats(id, 2023),
-      buildSeasonStats(id, 2024),
-    ]);
-    const data = { seasons: [s2022, s2023, s2024].filter(Boolean), nflSeasonLength: NFL_SEASON_LENGTH };
+    // 2022-2025 = completed seasons; 2026 = current season (weeks not yet played
+    // return no rows, so buildSeasonStats yields null until gp > 0 and is filtered).
+    const seasons = await Promise.all([2022, 2023, 2024, 2025, 2026].map(y => buildSeasonStats(id, y)));
+    const data = { seasons: seasons.filter(Boolean), nflSeasonLength: NFL_SEASON_LENGTH };
     evictOldest(statsCache, STATS_CACHE_MAX);
     statsCache.set(id, { data, time: Date.now() });
     res.json(data);

@@ -375,6 +375,12 @@
             <div><div id="rf-give"></div></div>
             <div><div id="rf-recv"></div></div>
           </div>
+          <!-- Need-adjusted verdict: same WIN/FAIR/LOSE rule as above, run on the fit-scaled values. -->
+          <div class="rf-summary">
+            Need-adjusted: <span id="rf-give-num">0</span> → <span id="rf-recv-num">0</span>
+            <span class="vd-badge rf-badge" id="rf-badge"></span>
+          </div>
+          <div class="share-note" id="rf-delta"></div>
         </div>
       </div>
     </div>
@@ -759,8 +765,10 @@ function getScoringSettings() {
 
 function getRosterPositions() {
   if (S.mode === 'connected' && S.league && S.league.roster_positions) return S.league.roster_positions;
-  var base = [];
-  for (var i = 0; i < S.preset.qbs; i++) base.push('QB');
+  // Exactly one QB slot always; SUPER_FLEX is the second QB-eligible starter in
+  // the SF preset. Pushing 'QB' per qbs AND a SUPER_FLEX gave 3 QB-eligible
+  // slots, which pushed replacement QB from QB24 to QB36 and inflated SF VORP.
+  var base = ['QB'];
   base = base.concat(['RB','RB','WR','WR','WR','TE','FLEX','K']);
   if (S.preset.qbs >= 2) base.push('SUPER_FLEX');
   return base;
@@ -1388,6 +1396,18 @@ function renderRosterFit() {
     var recvEl = document.getElementById('rf-recv');
     giveEl.innerHTML = S.give.length ? S.give.map(function(id){ return rfRow(id, 'give', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
     recvEl.innerHTML = S.recv.length ? S.recv.map(function(id){ return rfRow(id, 'recv', depth, slots); }).join('') : '<div class="rf-empty">Nothing</div>';
+
+    // Need-adjusted summary: the verdict once positional need and slot fit are applied.
+    document.getElementById('rf-give-num').textContent = r.giverValue.toLocaleString();
+    document.getElementById('rf-recv-num').textContent = r.receiverValue.toLocaleString();
+    var badge = document.getElementById('rf-badge');
+    badge.textContent = r.verdict;
+    badge.className = 'vd-badge rf-badge vd-' + r.verdict;
+    var pct = Math.abs(r.deltaPct * 100).toFixed(1);
+    document.getElementById('rf-delta').textContent =
+      r.verdict === 'WIN'  ? 'Need-adjusted: you receive ' + pct + '% more value for your roster' :
+      r.verdict === 'LOSE' ? 'Need-adjusted: you give up ' + pct + '% in value for your roster' :
+      'Need-adjusted: within ' + pct + '% — fair for your roster';
 
     sec.hidden = false;
   } catch(e) {
