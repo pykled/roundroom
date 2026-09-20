@@ -12,6 +12,9 @@
     "fetch-fantasypros": "node scripts/fetch-fantasypros.js",
     "fetch-underdog": "node scripts/fetch-underdog.js",
     "fetch-fpa": "node scripts/scrape-fpa.js",
+    "log-week": "node scripts/log-week.js",
+    "backtest": "node scripts/backtest-lineup.js",
+    "test": "node scripts/test-weekly-score.js && node scripts/test-lineup.js && node scripts/test-trade-fit.js && node scripts/test-week-history.js",
     "merge-sources": "node scripts/merge-sources.js",
     "update-data": "node scripts/crawl.js --resume && node scripts/aggregate.js && node scripts/vorp.js && node scripts/fetch-fantasypros.js && node scripts/fetch-underdog.js && node scripts/merge-sources.js"
   },

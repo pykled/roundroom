@@ -6,6 +6,8 @@ const fs = require('fs');
 const { clerkMiddleware, getAuth } = require("@clerk/express");
 const { Pool } = require('pg');
 const { pool: db, migrate } = require('./db/migrate');
+const WeekHistory = require('./scripts/log-week');
+const FPACalibration = require('./shared/fpa-calibration');
 
 const app = express();
 // Trust Railway's proxy so req.ip is the real client IP (not 127.0.0.1),
@@ -1594,6 +1596,147 @@ app.get('/api/trades/:token', async (req, res) => {
     res.json({ ...rows[0].payload_json, createdAt: rows[0].created_at });
   } catch (err) {
     res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Week history — the season's persisted learning (data/history/ + Postgres)
+// ---------------------------------------------------------------------------
+// One record per completed week (see scripts/log-week.js for the schema and
+// the reasoning). Two stores, merged on read with the newer generatedAt winning:
+//   data/history/<season>-week-<N>.json  committed by .github/workflows/log-week.yml
+//                                        (durable: ships with every deploy)
+//   week_history table                   written by POST /api/log-week so an
+//                                        on-demand log survives the next redeploy
+// The lineup page reads /api/history for the FPA calibration; the backtest
+// script reads the files directly.
+const HISTORY_SEASON = WeekHistory.SEASON;
+const HISTORY_TTL = 10 * 60 * 1000;
+let historyCache = { value: null, time: 0 };
+let logWeekInFlight = null;
+
+async function loadWeekHistory() {
+  if (historyCache.value && Date.now() - historyCache.time < HISTORY_TTL) return historyCache.value;
+  const byWeek = new Map();
+  for (const rec of WeekHistory.loadHistory({ season: HISTORY_SEASON })) byWeek.set(Number(rec.week), rec);
+  if (db) {
+    try {
+      const { rows } = await db.query('SELECT week, payload_json FROM week_history WHERE season = $1', [HISTORY_SEASON]);
+      for (const r of rows) {
+        const rec = r.payload_json;
+        if (!rec || typeof rec !== 'object') continue;
+        const cur = byWeek.get(Number(r.week));
+        if (!cur || String(rec.generatedAt || '') > String(cur.generatedAt || '')) byWeek.set(Number(r.week), rec);
+      }
+    } catch (err) {
+      console.error('week_history read error:', err.message);   // disk records still serve
+    }
+  }
+  const list = [...byWeek.values()].sort((a, b) => a.week - b.week);
+  historyCache = { value: list, time: Date.now() };
+  return list;
+}
+
+// GET /api/history?before=N → { season, weeks: [summary], calibration }.
+// `before` keeps the calibration hindsight-free when a past week is being viewed.
+app.get('/api/history', async (req, res) => {
+  try {
+    const before = parseInt(req.query.before, 10);
+    let history = await loadWeekHistory();
+    if (before >= 1) history = history.filter(h => Number(h.week) < before);
+    const weeks = history.map(h => ({
+      week: h.week, generatedAt: h.generatedAt || null, weeksPlayed: h.weeksPlayed,
+      fpaSamples: h.meta ? h.meta.fpaSamples : Object.keys(h.fpa || {}).length,
+      fpaRanked: h.meta ? h.meta.fpaRanked : null,
+      usagePlayers: h.meta ? h.meta.usagePlayers : Object.keys(h.usage || {}).length,
+      backtest: h.backtest || {},
+    }));
+    res.setHeader('Cache-Control', 'public, max-age=600');
+    res.json({ season: HISTORY_SEASON, weeks, calibration: FPACalibration.build(history) });
+  } catch (err) {
+    console.error('/api/history error:', err.message);
+    res.status(500).json({ error: 'Failed to load week history' });
+  }
+});
+
+app.get('/api/history/:week', async (req, res) => {
+  const week = parseInt(req.params.week, 10);
+  if (!week || week < 1 || week > 18) return res.status(400).json({ error: 'Invalid week' });
+  try {
+    const rec = (await loadWeekHistory()).find(h => Number(h.week) === week);
+    if (!rec) return res.status(404).json({ error: `Week ${week} not logged yet` });
+    res.setHeader('Cache-Control', 'public, max-age=600');
+    res.json(rec);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load week history' });
+  }
+});
+
+// POST /api/log-week  { week?, backtest?: { leagueId: {...} }, backtestUsers?: [username] }
+// Builds the record for `week` (default: latest complete week on Sleeper),
+// writes data/history/ and upserts week_history. Guarded by LOG_WEEK_SECRET
+// (falls back to ANNOUNCE_SECRET) via the x-log-secret header; open only when
+// neither is configured (local dev). The backtest cron calls this after it
+// runs, passing its results in `backtest`; `backtestUsers` runs them here.
+const LOG_WEEK_SECRET = process.env.LOG_WEEK_SECRET || process.env.ANNOUNCE_SECRET;
+app.post('/api/log-week', express.json({ limit: '200kb' }), async (req, res) => {
+  if (LOG_WEEK_SECRET && req.headers['x-log-secret'] !== LOG_WEEK_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (rateLimit(`log-week:${req.ip}`, 10, 60 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Too many log-week calls — try again in an hour' });
+  }
+  if (logWeekInFlight) return res.status(409).json({ error: 'A log-week run is already in progress' });
+  const body = req.body || {};
+  let week = parseInt(body.week, 10);
+  if (body.week != null && (!week || week < 1 || week > 18)) return res.status(400).json({ error: 'Invalid week' });
+  const backtestUsers = Array.isArray(body.backtestUsers) ? body.backtestUsers.slice(0, 5) : [];
+  logWeekInFlight = (async () => {
+    if (!week) week = await WeekHistory.latestCompleteWeek(HISTORY_SEASON);
+    if (!week) return { status: 200, body: { ok: false, logged: false, reason: 'No completed week on Sleeper yet' } };
+    const history = await loadWeekHistory();
+    const record = await WeekHistory.buildWeekRecord({
+      week, season: HISTORY_SEASON, backtest: body.backtest, backtestUsers, history,
+      log: m => console.log(`log-week: ${m}`),
+    });
+    // Keep backtest entries this run didn't produce (same merge writeWeekRecord does for disk).
+    const prior = history.find(h => Number(h.week) === week);
+    if (prior && prior.backtest) record.backtest = Object.assign({}, prior.backtest, record.backtest);
+    let file = null;
+    try { file = path.relative(__dirname, WeekHistory.writeWeekRecord(record)); }
+    catch (err) { console.error('log-week disk write failed:', err.message); }
+    let persisted = false;
+    if (db) {
+      try {
+        await db.query(
+          `INSERT INTO week_history (season, week, payload_json, generated_at) VALUES ($1, $2, $3, NOW())
+           ON CONFLICT (season, week) DO UPDATE SET payload_json = EXCLUDED.payload_json, generated_at = NOW()`,
+          [HISTORY_SEASON, week, JSON.stringify(record)]
+        );
+        persisted = true;
+      } catch (err) {
+        console.error('week_history upsert failed:', err.message);
+      }
+    }
+    historyCache = { value: null, time: 0 };
+    return {
+      status: 200,
+      body: {
+        ok: true, logged: true, season: HISTORY_SEASON, week, file, persisted,
+        fpaSamples: record.meta.fpaSamples, fpaRanked: record.meta.fpaRanked,
+        usagePlayers: record.meta.usagePlayers, backtestLeagues: Object.keys(record.backtest).length,
+        notes: record.meta.notes,
+      },
+    };
+  })();
+  try {
+    const out = await logWeekInFlight;
+    res.status(out.status).json(out.body);
+  } catch (err) {
+    console.error('/api/log-week error:', err.message);
+    res.status(/not complete/.test(err.message) ? 409 : 502).json({ error: err.message });
+  } finally {
+    logWeekInFlight = null;
   }
 });
 

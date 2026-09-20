@@ -24,6 +24,8 @@
 //   matchup     LIVE   data/fpa-current.json (`current`, rebuilt weekly by scripts/scrape-fpa.js
 //                      via .github/workflows/update-fpa.yml) merged over data/fpa-baseline.json.
 //                      `historical` (3-yr avg per team) still empty → neutral baseline fills in.
+//                      fpa.calibration (/api/history → shared/fpa-calibration.js, built from
+//                      data/history/*.json) rescales the ±20% swing once 3+ weeks are logged.
 //   vegas       LIVE   /api/vegas → ctx.vegas = { TEAM: impliedPts } (The Odds API, ODDS_API_KEY)
 //   form        LIVE   Sleeper weekly stats + past-week projections (api.sleeper.com)
 //   injury      LIVE   own status from /api/players/slim; opponent defenders from /api/def-injuries
@@ -133,8 +135,24 @@ var WeeklyScore = (function () {
     return w * cur + (1 - w) * hist;
   }
 
+  // Calibration scale for the matchup swing at this position, from
+  // fpa.calibration (shared/fpa-calibration.js build()). Per-position fit when
+  // it had enough samples, else the pooled fit, else 1 (as modelled). Inlined
+  // rather than required so this file stays dependency-free in the browser.
+  function calibrationScale(fpa, pos) {
+    var cal = fpa && fpa.calibration;
+    if (!cal || !cal.active) return 1;
+    var p = cal.byPos && cal.byPos[pos];
+    if (p && p.enough && isFinite(p.scale)) return p.scale;
+    var o = cal.overall;
+    if (o && o.enough && isFinite(o.scale)) return o.scale;
+    return 1;
+  }
+
   // Rank the opponent among all teams with data for this position (1 = allows
-  // the most points = best matchup) and map rank → multiplier linearly.
+  // the most points = best matchup) and map rank → multiplier linearly. The
+  // swing is then rescaled by the historical calibration (how much high-FPA
+  // matchups have actually paid off this season) and damped by sample size.
   function matchupMultiplier(pos, opponent, fpa, weeksPlayed) {
     if (!opponent) return { mult: 1, label: 'MU', detail: 'No opponent this week', source: 'neutral' };
     var mine = effectiveFPA(fpa, pos, opponent, weeksPlayed);
@@ -157,12 +175,14 @@ var WeeklyScore = (function () {
     values.forEach(function (v) { if (v > mine) better++; else if (v === mine) equal++; });
     var rank = better + 1 + (equal - 1) / 2;   // ties share the average rank
     var frac = (rank - 1) / (n - 1);            // 0 = best, 1 = worst
-    var rawMult = MATCHUP_BEST - frac * (MATCHUP_BEST - MATCHUP_WORST);
+    var scale = calibrationScale(fpa, pos);
+    var rawMult = 1 + (MATCHUP_BEST - frac * (MATCHUP_BEST - MATCHUP_WORST) - 1) * scale;
     var mult = 1 + (rawMult - 1) * seasonWeight(weeksPlayed); // damp toward 1× early; full swing at wk 8
     var shown = Math.round(rank);
+    var calNote = Math.abs(scale - 1) > 1e-9 ? ', swing ×' + scale.toFixed(2) + ' from ' + (fpa.calibration.weeks || []).length + '-wk calibration' : '';
     return {
-      mult: mult, label: 'MU', rank: shown, fpa: mine,
-      detail: 'vs ' + opponent + ': #' + shown + ' of ' + n + ' fantasy pts allowed to ' + pos + ' (' + mine.toFixed(1) + '/g, ' + Math.round(seasonWeight(weeksPlayed) * 100) + '% this season)',
+      mult: mult, label: 'MU', rank: shown, n: n, fpa: mine, scale: scale,
+      detail: 'vs ' + opponent + ': #' + shown + ' of ' + n + ' fantasy pts allowed to ' + pos + ' (' + mine.toFixed(1) + '/g, ' + Math.round(seasonWeight(weeksPlayed) * 100) + '% this season' + calNote + ')',
       source: 'live',
     };
   }
@@ -467,6 +487,7 @@ var WeeklyScore = (function () {
     isGameLocked: isGameLocked,
     seasonWeight: seasonWeight,
     effectiveFPA: effectiveFPA,
+    calibrationScale: calibrationScale,
     impliedPoints: impliedPoints,
     recommend: recommend,
     pct: pct,

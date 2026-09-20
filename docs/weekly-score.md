@@ -150,6 +150,52 @@ league where every team sits on the neutral baseline yields exactly 1.0×.
 A team with current data but no history blends against the neutral position
 baseline rather than trusting a small sample.
 
+### Week history + FPA calibration (2026-09-20)
+
+Everything the engine consumed used to live in in-process caches, so a Railway
+redeploy reset the season. `data/history/<season>-week-<N>.json` now persists,
+per completed week, only what Sleeper does **not** keep and the algorithms need
+to learn from (raw stats and projections stay on Sleeper):
+
+| Block | Per | Fields | Feeds |
+|---|---|---|---|
+| `fpa` | player who played | matchup rank / FPA the engine saw **before** the week (built from weeks 1…N−1 only), half-PPR `proj`, `actualPoints` | `shared/fpa-calibration.js` |
+| `usage` | RB/WR/TE | running season averages `targetShareAvg` / `carryShareAvg` / `snapPctAvg`, `weeks`, this week's `last` shares | usage trend without refetching 18 feeds |
+| `backtest` | league | `algoScore` / `optimalScore` / `yourScore`, `accuracy` (algo ÷ optimal), `yourAccuracy` | optimizer accuracy trend |
+
+Producer: `scripts/log-week.js` (`npm run log-week [-- --week=N --backtest=pykle]`;
+builder exported as `buildWeekRecord`). Three paths write it:
+
+- **`.github/workflows/log-week.yml`** — Tuesdays 10:00 UTC, after `Update FPA`;
+  runs the backtests for `vars.POCKET_BACKTEST_USERS` (default `pykle`) and
+  **commits the file** — the durable path, since Railway's disk is wiped on deploy.
+  Chained into `deploy.yml` so it ships immediately.
+- **`POST /api/log-week`** `{ week?, backtest?, backtestUsers? }` (header
+  `x-log-secret` = `LOG_WEEK_SECRET` → `ANNOUNCE_SECRET`) — writes the file **and**
+  upserts the `week_history` Postgres row, so an on-demand log survives the next
+  redeploy. Refuses a week Sleeper hasn't finished (409). Backtest entries from
+  separate runs merge per league rather than replace.
+- Reads merge both stores (newer `generatedAt` wins): `GET /api/history?before=N`
+  (summaries + calibration, hindsight-free for week N) and `GET /api/history/:week`.
+
+**Calibration.** The matchup factor models a #1 → #32 matchup as 1.2× → 0.8×
+(slope −0.4 over the rank fraction). `FPACalibration.build(history)` regresses
+`actualPoints ÷ proj` on that fraction (weighted by projection, ratio capped at
+3, projections < 5 ignored) per position and pooled:
+
+```
+rawScale   = clamp(observed_slope / -0.4, 0, 1.5)      // 1 = as modelled, 0 = FPA told us nothing
+confidence = clamp((weeks - 2) / 4, 0, 1)               // 0 below 3 weeks, 1 from 6
+scale      = 1 + (rawScale - 1) * confidence
+raw_mult   = 1 + (1.2 - 0.4 * frac - 1) * scale         // then season_weight damping as before
+```
+
+Per-position needs 60 player-weeks, pooled 150; otherwise the scale stays 1.
+`lineup.html` attaches `/api/history` calibration as `S.fpa.calibration`;
+`scripts/backtest-lineup.js` builds it from history files for weeks before the
+tested one. The MU chip's detail reads e.g. `swing ×0.62 from 4-wk calibration`.
+Checks: `node scripts/test-week-history.js` (offline + live Week 1 shape).
+
 ### Form
 
 Weighted actual ÷ weighted projected over the last three completed weeks

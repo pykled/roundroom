@@ -174,7 +174,7 @@
         <table class="legend-table">
           <thead><tr><th>Tag</th><th>What it means</th></tr></thead>
           <tbody>
-            <tr><td>MU</td><td>Matchup — how many pts this defense allows to the position on average. +% = soft D, −% = tough D. Builds confidence through the season (full weight at Week 8).</td></tr>
+            <tr><td>MU</td><td>Matchup — how many pts this defense allows to the position on average. +% = soft D, −% = tough D. Builds confidence through the season (full weight at Week 8), and the swing is recalibrated from how much soft matchups have actually paid off so far this season.</td></tr>
             <tr><td>Form</td><td>Recent performance vs projection. +% = outperforming, −% = underperforming. Weighted 50/30/20 across the last 3 weeks. Kicks in at Week 3.</td></tr>
             <tr><td>Usage</td><td>Role change. WR/TE target share (RB carry share) over the last 2 weeks vs the season average — up 5+ pts earns up to +8%, down 5+ pts up to −4%. A snap-share drop of 15+ pp costs up to −6%. Ramps in from Week 3, full weight at Week 5.</td></tr>
             <tr><td>Script</td><td>Game script from the Vegas spread. Favoured by 7+: RB +3%, WR/TE −2% (run out the clock). Underdog by 7+: WR/TE +4%, RB −3% (must throw). Ramps in from a 3.5-pt line.</td></tr>
@@ -235,7 +235,8 @@ var S = {
   // Weekly-score inputs (see shared/weekly-score.js header for what is live vs placeholder)
   schedule: undefined, // { TEAM: { opp, home, date } } for S.week; undefined = not loaded, so no bye detection
   defInj: {},          // { TEAM: [{ name, pos, slot, order, status }] }
-  fpa: null,           // data/fpa-baseline.json with data/fpa-current.json merged into `current`
+  fpa: null,           // data/fpa-baseline.json with data/fpa-current.json merged into `current`,
+                       // plus `calibration` from /api/history (shared/fpa-calibration.js over data/history/)
   vegas: null,         // { TEAM: impliedPts } from The Odds API via /api/vegas
   vegasAvg: null,      // this week's mean implied team total (baseline for the Vegas factor)
   weather: null,       // { TEAM: { windspeed, precip, indoor } } from /api/weather (home stadium forecast)
@@ -351,10 +352,16 @@ async function loadWeeklyContext() {
     jsonOr('/data/fpa-current.json', null),
     jsonOr('/api/weather?week=' + S.week, null),
     jsonOr('/api/recent-stats?week=' + S.week, null),
+    jsonOr('/api/history?before=' + S.week, null),
   ]);
   S.schedule = results[0] && results[0].teams ? results[0].teams : undefined;
   S.defInj = results[1] || {};
   S.fpa = mergeFPA(results[2], results[5]);
+  // Historical FPA calibration: rescales the matchup swing once 3+ weeks are
+  // logged (fpa.calibration.active). Only weeks before this one count.
+  if (S.fpa && results[8] && results[8].calibration && String(results[8].season || S.season) === String(S.season)) {
+    S.fpa.calibration = results[8].calibration;
+  }
   S.vegas = results[3] && results[3].teams ? results[3].teams : null;
   S.vegasAvg = results[3] && isFinite(results[3].avgImplied) ? results[3].avgImplied : null;
   S.past = results[4];

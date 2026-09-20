@@ -1,0 +1,38 @@
+name: Log Week
+# Persist the completed NFL week to data/history/<season>-week-<N>.json:
+# no-hindsight FPA rank vs actual points per player (→ matchup calibration),
+# running usage-share averages, and lineup backtest accuracy per league.
+# Committing the file is what makes it durable — Railway's disk is wiped on
+# every deploy. See scripts/log-week.js for the schema.
+on:
+  schedule:
+    - cron: '0 10 * * 2'   # Tuesdays 10:00 UTC (3am PT) — Monday night is final, after Update FPA (09:00 UTC)
+  workflow_dispatch:
+    inputs:
+      week:
+        description: 'Week to log (blank = latest complete week on Sleeper)'
+        required: false
+jobs:
+  log-week:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      # scripts/log-week.js + backtest-lineup.js use only Node built-ins (native fetch) — no install step.
+      - name: Build week record (with lineup backtests)
+        env:
+          # Sleeper usernames whose leagues get backtested each week (comma-separated).
+          POCKET_BACKTEST_USERS: ${{ vars.POCKET_BACKTEST_USERS || 'pykle' }}
+        run: node scripts/log-week.js ${{ github.event.inputs.week && format('--week={0}', github.event.inputs.week) || '' }}
+      - name: Commit history
+        run: |
+          git config user.name "Pocket Bot"
+          git config user.email "bot@roundroom.app"
+          git add data/history
+          git diff --staged --quiet || git commit -m "chore: log week history $(date -u +%Y-%m-%d)"
+          git pull --no-rebase -X ours origin main
+          git push origin main || (sleep 10 && git pull --no-rebase -X ours origin main && git push origin main)

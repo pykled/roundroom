@@ -7,7 +7,7 @@ on:
   # fires `on: push` workflows — so fresh ADP/injury data was landing on main
   # but never reaching Railway. Chain the deploy off those workflows instead.
   workflow_run:
-    workflows: ["Update Draft Data", "Update Injuries"]
+    workflows: ["Update Draft Data", "Update Injuries", "Update FPA (points allowed)", "Log Week"]
     types: [completed]
     branches: [main]
 

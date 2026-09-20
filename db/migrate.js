@@ -40,6 +40,16 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(user_id, list_type, player_name)
     );
+    -- One row per logged NFL week (scripts/log-week.js record). Mirrors
+    -- data/history/<season>-week-<N>.json so a POST /api/log-week on Railway
+    -- survives the next redeploy (the container disk does not).
+    CREATE TABLE IF NOT EXISTS week_history (
+      season TEXT NOT NULL,
+      week INTEGER NOT NULL,
+      payload_json JSONB NOT NULL,
+      generated_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (season, week)
+    );
   `);
   console.log('DB migrations applied');
 }

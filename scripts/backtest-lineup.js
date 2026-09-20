@@ -25,6 +25,11 @@
 // Actual points come from api.sleeper.com weekly stats scored under the
 // league's scoring_settings (the same path lineup.html uses), cross-checked
 // against Sleeper's own players_points from the matchup feed.
+//
+// Also importable: runBacktest({ username, leagueId, week, useInjuries, history })
+// returns the same numbers as a plain object (scripts/log-week.js stores them
+// in data/history/). `history` = prior weeks' history records, used only to
+// build the FPA calibration the engine would have had before `week`.
 'use strict';
 
 const path = require('path');
@@ -33,34 +38,13 @@ const os = require('os');
 const WeeklyScore = require('../shared/weekly-score.js');
 const ScoringEngine = require('../shared/scoring.js');
 const LineupOptimizer = require('../shared/lineup.js');
+const FPACalibration = require('../shared/fpa-calibration.js');
 
 const SEASON = '2026';
 const FORM_WEEKS = 3;                    // mirrors lineup.html
 const POS_QUERY = 'position[]=QB&position[]=RB&position[]=WR&position[]=TE&position[]=K&position[]=DEF';
 const PLAYERS_CACHE = path.join(os.tmpdir(), 'pocket-players-nfl.json');
 const PLAYERS_TTL = 24 * 60 * 60 * 1000;
-
-// ---------------------------------------------------------------------------
-// CLI
-// ---------------------------------------------------------------------------
-const args = process.argv.slice(2);
-const flags = {};
-const positional = [];
-for (const a of args) {
-  const m = /^--([a-z-]+)(?:=(.*))?$/.exec(a);
-  if (m) flags[m[1]] = m[2] == null ? true : m[2];
-  else positional.push(a);
-}
-const username = positional[0];
-const leagueArg = positional[1];
-const week = parseInt(flags.week, 10) || 1;
-const useInjuries = !!flags.injuries;
-
-if (!username || flags.help) {
-  console.error('Usage: node scripts/backtest-lineup.js <sleeper-username> [leagueId] [--week=1] [--injuries]');
-  process.exit(username ? 0 : 1);
-}
-if (week < 1 || week > 18) { console.error('week must be 1–18'); process.exit(1); }
 
 // ---------------------------------------------------------------------------
 // Fetch helpers
@@ -102,19 +86,25 @@ function loadJsonFile(rel) {
 }
 
 // Same merge rule as lineup.html mergeFPA, plus a no-hindsight guard: this
-// season's per-team FPA only counts if it was built from weeks BEFORE `week`.
-function loadFPA(wk) {
+// season's per-team FPA only counts if it was built from weeks BEFORE `week`,
+// and the calibration only from history records for weeks BEFORE `week`.
+function loadFPA(wk, history) {
   const baseline = loadJsonFile('data/fpa-baseline.json');
   const current = loadJsonFile('data/fpa-current.json');
   if (!baseline && !current) return { fpa: null, note: 'no FPA files' };
   const out = Object.assign({}, baseline || {});
   const through = current && Number(current.throughWeek);
   const usable = current && current.current && String(current.season) === SEASON && through > 0 && through < wk;
+  const prior = (history || []).filter(h => h && Number(h.week) < wk);
+  if (prior.length) out.calibration = FPACalibration.build(prior);
+  const calNote = out.calibration && out.calibration.active
+    ? `; FPA calibration from ${prior.length} logged wks`
+    : prior.length ? `; ${prior.length} logged wk${prior.length > 1 ? 's' : ''} (calibration needs ${FPACalibration.MIN_WEEKS})` : '';
   if (usable) {
     out.current = Object.assign({}, out.current || {}, current.current);
-    return { fpa: out, note: `baseline + current FPA through week ${through}` };
+    return { fpa: out, note: `baseline + current FPA through week ${through}${calNote}` };
   }
-  return { fpa: out, note: current ? `baseline only (fpa-current.json is through week ${through || '?'} — hindsight for week ${wk})` : 'baseline only' };
+  return { fpa: out, note: (current ? `baseline only (fpa-current.json is through week ${through || '?'} — hindsight for week ${wk})` : 'baseline only') + calNote };
 }
 
 // ---------------------------------------------------------------------------
@@ -132,10 +122,21 @@ function table(headers, rows, aligns) {
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Backtest (importable)
 // ---------------------------------------------------------------------------
-(async () => {
+// opts: { username, leagueId?, week, useInjuries?, history? }
+// Resolves to { league, leagueId, teamName, username, week, slots, rows, byId,
+//   algo, optimal, actualBySlot, algoPts, actualPts, optPts, accuracy,
+//   yourAccuracy, stats: { statCount, noProj, mismatches }, notes: [...] }.
+async function runBacktest(opts) {
+  const username = opts.username;
+  const leagueArg = opts.leagueId || null;
+  const week = parseInt(opts.week, 10) || 1;
+  const useInjuries = !!opts.useInjuries;
+  if (!username) throw new Error('username required');
+  if (week < 1 || week > 18) throw new Error('week must be 1–18');
   const weeksPlayed = week - 1;
+  const warnings = [];
 
   // 1. user → league
   const user = await getJson(`https://api.sleeper.app/v1/user/${encodeURIComponent(username)}`);
@@ -144,7 +145,7 @@ function table(headers, rows, aligns) {
   if (!Array.isArray(leagues) || !leagues.length) throw new Error(`${username} has no ${SEASON} leagues`);
   const leagueId = leagueArg || leagues[0].league_id;
   if (leagueArg && !leagues.some(l => l.league_id === leagueArg)) {
-    console.error(`note: ${username} is not in league ${leagueArg} per Sleeper — continuing anyway`);
+    warnings.push(`${username} is not in league ${leagueArg} per Sleeper — continuing anyway`);
   }
 
   // 2. league + rosters + week matchups + reference feeds, in parallel
@@ -192,7 +193,7 @@ function table(headers, rows, aligns) {
     }
   }
 
-  const fpaInfo = loadFPA(week);
+  const fpaInfo = loadFPA(week, opts.history);
 
   // 3. per-player data
   const info = id => {
@@ -254,14 +255,44 @@ function table(headers, rows, aligns) {
 
   const sum = lineup => lineup.reduce((t, s) => t + (s.id && byId[s.id] ? byId[s.id].actual : 0), 0);
   const algoPts = sum(algo.starters), actualPts = sum(actualBySlot), optPts = sum(optimal.starters);
+  const statCount = Object.keys(stats).length;
 
-  // 5. output
+  // Data note
+  const notes = [];
+  notes.push(`projections: Sleeper week ${week} (${Object.keys(proj).length} players; ${noProj} rostered with none → 0)`);
+  notes.push(`stats: Sleeper week ${week} (${statCount} players)${mismatches ? `; ${mismatches} differ >0.5 from Sleeper's players_points` : matchup && statCount ? '; matches Sleeper players_points' : ''}`);
+  notes.push(`schedule: ${games ? 'live (home/away' + (weeksPlayed === 0 ? ', TNF exempt in week 1' : ', TNF') + ')' : 'unavailable → neutral'}`);
+  notes.push(`matchup FPA: ${fpaInfo.note}${weeksPlayed === 0 ? ' (weight 0% at week 1 → neutral)' : ''}`);
+  notes.push(`form/usage: ${weeksPlayed <= 1 ? 'neutral (≤1 completed week)' : `form from weeks ${pastWeeks.join(',')}; usage not wired in backtest`}`);
+  notes.push(`injuries: ${useInjuries ? "TODAY's statuses applied (--injuries)" : 'off — Sleeper has no historical status'}`);
+  notes.push('vegas / weather: neutral (no historical feed)');
+  notes.push(`actual lineup: ${matchup ? `week ${week} matchup feed` : 'current roster.starters (no matchup for this week)'}`);
+
+  return {
+    username, leagueId: league.league_id, league, teamName, week, weeksPlayed, slots,
+    rows, byId, algo, optimal, actualBySlot,
+    algoPts, actualPts, optPts,
+    accuracy: optPts > 0 ? algoPts / optPts : null,
+    yourAccuracy: optPts > 0 ? actualPts / optPts : null,
+    complete: statCount >= 100,
+    stats: { statCount, noProj, mismatches, projCount: Object.keys(proj).length },
+    notes, warnings,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// CLI output
+// ---------------------------------------------------------------------------
+function printBacktest(r) {
+  const { league, week, teamName, username, slots, byId, algo, optimal, actualBySlot, algoPts, actualPts, optPts, rows, notes, warnings } = r;
+  const weeksPlayed = week - 1;
+  const statCount = r.stats.statCount;
   const label = id => { const p = id && byId[id]; return p ? `${p.name} ${p.pos}${p.team ? '/' + p.team : ''}` : '(empty)'; };
   const pts = id => { const p = id && byId[id]; return p ? fmt(p.actual) : '—'; };
 
+  for (const w of warnings) console.error(`note: ${w}`);
   console.log(`\nPocket lineup backtest — ${league.name} · Week ${week} · ${teamName} (${username})`);
   console.log(`League ${league.league_id} · ${league.total_rosters} teams · starters: ${slots.map(s => s.slot).join(' ')}`);
-  const statCount = Object.keys(stats).length;
   if (statCount < 100) {
     console.log(`\n⚠  Week ${week} has ${statCount ? 'only ' + statCount : 'no'} stat lines on Sleeper — games not played yet. "Pts" and "Optimal" below are meaningless until the week completes.`);
   }
@@ -315,19 +346,38 @@ function table(headers, rows, aligns) {
     ['l', 'l', 'r', 'r', 'r', 'r', 'r', 'l']
   ));
 
-  // Data note
-  const notes = [];
-  notes.push(`projections: Sleeper week ${week} (${Object.keys(proj).length} players; ${noProj} rostered with none → 0)`);
-  notes.push(`stats: Sleeper week ${week} (${statCount} players)${mismatches ? `; ${mismatches} differ >0.5 from Sleeper's players_points` : matchup && statCount ? '; matches Sleeper players_points' : ''}`);
-  notes.push(`schedule: ${games ? 'live (home/away' + (weeksPlayed === 0 ? ', TNF exempt in week 1' : ', TNF') + ')' : 'unavailable → neutral'}`);
-  notes.push(`matchup FPA: ${fpaInfo.note}${weeksPlayed === 0 ? ' (weight 0% at week 1 → neutral)' : ''}`);
-  notes.push(`form/usage: ${weeksPlayed <= 1 ? 'neutral (≤1 completed week)' : `form from weeks ${pastWeeks.join(',')}; usage not wired in backtest`}`);
-  notes.push(`injuries: ${useInjuries ? "TODAY's statuses applied (--injuries)" : 'off — Sleeper has no historical status'}`);
-  notes.push('vegas / weather: neutral (no historical feed)');
-  notes.push(`actual lineup: ${matchup ? `week ${week} matchup feed` : 'current roster.starters (no matchup for this week)'}`);
   console.log('\nData: ' + notes.join('\n      '));
   console.log();
-})().catch(err => { console.error('backtest failed:', err.message); process.exit(1); });
+}
+
+module.exports = { runBacktest, printBacktest, loadFPA };
+
+// ---------------------------------------------------------------------------
+// CLI
+// ---------------------------------------------------------------------------
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const flags = {};
+  const positional = [];
+  for (const a of args) {
+    const m = /^--([a-z-]+)(?:=(.*))?$/.exec(a);
+    if (m) flags[m[1]] = m[2] == null ? true : m[2];
+    else positional.push(a);
+  }
+  const username = positional[0];
+  const week = parseInt(flags.week, 10) || 1;
+  if (!username || flags.help) {
+    console.error('Usage: node scripts/backtest-lineup.js <sleeper-username> [leagueId] [--week=1] [--injuries]');
+    process.exit(username ? 0 : 1);
+  }
+  if (week < 1 || week > 18) { console.error('week must be 1–18'); process.exit(1); }
+  // Prior weeks' history records feed the FPA calibration (no-hindsight guard in loadFPA).
+  let history = [];
+  try { history = require('./log-week.js').loadHistory(); } catch (_) { /* optional */ }
+  runBacktest({ username, leagueId: positional[1], week, useInjuries: !!flags.injuries, history })
+    .then(printBacktest)
+    .catch(err => { console.error('backtest failed:', err.message); process.exit(1); });
+}
 
 // Today's injured defenders by team (only used with --injuries). Mirrors /api/def-injuries.
 async function buildDefInjuries() {

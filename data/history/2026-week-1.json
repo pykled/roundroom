@@ -1,0 +1,8852 @@
+{
+  "season": "2026",
+  "week": 1,
+  "generatedAt": "2026-09-20T09:09:06.072Z",
+  "scoring": "half_ppr",
+  "weeksPlayed": 0,
+  "fpa": {
+    "George Holani": {
+      "id": "12048",
+      "pos": "RB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.96,
+      "actualPoints": 2.9
+    },
+    "Jadarian Price": {
+      "id": "13286",
+      "pos": "RB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.25,
+      "actualPoints": 6.8
+    },
+    "Eli Raridon": {
+      "id": "13421",
+      "pos": "TE",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.59,
+      "actualPoints": 6.7
+    },
+    "Sam Darnold": {
+      "id": "4943",
+      "pos": "QB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.11,
+      "actualPoints": 0.52
+    },
+    "Andy Borregales": {
+      "id": "12713",
+      "pos": "K",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.1,
+      "actualPoints": 6
+    },
+    "Drew Lock": {
+      "id": "5854",
+      "pos": "QB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 12.78
+    },
+    "Emanuel Wilson": {
+      "id": "11435",
+      "pos": "RB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.28,
+      "actualPoints": 0.3
+    },
+    "Drake Maye": {
+      "id": "11564",
+      "pos": "QB",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 19.67,
+      "actualPoints": 12.82
+    },
+    "Corey Kiner": {
+      "id": "12491",
+      "pos": "RB",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.31,
+      "actualPoints": 1.1
+    },
+    "Elijah Arroyo": {
+      "id": "12521",
+      "pos": "TE",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.19,
+      "actualPoints": 0
+    },
+    "Mack Hollins": {
+      "id": "4177",
+      "pos": "WR",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.01,
+      "actualPoints": 7.1
+    },
+    "A.J. Brown": {
+      "id": "5859",
+      "pos": "WR",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.13,
+      "actualPoints": 4.1
+    },
+    "Jaxon Smith-Njigba": {
+      "id": "9488",
+      "pos": "WR",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 16.28,
+      "actualPoints": 22.2
+    },
+    "Brady Russell": {
+      "id": "11280",
+      "pos": "RB",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 3
+    },
+    "Hunter Henry": {
+      "id": "3214",
+      "pos": "TE",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.61,
+      "actualPoints": 4.1
+    },
+    "Cooper Kupp": {
+      "id": "4039",
+      "pos": "WR",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.51,
+      "actualPoints": 4.5
+    },
+    "Rashid Shaheed": {
+      "id": "8676",
+      "pos": "WR",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.64,
+      "actualPoints": 0.9
+    },
+    "Jason Myers": {
+      "id": "2747",
+      "pos": "K",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.9,
+      "actualPoints": 7
+    },
+    "AJ Barner": {
+      "id": "11603",
+      "pos": "TE",
+      "team": "SEA",
+      "opp": "NE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.43,
+      "actualPoints": 2.3
+    },
+    "Lan Larison": {
+      "id": "12969",
+      "pos": "RB",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 1.9
+    },
+    "Rhamondre Stevenson": {
+      "id": "7611",
+      "pos": "RB",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.96,
+      "actualPoints": 12
+    },
+    "Romeo Doubs": {
+      "id": "8121",
+      "pos": "WR",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.71,
+      "actualPoints": 0
+    },
+    "DeMario Douglas": {
+      "id": "9501",
+      "pos": "WR",
+      "team": "NE",
+      "opp": "SEA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.29,
+      "actualPoints": 4.5
+    },
+    "Konata Mumpfield": {
+      "id": "12718",
+      "pos": "WR",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.49,
+      "actualPoints": 0
+    },
+    "George Kittle": {
+      "id": "4217",
+      "pos": "TE",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.2,
+      "actualPoints": 2.2
+    },
+    "Davis Allen": {
+      "id": "10214",
+      "pos": "TE",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.54,
+      "actualPoints": 1.8
+    },
+    "Xavier Smith": {
+      "id": "11168",
+      "pos": "WR",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.41,
+      "actualPoints": 0
+    },
+    "Blake Corum": {
+      "id": "11586",
+      "pos": "RB",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.24,
+      "actualPoints": 5.4
+    },
+    "Harrison Mevis": {
+      "id": "12015",
+      "pos": "K",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.03,
+      "actualPoints": 1
+    },
+    "Matthew Stafford": {
+      "id": "421",
+      "pos": "QB",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.23,
+      "actualPoints": 5.1
+    },
+    "Eddy Pineiro": {
+      "id": "5189",
+      "pos": "K",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.34,
+      "actualPoints": 10
+    },
+    "Puka Nacua": {
+      "id": "9493",
+      "pos": "WR",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.18,
+      "actualPoints": 9.9
+    },
+    "De'Zhaun Stribling": {
+      "id": "13417",
+      "pos": "WR",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.72,
+      "actualPoints": 0
+    },
+    "Brock Purdy": {
+      "id": "8183",
+      "pos": "QB",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.45,
+      "actualPoints": 22.1
+    },
+    "Jake Tonges": {
+      "id": "8698",
+      "pos": "TE",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.74,
+      "actualPoints": 0
+    },
+    "Stetson Bennett": {
+      "id": "10857",
+      "pos": "QB",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 1.42
+    },
+    "Tyler Higbee": {
+      "id": "3271",
+      "pos": "TE",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.87,
+      "actualPoints": 0.2
+    },
+    "Demarcus Robinson": {
+      "id": "3286",
+      "pos": "WR",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.39,
+      "actualPoints": 12
+    },
+    "Terrance Ferguson": {
+      "id": "12487",
+      "pos": "TE",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.62,
+      "actualPoints": 0
+    },
+    "Davante Adams": {
+      "id": "2133",
+      "pos": "WR",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.58,
+      "actualPoints": 4.1
+    },
+    "Mike Evans": {
+      "id": "2216",
+      "pos": "WR",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.79,
+      "actualPoints": 13.9
+    },
+    "Deebo Samuel": {
+      "id": "5872",
+      "pos": "WR",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.37,
+      "actualPoints": 15
+    },
+    "Colby Parkinson": {
+      "id": "6865",
+      "pos": "TE",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.43,
+      "actualPoints": 1.1
+    },
+    "Luke Farrell": {
+      "id": "7842",
+      "pos": "TE",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.49,
+      "actualPoints": 2.9
+    },
+    "Ronnie Rivers": {
+      "id": "8195",
+      "pos": "RB",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.15,
+      "actualPoints": 2.9
+    },
+    "Jordan Whittington": {
+      "id": "11623",
+      "pos": "WR",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.07,
+      "actualPoints": 1.3
+    },
+    "Kaelon Black": {
+      "id": "13414",
+      "pos": "RB",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.81,
+      "actualPoints": 7.5
+    },
+    "Christian McCaffrey": {
+      "id": "4034",
+      "pos": "RB",
+      "team": "SF",
+      "opp": "LAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.12,
+      "actualPoints": 11.3
+    },
+    "Kyren Williams": {
+      "id": "8150",
+      "pos": "RB",
+      "team": "LAR",
+      "opp": "SF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.54,
+      "actualPoints": 14
+    },
+    "Jalen Brooks": {
+      "id": "11034",
+      "pos": "WR",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.04,
+      "actualPoints": 0
+    },
+    "Blake Whiteheart": {
+      "id": "11201",
+      "pos": "TE",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.99,
+      "actualPoints": 1.9
+    },
+    "Chris Brooks": {
+      "id": "11370",
+      "pos": "RB",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.81,
+      "actualPoints": 2.9
+    },
+    "Malik Nabers": {
+      "id": "11632",
+      "pos": "WR",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.63,
+      "actualPoints": 9.9
+    },
+    "Devaughn Vele": {
+      "id": "11834",
+      "pos": "WR",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.89,
+      "actualPoints": 16.4
+    },
+    "Bhayshul Tuten": {
+      "id": "12490",
+      "pos": "RB",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.73,
+      "actualPoints": 9.3
+    },
+    "Ollie Gordon": {
+      "id": "12495",
+      "pos": "RB",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.1,
+      "actualPoints": 0
+    },
+    "Matthew Golden": {
+      "id": "12501",
+      "pos": "WR",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.46,
+      "actualPoints": 12.5
+    },
+    "Kaleb Johnson": {
+      "id": "12504",
+      "pos": "RB",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.8,
+      "actualPoints": 0
+    },
+    "Colston Loveland": {
+      "id": "12517",
+      "pos": "TE",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.23,
+      "actualPoints": 0
+    },
+    "Tyler Warren": {
+      "id": "12518",
+      "pos": "TE",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.04,
+      "actualPoints": 8.8
+    },
+    "Tetairoa McMillan": {
+      "id": "12526",
+      "pos": "WR",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.57,
+      "actualPoints": 8
+    },
+    "Ashton Jeanty": {
+      "id": "12527",
+      "pos": "RB",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.38,
+      "actualPoints": 29.7
+    },
+    "Isaac TeSlaa": {
+      "id": "12535",
+      "pos": "WR",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.27,
+      "actualPoints": 0
+    },
+    "Jaylin Noel": {
+      "id": "12536",
+      "pos": "WR",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.91,
+      "actualPoints": 6.3
+    },
+    "Tyler Loop": {
+      "id": "12711",
+      "pos": "K",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.05,
+      "actualPoints": 14
+    },
+    "Jahdae Walker": {
+      "id": "13079",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.66,
+      "actualPoints": 6.6
+    },
+    "Jeremiyah Love": {
+      "id": "13287",
+      "pos": "RB",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.44,
+      "actualPoints": 12
+    },
+    "Nate Boerkircher": {
+      "id": "13299",
+      "pos": "TE",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.16,
+      "actualPoints": 1.4
+    },
+    "Matt Hibner": {
+      "id": "13324",
+      "pos": "TE",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.44,
+      "actualPoints": 1.8
+    },
+    "Malik Benson": {
+      "id": "13329",
+      "pos": "WR",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.09,
+      "actualPoints": 0.3
+    },
+    "Kenyon Sadiq": {
+      "id": "13330",
+      "pos": "TE",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.51,
+      "actualPoints": 9.9
+    },
+    "Colbie Young": {
+      "id": "13477",
+      "pos": "WR",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.24,
+      "actualPoints": 0
+    },
+    "Chris Moore": {
+      "id": "3269",
+      "pos": "WR",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.32,
+      "actualPoints": 5.8
+    },
+    "Ka'imi Fairbairn": {
+      "id": "3451",
+      "pos": "K",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.79,
+      "actualPoints": 9
+    },
+    "Jonnu Smith": {
+      "id": "4144",
+      "pos": "TE",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.67,
+      "actualPoints": 6
+    },
+    "Jake Elliott": {
+      "id": "4195",
+      "pos": "K",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.01,
+      "actualPoints": 6
+    },
+    "Baker Mayfield": {
+      "id": "4892",
+      "pos": "QB",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.92,
+      "actualPoints": 11.64
+    },
+    "Ian Thomas": {
+      "id": "4995",
+      "pos": "TE",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.63,
+      "actualPoints": 0
+    },
+    "Tony Pollard": {
+      "id": "5967",
+      "pos": "RB",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.46,
+      "actualPoints": 3.9
+    },
+    "Olamide Zaccheaus": {
+      "id": "6271",
+      "pos": "WR",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.44,
+      "actualPoints": 1
+    },
+    "Nick Folk": {
+      "id": "650",
+      "pos": "K",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.81,
+      "actualPoints": 8
+    },
+    "Justin Herbert": {
+      "id": "6797",
+      "pos": "QB",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.47,
+      "actualPoints": 14.26
+    },
+    "Juwan Johnson": {
+      "id": "7002",
+      "pos": "TE",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.17,
+      "actualPoints": 12.9
+    },
+    "DeVonta Smith": {
+      "id": "7525",
+      "pos": "WR",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.05,
+      "actualPoints": 6.8
+    },
+    "Tommy Tremble": {
+      "id": "7694",
+      "pos": "TE",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.79,
+      "actualPoints": 4
+    },
+    "Trey McBride": {
+      "id": "8130",
+      "pos": "TE",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.01,
+      "actualPoints": 20
+    },
+    "Tyler Allgeier": {
+      "id": "8132",
+      "pos": "RB",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.09,
+      "actualPoints": 8
+    },
+    "Jalen Nailor": {
+      "id": "8180",
+      "pos": "WR",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.09,
+      "actualPoints": 4.2
+    },
+    "Kaden Davis": {
+      "id": "8755",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 1
+    },
+    "Chase Brown": {
+      "id": "9224",
+      "pos": "RB",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.94,
+      "actualPoints": 16.3
+    },
+    "Tucker Kraft": {
+      "id": "9484",
+      "pos": "TE",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.68,
+      "actualPoints": 8
+    },
+    "Jordan Addison": {
+      "id": "9756",
+      "pos": "WR",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.79,
+      "actualPoints": 0
+    },
+    "C.J. Stroud": {
+      "id": "9758",
+      "pos": "QB",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.49,
+      "actualPoints": 16.46
+    },
+    "Elijah Higgins": {
+      "id": "10231",
+      "pos": "TE",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.2,
+      "actualPoints": 0
+    },
+    "Jayden Daniels": {
+      "id": "11566",
+      "pos": "QB",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.13,
+      "actualPoints": 17.66
+    },
+    "Bucky Irving": {
+      "id": "11584",
+      "pos": "RB",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.46,
+      "actualPoints": 16.8
+    },
+    "Rome Odunze": {
+      "id": "11620",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.33,
+      "actualPoints": 6.2
+    },
+    "Adonai Mitchell": {
+      "id": "11625",
+      "pos": "WR",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.15,
+      "actualPoints": 7.5
+    },
+    "Roman Wilson": {
+      "id": "11630",
+      "pos": "WR",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.56,
+      "actualPoints": 4.1
+    },
+    "Keon Coleman": {
+      "id": "11637",
+      "pos": "WR",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.7,
+      "actualPoints": 0.6
+    },
+    "Tai Felton": {
+      "id": "12496",
+      "pos": "WR",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.47,
+      "actualPoints": 0
+    },
+    "Luther Burden": {
+      "id": "12519",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.78,
+      "actualPoints": 7
+    },
+    "Jimmy Horn": {
+      "id": "12523",
+      "pos": "WR",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.57,
+      "actualPoints": -2
+    },
+    "Jacory Croskey-Merritt": {
+      "id": "12533",
+      "pos": "RB",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.86,
+      "actualPoints": 12.1
+    },
+    "LaJohntay Wester": {
+      "id": "12699",
+      "pos": "WR",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.19,
+      "actualPoints": 2.5
+    },
+    "Ja'Kobi Lane": {
+      "id": "13293",
+      "pos": "WR",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.05,
+      "actualPoints": 1.6
+    },
+    "Kaytron Allen": {
+      "id": "13405",
+      "pos": "RB",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.9,
+      "actualPoints": 1.6
+    },
+    "Barion Brown": {
+      "id": "13533",
+      "pos": "WR",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.58,
+      "actualPoints": 0.3
+    },
+    "Geno Smith": {
+      "id": "1373",
+      "pos": "QB",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.79,
+      "actualPoints": 9.3
+    },
+    "Odell Beckham": {
+      "id": "2078",
+      "pos": "WR",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.74,
+      "actualPoints": 0
+    },
+    "Darren Waller": {
+      "id": "2505",
+      "pos": "TE",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.94,
+      "actualPoints": 3.8
+    },
+    "Dak Prescott": {
+      "id": "3294",
+      "pos": "QB",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.85,
+      "actualPoints": 15.4
+    },
+    "Johnny Mundt": {
+      "id": "4314",
+      "pos": "TE",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.48,
+      "actualPoints": 0
+    },
+    "Kendrick Bourne": {
+      "id": "4454",
+      "pos": "WR",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.55,
+      "actualPoints": 11.5
+    },
+    "Cooper Rush": {
+      "id": "4574",
+      "pos": "QB",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.85,
+      "actualPoints": 7.72
+    },
+    "Lamar Jackson": {
+      "id": "4881",
+      "pos": "QB",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 19.56,
+      "actualPoints": 24.96
+    },
+    "DJ Moore": {
+      "id": "4983",
+      "pos": "WR",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.95,
+      "actualPoints": 18.5
+    },
+    "Mike Gesicki": {
+      "id": "4993",
+      "pos": "TE",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.27,
+      "actualPoints": 16.3
+    },
+    "Durham Smythe": {
+      "id": "5008",
+      "pos": "TE",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.07,
+      "actualPoints": 0.9
+    },
+    "Devin Singletary": {
+      "id": "6130",
+      "pos": "RB",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.44,
+      "actualPoints": 11.8
+    },
+    "Joe Burrow": {
+      "id": "6770",
+      "pos": "QB",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 20.92,
+      "actualPoints": 15.16
+    },
+    "Joshua Palmer": {
+      "id": "7670",
+      "pos": "WR",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.46,
+      "actualPoints": 9.9
+    },
+    "John Bates": {
+      "id": "7716",
+      "pos": "TE",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.47,
+      "actualPoints": 2.3
+    },
+    "Wan'Dale Robinson": {
+      "id": "8126",
+      "pos": "WR",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.07,
+      "actualPoints": 6.3
+    },
+    "Charlie Kolar": {
+      "id": "8127",
+      "pos": "TE",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.15,
+      "actualPoints": 0
+    },
+    "Jameson Williams": {
+      "id": "8148",
+      "pos": "WR",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.05,
+      "actualPoints": 6.5
+    },
+    "Breece Hall": {
+      "id": "8155",
+      "pos": "RB",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.37,
+      "actualPoints": 18.8
+    },
+    "Kenny Pickett": {
+      "id": "8160",
+      "pos": "QB",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 2.4
+    },
+    "Daniel Bellinger": {
+      "id": "8225",
+      "pos": "TE",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.16,
+      "actualPoints": 1.2
+    },
+    "Parker Washington": {
+      "id": "9487",
+      "pos": "WR",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.19,
+      "actualPoints": 16.8
+    },
+    "Josh Whyle": {
+      "id": "10212",
+      "pos": "TE",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.56,
+      "actualPoints": 0
+    },
+    "Tre Tucker": {
+      "id": "10213",
+      "pos": "WR",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.78,
+      "actualPoints": 3.7
+    },
+    "Luke Schoonmaker": {
+      "id": "10871",
+      "pos": "TE",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.09,
+      "actualPoints": 1.7
+    },
+    "Isaiah Davis": {
+      "id": "11571",
+      "pos": "RB",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.66,
+      "actualPoints": 0
+    },
+    "Braelon Allen": {
+      "id": "11576",
+      "pos": "RB",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.18,
+      "actualPoints": 4
+    },
+    "Will Shipley": {
+      "id": "11577",
+      "pos": "RB",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.06,
+      "actualPoints": 1.7
+    },
+    "Jonathon Brooks": {
+      "id": "11583",
+      "pos": "RB",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.85,
+      "actualPoints": 6.7
+    },
+    "Erick All": {
+      "id": "11592",
+      "pos": "TE",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.47,
+      "actualPoints": 0
+    },
+    "Isaiah Williams": {
+      "id": "11608",
+      "pos": "WR",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.31,
+      "actualPoints": 1.2
+    },
+    "Kirk Cousins": {
+      "id": "1166",
+      "pos": "QB",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.66,
+      "actualPoints": 15.8
+    },
+    "Cam Little": {
+      "id": "11786",
+      "pos": "K",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.52,
+      "actualPoints": 12
+    },
+    "Spencer Shrader": {
+      "id": "12185",
+      "pos": "K",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.31,
+      "actualPoints": 6
+    },
+    "Raheim Sanders": {
+      "id": "12472",
+      "pos": "RB",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.1,
+      "actualPoints": 4.1
+    },
+    "Cam Skattebo": {
+      "id": "12481",
+      "pos": "RB",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.87,
+      "actualPoints": 14.1
+    },
+    "Tez Johnson": {
+      "id": "12485",
+      "pos": "WR",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.69,
+      "actualPoints": -0.4
+    },
+    "Jaxson Dart": {
+      "id": "12508",
+      "pos": "QB",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.86,
+      "actualPoints": 26.6
+    },
+    "Emeka Egbuka": {
+      "id": "12514",
+      "pos": "WR",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.02,
+      "actualPoints": 8.8
+    },
+    "Cam Ward": {
+      "id": "12522",
+      "pos": "QB",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 16.79,
+      "actualPoints": 11.7
+    },
+    "Chimere Dike": {
+      "id": "12540",
+      "pos": "WR",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.61,
+      "actualPoints": -0.8
+    },
+    "Jaylin Lane": {
+      "id": "12641",
+      "pos": "WR",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.64,
+      "actualPoints": 0.9
+    },
+    "Ryan Fitzgerald": {
+      "id": "12961",
+      "pos": "K",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.01,
+      "actualPoints": 7
+    },
+    "Dohnte Meyers": {
+      "id": "13264",
+      "pos": "WR",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.47,
+      "actualPoints": 3.3
+    },
+    "Germie Bernard": {
+      "id": "13274",
+      "pos": "WR",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.83,
+      "actualPoints": 0
+    },
+    "Omar Cooper": {
+      "id": "13276",
+      "pos": "WR",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.64,
+      "actualPoints": 3.5
+    },
+    "KC Concepcion": {
+      "id": "13298",
+      "pos": "WR",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.12,
+      "actualPoints": 5.8
+    },
+    "Sam Roush": {
+      "id": "13322",
+      "pos": "TE",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.48,
+      "actualPoints": 0
+    },
+    "Zavion Thomas": {
+      "id": "13411",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.58,
+      "actualPoints": 0
+    },
+    "Bryce Lance": {
+      "id": "13420",
+      "pos": "WR",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.21,
+      "actualPoints": 5.7
+    },
+    "Drew Stevens": {
+      "id": "13968",
+      "pos": "K",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.29,
+      "actualPoints": 4
+    },
+    "Stefon Diggs": {
+      "id": "2449",
+      "pos": "WR",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.99,
+      "actualPoints": 13.5
+    },
+    "Austin Hooper": {
+      "id": "3202",
+      "pos": "TE",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.86,
+      "actualPoints": 0
+    },
+    "Jacoby Brissett": {
+      "id": "3257",
+      "pos": "QB",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.9,
+      "actualPoints": 16.48
+    },
+    "Samaje Perine": {
+      "id": "4147",
+      "pos": "RB",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.82,
+      "actualPoints": 6.5
+    },
+    "Saquon Barkley": {
+      "id": "4866",
+      "pos": "RB",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.09,
+      "actualPoints": 8.5
+    },
+    "Josh Allen": {
+      "id": "4984",
+      "pos": "QB",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 19.37,
+      "actualPoints": 35.66
+    },
+    "Mark Andrews": {
+      "id": "5012",
+      "pos": "TE",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.35,
+      "actualPoints": 6.9
+    },
+    "DK Metcalf": {
+      "id": "5846",
+      "pos": "WR",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.67,
+      "actualPoints": 6
+    },
+    "Ashton Dulin": {
+      "id": "6427",
+      "pos": "WR",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.1,
+      "actualPoints": 0
+    },
+    "Justin Jefferson": {
+      "id": "6794",
+      "pos": "WR",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.32,
+      "actualPoints": 27.2
+    },
+    "Nico Collins": {
+      "id": "7569",
+      "pos": "WR",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.65,
+      "actualPoints": 17.7
+    },
+    "Brock Wright": {
+      "id": "7891",
+      "pos": "TE",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.12,
+      "actualPoints": 1
+    },
+    "Drake London": {
+      "id": "8112",
+      "pos": "WR",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.69,
+      "actualPoints": 4.5
+    },
+    "Isaiah Likely": {
+      "id": "8131",
+      "pos": "TE",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.43,
+      "actualPoints": 23.8
+    },
+    "Garrett Wilson": {
+      "id": "8146",
+      "pos": "WR",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.32,
+      "actualPoints": 10.9
+    },
+    "Brian Robinson": {
+      "id": "8154",
+      "pos": "RB",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.22,
+      "actualPoints": 3.1
+    },
+    "Cameron Dicker": {
+      "id": "8259",
+      "pos": "K",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.11,
+      "actualPoints": 2
+    },
+    "KaVontae Turpin": {
+      "id": "8917",
+      "pos": "WR",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.33,
+      "actualPoints": 1.3
+    },
+    "Bryce Young": {
+      "id": "9228",
+      "pos": "QB",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 16.58,
+      "actualPoints": 32.44
+    },
+    "Darnell Washington": {
+      "id": "9479",
+      "pos": "TE",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.54,
+      "actualPoints": 2.8
+    },
+    "Brenton Strange": {
+      "id": "9480",
+      "pos": "TE",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.53,
+      "actualPoints": 9.3
+    },
+    "Josh Downs": {
+      "id": "9500",
+      "pos": "WR",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.69,
+      "actualPoints": 4.7
+    },
+    "Kayshon Boutte": {
+      "id": "9504",
+      "pos": "WR",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.56,
+      "actualPoints": 2.6
+    },
+    "Michael Wilson": {
+      "id": "10232",
+      "pos": "WR",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.49,
+      "actualPoints": 8.1
+    },
+    "Chad Ryland": {
+      "id": "10955",
+      "pos": "K",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.46,
+      "actualPoints": 15
+    },
+    "Jacob Saylors": {
+      "id": "11237",
+      "pos": "RB",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.94,
+      "actualPoints": 0
+    },
+    "Andre Szmyt": {
+      "id": "11261",
+      "pos": "K",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.7,
+      "actualPoints": 4
+    },
+    "Jake Bates": {
+      "id": "11539",
+      "pos": "K",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.2,
+      "actualPoints": 7
+    },
+    "Caleb Williams": {
+      "id": "11560",
+      "pos": "QB",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.33,
+      "actualPoints": 37.26
+    },
+    "Ray Davis": {
+      "id": "11575",
+      "pos": "RB",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.42,
+      "actualPoints": 0.3
+    },
+    "Theo Johnson": {
+      "id": "11597",
+      "pos": "TE",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.52,
+      "actualPoints": 1.4
+    },
+    "Malik Washington": {
+      "id": "11610",
+      "pos": "WR",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.45,
+      "actualPoints": 4.8
+    },
+    "Marvin Harrison": {
+      "id": "11628",
+      "pos": "WR",
+      "team": "ARI",
+      "opp": "LAC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.11,
+      "actualPoints": 3.8
+    },
+    "Jaylen Wright": {
+      "id": "11643",
+      "pos": "RB",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.28,
+      "actualPoints": -0.1
+    },
+    "Kimani Vidal": {
+      "id": "11647",
+      "pos": "RB",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.27,
+      "actualPoints": 0
+    },
+    "Sione Vaki": {
+      "id": "11729",
+      "pos": "RB",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.39,
+      "actualPoints": 2.3
+    },
+    "Ryan Flournoy": {
+      "id": "11783",
+      "pos": "WR",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.62,
+      "actualPoints": 3.2
+    },
+    "Woody Marks": {
+      "id": "12474",
+      "pos": "RB",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.14,
+      "actualPoints": 4.5
+    },
+    "Oronde Gadsden": {
+      "id": "12493",
+      "pos": "TE",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.93,
+      "actualPoints": 4.2
+    },
+    "Harold Fannin": {
+      "id": "12506",
+      "pos": "TE",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.39,
+      "actualPoints": 3.1
+    },
+    "Tre' Harris": {
+      "id": "12509",
+      "pos": "WR",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.74,
+      "actualPoints": 3.5
+    },
+    "Quinshon Judkins": {
+      "id": "12512",
+      "pos": "RB",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.91,
+      "actualPoints": 6
+    },
+    "Jackson Hawes": {
+      "id": "12658",
+      "pos": "TE",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.56,
+      "actualPoints": 0
+    },
+    "Carnell Tate": {
+      "id": "13279",
+      "pos": "WR",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.87,
+      "actualPoints": 5.8
+    },
+    "Malachi Fields": {
+      "id": "13285",
+      "pos": "WR",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.51,
+      "actualPoints": 3.5
+    },
+    "Mike Washington": {
+      "id": "13305",
+      "pos": "RB",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.28,
+      "actualPoints": 4.1
+    },
+    "Marlin Klein": {
+      "id": "13307",
+      "pos": "TE",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.99,
+      "actualPoints": 2.1
+    },
+    "Ted Hurst": {
+      "id": "13317",
+      "pos": "WR",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.29,
+      "actualPoints": 5.1
+    },
+    "Deion Burks": {
+      "id": "13333",
+      "pos": "WR",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.03,
+      "actualPoints": 0
+    },
+    "Kevin Coleman": {
+      "id": "13338",
+      "pos": "WR",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.11,
+      "actualPoints": 0
+    },
+    "Brenen Thompson": {
+      "id": "13380",
+      "pos": "WR",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.07,
+      "actualPoints": 0
+    },
+    "Seth McGowan": {
+      "id": "13424",
+      "pos": "RB",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.98,
+      "actualPoints": 0.5
+    },
+    "Will Kacmarek": {
+      "id": "13434",
+      "pos": "TE",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.04,
+      "actualPoints": 0
+    },
+    "Dominic Zvada": {
+      "id": "13833",
+      "pos": "K",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.21,
+      "actualPoints": 4
+    },
+    "Jared Goff": {
+      "id": "3163",
+      "pos": "QB",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.96,
+      "actualPoints": 16.44
+    },
+    "Deshaun Watson": {
+      "id": "4017",
+      "pos": "QB",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.93,
+      "actualPoints": 15
+    },
+    "David Njoku": {
+      "id": "4033",
+      "pos": "TE",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.13,
+      "actualPoints": 8.3
+    },
+    "Dallas Goedert": {
+      "id": "5022",
+      "pos": "TE",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.14,
+      "actualPoints": 21.7
+    },
+    "Kyler Murray": {
+      "id": "5849",
+      "pos": "QB",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.05,
+      "actualPoints": 0.62
+    },
+    "David Montgomery": {
+      "id": "5892",
+      "pos": "RB",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.19,
+      "actualPoints": 27.4
+    },
+    "Terry McLaurin": {
+      "id": "5927",
+      "pos": "WR",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.87,
+      "actualPoints": 2.4
+    },
+    "Jakobi Meyers": {
+      "id": "5947",
+      "pos": "WR",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.48,
+      "actualPoints": 11.2
+    },
+    "Foster Moreau": {
+      "id": "5985",
+      "pos": "TE",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.59,
+      "actualPoints": 2.5
+    },
+    "Matt Gay": {
+      "id": "6083",
+      "pos": "K",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.62,
+      "actualPoints": 10
+    },
+    "Joey Slye": {
+      "id": "6528",
+      "pos": "K",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.9,
+      "actualPoints": 5
+    },
+    "Tee Higgins": {
+      "id": "6801",
+      "pos": "WR",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.74,
+      "actualPoints": 7.4
+    },
+    "Jonathan Taylor": {
+      "id": "6813",
+      "pos": "RB",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.1,
+      "actualPoints": 23.6
+    },
+    "Cole Kmet": {
+      "id": "6826",
+      "pos": "TE",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.45,
+      "actualPoints": 10.5
+    },
+    "AJ Dillon": {
+      "id": "6828",
+      "pos": "RB",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.37,
+      "actualPoints": 2.8
+    },
+    "Tyler Bass": {
+      "id": "7042",
+      "pos": "K",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.05,
+      "actualPoints": 13
+    },
+    "Amon-Ra St. Brown": {
+      "id": "7547",
+      "pos": "WR",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 16.56,
+      "actualPoints": 23.7
+    },
+    "Cade Otton": {
+      "id": "8111",
+      "pos": "TE",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.56,
+      "actualPoints": 4.1
+    },
+    "Rachaad White": {
+      "id": "8136",
+      "pos": "RB",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.68,
+      "actualPoints": 3.7
+    },
+    "James Cook": {
+      "id": "8138",
+      "pos": "RB",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.11,
+      "actualPoints": 8.4
+    },
+    "Chris Olave": {
+      "id": "8144",
+      "pos": "WR",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.14,
+      "actualPoints": 23.2
+    },
+    "Jordan Mason": {
+      "id": "8408",
+      "pos": "RB",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.24,
+      "actualPoints": 11.9
+    },
+    "Tank Bigsby": {
+      "id": "9225",
+      "pos": "RB",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.04,
+      "actualPoints": 0.3
+    },
+    "De'Von Achane": {
+      "id": "9226",
+      "pos": "RB",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.84,
+      "actualPoints": 8.6
+    },
+    "Dontayvion Wicks": {
+      "id": "9486",
+      "pos": "WR",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.08,
+      "actualPoints": 14.3
+    },
+    "Tyjae Spears": {
+      "id": "9508",
+      "pos": "RB",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.22,
+      "actualPoints": 3.4
+    },
+    "Keaton Mitchell": {
+      "id": "9511",
+      "pos": "RB",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.1,
+      "actualPoints": 0.9
+    },
+    "Xavier Hutchinson": {
+      "id": "10218",
+      "pos": "WR",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.25,
+      "actualPoints": 4.7
+    },
+    "Chris Rodriguez": {
+      "id": "10219",
+      "pos": "RB",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.26,
+      "actualPoints": 2.3
+    },
+    "Jayden Reed": {
+      "id": "10222",
+      "pos": "WR",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.98,
+      "actualPoints": 3.5
+    },
+    "Jonathan Mingo": {
+      "id": "10225",
+      "pos": "WR",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.32,
+      "actualPoints": 1.5
+    },
+    "Dalton Kincaid": {
+      "id": "10236",
+      "pos": "TE",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.81,
+      "actualPoints": 15.5
+    },
+    "Brycen Tremayne": {
+      "id": "11157",
+      "pos": "WR",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.52,
+      "actualPoints": 0
+    },
+    "Cade Stover": {
+      "id": "11599",
+      "pos": "TE",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.3,
+      "actualPoints": 0.3
+    },
+    "Xavier Legette": {
+      "id": "11626",
+      "pos": "WR",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.79,
+      "actualPoints": 0
+    },
+    "Brian Thomas": {
+      "id": "11631",
+      "pos": "WR",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.78,
+      "actualPoints": 5.5
+    },
+    "Ladd McConkey": {
+      "id": "11635",
+      "pos": "WR",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.84,
+      "actualPoints": 16.7
+    },
+    "Tyrone Tracy": {
+      "id": "11655",
+      "pos": "RB",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.62,
+      "actualPoints": -0.6
+    },
+    "Will Reichard": {
+      "id": "11792",
+      "pos": "K",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.56,
+      "actualPoints": 7
+    },
+    "Dylan Sampson": {
+      "id": "12469",
+      "pos": "RB",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.97,
+      "actualPoints": 0
+    },
+    "Mitchell Evans": {
+      "id": "12473",
+      "pos": "TE",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.88,
+      "actualPoints": 1.4
+    },
+    "Omarion Hampton": {
+      "id": "12507",
+      "pos": "RB",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.2,
+      "actualPoints": 8.3
+    },
+    "LeQuint Allen": {
+      "id": "12544",
+      "pos": "RB",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.2,
+      "actualPoints": 0
+    },
+    "Tyler Shough": {
+      "id": "12545",
+      "pos": "QB",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.08,
+      "actualPoints": 25.2
+    },
+    "Makai Lemon": {
+      "id": "13294",
+      "pos": "WR",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.38,
+      "actualPoints": 1
+    },
+    "Caleb Douglas": {
+      "id": "13296",
+      "pos": "WR",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.31,
+      "actualPoints": 11.9
+    },
+    "Josh Cameron": {
+      "id": "13394",
+      "pos": "WR",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.37,
+      "actualPoints": 9
+    },
+    "Trey Smack": {
+      "id": "13545",
+      "pos": "K",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.08,
+      "actualPoints": 12
+    },
+    "Keenan Allen": {
+      "id": "1479",
+      "pos": "WR",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.62,
+      "actualPoints": 6.2
+    },
+    "Chris Boswell": {
+      "id": "1945",
+      "pos": "K",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.09,
+      "actualPoints": 8
+    },
+    "Cairo Santos": {
+      "id": "2020",
+      "pos": "K",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.48,
+      "actualPoints": 12
+    },
+    "Ameer Abdullah": {
+      "id": "2359",
+      "pos": "RB",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.26,
+      "actualPoints": 3.7
+    },
+    "Kalif Raymond": {
+      "id": "3634",
+      "pos": "WR",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.02,
+      "actualPoints": 12.4
+    },
+    "Chris Godwin": {
+      "id": "4037",
+      "pos": "WR",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.64,
+      "actualPoints": 6.3
+    },
+    "Calvin Ridley": {
+      "id": "4981",
+      "pos": "WR",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.05,
+      "actualPoints": 0
+    },
+    "Daniel Carlson": {
+      "id": "5095",
+      "pos": "K",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.27,
+      "actualPoints": 5
+    },
+    "T.J. Hockenson": {
+      "id": "5844",
+      "pos": "TE",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.79,
+      "actualPoints": 11.6
+    },
+    "Daniel Jones": {
+      "id": "5870",
+      "pos": "QB",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.08,
+      "actualPoints": 10.04
+    },
+    "Dawson Knox": {
+      "id": "5906",
+      "pos": "TE",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.61,
+      "actualPoints": 1.2
+    },
+    "Drew Sample": {
+      "id": "6001",
+      "pos": "TE",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.73,
+      "actualPoints": 3.4
+    },
+    "Chase McLaughlin": {
+      "id": "6650",
+      "pos": "K",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.23,
+      "actualPoints": 11
+    },
+    "Jerry Jeudy": {
+      "id": "6783",
+      "pos": "WR",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.37,
+      "actualPoints": 3.6
+    },
+    "CeeDee Lamb": {
+      "id": "6786",
+      "pos": "WR",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 13.12,
+      "actualPoints": 12.9
+    },
+    "Jalen Hurts": {
+      "id": "6904",
+      "pos": "QB",
+      "team": "PHI",
+      "opp": "WAS",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 20.83,
+      "actualPoints": 24.72
+    },
+    "Darnell Mooney": {
+      "id": "7090",
+      "pos": "WR",
+      "team": "NYG",
+      "opp": "DAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.88,
+      "actualPoints": 3.7
+    },
+    "Kyle Pitts": {
+      "id": "7553",
+      "pos": "TE",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.72,
+      "actualPoints": 0
+    },
+    "Chuba Hubbard": {
+      "id": "7594",
+      "pos": "RB",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.96,
+      "actualPoints": 22.2
+    },
+    "Pat Freiermuth": {
+      "id": "7600",
+      "pos": "TE",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.58,
+      "actualPoints": 13.1
+    },
+    "Evan McPherson": {
+      "id": "7839",
+      "pos": "K",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.84,
+      "actualPoints": 19
+    },
+    "Riley Patterson": {
+      "id": "7922",
+      "pos": "K",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.37,
+      "actualPoints": 7
+    },
+    "Jahan Dotson": {
+      "id": "8119",
+      "pos": "WR",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.53,
+      "actualPoints": 2.4
+    },
+    "Khalil Shakir": {
+      "id": "8134",
+      "pos": "WR",
+      "team": "BUF",
+      "opp": "HOU",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.14,
+      "actualPoints": 7
+    },
+    "George Pickens": {
+      "id": "8137",
+      "pos": "WR",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.98,
+      "actualPoints": 4.3
+    },
+    "Alec Pierce": {
+      "id": "8142",
+      "pos": "WR",
+      "team": "IND",
+      "opp": "BAL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.96,
+      "actualPoints": 8.1
+    },
+    "Malik Willis": {
+      "id": "8161",
+      "pos": "QB",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.98,
+      "actualPoints": 17.7
+    },
+    "Quentin Johnston": {
+      "id": "9754",
+      "pos": "WR",
+      "team": "LAC",
+      "opp": "ARI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.25,
+      "actualPoints": 2.7
+    },
+    "Kendre Miller": {
+      "id": "9757",
+      "pos": "RB",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.49,
+      "actualPoints": 9
+    },
+    "Andrei Iosivas": {
+      "id": "10226",
+      "pos": "WR",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.76,
+      "actualPoints": 2.2
+    },
+    "Sam LaPorta": {
+      "id": "10859",
+      "pos": "TE",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.14,
+      "actualPoints": 7.3
+    },
+    "Jared Wayne": {
+      "id": "11056",
+      "pos": "WR",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 1.7
+    },
+    "Emari Demercado": {
+      "id": "11199",
+      "pos": "RB",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.59,
+      "actualPoints": 0.7
+    },
+    "Brandon Aubrey": {
+      "id": "11533",
+      "pos": "K",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.81,
+      "actualPoints": 1
+    },
+    "MarShawn Lloyd": {
+      "id": "11581",
+      "pos": "RB",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.57,
+      "actualPoints": 3.7
+    },
+    "Brevyn Spann-Ford": {
+      "id": "11593",
+      "pos": "TE",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.89,
+      "actualPoints": 2.4
+    },
+    "Jalen Coker": {
+      "id": "11646",
+      "pos": "WR",
+      "team": "CAR",
+      "opp": "CHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.82,
+      "actualPoints": 29.8
+    },
+    "Jack Bech": {
+      "id": "12483",
+      "pos": "WR",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.61,
+      "actualPoints": 9.8
+    },
+    "Mason Taylor": {
+      "id": "12498",
+      "pos": "TE",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.89,
+      "actualPoints": 0.8
+    },
+    "Elic Ayomanor": {
+      "id": "12499",
+      "pos": "WR",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.42,
+      "actualPoints": 7.6
+    },
+    "Gunnar Helm": {
+      "id": "12502",
+      "pos": "TE",
+      "team": "TEN",
+      "opp": "NYJ",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.11,
+      "actualPoints": 4.8
+    },
+    "Isaiah Bond": {
+      "id": "12503",
+      "pos": "WR",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.64,
+      "actualPoints": 0
+    },
+    "Kyle Monangai": {
+      "id": "12534",
+      "pos": "RB",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.71,
+      "actualPoints": 19.4
+    },
+    "Tahj Brooks": {
+      "id": "12543",
+      "pos": "RB",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.07,
+      "actualPoints": 0
+    },
+    "Antonio Williams": {
+      "id": "13301",
+      "pos": "WR",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.2,
+      "actualPoints": 14.4
+    },
+    "Chris Bell": {
+      "id": "13311",
+      "pos": "WR",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.25,
+      "actualPoints": 3
+    },
+    "Zachariah Branch": {
+      "id": "13320",
+      "pos": "WR",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.85,
+      "actualPoints": 0
+    },
+    "Denzel Boston": {
+      "id": "13346",
+      "pos": "WR",
+      "team": "CLE",
+      "opp": "JAX",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.78,
+      "actualPoints": 12.9
+    },
+    "Carson Wentz": {
+      "id": "3161",
+      "pos": "QB",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0,
+      "actualPoints": 19.22
+    },
+    "Derrick Henry": {
+      "id": "3198",
+      "pos": "RB",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.74,
+      "actualPoints": 34.8
+    },
+    "Aaron Jones": {
+      "id": "4199",
+      "pos": "RB",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.83,
+      "actualPoints": 10
+    },
+    "Dalton Schultz": {
+      "id": "5001",
+      "pos": "TE",
+      "team": "HOU",
+      "opp": "BUF",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.86,
+      "actualPoints": 5.5
+    },
+    "Jason Sanders": {
+      "id": "5119",
+      "pos": "K",
+      "team": "NYJ",
+      "opp": "TEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.55,
+      "actualPoints": 14
+    },
+    "Noah Fant": {
+      "id": "5857",
+      "pos": "TE",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.61,
+      "actualPoints": 11.3
+    },
+    "Josh Oliver": {
+      "id": "5973",
+      "pos": "TE",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.02,
+      "actualPoints": 3.2
+    },
+    "Justice Hill": {
+      "id": "5995",
+      "pos": "RB",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 4.37,
+      "actualPoints": 3.3
+    },
+    "D'Andre Swift": {
+      "id": "6790",
+      "pos": "RB",
+      "team": "CHI",
+      "opp": "CAR",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.28,
+      "actualPoints": 31.9
+    },
+    "Jordan Love": {
+      "id": "6804",
+      "pos": "QB",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.71,
+      "actualPoints": 20.48
+    },
+    "Michael Pittman": {
+      "id": "6819",
+      "pos": "WR",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.29,
+      "actualPoints": 7.3
+    },
+    "Rico Dowdle": {
+      "id": "7021",
+      "pos": "RB",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.3,
+      "actualPoints": 3.1
+    },
+    "Jauan Jennings": {
+      "id": "7049",
+      "pos": "WR",
+      "team": "MIN",
+      "opp": "GB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.98,
+      "actualPoints": 0
+    },
+    "Trevor Lawrence": {
+      "id": "7523",
+      "pos": "QB",
+      "team": "JAX",
+      "opp": "CLE",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 18.59,
+      "actualPoints": 26.1
+    },
+    "Travis Etienne": {
+      "id": "7543",
+      "pos": "RB",
+      "team": "NO",
+      "opp": "DET",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.18,
+      "actualPoints": 11.3
+    },
+    "Ja'Marr Chase": {
+      "id": "7564",
+      "pos": "WR",
+      "team": "CIN",
+      "opp": "TB",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 16.97,
+      "actualPoints": 2.2
+    },
+    "Kenny Gainwell": {
+      "id": "7567",
+      "pos": "RB",
+      "team": "TB",
+      "opp": "CIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.89,
+      "actualPoints": 2.3
+    },
+    "Rashod Bateman": {
+      "id": "7571",
+      "pos": "WR",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.65,
+      "actualPoints": 0
+    },
+    "Javonte Williams": {
+      "id": "7588",
+      "pos": "RB",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.99,
+      "actualPoints": 21.7
+    },
+    "Jake Ferguson": {
+      "id": "8110",
+      "pos": "TE",
+      "team": "DAL",
+      "opp": "NYG",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.96,
+      "actualPoints": 1.6
+    },
+    "Christian Watson": {
+      "id": "8167",
+      "pos": "WR",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.76,
+      "actualPoints": 29.7
+    },
+    "Greg Dulcich": {
+      "id": "8172",
+      "pos": "TE",
+      "team": "MIA",
+      "opp": "LV",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.75,
+      "actualPoints": 2.8
+    },
+    "Bo Melton": {
+      "id": "8204",
+      "pos": "WR",
+      "team": "GB",
+      "opp": "MIN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.47,
+      "actualPoints": 1.5
+    },
+    "Chig Okonkwo": {
+      "id": "8210",
+      "pos": "TE",
+      "team": "WAS",
+      "opp": "PHI",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.11,
+      "actualPoints": 2.6
+    },
+    "Jaylen Warren": {
+      "id": "8228",
+      "pos": "RB",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.98,
+      "actualPoints": 7.8
+    },
+    "Dareke Young": {
+      "id": "8527",
+      "pos": "WR",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.05,
+      "actualPoints": 0
+    },
+    "Jahmyr Gibbs": {
+      "id": "9221",
+      "pos": "RB",
+      "team": "DET",
+      "opp": "NO",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 19.74,
+      "actualPoints": 31.1
+    },
+    "Michael Mayer": {
+      "id": "9482",
+      "pos": "TE",
+      "team": "LV",
+      "opp": "MIA",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.65,
+      "actualPoints": 6.2
+    },
+    "Bijan Robinson": {
+      "id": "9509",
+      "pos": "RB",
+      "team": "ATL",
+      "opp": "PIT",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17.24,
+      "actualPoints": 27.3
+    },
+    "Aaron Rodgers": {
+      "id": "96",
+      "pos": "QB",
+      "team": "PIT",
+      "opp": "ATL",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 14.96,
+      "actualPoints": 12.54
+    },
+    "Zay Flowers": {
+      "id": "9997",
+      "pos": "WR",
+      "team": "BAL",
+      "opp": "IND",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.79,
+      "actualPoints": 23.5
+    },
+    "Wil Lutz": {
+      "id": "3678",
+      "pos": "K",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.08,
+      "actualPoints": 4
+    },
+    "Courtland Sutton": {
+      "id": "5045",
+      "pos": "WR",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.45,
+      "actualPoints": 2.1
+    },
+    "Jaylen Waddle": {
+      "id": "7526",
+      "pos": "WR",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 11.69,
+      "actualPoints": 0.7
+    },
+    "Bo Nix": {
+      "id": "11563",
+      "pos": "QB",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 17,
+      "actualPoints": 6.44
+    },
+    "Jonah Coleman": {
+      "id": "13345",
+      "pos": "RB",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.26,
+      "actualPoints": 0
+    },
+    "Tyquan Thornton": {
+      "id": "8188",
+      "pos": "WR",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.49,
+      "actualPoints": 0
+    },
+    "Rashee Rice": {
+      "id": "10229",
+      "pos": "WR",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 10.16,
+      "actualPoints": 8.9
+    },
+    "Xavier Worthy": {
+      "id": "11624",
+      "pos": "WR",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.8,
+      "actualPoints": 3.3
+    },
+    "Troy Franklin": {
+      "id": "11627",
+      "pos": "WR",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.07,
+      "actualPoints": 0.5
+    },
+    "Pat Bryant": {
+      "id": "12492",
+      "pos": "WR",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 5.76,
+      "actualPoints": 6.2
+    },
+    "Jalen Royals": {
+      "id": "12505",
+      "pos": "WR",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.05,
+      "actualPoints": 0
+    },
+    "Harrison Butker": {
+      "id": "4227",
+      "pos": "K",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 6.31,
+      "actualPoints": 7
+    },
+    "Adam Trautman": {
+      "id": "6869",
+      "pos": "TE",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.65,
+      "actualPoints": 2
+    },
+    "Marvin Mims": {
+      "id": "9494",
+      "pos": "WR",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 3.9,
+      "actualPoints": 0
+    },
+    "RJ Harvey": {
+      "id": "12489",
+      "pos": "RB",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 8.24,
+      "actualPoints": 6.1
+    },
+    "Cyrus Allen": {
+      "id": "13413",
+      "pos": "WR",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 1.13,
+      "actualPoints": 0
+    },
+    "Travis Kelce": {
+      "id": "1466",
+      "pos": "TE",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 7.38,
+      "actualPoints": 8.6
+    },
+    "Evan Engram": {
+      "id": "4066",
+      "pos": "TE",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.83,
+      "actualPoints": 12.3
+    },
+    "J.K. Dobbins": {
+      "id": "6806",
+      "pos": "RB",
+      "team": "DEN",
+      "opp": "KC",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 9.17,
+      "actualPoints": 3.6
+    },
+    "Noah Gray": {
+      "id": "7828",
+      "pos": "TE",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.77,
+      "actualPoints": 1
+    },
+    "Kenneth Walker": {
+      "id": "8151",
+      "pos": "RB",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 12.29,
+      "actualPoints": 32.6
+    },
+    "Jake Briningstool": {
+      "id": "12817",
+      "pos": "TE",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 0.15,
+      "actualPoints": 1.4
+    },
+    "Emmett Johnson": {
+      "id": "13337",
+      "pos": "RB",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 2.93,
+      "actualPoints": 7.8
+    },
+    "Patrick Mahomes": {
+      "id": "4046",
+      "pos": "QB",
+      "team": "KC",
+      "opp": "DEN",
+      "fpaRating": null,
+      "fpaRank": null,
+      "fpaTeams": null,
+      "proj": 15.03,
+      "actualPoints": 22.66
+    }
+  },
+  "usage": {
+    "1466": {
+      "name": "Travis Kelce",
+      "pos": "TE",
+      "team": "KC",
+      "targetShareAvg": 0.2,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7101,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2,
+        "carryShare": 0,
+        "snapPct": 0.7101
+      }
+    },
+    "1479": {
+      "name": "Keenan Allen",
+      "pos": "WR",
+      "team": "IND",
+      "targetShareAvg": 0.2069,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2069,
+        "carryShare": 0,
+        "snapPct": 0.6667
+      }
+    },
+    "2078": {
+      "name": "Odell Beckham",
+      "pos": "WR",
+      "team": "NYG",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1594,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1594
+      }
+    },
+    "2133": {
+      "name": "Davante Adams",
+      "pos": "WR",
+      "team": "LAR",
+      "targetShareAvg": 0.2222,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.541,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2222,
+        "carryShare": 0,
+        "snapPct": 0.541
+      }
+    },
+    "2216": {
+      "name": "Mike Evans",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0.2059,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7538,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2059,
+        "carryShare": 0,
+        "snapPct": 0.7538
+      }
+    },
+    "2359": {
+      "name": "Ameer Abdullah",
+      "pos": "RB",
+      "team": "JAX",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0.125,
+      "snapPctAvg": 0.0877,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0.125,
+        "snapPct": 0.0877
+      }
+    },
+    "2449": {
+      "name": "Stefon Diggs",
+      "pos": "WR",
+      "team": "WAS",
+      "targetShareAvg": 0.3103,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6286,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3103,
+        "carryShare": 0,
+        "snapPct": 0.6286
+      }
+    },
+    "2505": {
+      "name": "Darren Waller",
+      "pos": "TE",
+      "team": "CAR",
+      "targetShareAvg": 0.0588,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3529,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0588,
+        "carryShare": 0,
+        "snapPct": 0.3529
+      }
+    },
+    "3048": {
+      "name": "Chris Manhertz",
+      "pos": "TE",
+      "team": "NYG",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3478,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3478
+      }
+    },
+    "3155": {
+      "name": "Laquon Treadwell",
+      "pos": "WR",
+      "team": "IND",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3519,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.3519
+      }
+    },
+    "3198": {
+      "name": "Derrick Henry",
+      "pos": "RB",
+      "team": "BAL",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0.6486,
+      "snapPctAvg": 0.5441,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0.6486,
+        "snapPct": 0.5441
+      }
+    },
+    "3202": {
+      "name": "Austin Hooper",
+      "pos": "TE",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2333
+      }
+    },
+    "3214": {
+      "name": "Hunter Henry",
+      "pos": "TE",
+      "team": "NE",
+      "targetShareAvg": 0.0968,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7606,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0968,
+        "carryShare": 0,
+        "snapPct": 0.7606
+      }
+    },
+    "3269": {
+      "name": "Chris Moore",
+      "pos": "WR",
+      "team": "BAL",
+      "targetShareAvg": 0.0833,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3676,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0833,
+        "carryShare": 0,
+        "snapPct": 0.3676
+      }
+    },
+    "3271": {
+      "name": "Tyler Higbee",
+      "pos": "TE",
+      "team": "LAR",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1967,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.1967
+      }
+    },
+    "3286": {
+      "name": "Demarcus Robinson",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0.0882,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6308,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0882,
+        "carryShare": 0,
+        "snapPct": 0.6308
+      }
+    },
+    "3634": {
+      "name": "Kalif Raymond",
+      "pos": "WR",
+      "team": "CHI",
+      "targetShareAvg": 0.3462,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3462,
+        "carryShare": 0,
+        "snapPct": 0.6
+      }
+    },
+    "4033": {
+      "name": "David Njoku",
+      "pos": "TE",
+      "team": "LAC",
+      "targetShareAvg": 0.1852,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1852,
+        "carryShare": 0,
+        "snapPct": 0.5455
+      }
+    },
+    "4034": {
+      "name": "Christian McCaffrey",
+      "pos": "RB",
+      "team": "SF",
+      "targetShareAvg": 0.2353,
+      "carryShareAvg": 0.3333,
+      "snapPctAvg": 0.5538,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2353,
+        "carryShare": 0.3333,
+        "snapPct": 0.5538
+      }
+    },
+    "4037": {
+      "name": "Chris Godwin",
+      "pos": "WR",
+      "team": "TB",
+      "targetShareAvg": 0.1481,
+      "carryShareAvg": 0.05,
+      "snapPctAvg": 0.8596,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1481,
+        "carryShare": 0.05,
+        "snapPct": 0.8596
+      }
+    },
+    "4039": {
+      "name": "Cooper Kupp",
+      "pos": "WR",
+      "team": "SEA",
+      "targetShareAvg": 0.125,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.78,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.125,
+        "carryShare": 0,
+        "snapPct": 0.78
+      }
+    },
+    "4054": {
+      "name": "Mo Alie-Cox",
+      "pos": "TE",
+      "team": "IND",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2593,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2593
+      }
+    },
+    "4066": {
+      "name": "Evan Engram",
+      "pos": "TE",
+      "team": "DEN",
+      "targetShareAvg": 0.1852,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6275,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1852,
+        "carryShare": 0,
+        "snapPct": 0.6275
+      }
+    },
+    "4144": {
+      "name": "Jonnu Smith",
+      "pos": "TE",
+      "team": "GB",
+      "targetShareAvg": 0.075,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4706,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.075,
+        "carryShare": 0,
+        "snapPct": 0.4706
+      }
+    },
+    "4147": {
+      "name": "Samaje Perine",
+      "pos": "RB",
+      "team": "CIN",
+      "targetShareAvg": 0.0882,
+      "carryShareAvg": 0.1852,
+      "snapPctAvg": 0.2813,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0882,
+        "carryShare": 0.1852,
+        "snapPct": 0.2813
+      }
+    },
+    "4177": {
+      "name": "Mack Hollins",
+      "pos": "WR",
+      "team": "NE",
+      "targetShareAvg": 0.1613,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7042,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1613,
+        "carryShare": 0,
+        "snapPct": 0.7042
+      }
+    },
+    "4189": {
+      "name": "Eric Saubert",
+      "pos": "TE",
+      "team": "SEA",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2
+      }
+    },
+    "4199": {
+      "name": "Aaron Jones",
+      "pos": "RB",
+      "team": "MIN",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0.3529,
+      "snapPctAvg": 0.4615,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0.3529,
+        "snapPct": 0.4615
+      }
+    },
+    "4217": {
+      "name": "George Kittle",
+      "pos": "TE",
+      "team": "SF",
+      "targetShareAvg": 0.1471,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4615,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1471,
+        "carryShare": 0,
+        "snapPct": 0.4615
+      }
+    },
+    "4314": {
+      "name": "Johnny Mundt",
+      "pos": "TE",
+      "team": "PHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3636,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3636
+      }
+    },
+    "4454": {
+      "name": "Kendrick Bourne",
+      "pos": "WR",
+      "team": "ARI",
+      "targetShareAvg": 0.2162,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2162,
+        "carryShare": 0,
+        "snapPct": 0.6667
+      }
+    },
+    "4602": {
+      "name": "Robert Tonyan",
+      "pos": "TE",
+      "team": "PIT",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0299,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0299
+      }
+    },
+    "4866": {
+      "name": "Saquon Barkley",
+      "pos": "RB",
+      "team": "PHI",
+      "targetShareAvg": 0.0909,
+      "carryShareAvg": 0.6,
+      "snapPctAvg": 0.7091,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0909,
+        "carryShare": 0.6,
+        "snapPct": 0.7091
+      }
+    },
+    "4981": {
+      "name": "Calvin Ridley",
+      "pos": "WR",
+      "team": "TEN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.64,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.64
+      }
+    },
+    "4983": {
+      "name": "DJ Moore",
+      "pos": "WR",
+      "team": "BUF",
+      "targetShareAvg": 0.2857,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7586,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2857,
+        "carryShare": 0,
+        "snapPct": 0.7586
+      }
+    },
+    "4993": {
+      "name": "Mike Gesicki",
+      "pos": "TE",
+      "team": "CIN",
+      "targetShareAvg": 0.2059,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3281,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2059,
+        "carryShare": 0,
+        "snapPct": 0.3281
+      }
+    },
+    "4995": {
+      "name": "Ian Thomas",
+      "pos": "TE",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4559,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.4559
+      }
+    },
+    "5001": {
+      "name": "Dalton Schultz",
+      "pos": "TE",
+      "team": "HOU",
+      "targetShareAvg": 0.2162,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6582,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2162,
+        "carryShare": 0,
+        "snapPct": 0.6582
+      }
+    },
+    "5008": {
+      "name": "Durham Smythe",
+      "pos": "TE",
+      "team": "BAL",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6176,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0,
+        "snapPct": 0.6176
+      }
+    },
+    "5012": {
+      "name": "Mark Andrews",
+      "pos": "TE",
+      "team": "BAL",
+      "targetShareAvg": 0.25,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7206,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.25,
+        "carryShare": 0,
+        "snapPct": 0.7206
+      }
+    },
+    "5022": {
+      "name": "Dallas Goedert",
+      "pos": "TE",
+      "team": "PHI",
+      "targetShareAvg": 0.2273,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2273,
+        "carryShare": 0,
+        "snapPct": 0.9455
+      }
+    },
+    "5045": {
+      "name": "Courtland Sutton",
+      "pos": "WR",
+      "team": "DEN",
+      "targetShareAvg": 0.1852,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7647,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1852,
+        "carryShare": 0,
+        "snapPct": 0.7647
+      }
+    },
+    "5121": {
+      "name": "Braxton Berrios",
+      "pos": "WR",
+      "team": "NYG",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1739,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1739
+      }
+    },
+    "5133": {
+      "name": "Tyler Conklin",
+      "pos": "TE",
+      "team": "DET",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1299,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1299
+      }
+    },
+    "5409": {
+      "name": "Tanner Hudson",
+      "pos": "TE",
+      "team": "CIN",
+      "targetShareAvg": 0.0294,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0938,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0294,
+        "carryShare": 0,
+        "snapPct": 0.0938
+      }
+    },
+    "5773": {
+      "name": "KhaDarel Hodge",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0154,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0154
+      }
+    },
+    "5844": {
+      "name": "T.J. Hockenson",
+      "pos": "TE",
+      "team": "MIN",
+      "targetShareAvg": 0.2174,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6615,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2174,
+        "carryShare": 0,
+        "snapPct": 0.6615
+      }
+    },
+    "5846": {
+      "name": "DK Metcalf",
+      "pos": "WR",
+      "team": "PIT",
+      "targetShareAvg": 0.2703,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9552,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2703,
+        "carryShare": 0,
+        "snapPct": 0.9552
+      }
+    },
+    "5857": {
+      "name": "Noah Fant",
+      "pos": "TE",
+      "team": "NO",
+      "targetShareAvg": 0.1538,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4111,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1538,
+        "carryShare": 0,
+        "snapPct": 0.4111
+      }
+    },
+    "5859": {
+      "name": "A.J. Brown",
+      "pos": "WR",
+      "team": "NE",
+      "targetShareAvg": 0.129,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4366,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.129,
+        "carryShare": 0,
+        "snapPct": 0.4366
+      }
+    },
+    "5872": {
+      "name": "Deebo Samuel",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0.2059,
+      "carryShareAvg": 0.0333,
+      "snapPctAvg": 0.4154,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2059,
+        "carryShare": 0.0333,
+        "snapPct": 0.4154
+      }
+    },
+    "5892": {
+      "name": "David Montgomery",
+      "pos": "RB",
+      "team": "HOU",
+      "targetShareAvg": 0.0811,
+      "carryShareAvg": 0.625,
+      "snapPctAvg": 0.4937,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0811,
+        "carryShare": 0.625,
+        "snapPct": 0.4937
+      }
+    },
+    "5906": {
+      "name": "Dawson Knox",
+      "pos": "TE",
+      "team": "BUF",
+      "targetShareAvg": 0.0357,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6724,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0357,
+        "carryShare": 0,
+        "snapPct": 0.6724
+      }
+    },
+    "5927": {
+      "name": "Terry McLaurin",
+      "pos": "WR",
+      "team": "WAS",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8714,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.8714
+      }
+    },
+    "5947": {
+      "name": "Jakobi Meyers",
+      "pos": "WR",
+      "team": "JAX",
+      "targetShareAvg": 0.0952,
+      "carryShareAvg": 0.0313,
+      "snapPctAvg": 0.6491,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0952,
+        "carryShare": 0.0313,
+        "snapPct": 0.6491
+      }
+    },
+    "5967": {
+      "name": "Tony Pollard",
+      "pos": "RB",
+      "team": "TEN",
+      "targetShareAvg": 0.0714,
+      "carryShareAvg": 0.5,
+      "snapPctAvg": 0.52,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0714,
+        "carryShare": 0.5,
+        "snapPct": 0.52
+      }
+    },
+    "5973": {
+      "name": "Josh Oliver",
+      "pos": "TE",
+      "team": "MIN",
+      "targetShareAvg": 0.1739,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6462,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1739,
+        "carryShare": 0,
+        "snapPct": 0.6462
+      }
+    },
+    "5985": {
+      "name": "Foster Moreau",
+      "pos": "TE",
+      "team": "HOU",
+      "targetShareAvg": 0.0541,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.443,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0541,
+        "carryShare": 0,
+        "snapPct": 0.443
+      }
+    },
+    "5995": {
+      "name": "Justice Hill",
+      "pos": "RB",
+      "team": "BAL",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0.1622,
+      "snapPctAvg": 0.4559,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0.1622,
+        "snapPct": 0.4559
+      }
+    },
+    "6001": {
+      "name": "Drew Sample",
+      "pos": "TE",
+      "team": "CIN",
+      "targetShareAvg": 0.0882,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6563,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0882,
+        "carryShare": 0,
+        "snapPct": 0.6563
+      }
+    },
+    "6130": {
+      "name": "Devin Singletary",
+      "pos": "RB",
+      "team": "NYG",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0.1622,
+      "snapPctAvg": 0.3623,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0.1622,
+        "snapPct": 0.3623
+      }
+    },
+    "6271": {
+      "name": "Olamide Zaccheaus",
+      "pos": "WR",
+      "team": "ATL",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0,
+        "snapPct": 0.3
+      }
+    },
+    "6323": {
+      "name": "Andrew Beck",
+      "pos": "RB",
+      "team": "NYJ",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1343,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1343
+      }
+    },
+    "6427": {
+      "name": "Ashton Dulin",
+      "pos": "WR",
+      "team": "IND",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1852,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.1852
+      }
+    },
+    "6529": {
+      "name": "Chris Myarick",
+      "pos": "TE",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0735,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0735
+      }
+    },
+    "6783": {
+      "name": "Jerry Jeudy",
+      "pos": "WR",
+      "team": "CLE",
+      "targetShareAvg": 0.1818,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6275,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1818,
+        "carryShare": 0,
+        "snapPct": 0.6275
+      }
+    },
+    "6786": {
+      "name": "CeeDee Lamb",
+      "pos": "WR",
+      "team": "DAL",
+      "targetShareAvg": 0.2667,
+      "carryShareAvg": 0.0556,
+      "snapPctAvg": 0.8103,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2667,
+        "carryShare": 0.0556,
+        "snapPct": 0.8103
+      }
+    },
+    "6790": {
+      "name": "D'Andre Swift",
+      "pos": "RB",
+      "team": "CHI",
+      "targetShareAvg": 0.0385,
+      "carryShareAvg": 0.4615,
+      "snapPctAvg": 0.5733,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0385,
+        "carryShare": 0.4615,
+        "snapPct": 0.5733
+      }
+    },
+    "6794": {
+      "name": "Justin Jefferson",
+      "pos": "WR",
+      "team": "MIN",
+      "targetShareAvg": 0.3913,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9231,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3913,
+        "carryShare": 0,
+        "snapPct": 0.9231
+      }
+    },
+    "6801": {
+      "name": "Tee Higgins",
+      "pos": "WR",
+      "team": "CIN",
+      "targetShareAvg": 0.1765,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7188,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1765,
+        "carryShare": 0,
+        "snapPct": 0.7188
+      }
+    },
+    "6806": {
+      "name": "J.K. Dobbins",
+      "pos": "RB",
+      "team": "DEN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.5333,
+      "snapPctAvg": 0.4314,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.5333,
+        "snapPct": 0.4314
+      }
+    },
+    "6813": {
+      "name": "Jonathan Taylor",
+      "pos": "RB",
+      "team": "IND",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0.95,
+      "snapPctAvg": 0.8889,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0.95,
+        "snapPct": 0.8889
+      }
+    },
+    "6819": {
+      "name": "Michael Pittman",
+      "pos": "WR",
+      "team": "PIT",
+      "targetShareAvg": 0.0811,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8806,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0811,
+        "carryShare": 0,
+        "snapPct": 0.8806
+      }
+    },
+    "6826": {
+      "name": "Cole Kmet",
+      "pos": "TE",
+      "team": "CHI",
+      "targetShareAvg": 0.1154,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5733,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1154,
+        "carryShare": 0,
+        "snapPct": 0.5733
+      }
+    },
+    "6828": {
+      "name": "AJ Dillon",
+      "pos": "RB",
+      "team": "CAR",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.2273,
+      "snapPctAvg": 0.1029,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.2273,
+        "snapPct": 0.1029
+      }
+    },
+    "6865": {
+      "name": "Colby Parkinson",
+      "pos": "TE",
+      "team": "LAR",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7705,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.7705
+      }
+    },
+    "6869": {
+      "name": "Adam Trautman",
+      "pos": "TE",
+      "team": "DEN",
+      "targetShareAvg": 0.1111,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3725,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1111,
+        "carryShare": 0,
+        "snapPct": 0.3725
+      }
+    },
+    "6931": {
+      "name": "DeeJay Dallas",
+      "pos": "RB",
+      "team": "MIN",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0923,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.0923
+      }
+    },
+    "7002": {
+      "name": "Juwan Johnson",
+      "pos": "TE",
+      "team": "NO",
+      "targetShareAvg": 0.1346,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8444,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1346,
+        "carryShare": 0,
+        "snapPct": 0.8444
+      }
+    },
+    "7021": {
+      "name": "Rico Dowdle",
+      "pos": "RB",
+      "team": "PIT",
+      "targetShareAvg": 0.1351,
+      "carryShareAvg": 0.381,
+      "snapPctAvg": 0.5821,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1351,
+        "carryShare": 0.381,
+        "snapPct": 0.5821
+      }
+    },
+    "7039": {
+      "name": "Cody White",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1618,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.1618
+      }
+    },
+    "7049": {
+      "name": "Jauan Jennings",
+      "pos": "WR",
+      "team": "MIN",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4769,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.4769
+      }
+    },
+    "7075": {
+      "name": "Charlie Woerner",
+      "pos": "TE",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6167,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.6167
+      }
+    },
+    "7090": {
+      "name": "Darnell Mooney",
+      "pos": "WR",
+      "team": "NYG",
+      "targetShareAvg": 0.069,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5652,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.069,
+        "carryShare": 0,
+        "snapPct": 0.5652
+      }
+    },
+    "7204": {
+      "name": "Reggie Gilliam",
+      "pos": "RB",
+      "team": "NE",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1831,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1831
+      }
+    },
+    "7521": {
+      "name": "Chris Blair",
+      "pos": "WR",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1667
+      }
+    },
+    "7525": {
+      "name": "DeVonta Smith",
+      "pos": "WR",
+      "team": "PHI",
+      "targetShareAvg": 0.2727,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2727,
+        "carryShare": 0,
+        "snapPct": 0.9455
+      }
+    },
+    "7526": {
+      "name": "Jaylen Waddle",
+      "pos": "WR",
+      "team": "DEN",
+      "targetShareAvg": 0.1111,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7451,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1111,
+        "carryShare": 0,
+        "snapPct": 0.7451
+      }
+    },
+    "7531": {
+      "name": "Feleipe Franks",
+      "pos": "TE",
+      "team": "CAR",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0735,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0735
+      }
+    },
+    "7535": {
+      "name": "Hunter Long",
+      "pos": "TE",
+      "team": "ARI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3467,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3467
+      }
+    },
+    "7536": {
+      "name": "Quintin Morris",
+      "pos": "TE",
+      "team": "JAX",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4211,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0,
+        "snapPct": 0.4211
+      }
+    },
+    "7543": {
+      "name": "Travis Etienne",
+      "pos": "RB",
+      "team": "NO",
+      "targetShareAvg": 0.1731,
+      "carryShareAvg": 0.36,
+      "snapPctAvg": 0.5889,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1731,
+        "carryShare": 0.36,
+        "snapPct": 0.5889
+      }
+    },
+    "7547": {
+      "name": "Amon-Ra St. Brown",
+      "pos": "WR",
+      "team": "DET",
+      "targetShareAvg": 0.359,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8961,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.359,
+        "carryShare": 0,
+        "snapPct": 0.8961
+      }
+    },
+    "7553": {
+      "name": "Kyle Pitts",
+      "pos": "TE",
+      "team": "ATL",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0,
+        "snapPct": 0.6333
+      }
+    },
+    "7564": {
+      "name": "Ja'Marr Chase",
+      "pos": "WR",
+      "team": "CIN",
+      "targetShareAvg": 0.1176,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9375,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1176,
+        "carryShare": 0,
+        "snapPct": 0.9375
+      }
+    },
+    "7567": {
+      "name": "Kenny Gainwell",
+      "pos": "RB",
+      "team": "TB",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0.25,
+      "snapPctAvg": 0.4561,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0.25,
+        "snapPct": 0.4561
+      }
+    },
+    "7569": {
+      "name": "Nico Collins",
+      "pos": "WR",
+      "team": "HOU",
+      "targetShareAvg": 0.2703,
+      "carryShareAvg": 0.0313,
+      "snapPctAvg": 0.7215,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2703,
+        "carryShare": 0.0313,
+        "snapPct": 0.7215
+      }
+    },
+    "7571": {
+      "name": "Rashod Bateman",
+      "pos": "WR",
+      "team": "BAL",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7794,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0,
+        "snapPct": 0.7794
+      }
+    },
+    "7587": {
+      "name": "Dyami Brown",
+      "pos": "WR",
+      "team": "WAS",
+      "targetShareAvg": 0.069,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5286,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.069,
+        "carryShare": 0,
+        "snapPct": 0.5286
+      }
+    },
+    "7588": {
+      "name": "Javonte Williams",
+      "pos": "RB",
+      "team": "DAL",
+      "targetShareAvg": 0.1667,
+      "carryShareAvg": 0.6667,
+      "snapPctAvg": 0.7069,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1667,
+        "carryShare": 0.6667,
+        "snapPct": 0.7069
+      }
+    },
+    "7594": {
+      "name": "Chuba Hubbard",
+      "pos": "RB",
+      "team": "CAR",
+      "targetShareAvg": 0.0882,
+      "carryShareAvg": 0.4545,
+      "snapPctAvg": 0.7059,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0882,
+        "carryShare": 0.4545,
+        "snapPct": 0.7059
+      }
+    },
+    "7595": {
+      "name": "Tylan Wallace",
+      "pos": "WR",
+      "team": "CLE",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2941,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2941
+      }
+    },
+    "7600": {
+      "name": "Pat Freiermuth",
+      "pos": "TE",
+      "team": "PIT",
+      "targetShareAvg": 0.1351,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7313,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1351,
+        "carryShare": 0,
+        "snapPct": 0.7313
+      }
+    },
+    "7611": {
+      "name": "Rhamondre Stevenson",
+      "pos": "RB",
+      "team": "NE",
+      "targetShareAvg": 0.1935,
+      "carryShareAvg": 0.5806,
+      "snapPctAvg": 0.8451,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1935,
+        "carryShare": 0.5806,
+        "snapPct": 0.8451
+      }
+    },
+    "7670": {
+      "name": "Joshua Palmer",
+      "pos": "WR",
+      "team": "BUF",
+      "targetShareAvg": 0.0714,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3103,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0714,
+        "carryShare": 0,
+        "snapPct": 0.3103
+      }
+    },
+    "7694": {
+      "name": "Tommy Tremble",
+      "pos": "TE",
+      "team": "CAR",
+      "targetShareAvg": 0.1471,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5588,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1471,
+        "carryShare": 0,
+        "snapPct": 0.5588
+      }
+    },
+    "7716": {
+      "name": "John Bates",
+      "pos": "TE",
+      "team": "WAS",
+      "targetShareAvg": 0.1034,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4857,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1034,
+        "carryShare": 0,
+        "snapPct": 0.4857
+      }
+    },
+    "7812": {
+      "name": "Simi Fehoko",
+      "pos": "WR",
+      "team": "ARI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.08,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.08
+      }
+    },
+    "7828": {
+      "name": "Noah Gray",
+      "pos": "TE",
+      "team": "KC",
+      "targetShareAvg": 0.04,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5507,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.04,
+        "carryShare": 0,
+        "snapPct": 0.5507
+      }
+    },
+    "7842": {
+      "name": "Luke Farrell",
+      "pos": "TE",
+      "team": "SF",
+      "targetShareAvg": 0.0588,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7077,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0588,
+        "carryShare": 0,
+        "snapPct": 0.7077
+      }
+    },
+    "7891": {
+      "name": "Brock Wright",
+      "pos": "TE",
+      "team": "DET",
+      "targetShareAvg": 0.0256,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5065,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0256,
+        "carryShare": 0,
+        "snapPct": 0.5065
+      }
+    },
+    "8110": {
+      "name": "Jake Ferguson",
+      "pos": "TE",
+      "team": "DAL",
+      "targetShareAvg": 0.0667,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7586,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0667,
+        "carryShare": 0,
+        "snapPct": 0.7586
+      }
+    },
+    "8111": {
+      "name": "Cade Otton",
+      "pos": "TE",
+      "team": "TB",
+      "targetShareAvg": 0.1852,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9825,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1852,
+        "carryShare": 0,
+        "snapPct": 0.9825
+      }
+    },
+    "8112": {
+      "name": "Drake London",
+      "pos": "WR",
+      "team": "ATL",
+      "targetShareAvg": 0.2381,
+      "carryShareAvg": 0.0323,
+      "snapPctAvg": 0.9833,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2381,
+        "carryShare": 0.0323,
+        "snapPct": 0.9833
+      }
+    },
+    "8119": {
+      "name": "Jahan Dotson",
+      "pos": "WR",
+      "team": "ATL",
+      "targetShareAvg": 0.1905,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1905,
+        "carryShare": 0,
+        "snapPct": 0.6333
+      }
+    },
+    "8121": {
+      "name": "Romeo Doubs",
+      "pos": "WR",
+      "team": "NE",
+      "targetShareAvg": 0.0968,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5634,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0968,
+        "carryShare": 0,
+        "snapPct": 0.5634
+      }
+    },
+    "8122": {
+      "name": "Zonovan Knight",
+      "pos": "RB",
+      "team": "ARI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.04,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.04
+      }
+    },
+    "8126": {
+      "name": "Wan'Dale Robinson",
+      "pos": "WR",
+      "team": "TEN",
+      "targetShareAvg": 0.2143,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.82,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2143,
+        "carryShare": 0,
+        "snapPct": 0.82
+      }
+    },
+    "8127": {
+      "name": "Charlie Kolar",
+      "pos": "TE",
+      "team": "LAC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.5455
+      }
+    },
+    "8130": {
+      "name": "Trey McBride",
+      "pos": "TE",
+      "team": "ARI",
+      "targetShareAvg": 0.3514,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3514,
+        "carryShare": 0,
+        "snapPct": 0.8
+      }
+    },
+    "8131": {
+      "name": "Isaiah Likely",
+      "pos": "TE",
+      "team": "NYG",
+      "targetShareAvg": 0.2759,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4928,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2759,
+        "carryShare": 0,
+        "snapPct": 0.4928
+      }
+    },
+    "8132": {
+      "name": "Tyler Allgeier",
+      "pos": "RB",
+      "team": "ARI",
+      "targetShareAvg": 0.0541,
+      "carryShareAvg": 0.5,
+      "snapPctAvg": 0.5867,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0541,
+        "carryShare": 0.5,
+        "snapPct": 0.5867
+      }
+    },
+    "8134": {
+      "name": "Khalil Shakir",
+      "pos": "WR",
+      "team": "BUF",
+      "targetShareAvg": 0.2143,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5345,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2143,
+        "carryShare": 0,
+        "snapPct": 0.5345
+      }
+    },
+    "8136": {
+      "name": "Rachaad White",
+      "pos": "RB",
+      "team": "WAS",
+      "targetShareAvg": 0.069,
+      "carryShareAvg": 0.2188,
+      "snapPctAvg": 0.4143,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.069,
+        "carryShare": 0.2188,
+        "snapPct": 0.4143
+      }
+    },
+    "8137": {
+      "name": "George Pickens",
+      "pos": "WR",
+      "team": "DAL",
+      "targetShareAvg": 0.2,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8448,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2,
+        "carryShare": 0,
+        "snapPct": 0.8448
+      }
+    },
+    "8138": {
+      "name": "James Cook",
+      "pos": "RB",
+      "team": "BUF",
+      "targetShareAvg": 0.1429,
+      "carryShareAvg": 0.619,
+      "snapPctAvg": 0.7241,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1429,
+        "carryShare": 0.619,
+        "snapPct": 0.7241
+      }
+    },
+    "8142": {
+      "name": "Alec Pierce",
+      "pos": "WR",
+      "team": "IND",
+      "targetShareAvg": 0.2069,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5926,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2069,
+        "carryShare": 0,
+        "snapPct": 0.5926
+      }
+    },
+    "8144": {
+      "name": "Chris Olave",
+      "pos": "WR",
+      "team": "NO",
+      "targetShareAvg": 0.25,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8556,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.25,
+        "carryShare": 0,
+        "snapPct": 0.8556
+      }
+    },
+    "8145": {
+      "name": "Jeremy Ruckert",
+      "pos": "TE",
+      "team": "NYJ",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4328,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.4328
+      }
+    },
+    "8146": {
+      "name": "Garrett Wilson",
+      "pos": "WR",
+      "team": "NYJ",
+      "targetShareAvg": 0.3043,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7463,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3043,
+        "carryShare": 0,
+        "snapPct": 0.7463
+      }
+    },
+    "8148": {
+      "name": "Jameson Williams",
+      "pos": "WR",
+      "team": "DET",
+      "targetShareAvg": 0.2308,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8442,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2308,
+        "carryShare": 0,
+        "snapPct": 0.8442
+      }
+    },
+    "8150": {
+      "name": "Kyren Williams",
+      "pos": "RB",
+      "team": "LAR",
+      "targetShareAvg": 0.1111,
+      "carryShareAvg": 0.3793,
+      "snapPctAvg": 0.6393,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1111,
+        "carryShare": 0.3793,
+        "snapPct": 0.6393
+      }
+    },
+    "8151": {
+      "name": "Kenneth Walker",
+      "pos": "RB",
+      "team": "KC",
+      "targetShareAvg": 0.24,
+      "carryShareAvg": 0.6053,
+      "snapPctAvg": 0.6812,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.24,
+        "carryShare": 0.6053,
+        "snapPct": 0.6812
+      }
+    },
+    "8154": {
+      "name": "Brian Robinson",
+      "pos": "RB",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.2903,
+      "snapPctAvg": 0.25,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.2903,
+        "snapPct": 0.25
+      }
+    },
+    "8155": {
+      "name": "Breece Hall",
+      "pos": "RB",
+      "team": "NYJ",
+      "targetShareAvg": 0.087,
+      "carryShareAvg": 0.5641,
+      "snapPctAvg": 0.5821,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.087,
+        "carryShare": 0.5641,
+        "snapPct": 0.5821
+      }
+    },
+    "8167": {
+      "name": "Christian Watson",
+      "pos": "WR",
+      "team": "GB",
+      "targetShareAvg": 0.2,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7647,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2,
+        "carryShare": 0,
+        "snapPct": 0.7647
+      }
+    },
+    "8168": {
+      "name": "Skyy Moore",
+      "pos": "WR",
+      "team": "GB",
+      "targetShareAvg": 0.025,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0588,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.025,
+        "carryShare": 0,
+        "snapPct": 0.0588
+      }
+    },
+    "8172": {
+      "name": "Greg Dulcich",
+      "pos": "TE",
+      "team": "MIA",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7679,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.7679
+      }
+    },
+    "8180": {
+      "name": "Jalen Nailor",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0.1724,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6029,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1724,
+        "carryShare": 0,
+        "snapPct": 0.6029
+      }
+    },
+    "8181": {
+      "name": "Connor Heyward",
+      "pos": "RB",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.027,
+      "snapPctAvg": 0.4706,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.027,
+        "snapPct": 0.4706
+      }
+    },
+    "8188": {
+      "name": "Tyquan Thornton",
+      "pos": "WR",
+      "team": "KC",
+      "targetShareAvg": 0.04,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6812,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.04,
+        "carryShare": 0,
+        "snapPct": 0.6812
+      }
+    },
+    "8195": {
+      "name": "Ronnie Rivers",
+      "pos": "RB",
+      "team": "LAR",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0.1724,
+      "snapPctAvg": 0.1311,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0.1724,
+        "snapPct": 0.1311
+      }
+    },
+    "8200": {
+      "name": "Kevin Austin",
+      "pos": "WR",
+      "team": "NO",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0556,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0556
+      }
+    },
+    "8204": {
+      "name": "Bo Melton",
+      "pos": "WR",
+      "team": "GB",
+      "targetShareAvg": 0.025,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1176,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.025,
+        "carryShare": 0,
+        "snapPct": 0.1176
+      }
+    },
+    "8210": {
+      "name": "Chig Okonkwo",
+      "pos": "TE",
+      "team": "WAS",
+      "targetShareAvg": 0.1034,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5571,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1034,
+        "carryShare": 0,
+        "snapPct": 0.5571
+      }
+    },
+    "8219": {
+      "name": "Jelani Woods",
+      "pos": "TE",
+      "team": "NYJ",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2388,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2388
+      }
+    },
+    "8225": {
+      "name": "Daniel Bellinger",
+      "pos": "TE",
+      "team": "TEN",
+      "targetShareAvg": 0.0357,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.28,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0357,
+        "carryShare": 0,
+        "snapPct": 0.28
+      }
+    },
+    "8228": {
+      "name": "Jaylen Warren",
+      "pos": "RB",
+      "team": "PIT",
+      "targetShareAvg": 0.1622,
+      "carryShareAvg": 0.4762,
+      "snapPctAvg": 0.3731,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1622,
+        "carryShare": 0.4762,
+        "snapPct": 0.3731
+      }
+    },
+    "8408": {
+      "name": "Jordan Mason",
+      "pos": "RB",
+      "team": "MIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.4412,
+      "snapPctAvg": 0.4462,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.4412,
+        "snapPct": 0.4462
+      }
+    },
+    "8484": {
+      "name": "Ko Kieft",
+      "pos": "TE",
+      "team": "TB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0175,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0175
+      }
+    },
+    "8523": {
+      "name": "Nick Muse",
+      "pos": "TE",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0833,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0833
+      }
+    },
+    "8527": {
+      "name": "Dareke Young",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1471,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1471
+      }
+    },
+    "8676": {
+      "name": "Rashid Shaheed",
+      "pos": "WR",
+      "team": "SEA",
+      "targetShareAvg": 0.125,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.66,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.125,
+        "carryShare": 0,
+        "snapPct": 0.66
+      }
+    },
+    "8698": {
+      "name": "Jake Tonges",
+      "pos": "TE",
+      "team": "SF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1231,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1231
+      }
+    },
+    "8755": {
+      "name": "Kaden Davis",
+      "pos": "WR",
+      "team": "CHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1333
+      }
+    },
+    "8917": {
+      "name": "KaVontae Turpin",
+      "pos": "WR",
+      "team": "DAL",
+      "targetShareAvg": 0.0333,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1379,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0333,
+        "carryShare": 0,
+        "snapPct": 0.1379
+      }
+    },
+    "9221": {
+      "name": "Jahmyr Gibbs",
+      "pos": "RB",
+      "team": "DET",
+      "targetShareAvg": 0.1282,
+      "carryShareAvg": 0.8788,
+      "snapPctAvg": 0.7403,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1282,
+        "carryShare": 0.8788,
+        "snapPct": 0.7403
+      }
+    },
+    "9224": {
+      "name": "Chase Brown",
+      "pos": "RB",
+      "team": "CIN",
+      "targetShareAvg": 0.1765,
+      "carryShareAvg": 0.5926,
+      "snapPctAvg": 0.7188,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1765,
+        "carryShare": 0.5926,
+        "snapPct": 0.7188
+      }
+    },
+    "9225": {
+      "name": "Tank Bigsby",
+      "pos": "RB",
+      "team": "PHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.04,
+      "snapPctAvg": 0.1091,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.04,
+        "snapPct": 0.1091
+      }
+    },
+    "9226": {
+      "name": "De'Von Achane",
+      "pos": "RB",
+      "team": "MIA",
+      "targetShareAvg": 0.1852,
+      "carryShareAvg": 0.6111,
+      "snapPctAvg": 0.8571,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1852,
+        "carryShare": 0.6111,
+        "snapPct": 0.8571
+      }
+    },
+    "9479": {
+      "name": "Darnell Washington",
+      "pos": "TE",
+      "team": "PIT",
+      "targetShareAvg": 0.0541,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6418,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0541,
+        "carryShare": 0,
+        "snapPct": 0.6418
+      }
+    },
+    "9480": {
+      "name": "Brenton Strange",
+      "pos": "TE",
+      "team": "JAX",
+      "targetShareAvg": 0.1429,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6842,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1429,
+        "carryShare": 0,
+        "snapPct": 0.6842
+      }
+    },
+    "9482": {
+      "name": "Michael Mayer",
+      "pos": "TE",
+      "team": "LV",
+      "targetShareAvg": 0.2414,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8088,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2414,
+        "carryShare": 0,
+        "snapPct": 0.8088
+      }
+    },
+    "9484": {
+      "name": "Tucker Kraft",
+      "pos": "TE",
+      "team": "GB",
+      "targetShareAvg": 0.15,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6618,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.15,
+        "carryShare": 0,
+        "snapPct": 0.6618
+      }
+    },
+    "9486": {
+      "name": "Dontayvion Wicks",
+      "pos": "WR",
+      "team": "PHI",
+      "targetShareAvg": 0.1818,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9091,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1818,
+        "carryShare": 0,
+        "snapPct": 0.9091
+      }
+    },
+    "9487": {
+      "name": "Parker Washington",
+      "pos": "WR",
+      "team": "JAX",
+      "targetShareAvg": 0.2857,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.614,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2857,
+        "carryShare": 0,
+        "snapPct": 0.614
+      }
+    },
+    "9488": {
+      "name": "Jaxon Smith-Njigba",
+      "pos": "WR",
+      "team": "SEA",
+      "targetShareAvg": 0.4583,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.4583,
+        "carryShare": 0,
+        "snapPct": 0.9
+      }
+    },
+    "9493": {
+      "name": "Puka Nacua",
+      "pos": "WR",
+      "team": "LAR",
+      "targetShareAvg": 0.3333,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7049,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3333,
+        "carryShare": 0,
+        "snapPct": 0.7049
+      }
+    },
+    "9494": {
+      "name": "Marvin Mims",
+      "pos": "WR",
+      "team": "DEN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1765,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1765
+      }
+    },
+    "9500": {
+      "name": "Josh Downs",
+      "pos": "WR",
+      "team": "IND",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8889,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.8889
+      }
+    },
+    "9501": {
+      "name": "DeMario Douglas",
+      "pos": "WR",
+      "team": "NE",
+      "targetShareAvg": 0.2258,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6197,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2258,
+        "carryShare": 0,
+        "snapPct": 0.6197
+      }
+    },
+    "9504": {
+      "name": "Kayshon Boutte",
+      "pos": "WR",
+      "team": "HOU",
+      "targetShareAvg": 0.0541,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4557,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0541,
+        "carryShare": 0,
+        "snapPct": 0.4557
+      }
+    },
+    "9508": {
+      "name": "Tyjae Spears",
+      "pos": "RB",
+      "team": "TEN",
+      "targetShareAvg": 0.1429,
+      "carryShareAvg": 0.2143,
+      "snapPctAvg": 0.5,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1429,
+        "carryShare": 0.2143,
+        "snapPct": 0.5
+      }
+    },
+    "9509": {
+      "name": "Bijan Robinson",
+      "pos": "RB",
+      "team": "ATL",
+      "targetShareAvg": 0.4762,
+      "carryShareAvg": 0.6774,
+      "snapPctAvg": 0.7667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.4762,
+        "carryShare": 0.6774,
+        "snapPct": 0.7667
+      }
+    },
+    "9511": {
+      "name": "Keaton Mitchell",
+      "pos": "RB",
+      "team": "LAC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.1905,
+      "snapPctAvg": 0.3091,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.1905,
+        "snapPct": 0.3091
+      }
+    },
+    "9754": {
+      "name": "Quentin Johnston",
+      "pos": "WR",
+      "team": "LAC",
+      "targetShareAvg": 0.2222,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2222,
+        "carryShare": 0,
+        "snapPct": 0.7818
+      }
+    },
+    "9756": {
+      "name": "Jordan Addison",
+      "pos": "WR",
+      "team": "MIN",
+      "targetShareAvg": 0.087,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8308,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.087,
+        "carryShare": 0,
+        "snapPct": 0.8308
+      }
+    },
+    "9757": {
+      "name": "Kendre Miller",
+      "pos": "RB",
+      "team": "NO",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.36,
+      "snapPctAvg": 0.2889,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.36,
+        "snapPct": 0.2889
+      }
+    },
+    "9997": {
+      "name": "Zay Flowers",
+      "pos": "WR",
+      "team": "BAL",
+      "targetShareAvg": 0.25,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2941,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.25,
+        "carryShare": 0,
+        "snapPct": 0.2941
+      }
+    },
+    "10212": {
+      "name": "Josh Whyle",
+      "pos": "TE",
+      "team": "GB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1618,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1618
+      }
+    },
+    "10213": {
+      "name": "Tre Tucker",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7059,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.7059
+      }
+    },
+    "10214": {
+      "name": "Davis Allen",
+      "pos": "TE",
+      "team": "LAR",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3443,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.3443
+      }
+    },
+    "10218": {
+      "name": "Xavier Hutchinson",
+      "pos": "WR",
+      "team": "HOU",
+      "targetShareAvg": 0.1622,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.557,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1622,
+        "carryShare": 0,
+        "snapPct": 0.557
+      }
+    },
+    "10219": {
+      "name": "Chris Rodriguez",
+      "pos": "RB",
+      "team": "JAX",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.1875,
+      "snapPctAvg": 0.4035,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.1875,
+        "snapPct": 0.4035
+      }
+    },
+    "10222": {
+      "name": "Jayden Reed",
+      "pos": "WR",
+      "team": "GB",
+      "targetShareAvg": 0.175,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5735,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.175,
+        "carryShare": 0,
+        "snapPct": 0.5735
+      }
+    },
+    "10225": {
+      "name": "Jonathan Mingo",
+      "pos": "WR",
+      "team": "DAL",
+      "targetShareAvg": 0.0333,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1897,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0333,
+        "carryShare": 0,
+        "snapPct": 0.1897
+      }
+    },
+    "10226": {
+      "name": "Andrei Iosivas",
+      "pos": "WR",
+      "team": "CIN",
+      "targetShareAvg": 0.0882,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6094,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0882,
+        "carryShare": 0,
+        "snapPct": 0.6094
+      }
+    },
+    "10227": {
+      "name": "Payne Durham",
+      "pos": "TE",
+      "team": "TB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1228,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1228
+      }
+    },
+    "10229": {
+      "name": "Rashee Rice",
+      "pos": "WR",
+      "team": "KC",
+      "targetShareAvg": 0.08,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8261,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.08,
+        "carryShare": 0,
+        "snapPct": 0.8261
+      }
+    },
+    "10231": {
+      "name": "Elijah Higgins",
+      "pos": "TE",
+      "team": "ARI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2667
+      }
+    },
+    "10232": {
+      "name": "Michael Wilson",
+      "pos": "WR",
+      "team": "ARI",
+      "targetShareAvg": 0.1892,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8533,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1892,
+        "carryShare": 0,
+        "snapPct": 0.8533
+      }
+    },
+    "10234": {
+      "name": "Derius Davis",
+      "pos": "WR",
+      "team": "LAC",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.1818
+      }
+    },
+    "10236": {
+      "name": "Dalton Kincaid",
+      "pos": "TE",
+      "team": "BUF",
+      "targetShareAvg": 0.2143,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7241,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2143,
+        "carryShare": 0,
+        "snapPct": 0.7241
+      }
+    },
+    "10859": {
+      "name": "Sam LaPorta",
+      "pos": "TE",
+      "team": "DET",
+      "targetShareAvg": 0.2051,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8052,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2051,
+        "carryShare": 0,
+        "snapPct": 0.8052
+      }
+    },
+    "10871": {
+      "name": "Luke Schoonmaker",
+      "pos": "TE",
+      "team": "DAL",
+      "targetShareAvg": 0.0333,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2241,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0333,
+        "carryShare": 0,
+        "snapPct": 0.2241
+      }
+    },
+    "11034": {
+      "name": "Jalen Brooks",
+      "pos": "WR",
+      "team": "ARI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0533,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0533
+      }
+    },
+    "11157": {
+      "name": "Brycen Tremayne",
+      "pos": "WR",
+      "team": "CAR",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1765,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1765
+      }
+    },
+    "11168": {
+      "name": "Xavier Smith",
+      "pos": "WR",
+      "team": "LAR",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2623,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2623
+      }
+    },
+    "11199": {
+      "name": "Emari Demercado",
+      "pos": "RB",
+      "team": "DAL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.1111,
+      "snapPctAvg": 0.0862,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.1111,
+        "snapPct": 0.0862
+      }
+    },
+    "11201": {
+      "name": "Blake Whiteheart",
+      "pos": "TE",
+      "team": "CLE",
+      "targetShareAvg": 0.0455,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3922,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0455,
+        "carryShare": 0,
+        "snapPct": 0.3922
+      }
+    },
+    "11273": {
+      "name": "Ben VanSumeren",
+      "pos": "RB",
+      "team": "KC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0435,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0435
+      }
+    },
+    "11280": {
+      "name": "Brady Russell",
+      "pos": "RB",
+      "team": "SEA",
+      "targetShareAvg": 0.0833,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.34,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0833,
+        "carryShare": 0,
+        "snapPct": 0.34
+      }
+    },
+    "11304": {
+      "name": "E.J. Jenkins",
+      "pos": "TE",
+      "team": "PHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0182,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0182
+      }
+    },
+    "11370": {
+      "name": "Chris Brooks",
+      "pos": "RB",
+      "team": "GB",
+      "targetShareAvg": 0.025,
+      "carryShareAvg": 0.3333,
+      "snapPctAvg": 0.5588,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.025,
+        "carryShare": 0.3333,
+        "snapPct": 0.5588
+      }
+    },
+    "11433": {
+      "name": "Nate Adkins",
+      "pos": "TE",
+      "team": "DEN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2549,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2549
+      }
+    },
+    "11435": {
+      "name": "Emanuel Wilson",
+      "pos": "RB",
+      "team": "SEA",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.0909,
+      "snapPctAvg": 0.06,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.0909,
+        "snapPct": 0.06
+      }
+    },
+    "11573": {
+      "name": "Frank Gore",
+      "pos": "RB",
+      "team": "BUF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.0476,
+      "snapPctAvg": 0.1897,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.0476,
+        "snapPct": 0.1897
+      }
+    },
+    "11574": {
+      "name": "Dylan Laube",
+      "pos": "RB",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1471,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1471
+      }
+    },
+    "11575": {
+      "name": "Ray Davis",
+      "pos": "RB",
+      "team": "BUF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.0476,
+      "snapPctAvg": 0.0862,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.0476,
+        "snapPct": 0.0862
+      }
+    },
+    "11576": {
+      "name": "Braelon Allen",
+      "pos": "RB",
+      "team": "NYJ",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0.2564,
+      "snapPctAvg": 0.403,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0.2564,
+        "snapPct": 0.403
+      }
+    },
+    "11577": {
+      "name": "Will Shipley",
+      "pos": "RB",
+      "team": "PHI",
+      "targetShareAvg": 0.0455,
+      "carryShareAvg": 0.08,
+      "snapPctAvg": 0.1818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0455,
+        "carryShare": 0.08,
+        "snapPct": 0.1818
+      }
+    },
+    "11581": {
+      "name": "MarShawn Lloyd",
+      "pos": "RB",
+      "team": "GB",
+      "targetShareAvg": 0.025,
+      "carryShareAvg": 0.619,
+      "snapPctAvg": 0.4412,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.025,
+        "carryShare": 0.619,
+        "snapPct": 0.4412
+      }
+    },
+    "11583": {
+      "name": "Jonathon Brooks",
+      "pos": "RB",
+      "team": "CAR",
+      "targetShareAvg": 0.0588,
+      "carryShareAvg": 0.1818,
+      "snapPctAvg": 0.1912,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0588,
+        "carryShare": 0.1818,
+        "snapPct": 0.1912
+      }
+    },
+    "11584": {
+      "name": "Bucky Irving",
+      "pos": "RB",
+      "team": "TB",
+      "targetShareAvg": 0.2593,
+      "carryShareAvg": 0.4,
+      "snapPctAvg": 0.614,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2593,
+        "carryShare": 0.4,
+        "snapPct": 0.614
+      }
+    },
+    "11586": {
+      "name": "Blake Corum",
+      "pos": "RB",
+      "team": "LAR",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.3448,
+      "snapPctAvg": 0.2295,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.3448,
+        "snapPct": 0.2295
+      }
+    },
+    "11592": {
+      "name": "Erick All",
+      "pos": "TE",
+      "team": "CIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3125,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3125
+      }
+    },
+    "11593": {
+      "name": "Brevyn Spann-Ford",
+      "pos": "TE",
+      "team": "DAL",
+      "targetShareAvg": 0.0667,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2241,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0667,
+        "carryShare": 0,
+        "snapPct": 0.2241
+      }
+    },
+    "11596": {
+      "name": "Ben Sinnott",
+      "pos": "TE",
+      "team": "WAS",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2571,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.2571
+      }
+    },
+    "11597": {
+      "name": "Theo Johnson",
+      "pos": "TE",
+      "team": "NYG",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4638,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.4638
+      }
+    },
+    "11599": {
+      "name": "Cade Stover",
+      "pos": "TE",
+      "team": "HOU",
+      "targetShareAvg": 0.027,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3038,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.027,
+        "carryShare": 0,
+        "snapPct": 0.3038
+      }
+    },
+    "11603": {
+      "name": "AJ Barner",
+      "pos": "TE",
+      "team": "SEA",
+      "targetShareAvg": 0.0833,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.88,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0833,
+        "carryShare": 0,
+        "snapPct": 0.88
+      }
+    },
+    "11608": {
+      "name": "Isaiah Williams",
+      "pos": "WR",
+      "team": "NYJ",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.597,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.597
+      }
+    },
+    "11610": {
+      "name": "Malik Washington",
+      "pos": "WR",
+      "team": "MIA",
+      "targetShareAvg": 0.2963,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9821,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2963,
+        "carryShare": 0,
+        "snapPct": 0.9821
+      }
+    },
+    "11616": {
+      "name": "Jacob Cowing",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0769,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0769
+      }
+    },
+    "11620": {
+      "name": "Rome Odunze",
+      "pos": "WR",
+      "team": "CHI",
+      "targetShareAvg": 0.1154,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.48,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1154,
+        "carryShare": 0,
+        "snapPct": 0.48
+      }
+    },
+    "11623": {
+      "name": "Jordan Whittington",
+      "pos": "WR",
+      "team": "LAR",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4098,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.4098
+      }
+    },
+    "11624": {
+      "name": "Xavier Worthy",
+      "pos": "WR",
+      "team": "KC",
+      "targetShareAvg": 0.24,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7681,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.24,
+        "carryShare": 0,
+        "snapPct": 0.7681
+      }
+    },
+    "11625": {
+      "name": "Adonai Mitchell",
+      "pos": "WR",
+      "team": "NYJ",
+      "targetShareAvg": 0.1304,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6866,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1304,
+        "carryShare": 0,
+        "snapPct": 0.6866
+      }
+    },
+    "11626": {
+      "name": "Xavier Legette",
+      "pos": "WR",
+      "team": "CAR",
+      "targetShareAvg": 0.0588,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5294,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0588,
+        "carryShare": 0,
+        "snapPct": 0.5294
+      }
+    },
+    "11627": {
+      "name": "Troy Franklin",
+      "pos": "WR",
+      "team": "DEN",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0.0667,
+      "snapPctAvg": 0.3333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0.0667,
+        "snapPct": 0.3333
+      }
+    },
+    "11628": {
+      "name": "Marvin Harrison",
+      "pos": "WR",
+      "team": "ARI",
+      "targetShareAvg": 0.0811,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7867,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0811,
+        "carryShare": 0,
+        "snapPct": 0.7867
+      }
+    },
+    "11630": {
+      "name": "Roman Wilson",
+      "pos": "WR",
+      "team": "PIT",
+      "targetShareAvg": 0.1622,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5522,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1622,
+        "carryShare": 0,
+        "snapPct": 0.5522
+      }
+    },
+    "11631": {
+      "name": "Brian Thomas",
+      "pos": "WR",
+      "team": "JAX",
+      "targetShareAvg": 0.1429,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3509,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1429,
+        "carryShare": 0,
+        "snapPct": 0.3509
+      }
+    },
+    "11632": {
+      "name": "Malik Nabers",
+      "pos": "WR",
+      "team": "NYG",
+      "targetShareAvg": 0.3103,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5217,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3103,
+        "carryShare": 0,
+        "snapPct": 0.5217
+      }
+    },
+    "11635": {
+      "name": "Ladd McConkey",
+      "pos": "WR",
+      "team": "LAC",
+      "targetShareAvg": 0.2593,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4909,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2593,
+        "carryShare": 0,
+        "snapPct": 0.4909
+      }
+    },
+    "11637": {
+      "name": "Keon Coleman",
+      "pos": "WR",
+      "team": "BUF",
+      "targetShareAvg": 0.0357,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0357,
+        "carryShare": 0,
+        "snapPct": 0.5
+      }
+    },
+    "11643": {
+      "name": "Jaylen Wright",
+      "pos": "RB",
+      "team": "MIA",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.0556,
+      "snapPctAvg": 0.0714,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.0556,
+        "snapPct": 0.0714
+      }
+    },
+    "11646": {
+      "name": "Jalen Coker",
+      "pos": "WR",
+      "team": "CAR",
+      "targetShareAvg": 0.2647,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8382,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2647,
+        "carryShare": 0,
+        "snapPct": 0.8382
+      }
+    },
+    "11647": {
+      "name": "Kimani Vidal",
+      "pos": "RB",
+      "team": "LAC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0727,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0727
+      }
+    },
+    "11655": {
+      "name": "Tyrone Tracy",
+      "pos": "RB",
+      "team": "NYG",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.0541,
+      "snapPctAvg": 0.029,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.0541,
+        "snapPct": 0.029
+      }
+    },
+    "11729": {
+      "name": "Sione Vaki",
+      "pos": "RB",
+      "team": "DET",
+      "targetShareAvg": 0.0256,
+      "carryShareAvg": 0.0606,
+      "snapPctAvg": 0.2857,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0256,
+        "carryShare": 0.0606,
+        "snapPct": 0.2857
+      }
+    },
+    "11783": {
+      "name": "Ryan Flournoy",
+      "pos": "WR",
+      "team": "DAL",
+      "targetShareAvg": 0.1333,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7069,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1333,
+        "carryShare": 0,
+        "snapPct": 0.7069
+      }
+    },
+    "11834": {
+      "name": "Devaughn Vele",
+      "pos": "WR",
+      "team": "NO",
+      "targetShareAvg": 0.1731,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9111,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1731,
+        "carryShare": 0,
+        "snapPct": 0.9111
+      }
+    },
+    "11942": {
+      "name": "Colson Yankoff",
+      "pos": "TE",
+      "team": "WAS",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0286,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0286
+      }
+    },
+    "11994": {
+      "name": "Kameron Johnson",
+      "pos": "WR",
+      "team": "TB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0877,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0877
+      }
+    },
+    "12048": {
+      "name": "George Holani",
+      "pos": "RB",
+      "team": "SEA",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0.3636,
+      "snapPctAvg": 0.46,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0.3636,
+        "snapPct": 0.46
+      }
+    },
+    "12079": {
+      "name": "Treyton Welch",
+      "pos": "TE",
+      "team": "NO",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1111,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1111
+      }
+    },
+    "12472": {
+      "name": "Raheim Sanders",
+      "pos": "RB",
+      "team": "CLE",
+      "targetShareAvg": 0.1364,
+      "carryShareAvg": 0.0455,
+      "snapPctAvg": 0.3529,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1364,
+        "carryShare": 0.0455,
+        "snapPct": 0.3529
+      }
+    },
+    "12473": {
+      "name": "Mitchell Evans",
+      "pos": "TE",
+      "team": "CAR",
+      "targetShareAvg": 0.0588,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3971,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0588,
+        "carryShare": 0,
+        "snapPct": 0.3971
+      }
+    },
+    "12474": {
+      "name": "Woody Marks",
+      "pos": "RB",
+      "team": "HOU",
+      "targetShareAvg": 0.027,
+      "carryShareAvg": 0.2813,
+      "snapPctAvg": 0.5063,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.027,
+        "carryShare": 0.2813,
+        "snapPct": 0.5063
+      }
+    },
+    "12481": {
+      "name": "Cam Skattebo",
+      "pos": "RB",
+      "team": "NYG",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.4865,
+      "snapPctAvg": 0.6087,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.4865,
+        "snapPct": 0.6087
+      }
+    },
+    "12483": {
+      "name": "Jack Bech",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3971,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.3971
+      }
+    },
+    "12485": {
+      "name": "Tez Johnson",
+      "pos": "WR",
+      "team": "TB",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0.05,
+      "snapPctAvg": 0.2281,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0.05,
+        "snapPct": 0.2281
+      }
+    },
+    "12487": {
+      "name": "Terrance Ferguson",
+      "pos": "TE",
+      "team": "LAR",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5082,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.5082
+      }
+    },
+    "12489": {
+      "name": "RJ Harvey",
+      "pos": "RB",
+      "team": "DEN",
+      "targetShareAvg": 0.1481,
+      "carryShareAvg": 0.2,
+      "snapPctAvg": 0.5098,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1481,
+        "carryShare": 0.2,
+        "snapPct": 0.5098
+      }
+    },
+    "12490": {
+      "name": "Bhayshul Tuten",
+      "pos": "RB",
+      "team": "JAX",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0.4688,
+      "snapPctAvg": 0.4912,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0.4688,
+        "snapPct": 0.4912
+      }
+    },
+    "12491": {
+      "name": "Corey Kiner",
+      "pos": "RB",
+      "team": "NE",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.1935,
+      "snapPctAvg": 0.1127,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.1935,
+        "snapPct": 0.1127
+      }
+    },
+    "12492": {
+      "name": "Pat Bryant",
+      "pos": "WR",
+      "team": "DEN",
+      "targetShareAvg": 0.2222,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5882,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2222,
+        "carryShare": 0,
+        "snapPct": 0.5882
+      }
+    },
+    "12493": {
+      "name": "Oronde Gadsden",
+      "pos": "TE",
+      "team": "LAC",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.1818
+      }
+    },
+    "12495": {
+      "name": "Ollie Gordon",
+      "pos": "RB",
+      "team": "MIA",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0714,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0714
+      }
+    },
+    "12496": {
+      "name": "Tai Felton",
+      "pos": "WR",
+      "team": "MIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0462,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0462
+      }
+    },
+    "12498": {
+      "name": "Mason Taylor",
+      "pos": "TE",
+      "team": "NYJ",
+      "targetShareAvg": 0.1304,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6567,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1304,
+        "carryShare": 0,
+        "snapPct": 0.6567
+      }
+    },
+    "12499": {
+      "name": "Elic Ayomanor",
+      "pos": "WR",
+      "team": "TEN",
+      "targetShareAvg": 0.1071,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.52,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1071,
+        "carryShare": 0,
+        "snapPct": 0.52
+      }
+    },
+    "12501": {
+      "name": "Matthew Golden",
+      "pos": "WR",
+      "team": "GB",
+      "targetShareAvg": 0.3,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8235,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.3,
+        "carryShare": 0,
+        "snapPct": 0.8235
+      }
+    },
+    "12502": {
+      "name": "Gunnar Helm",
+      "pos": "TE",
+      "team": "TEN",
+      "targetShareAvg": 0.1786,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.76,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1786,
+        "carryShare": 0,
+        "snapPct": 0.76
+      }
+    },
+    "12503": {
+      "name": "Isaiah Bond",
+      "pos": "WR",
+      "team": "CLE",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1373,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1373
+      }
+    },
+    "12506": {
+      "name": "Harold Fannin",
+      "pos": "TE",
+      "team": "CLE",
+      "targetShareAvg": 0.1364,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8235,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1364,
+        "carryShare": 0,
+        "snapPct": 0.8235
+      }
+    },
+    "12507": {
+      "name": "Omarion Hampton",
+      "pos": "RB",
+      "team": "LAC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.5714,
+      "snapPctAvg": 0.5818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.5714,
+        "snapPct": 0.5818
+      }
+    },
+    "12509": {
+      "name": "Tre' Harris",
+      "pos": "WR",
+      "team": "LAC",
+      "targetShareAvg": 0.2222,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2222,
+        "carryShare": 0,
+        "snapPct": 0.7455
+      }
+    },
+    "12512": {
+      "name": "Quinshon Judkins",
+      "pos": "RB",
+      "team": "CLE",
+      "targetShareAvg": 0.0909,
+      "carryShareAvg": 0.5455,
+      "snapPctAvg": 0.6471,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0909,
+        "carryShare": 0.5455,
+        "snapPct": 0.6471
+      }
+    },
+    "12514": {
+      "name": "Emeka Egbuka",
+      "pos": "WR",
+      "team": "TB",
+      "targetShareAvg": 0.2222,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8596,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2222,
+        "carryShare": 0,
+        "snapPct": 0.8596
+      }
+    },
+    "12517": {
+      "name": "Colston Loveland",
+      "pos": "TE",
+      "team": "CHI",
+      "targetShareAvg": 0.0769,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0769,
+        "carryShare": 0,
+        "snapPct": 0.8667
+      }
+    },
+    "12518": {
+      "name": "Tyler Warren",
+      "pos": "TE",
+      "team": "IND",
+      "targetShareAvg": 0.1724,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9259,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1724,
+        "carryShare": 0,
+        "snapPct": 0.9259
+      }
+    },
+    "12519": {
+      "name": "Luther Burden",
+      "pos": "WR",
+      "team": "CHI",
+      "targetShareAvg": 0.1923,
+      "carryShareAvg": 0.0256,
+      "snapPctAvg": 0.7333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1923,
+        "carryShare": 0.0256,
+        "snapPct": 0.7333
+      }
+    },
+    "12521": {
+      "name": "Elijah Arroyo",
+      "pos": "TE",
+      "team": "SEA",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.22,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.22
+      }
+    },
+    "12526": {
+      "name": "Tetairoa McMillan",
+      "pos": "WR",
+      "team": "CAR",
+      "targetShareAvg": 0.2353,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.8235,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2353,
+        "carryShare": 0,
+        "snapPct": 0.8235
+      }
+    },
+    "12527": {
+      "name": "Ashton Jeanty",
+      "pos": "RB",
+      "team": "LV",
+      "targetShareAvg": 0.2069,
+      "carryShareAvg": 0.6216,
+      "snapPctAvg": 0.7353,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2069,
+        "carryShare": 0.6216,
+        "snapPct": 0.7353
+      }
+    },
+    "12533": {
+      "name": "Jacory Croskey-Merritt",
+      "pos": "RB",
+      "team": "WAS",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0.5,
+      "snapPctAvg": 0.4857,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0.5,
+        "snapPct": 0.4857
+      }
+    },
+    "12534": {
+      "name": "Kyle Monangai",
+      "pos": "RB",
+      "team": "CHI",
+      "targetShareAvg": 0.0769,
+      "carryShareAvg": 0.2564,
+      "snapPctAvg": 0.4267,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0769,
+        "carryShare": 0.2564,
+        "snapPct": 0.4267
+      }
+    },
+    "12535": {
+      "name": "Isaac TeSlaa",
+      "pos": "WR",
+      "team": "DET",
+      "targetShareAvg": 0.0256,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6753,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0256,
+        "carryShare": 0,
+        "snapPct": 0.6753
+      }
+    },
+    "12536": {
+      "name": "Jaylin Noel",
+      "pos": "WR",
+      "team": "HOU",
+      "targetShareAvg": 0.0541,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3038,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0541,
+        "carryShare": 0,
+        "snapPct": 0.3038
+      }
+    },
+    "12539": {
+      "name": "Arian Smith",
+      "pos": "WR",
+      "team": "NYJ",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0299,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.0299
+      }
+    },
+    "12540": {
+      "name": "Chimere Dike",
+      "pos": "WR",
+      "team": "TEN",
+      "targetShareAvg": 0.0357,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.08,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0357,
+        "carryShare": 0,
+        "snapPct": 0.08
+      }
+    },
+    "12543": {
+      "name": "Tahj Brooks",
+      "pos": "RB",
+      "team": "CIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0313,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0313
+      }
+    },
+    "12544": {
+      "name": "LeQuint Allen",
+      "pos": "RB",
+      "team": "JAX",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0175,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0175
+      }
+    },
+    "12547": {
+      "name": "Kyle Williams",
+      "pos": "WR",
+      "team": "NE",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.169,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.169
+      }
+    },
+    "12641": {
+      "name": "Jaylin Lane",
+      "pos": "WR",
+      "team": "WAS",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2571,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.2571
+      }
+    },
+    "12658": {
+      "name": "Jackson Hawes",
+      "pos": "TE",
+      "team": "BUF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.431,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.431
+      }
+    },
+    "12699": {
+      "name": "LaJohntay Wester",
+      "pos": "WR",
+      "team": "BAL",
+      "targetShareAvg": 0.0833,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2941,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0833,
+        "carryShare": 0,
+        "snapPct": 0.2941
+      }
+    },
+    "12718": {
+      "name": "Konata Mumpfield",
+      "pos": "WR",
+      "team": "LAR",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2623,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.2623
+      }
+    },
+    "12765": {
+      "name": "Keleki Latu",
+      "pos": "TE",
+      "team": "BUF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.069,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.069
+      }
+    },
+    "12817": {
+      "name": "Jake Briningstool",
+      "pos": "TE",
+      "team": "KC",
+      "targetShareAvg": 0.04,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1884,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.04,
+        "carryShare": 0,
+        "snapPct": 0.1884
+      }
+    },
+    "12969": {
+      "name": "Lan Larison",
+      "pos": "RB",
+      "team": "NE",
+      "targetShareAvg": 0.0645,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0423,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0645,
+        "carryShare": 0,
+        "snapPct": 0.0423
+      }
+    },
+    "13013": {
+      "name": "Mark Redman",
+      "pos": "TE",
+      "team": "GB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3088,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3088
+      }
+    },
+    "13075": {
+      "name": "Myles Price",
+      "pos": "WR",
+      "team": "MIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0462,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0462
+      }
+    },
+    "13079": {
+      "name": "Jahdae Walker",
+      "pos": "WR",
+      "team": "CHI",
+      "targetShareAvg": 0.0385,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.4533,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0385,
+        "carryShare": 0,
+        "snapPct": 0.4533
+      }
+    },
+    "13150": {
+      "name": "Darius Cooper",
+      "pos": "WR",
+      "team": "PHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1455,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1455
+      }
+    },
+    "13264": {
+      "name": "Dohnte Meyers",
+      "pos": "WR",
+      "team": "CIN",
+      "targetShareAvg": 0.0294,
+      "carryShareAvg": 0.037,
+      "snapPctAvg": 0.1563,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0294,
+        "carryShare": 0.037,
+        "snapPct": 0.1563
+      }
+    },
+    "13273": {
+      "name": "Josh Cuevas",
+      "pos": "TE",
+      "team": "BAL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0882,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0882
+      }
+    },
+    "13274": {
+      "name": "Germie Bernard",
+      "pos": "WR",
+      "team": "PIT",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0448,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0448
+      }
+    },
+    "13276": {
+      "name": "Omar Cooper",
+      "pos": "WR",
+      "team": "NYJ",
+      "targetShareAvg": 0.0435,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0746,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0435,
+        "carryShare": 0,
+        "snapPct": 0.0746
+      }
+    },
+    "13277": {
+      "name": "CJ Donaldson",
+      "pos": "RB",
+      "team": "NO",
+      "targetShareAvg": 0.0385,
+      "carryShareAvg": 0.08,
+      "snapPctAvg": 0.1667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0385,
+        "carryShare": 0.08,
+        "snapPct": 0.1667
+      }
+    },
+    "13279": {
+      "name": "Carnell Tate",
+      "pos": "WR",
+      "team": "TEN",
+      "targetShareAvg": 0.2143,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.88,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2143,
+        "carryShare": 0,
+        "snapPct": 0.88
+      }
+    },
+    "13285": {
+      "name": "Malachi Fields",
+      "pos": "WR",
+      "team": "NYG",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7246,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.7246
+      }
+    },
+    "13286": {
+      "name": "Jadarian Price",
+      "pos": "RB",
+      "team": "SEA",
+      "targetShareAvg": 0.0833,
+      "carryShareAvg": 0.4545,
+      "snapPctAvg": 0.48,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0833,
+        "carryShare": 0.4545,
+        "snapPct": 0.48
+      }
+    },
+    "13287": {
+      "name": "Jeremiyah Love",
+      "pos": "RB",
+      "team": "ARI",
+      "targetShareAvg": 0.1081,
+      "carryShareAvg": 0.3235,
+      "snapPctAvg": 0.4267,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1081,
+        "carryShare": 0.3235,
+        "snapPct": 0.4267
+      }
+    },
+    "13293": {
+      "name": "Ja'Kobi Lane",
+      "pos": "WR",
+      "team": "BAL",
+      "targetShareAvg": 0.125,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3971,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.125,
+        "carryShare": 0,
+        "snapPct": 0.3971
+      }
+    },
+    "13294": {
+      "name": "Makai Lemon",
+      "pos": "WR",
+      "team": "PHI",
+      "targetShareAvg": 0.1818,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6364,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1818,
+        "carryShare": 0,
+        "snapPct": 0.6364
+      }
+    },
+    "13296": {
+      "name": "Caleb Douglas",
+      "pos": "WR",
+      "team": "MIA",
+      "targetShareAvg": 0.2593,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9107,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2593,
+        "carryShare": 0,
+        "snapPct": 0.9107
+      }
+    },
+    "13298": {
+      "name": "KC Concepcion",
+      "pos": "WR",
+      "team": "CLE",
+      "targetShareAvg": 0.2273,
+      "carryShareAvg": 0.1364,
+      "snapPctAvg": 0.6863,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.2273,
+        "carryShare": 0.1364,
+        "snapPct": 0.6863
+      }
+    },
+    "13299": {
+      "name": "Nate Boerkircher",
+      "pos": "TE",
+      "team": "JAX",
+      "targetShareAvg": 0.0476,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6667,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0476,
+        "carryShare": 0,
+        "snapPct": 0.6667
+      }
+    },
+    "13301": {
+      "name": "Antonio Williams",
+      "pos": "WR",
+      "team": "WAS",
+      "targetShareAvg": 0.1379,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3714,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1379,
+        "carryShare": 0,
+        "snapPct": 0.3714
+      }
+    },
+    "13305": {
+      "name": "Mike Washington",
+      "pos": "RB",
+      "team": "LV",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.1892,
+      "snapPctAvg": 0.1912,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.1892,
+        "snapPct": 0.1912
+      }
+    },
+    "13307": {
+      "name": "Marlin Klein",
+      "pos": "TE",
+      "team": "HOU",
+      "targetShareAvg": 0.027,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1139,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.027,
+        "carryShare": 0,
+        "snapPct": 0.1139
+      }
+    },
+    "13308": {
+      "name": "Bauer Sharp",
+      "pos": "TE",
+      "team": "TB",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0175,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0175
+      }
+    },
+    "13311": {
+      "name": "Chris Bell",
+      "pos": "WR",
+      "team": "MIA",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5179,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.5179
+      }
+    },
+    "13317": {
+      "name": "Ted Hurst",
+      "pos": "WR",
+      "team": "TB",
+      "targetShareAvg": 0.1111,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.7544,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1111,
+        "carryShare": 0,
+        "snapPct": 0.7544
+      }
+    },
+    "13320": {
+      "name": "Zachariah Branch",
+      "pos": "WR",
+      "team": "ATL",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3
+      }
+    },
+    "13322": {
+      "name": "Sam Roush",
+      "pos": "TE",
+      "team": "CHI",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.16,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.16
+      }
+    },
+    "13324": {
+      "name": "Matt Hibner",
+      "pos": "TE",
+      "team": "BAL",
+      "targetShareAvg": 0.0417,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3382,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0417,
+        "carryShare": 0,
+        "snapPct": 0.3382
+      }
+    },
+    "13329": {
+      "name": "Malik Benson",
+      "pos": "WR",
+      "team": "LV",
+      "targetShareAvg": 0.069,
+      "carryShareAvg": 0.027,
+      "snapPctAvg": 0.1029,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.069,
+        "carryShare": 0.027,
+        "snapPct": 0.1029
+      }
+    },
+    "13330": {
+      "name": "Kenyon Sadiq",
+      "pos": "TE",
+      "team": "NYJ",
+      "targetShareAvg": 0.1304,
+      "carryShareAvg": 0.0256,
+      "snapPctAvg": 0.4179,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1304,
+        "carryShare": 0.0256,
+        "snapPct": 0.4179
+      }
+    },
+    "13337": {
+      "name": "Emmett Johnson",
+      "pos": "RB",
+      "team": "KC",
+      "targetShareAvg": 0.08,
+      "carryShareAvg": 0.2105,
+      "snapPctAvg": 0.3623,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.08,
+        "carryShare": 0.2105,
+        "snapPct": 0.3623
+      }
+    },
+    "13338": {
+      "name": "Kevin Coleman",
+      "pos": "WR",
+      "team": "MIA",
+      "targetShareAvg": 0.0741,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.2857,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0741,
+        "carryShare": 0,
+        "snapPct": 0.2857
+      }
+    },
+    "13345": {
+      "name": "Jonah Coleman",
+      "pos": "RB",
+      "team": "DEN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0588,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0588
+      }
+    },
+    "13346": {
+      "name": "Denzel Boston",
+      "pos": "WR",
+      "team": "CLE",
+      "targetShareAvg": 0.1818,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.9216,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.1818,
+        "carryShare": 0,
+        "snapPct": 0.9216
+      }
+    },
+    "13380": {
+      "name": "Brenen Thompson",
+      "pos": "WR",
+      "team": "LAC",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1818,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1818
+      }
+    },
+    "13394": {
+      "name": "Josh Cameron",
+      "pos": "WR",
+      "team": "JAX",
+      "targetShareAvg": 0.0952,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3333,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0952,
+        "carryShare": 0,
+        "snapPct": 0.3333
+      }
+    },
+    "13405": {
+      "name": "Kaytron Allen",
+      "pos": "RB",
+      "team": "WAS",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.125,
+      "snapPctAvg": 0.1,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.125,
+        "snapPct": 0.1
+      }
+    },
+    "13413": {
+      "name": "Cyrus Allen",
+      "pos": "WR",
+      "team": "KC",
+      "targetShareAvg": 0.04,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0145,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.04,
+        "carryShare": 0,
+        "snapPct": 0.0145
+      }
+    },
+    "13414": {
+      "name": "Kaelon Black",
+      "pos": "RB",
+      "team": "SF",
+      "targetShareAvg": 0.0294,
+      "carryShareAvg": 0.4667,
+      "snapPctAvg": 0.4308,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0294,
+        "carryShare": 0.4667,
+        "snapPct": 0.4308
+      }
+    },
+    "13417": {
+      "name": "De'Zhaun Stribling",
+      "pos": "WR",
+      "team": "SF",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3231,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3231
+      }
+    },
+    "13420": {
+      "name": "Bryce Lance",
+      "pos": "WR",
+      "team": "NO",
+      "targetShareAvg": 0.0769,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.6889,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0769,
+        "carryShare": 0,
+        "snapPct": 0.6889
+      }
+    },
+    "13421": {
+      "name": "Eli Raridon",
+      "pos": "TE",
+      "team": "NE",
+      "targetShareAvg": 0.0323,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.5352,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0323,
+        "carryShare": 0,
+        "snapPct": 0.5352
+      }
+    },
+    "13423": {
+      "name": "Eli Heidenreich",
+      "pos": "RB",
+      "team": "PIT",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.0448,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.0448
+      }
+    },
+    "13424": {
+      "name": "Seth McGowan",
+      "pos": "RB",
+      "team": "IND",
+      "targetShareAvg": 0.0345,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1111,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.0345,
+        "carryShare": 0,
+        "snapPct": 0.1111
+      }
+    },
+    "13433": {
+      "name": "Riley Nowakowski",
+      "pos": "TE",
+      "team": "PIT",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1194,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1194
+      }
+    },
+    "13434": {
+      "name": "Will Kacmarek",
+      "pos": "TE",
+      "team": "MIA",
+      "targetShareAvg": 0.037,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.25,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0.037,
+        "carryShare": 0,
+        "snapPct": 0.25
+      }
+    },
+    "13477": {
+      "name": "Colbie Young",
+      "pos": "WR",
+      "team": "CIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1406,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1406
+      }
+    },
+    "13516": {
+      "name": "Max Bredeson",
+      "pos": "RB",
+      "team": "MIN",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.3692,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.3692
+      }
+    },
+    "13533": {
+      "name": "Barion Brown",
+      "pos": "WR",
+      "team": "NO",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0.04,
+      "snapPctAvg": 0.0778,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0.04,
+        "snapPct": 0.0778
+      }
+    },
+    "13554": {
+      "name": "CJ Williams",
+      "pos": "WR",
+      "team": "JAX",
+      "targetShareAvg": 0,
+      "carryShareAvg": 0,
+      "snapPctAvg": 0.1754,
+      "weeks": 1,
+      "last": {
+        "targetShare": 0,
+        "carryShare": 0,
+        "snapPct": 0.1754
+      }
+    }
+  },
+  "backtest": {
+    "1399457768158547968": {
+      "username": "pykle",
+      "league": "Coast to Coast",
+      "algoScore": 112.62,
+      "optimalScore": 153.96,
+      "yourScore": 129.52,
+      "accuracy": 0.7315,
+      "yourAccuracy": 0.8413
+    },
+    "1393304032566591488": {
+      "username": "pykle",
+      "league": "🪓 Chaotic Evil League",
+      "algoScore": 54.12,
+      "optimalScore": 54.12,
+      "yourScore": 54.12,
+      "accuracy": 1,
+      "yourAccuracy": 1
+    },
+    "1389327389007302656": {
+      "username": "pykle",
+      "league": "Fútbol is Life League ",
+      "algoScore": 100.86,
+      "optimalScore": 134.56,
+      "yourScore": 109.76,
+      "accuracy": 0.7496,
+      "yourAccuracy": 0.8157
+    },
+    "1388834683529207808": {
+      "username": "pykle",
+      "league": "HALIMEMNON",
+      "algoScore": 169.56,
+      "optimalScore": 202.36,
+      "yourScore": 147.36,
+      "accuracy": 0.8379,
+      "yourAccuracy": 0.7282
+    }
+  },
+  "meta": {
+    "statRows": 2331,
+    "dnp": 272,
+    "fpaSamples": 364,
+    "fpaRanked": 0,
+    "usagePlayers": 342,
+    "completeWeeks": [
+      1
+    ],
+    "notes": []
+  }
+}
