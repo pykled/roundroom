@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-20T16:19:23.738Z",
+  "fetched_at": "2026-09-20T18:55:05.426Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -180,7 +180,7 @@
       "name": "Brock Bowers",
       "position": "TE",
       "team": "LV",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee - Meniscus"
     },
     {
@@ -317,6 +317,13 @@
       "body_part": "Calf"
     },
     {
+      "name": "CJ Williams",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Cole Burgess",
       "position": "WR",
       "team": null,
@@ -385,6 +392,20 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
+    },
+    {
+      "name": "Dallas Goedert",
+      "position": "TE",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
+      "name": "Dallen Bentley",
+      "position": "TE",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Damien Alford",
@@ -588,6 +609,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Eli Raridon",
+      "position": "TE",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Thigh"
     },
     {
       "name": "Eli Stowers",
@@ -905,6 +933,13 @@
       "body_part": "Knee - ACL"
     },
     {
+      "name": "Jayden Reed",
+      "position": "WR",
+      "team": "GB",
+      "status": "Out",
+      "body_part": "Neck"
+    },
+    {
       "name": "Jeff Caldwell",
       "position": "WR",
       "team": "KC",
@@ -1164,13 +1199,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Ladd McConkey",
-      "position": "WR",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Chest"
-    },
-    {
       "name": "Larry Rose",
       "position": "RB",
       "team": null,
@@ -1423,6 +1451,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Quinn Ewers",
+      "position": "QB",
+      "team": "JAX",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Raheem Blackshear",
       "position": "RB",
       "team": null,
@@ -1458,6 +1493,13 @@
       "body_part": "Knee - PCL"
     },
     {
+      "name": "Rico Dowdle",
+      "position": "RB",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "River Cracraft",
       "position": "WR",
       "team": null,
@@ -1468,7 +1510,7 @@
       "name": "RJ Harvey",
       "position": "RB",
       "team": "DEN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1500,11 +1542,25 @@
       "body_part": "Lower Body"
     },
     {
+      "name": "Sam Ehlinger",
+      "position": "QB",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Sam Scott",
       "position": "RB",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Saquon Barkley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Arm"
     },
     {
       "name": "Savion Williams",
@@ -1587,6 +1643,13 @@
       "name": "Tanner Arkin",
       "position": "TE",
       "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Tanner Koziol",
+      "position": "TE",
+      "team": "JAX",
       "status": "Out",
       "body_part": "Coach's Decision"
     },
@@ -1757,6 +1820,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Will Howard",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Will Mallory",
