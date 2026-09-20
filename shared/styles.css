@@ -21,9 +21,9 @@
 
 
 /* 1. Fonts ------------------------------------------------------------------
-   Each page keeps its <link rel="preconnect"> hints for fonts.googleapis.com
-   and fonts.gstatic.com; the stylesheet request itself lives here. */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+   Loaded from each page's <head> as a <link rel="stylesheet"> (after the
+   preconnect hints) rather than @import here, so the browser can request the
+   Google Fonts CSS in parallel with this file instead of after it. */
 
 
 /* 2. Design tokens --------------------------------------------------------- */
@@ -439,6 +439,16 @@ th .tip { margin-left: 0.25rem; }
 .page-head #league-bar { margin-bottom: 0; flex: 0 1 auto; }
 .page-head #league-bar select { min-width: 160px; }
 .page-head #league-hint { flex-basis: 100%; }
+.tool-head .page-title { font-size: var(--fs-xl); }
+
+/* Static explainer under a tool page: real, crawlable copy for search engines
+   and first-time visitors. Sits below the app UI, above the footer. */
+.tool-about { margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--border); color: var(--text-body); }
+.tool-about h2 { font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: var(--text-primary); margin: 0 0 var(--space-2); }
+.tool-about h2 + p + h2 { margin-top: var(--space-6); }
+.tool-about p { font-size: var(--fs-sm); line-height: 1.65; max-width: 72ch; margin: 0; }
+.tool-about a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
+.tool-about a:hover { color: var(--text-primary); }
 
 /* Row of league-settings tags with an optional highlighted lead tag (team name). */
 .strip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: var(--space-4); }

@@ -3,12 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Trade Calculator — Pocket</title>
+<title>Fantasy Football Trade Calculator | Trade Value & Analysis | Pocket</title>
+<meta name="description" content="Fantasy football trade calculator with value-for-value analysis, superflex and dynasty support, and roster fit. WIN, FAIR, or LOSE on your league's scoring.">
+<link rel="canonical" href="https://pocketff.com/trade">
 <meta name="theme-color" content="#6366f1">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="Fantasy Football Trade Calculator | Trade Value & Analysis | Pocket">
+<meta property="og:description" content="Fantasy football trade calculator with value-for-value analysis, superflex and dynasty support, and roster fit. WIN, FAIR, or LOSE on your league's scoring.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/trade">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pocket — fantasy football trade calculator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fantasy Football Trade Calculator | Pocket">
+<meta name="twitter:description" content="Value-for-value trade analysis with superflex, dynasty, and roster fit. WIN, FAIR, or LOSE on your league's scoring.">
+<meta name="twitter:image" content="https://pocketff.com/og.png">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Pocket Fantasy Football Trade Calculator",
+  "url": "https://pocketff.com/trade",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Fantasy football trade calculator that values both sides of a trade for your league: value over replacement under your exact scoring and roster slots blended with market values, adjusted for injuries, recent form, playoff schedule, and roster fit. Supports superflex, 2QB, and dynasty leagues.",
+  "featureList": [
+    "WIN / FAIR / LOSE trade verdict on your league's scoring",
+    "Superflex and 2QB trade values",
+    "Dynasty trade values with age curves",
+    "Roster fit and positional need adjustments",
+    "Sleeper league sync or manual PPR / half-PPR / standard presets"
+  ],
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "image": "https://pocketff.com/og.png",
+  "isPartOf": { "@type": "WebSite", "@id": "https://pocketff.com/#website", "url": "https://pocketff.com/", "name": "Pocket" }
+}
+</script>
 <script defer src="/shared/nav.js"></script>
 <style>
 /* Shared tokens, reset, nav, setup card, form row, buttons, league bar, .col-hdr,
@@ -238,6 +276,23 @@
 </nav>
 
 <div id="app">
+  <!-- Page header lives outside #trade-ui so the H1 is in the static HTML for crawlers -->
+  <header class="page-head tool-head">
+    <div class="page-head-text">
+      <h1 class="page-title">Fantasy Football Trade Calculator</h1>
+      <p class="page-sub">Value-for-value trade analysis on your league's scoring &mdash; superflex, dynasty, and roster fit included.</p>
+    </div>
+    <!-- League selector (connected mode) -->
+    <div id="league-bar" hidden>
+      <span>League:</span>
+      <select id="league-sel"></select>
+      <span id="league-hint" hidden></span>
+    </div>
+    <!-- Format chip: always in connected mode; in manual mode only when the
+         presets select superflex or dynasty, so the value basis is never silent -->
+    <span id="league-fmt" class="league-fmt" hidden></span>
+  </header>
+
   <div id="loading">Loading…</div>
 
   <!-- Signed in but no Sleeper linked -->
@@ -253,21 +308,6 @@
 
   <!-- Main trade UI -->
   <div id="trade-ui" hidden>
-    <div class="page-head">
-      <div class="page-head-text">
-        <div class="page-title">Trade Calculator</div>
-      </div>
-      <!-- League selector (connected mode) -->
-      <div id="league-bar" hidden>
-        <span>League:</span>
-        <select id="league-sel"></select>
-        <span id="league-hint" hidden></span>
-      </div>
-      <!-- Format chip: always in connected mode; in manual mode only when the
-           presets select superflex or dynasty, so the value basis is never silent -->
-      <span id="league-fmt" class="league-fmt" hidden></span>
-    </div>
-
     <!-- Preset controls (manual mode) -->
     <div id="preset-bar">
       <span class="pb-label">Scoring</span>
@@ -406,6 +446,14 @@
       </div>
     </details>
   </div>
+
+  <!-- Static, always-crawlable explainer -->
+  <section class="tool-about" aria-labelledby="about-title">
+    <h2 id="about-title">How the fantasy trade value calculator works</h2>
+    <p>Add the players on each side and Pocket values them for your league, not a generic chart. Each player's value is his value over replacement under your exact scoring and roster slots (70%) blended with FantasyCalc market value (30%), then adjusted for injury status, recent form, opponent strength in your playoff weeks, and how he fits your roster &mdash; positional need raises or lowers incoming and outgoing value, and depth-chart position adjusts within-position value. The verdict is WIN, FAIR, or LOSE; FAIR means the two sides are within 10% of each other.</p>
+    <h2>Superflex and dynasty trade calculator</h2>
+    <p>In superflex and 2QB leagues Pocket switches to a 2-QB market and recomputes the replacement line, so quarterback value roughly doubles. Dynasty mode uses dynasty market values with an age curve &mdash; running backs peak around 27, wide receivers around 29. The calculator works without an account using league presets (PPR, half-PPR, or standard; 1QB or superflex; 10 to 14 teams; redraft or dynasty), or connect your Sleeper username to load real rosters and score every trade on your league's exact settings. The same values power the <a href="/lineup">lineup optimizer</a> and <a href="/draft">draft assistant</a>.</p>
+  </section>
 </div>
 
 <footer class="rr-footer">

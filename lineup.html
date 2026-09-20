@@ -3,12 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Lineup Optimizer — Pocket</title>
+<title>Fantasy Football Lineup Optimizer | Pocket</title>
+<meta name="description" content="Fantasy football lineup optimizer for Sleeper leagues. Start/sit calls scored with Vegas lines, matchups, injuries, game script, and your league's exact scoring.">
+<link rel="canonical" href="https://pocketff.com/lineup">
 <meta name="theme-color" content="#6366f1">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="Fantasy Football Lineup Optimizer | Pocket">
+<meta property="og:description" content="Fantasy football lineup optimizer for Sleeper leagues. Start/sit calls scored with Vegas lines, matchups, injuries, game script, and your league's exact scoring.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/lineup">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pocket — fantasy football lineup optimizer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fantasy Football Lineup Optimizer | Pocket">
+<meta name="twitter:description" content="Start/sit calls scored with Vegas lines, matchups, injuries, game script, and your Sleeper league's exact scoring.">
+<meta name="twitter:image" content="https://pocketff.com/og.png">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Pocket Fantasy Football Lineup Optimizer",
+  "url": "https://pocketff.com/lineup",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Weekly fantasy football lineup optimizer for Sleeper leagues. Scores every player with your league's exact scoring, then adjusts for matchup (fantasy points allowed), Vegas lines and game script, recent form, usage, injuries, rest, and weather to build the highest-projected starting lineup.",
+  "featureList": [
+    "Start/sit recommendations under your league's exact scoring and roster slots",
+    "Matchup grading from fantasy points allowed by position",
+    "Vegas spread and game script adjustments",
+    "Injury, bye, Thursday-night rest, and weather adjustments",
+    "FLEX and Superflex slot optimization"
+  ],
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "image": "https://pocketff.com/og.png",
+  "isPartOf": { "@type": "WebSite", "@id": "https://pocketff.com/#website", "url": "https://pocketff.com/", "name": "Pocket" }
+}
+</script>
 <script defer src="/shared/nav.js"></script>
 <style>
 /* Shared tokens, reset, nav, setup card, form row, buttons, league bar, position
@@ -114,6 +152,14 @@
 </nav>
 
 <div id="app">
+  <!-- Static page header: crawlable H1 for signed-out visitors; hidden once the lineup UI takes over -->
+  <header class="page-head tool-head" id="tool-head">
+    <div class="page-head-text">
+      <h1 class="page-title">Fantasy Football Lineup Optimizer</h1>
+      <p class="page-sub">Start/sit calls for your Sleeper league, scored with Vegas lines, matchups, injuries, and game script under your exact scoring.</p>
+    </div>
+  </header>
+
   <div id="loading">Loading…</div>
 
   <!-- Signed out -->
@@ -196,6 +242,14 @@
       </div>
     </details>
   </div>
+
+  <!-- Static, always-crawlable explainer -->
+  <section class="tool-about" aria-labelledby="about-title">
+    <h2 id="about-title">How the lineup optimizer scores your players</h2>
+    <p>Pocket pulls your roster and league settings straight from Sleeper, then scores every player for the week. It starts with the Sleeper projection under your league's scoring, then adjusts for matchup difficulty (fantasy points allowed to the position), the Vegas spread and likely game script, recent form, usage trends, injury designations, short Thursday-night rest, and weather. Every starting slot &mdash; including FLEX and Superflex &mdash; is filled for the highest projected total, and bench players within reach of a starter are flagged so you can make the call.</p>
+    <h2>Built for your league, not a PPR default</h2>
+    <p>Standard, half-PPR, full-PPR, TE-premium, superflex &mdash; every projection is run through your league's exact scoring table and roster slots, so start/sit recommendations match how your league actually scores. Projections, injuries, Vegas lines, and points-allowed data refresh daily during the NFL season. Pair it with the <a href="/trade">fantasy football trade calculator</a> and <a href="/draft">draft assistant</a>, which use the same league settings.</p>
+  </section>
 </div>
 
 <footer class="rr-footer">
@@ -467,6 +521,7 @@ async function setPrimaryLeague(lid) {
 }
 
 async function enterConnected() {
+  document.getElementById('tool-head').hidden = true;
   document.getElementById('lineup-ui').hidden = false;
   setLeagueHint('Loading leagues…');
   try {

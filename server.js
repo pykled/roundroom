@@ -1762,6 +1762,55 @@ app.use((req, res, next) => {
   next();
 });
 
+// ---------------------------------------------------------------------------
+// SEO: robots.txt + sitemap.xml. Both must be registered before the SPA
+// catch-all, which would otherwise answer them with index.html (a soft 404).
+// ---------------------------------------------------------------------------
+const SITE_ORIGIN = 'https://pocketff.com';
+// lastmod = the last time the page's *content* meaningfully changed. Bump by
+// hand when you ship a real change to that page; file mtimes are useless here
+// because every Railway build rewrites them.
+const SITEMAP_PAGES = [
+  { path: '/',         lastmod: '2026-09-20', changefreq: 'weekly',  priority: '1.0' },
+  { path: '/lineup',   lastmod: '2026-09-20', changefreq: 'weekly',  priority: '0.9' },
+  { path: '/trade',    lastmod: '2026-09-20', changefreq: 'weekly',  priority: '0.9' },
+  { path: '/draft',    lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
+  { path: '/research', lastmod: '2026-09-20', changefreq: 'weekly',  priority: '0.6' },
+  { path: '/team',     lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.5' },
+];
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send([
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    '',
+    `Sitemap: ${SITE_ORIGIN}/sitemap.xml`,
+    '',
+  ].join('\n'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const urls = SITEMAP_PAGES.map(p =>
+    '  <url>\n' +
+    `    <loc>${SITE_ORIGIN}${p.path}</loc>\n` +
+    `    <lastmod>${p.lastmod}</lastmod>\n` +
+    `    <changefreq>${p.changefreq}</changefreq>\n` +
+    `    <priority>${p.priority}</priority>\n` +
+    '  </url>'
+  ).join('\n');
+  res.type('application/xml');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls + '\n' +
+    '</urlset>\n'
+  );
+});
+
 // /lineup — weekly lineup optimizer (server-injected Clerk publishable key)
 app.get('/lineup', (req, res) => {
   try {
@@ -1850,9 +1899,22 @@ app.post('/api/announce', express.json({ limit: '10kb' }), async (req, res) => {
   }
 });
 
-app.use(express.static(path.join(__dirname)));
+// Static assets: images/fonts are effectively immutable (1 week); CSS/JS are
+// not fingerprinted, so keep them short (1 hour) and let the ETag revalidate.
+// Everything else (data/*.json, manifest, HTML) stays at the default max-age=0.
+app.use(express.static(path.join(__dirname), {
+  setHeaders(res, filePath) {
+    if (/\.(png|jpe?g|webp|gif|svg|ico|woff2?)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    } else if (/\.(css|js)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  },
+}));
+// Unknown paths still render the draft app for humans, but answer 404 so
+// crawlers don't index every stray URL as a duplicate of the draft page.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.status(404).sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Warm injury cache on startup so the first request is fast, then refresh every 4h

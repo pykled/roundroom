@@ -3,15 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Pocket — Fantasy Draft Assistant</title>
-<meta name="description" content="Pocket: Real-time NFL fantasy draft assistant. Live Sleeper sync, VORP-based picks, SuperFlex support.">
-<meta property="og:title" content="Pocket — Live Draft Companion for Sleeper">
-<meta property="og:description" content="Real-time pick tracking and VORP-ranked recommendations for Sleeper fantasy drafts. Know who to draft next, instantly.">
-<meta property="og:url" content="https://pocketff.com">
+<title>Fantasy Football Draft Assistant for Sleeper | Pocket</title>
+<meta name="description" content="Live fantasy football draft assistant for Sleeper. Real-time pick tracking, value-over-replacement rankings, superflex support, and mock drafts on your scoring.">
+<link rel="canonical" href="https://pocketff.com/draft">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="Fantasy Football Draft Assistant for Sleeper | Pocket">
+<meta property="og:description" content="Real-time pick tracking and value-over-replacement recommendations for Sleeper fantasy drafts. Know who to draft next, instantly.">
+<meta property="og:url" content="https://pocketff.com/draft">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Pocket — Live Draft Companion for Sleeper">
-<meta name="twitter:description" content="Real-time pick tracking and VORP-ranked recommendations for Sleeper fantasy drafts.">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pocket — live fantasy football draft assistant for Sleeper">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fantasy Football Draft Assistant for Sleeper | Pocket">
+<meta name="twitter:description" content="Real-time pick tracking and value-over-replacement recommendations for Sleeper fantasy drafts.">
+<meta name="twitter:image" content="https://pocketff.com/og.png">
 <meta name="theme-color" content="#6366f1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,7 +28,29 @@
 <link rel="apple-touch-icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Pocket Fantasy Football Draft Assistant",
+  "url": "https://pocketff.com/draft",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Live fantasy football draft assistant for Sleeper leagues. Syncs picks in real time and ranks the best available players by value over replacement under your league's exact scoring and roster, with superflex support and mock drafts.",
+  "featureList": [
+    "Real-time Sleeper draft sync",
+    "Best-available rankings by value over replacement",
+    "Superflex and 2QB draft values",
+    "Mock draft simulator"
+  ],
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "image": "https://pocketff.com/og.png",
+  "isPartOf": { "@type": "WebSite", "@id": "https://pocketff.com/#website", "url": "https://pocketff.com/", "name": "Pocket" }
+}
+</script>
 <script defer src="/shared/nav.js"></script>
 <script defer src="https://umami-production-e09b.up.railway.app/script.js" data-website-id="97ba8ad5-da19-4e56-a096-f21d2426ebb1"></script>
 <style>
@@ -3190,7 +3219,7 @@
   <div class="home-layout">
 
     <div class="home-left">
-      <h1 class="draft-setup-title">Draft Assistant</h1>
+      <h1 class="draft-setup-title">Fantasy Football Draft Assistant</h1>
       <p class="draft-setup-sub">Connect your Sleeper account to draft live, or run a mock to practice.</p>
 
       <div class="home-action-cards" style="margin-top:1.25rem;">

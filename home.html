@@ -3,24 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pocket — Fantasy football draft, trade, and lineup tools scored to your Sleeper league</title>
-<meta name="description" content="Fantasy football tools for Sleeper leagues. Enter your Sleeper username once and every draft pick, trade, and lineup is scored to your league's exact scoring and roster.">
+<title>Pocket — Fantasy Football Lineup Optimizer & Trade Calculator</title>
+<meta name="description" content="AI-powered fantasy football lineup optimizer and trade calculator for Sleeper leagues. Every pick, trade, and lineup scored to your league's exact settings.">
+<link rel="canonical" href="https://pocketff.com/">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="Pocket — Fantasy football draft, trade, and lineup tools scored to your Sleeper league">
-<meta property="og:description" content="Fantasy football tools for Sleeper leagues. Enter your Sleeper username once and every draft pick, trade, and lineup is scored to your league's exact scoring and roster.">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="Pocket — Fantasy Football Lineup Optimizer & Trade Calculator">
+<meta property="og:description" content="AI-powered fantasy football lineup optimizer and trade calculator for Sleeper leagues. Every pick, trade, and lineup scored to your league's exact settings.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pocketff.com/">
 <meta property="og:image" content="https://pocketff.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pocket — fantasy football tools scored to your Sleeper league">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pocket — Fantasy Football Lineup Optimizer & Trade Calculator">
+<meta name="twitter:description" content="AI-powered fantasy football lineup optimizer and trade calculator for Sleeper leagues. Every pick, trade, and lineup scored to your league's exact settings.">
+<meta name="twitter:image" content="https://pocketff.com/og.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
 <script defer src="/shared/nav.js"></script>
 <script defer src="https://umami-production-e09b.up.railway.app/script.js" data-website-id="97ba8ad5-da19-4e56-a096-f21d2426ebb1"></script>
 <script>document.documentElement.classList.add('js');</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://pocketff.com/#website",
+      "url": "https://pocketff.com/",
+      "name": "Pocket",
+      "description": "Fantasy football lineup optimizer, trade calculator, and draft assistant scored to your Sleeper league."
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://pocketff.com/#app",
+      "name": "Pocket — Fantasy Football Tools",
+      "url": "https://pocketff.com/",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "description": "AI-powered fantasy football lineup optimizer, trade calculator, and live draft assistant. Every recommendation is scored to your Sleeper league's exact scoring and roster settings.",
+      "featureList": [
+        "Fantasy football lineup optimizer with Vegas lines, matchups, injuries, and game script",
+        "Fantasy football trade calculator with superflex and dynasty support",
+        "Live Sleeper draft assistant with value-over-replacement rankings"
+      ],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "image": "https://pocketff.com/og.png"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://pocketff.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does the fantasy football trade calculator work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Add the players on each side of the trade and Pocket values them for your league: value over replacement under your exact scoring and roster slots (70%) blended with FantasyCalc market value (30%), then adjusted for injuries, recent form, playoff-week schedule, and how each player fits your roster. You get a WIN, FAIR, or LOSE verdict — FAIR means the two sides are within 10% of each other."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is FPA in fantasy football?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "FPA stands for Fantasy Points Allowed: the average fantasy points a defense gives up to a position each week. A high FPA against wide receivers means a soft matchup for your WRs; a low FPA means a tough one. Pocket's lineup optimizer uses FPA to grade every starter's matchup, and the weight of that factor builds through the season as more games are played."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the lineup optimizer decide who to start?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It starts from each player's Sleeper projection under your league's scoring, then adjusts it for matchup difficulty (FPA), Vegas spread and game script, recent form, usage trends, injury status, short rest on Thursday night, and weather. It then fills every starting slot — including FLEX and Superflex — with the combination that produces the highest projected total, and flags bench players who are close enough to consider."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does the trade calculator support superflex and dynasty leagues?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. In superflex leagues Pocket switches to a 2-QB market and re-computes the replacement line, so quarterback value roughly doubles. Dynasty mode uses dynasty market values with an age curve — running backs peak around 27 and wide receivers around 29 — so aging veterans and young upside players are valued the way dynasty managers actually trade them."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 <style>
 /* ---- Home-page tokens (palette, fonts, radius, brand live in /shared/styles.css) ---- */
 :root {
@@ -402,7 +480,21 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
 #method { border-top: 1px solid var(--border); padding: 64px 0; }
 .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .method .eyebrow { margin-bottom: 12px; }
+.method h3.eyebrow { font-size: inherit; font-weight: inherit; letter-spacing: inherit; text-transform: inherit; }
 .method p { font-size: 0.95rem; line-height: 1.5; color: var(--text-body); }
+
+/* ---- FAQ ---- */
+#faq { border-top: 1px solid var(--border); padding: 64px 0 var(--section-pad); }
+#faq .section-head { margin-bottom: 28px; }
+.faq-list { max-width: 760px; }
+.faq { border-top: 1px solid var(--border); }
+.faq:last-child { border-bottom: 1px solid var(--border); }
+.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; flex: none; font-family: var(--font-mono); font-size: 1.1rem; color: var(--text-secondary); transition: transform 0.2s ease-out; }
+.faq[open] summary::after { transform: rotate(45deg); }
+.faq summary h3 { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; color: var(--text-primary); }
+.faq p { font-size: 0.95rem; line-height: 1.6; color: var(--text-body); margin: 0 0 20px; max-width: 68ch; }
 .method .fresh { margin-top: 12px; color: var(--text-secondary); text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
 
 /* ---- Footer: shared .rr-footer, styled in /shared/styles.css ---- */
@@ -525,8 +617,8 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
     </div>
     <div class="hero-copy">
       <div class="hero-eyebrow mono"><span>Fantasy football</span><span class="sep">·</span><span>Built for Sleeper leagues</span></div>
-      <h1 id="hero-h1">Every pick, scored to your Sleeper league.</h1>
-      <p class="sub" id="hero-sub">Pocket reads your league's scoring and roster straight from Sleeper, then ranks every draft pick, trade, and lineup for it. Not ADP. Your league.</p>
+      <h1 id="hero-h1">Fantasy football tools, scored to your Sleeper league.</h1>
+      <p class="sub" id="hero-sub">Pocket reads your league's scoring and roster straight from Sleeper, then runs a lineup optimizer, trade calculator, and draft assistant against it. Not ADP. Your league.</p>
       <div class="sub-mono mono" id="hero-leagues" hidden></div>
 
       <form class="hero-form" id="hero-form" autocomplete="off" novalidate>
@@ -593,7 +685,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
   <div class="container">
     <div class="section-head reveal">
       <div class="eyebrow mono">Three tools · One login</div>
-      <h2>Same league settings. Every tool.</h2>
+      <h2>Lineup optimizer, trade calculator, draft assistant. One set of league settings.</h2>
     </div>
     <div class="tool-grid">
 
@@ -612,7 +704,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
       <a class="card reveal" href="/trade" style="--d: 50ms">
         <div class="eyebrow mono">Trade desk</div>
         <h3>Trade Calculator</h3>
-        <p>Players on both sides. A WIN, FAIR, or LOSE verdict on your league's settings.</p>
+        <p>Players on both sides. A WIN, FAIR, or LOSE verdict on your league's settings — superflex and dynasty included.</p>
         <div class="mini chips">
           <span class="verdict v-WIN">WIN</span>
           <span class="verdict v-FAIR faded">FAIR</span>
@@ -624,7 +716,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
       <a class="card reveal" id="card-lineup" href="/lineup" style="--d: 100ms">
         <div class="eyebrow mono">Weekly</div>
         <h3>Lineup Optimizer</h3>
-        <p>Your roster, this week's projections, and the highest-scoring lineup under your rules.</p>
+        <p>Your roster, this week's projections adjusted for Vegas lines, matchups, and injuries, and the highest-scoring lineup under your rules.</p>
         <div class="mini slots" aria-hidden="true">
           <span class="slot">QB</span><span class="slot-sep">·</span>
           <span class="slot">RB</span><span class="slot-sep">·</span>
@@ -645,18 +737,45 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
   <div class="container">
     <div class="method-grid">
       <div class="method reveal">
-        <div class="eyebrow mono">Replacement level</div>
-        <p>Your roster slots and team count set the replacement line. Superflex values QBs differently, and the numbers show it.</p>
+        <h3 class="eyebrow mono">Replacement level</h3>
+        <p>Your roster slots and team count set the replacement line for trade values and draft rankings. Superflex values QBs differently, and the numbers show it.</p>
       </div>
       <div class="method reveal" style="--d: 50ms">
-        <div class="eyebrow mono">Your scoring, per stat</div>
-        <p>Projections scored with your exact scoring table, not a PPR preset.</p>
+        <h3 class="eyebrow mono">Your scoring, per stat</h3>
+        <p>Projections scored with your exact scoring table, not a PPR preset. The same numbers drive the lineup optimizer, the trade calculator, and the draft board.</p>
       </div>
       <div class="method reveal" style="--d: 100ms">
-        <div class="eyebrow mono">Fresh data</div>
-        <p>Projections and injuries refresh daily in season.</p>
+        <h3 class="eyebrow mono">Fresh data</h3>
+        <p>Projections, injuries, Vegas lines, and fantasy points allowed refresh daily in season.</p>
         <div class="fresh mono" id="freshness" hidden></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow mono">FAQ</div>
+      <h2 id="faq-title">Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq reveal">
+        <summary><h3>How does the fantasy football trade calculator work?</h3></summary>
+        <p>Add the players on each side of the trade and Pocket values them for your league: value over replacement under your exact scoring and roster slots (70%) blended with FantasyCalc market value (30%), then adjusted for injuries, recent form, playoff-week schedule, and how each player fits your roster. You get a WIN, FAIR, or LOSE verdict &mdash; FAIR means the two sides are within 10% of each other.</p>
+      </details>
+      <details class="faq reveal" style="--d: 50ms">
+        <summary><h3>What is FPA in fantasy football?</h3></summary>
+        <p>FPA stands for Fantasy Points Allowed: the average fantasy points a defense gives up to a position each week. A high FPA against wide receivers means a soft matchup for your WRs; a low FPA means a tough one. Pocket's lineup optimizer uses FPA to grade every starter's matchup, and the weight of that factor builds through the season as more games are played.</p>
+      </details>
+      <details class="faq reveal" style="--d: 100ms">
+        <summary><h3>How does the lineup optimizer decide who to start?</h3></summary>
+        <p>It starts from each player's Sleeper projection under your league's scoring, then adjusts it for matchup difficulty (FPA), Vegas spread and game script, recent form, usage trends, injury status, short rest on Thursday night, and weather. It then fills every starting slot &mdash; including FLEX and Superflex &mdash; with the combination that produces the highest projected total, and flags bench players who are close enough to consider.</p>
+      </details>
+      <details class="faq reveal" style="--d: 150ms">
+        <summary><h3>Does the trade calculator support superflex and dynasty leagues?</h3></summary>
+        <p>Yes. In superflex leagues Pocket switches to a 2-QB market and re-computes the replacement line, so quarterback value roughly doubles. Dynasty mode uses dynasty market values with an age curve &mdash; running backs peak around 27 and wide receivers around 29 &mdash; so aging veterans and young upside players are valued the way dynasty managers actually trade them.</p>
+      </details>
     </div>
   </div>
 </section>
@@ -778,9 +897,9 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
   }
 
   function setSignedOut() {
-    $('hero-h1').textContent = 'Every pick, scored to your Sleeper league.';
+    $('hero-h1').textContent = 'Fantasy football tools, scored to your Sleeper league.';
     $('hero-sub').hidden = false;
-    $('hero-sub').textContent = "Pocket reads your league's scoring and roster straight from Sleeper, then ranks every draft pick, trade, and lineup for it. Not ADP. Your league.";
+    $('hero-sub').textContent = "Pocket reads your league's scoring and roster straight from Sleeper, then runs a lineup optimizer, trade calculator, and draft assistant against it. Not ADP. Your league.";
     $('hero-leagues').hidden = true;
     showHeroForm(true);
     $('hero-go').textContent = HERO_GO_LABEL;
