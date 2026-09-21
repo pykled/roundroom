@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-21T19:36:54.959Z",
+  "fetched_at": "2026-09-21T23:24:36.232Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -191,18 +191,18 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
-      "name": "Brenden Bates",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Brevin Jordan",
       "position": "TE",
       "team": "HOU",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Brian Robinson",
+      "position": "RB",
+      "team": "ATL",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Brittain Brown",
@@ -327,7 +327,7 @@
       "name": "Charlie Kolar",
       "position": "TE",
       "team": "LAC",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Forearm"
     },
     {
@@ -385,6 +385,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "CJ Daniels",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "CJ Williams",
@@ -1202,7 +1209,7 @@
       "name": "Jordan Whittington",
       "position": "WR",
       "team": "LAR",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -1563,6 +1570,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nick Muse",
+      "position": "TE",
+      "team": "ATL",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
@@ -1622,7 +1636,7 @@
       "name": "Puka Nacua",
       "position": "WR",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hip"
     },
     {
@@ -1892,6 +1906,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Thomas Fidone",
+      "position": "TE",
+      "team": "NYG",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Thomas Yassmin",
       "position": "TE",
       "team": "GB",
@@ -1967,6 +1988,13 @@
       "team": "BUF",
       "status": "Out",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Ty Simpson",
+      "position": "QB",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Tyler Goodson",
