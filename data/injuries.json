@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-20T22:34:07.275Z",
+  "fetched_at": "2026-09-21T05:10:18.111Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -56,6 +56,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Alec Pierce",
+      "position": "WR",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Heel"
     },
     {
       "name": "Alex Bullock",
@@ -233,6 +240,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Caleb Douglas",
+      "position": "WR",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Caleb Lohner",
       "position": "TE",
       "team": "DEN",
@@ -308,6 +322,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Charlie Kolar",
+      "position": "TE",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Forearm"
     },
     {
       "name": "Chase Curtis",
@@ -485,6 +506,13 @@
       "body_part": "Groin"
     },
     {
+      "name": "Dareke Young",
+      "position": "WR",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Darren Carrington",
       "position": "WR",
       "team": null,
@@ -516,7 +544,7 @@
       "name": "Demarcus Robinson",
       "position": "WR",
       "team": "SF",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -572,7 +600,7 @@
       "name": "DJ Giddens",
       "position": "RB",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -735,6 +763,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Garrett Nussmeier",
+      "position": "QB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Gee Scott",
@@ -905,6 +940,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Jadarian Price",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Chest"
+    },
+    {
       "name": "Jake Bentley",
       "position": "QB",
       "team": null,
@@ -982,6 +1024,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Jared Wiley",
+      "position": "TE",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jaren Kanak",
       "position": "TE",
       "team": "TEN",
@@ -999,7 +1048,7 @@
       "name": "Jayden Daniels",
       "position": "QB",
       "team": "WAS",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Elbow"
     },
     {
@@ -1465,6 +1514,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Mike Evans",
+      "position": "WR",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Hip"
+    },
+    {
       "name": "Mike Williams",
       "position": "WR",
       "team": null,
@@ -1631,6 +1687,13 @@
       "team": "PIT",
       "status": "Out",
       "body_part": "Toe"
+    },
+    {
+      "name": "Riley Leonard",
+      "position": "QB",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "River Cracraft",
