@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-22T17:06:12.294Z",
+  "fetched_at": "2026-09-22T21:31:03.472Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -103,7 +103,7 @@
       "name": "Arian Smith",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -1451,13 +1451,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Malick Meiga",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Malik Davis",
       "position": "RB",
       "team": "DAL",
@@ -1720,7 +1713,7 @@
       "name": "Rico Dowdle",
       "position": "RB",
       "team": "PIT",
-      "status": "Out",
+      "status": "Questionable",
       "body_part": "Toe"
     },
     {
@@ -2065,6 +2058,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Tyson Bagent",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "Will Dissly",
