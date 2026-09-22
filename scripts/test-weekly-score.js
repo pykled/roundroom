@@ -101,13 +101,13 @@ ha = W.homeAwayMultiplier(undefined); near(ha.mult, 1); assert.strictEqual(ha.so
 
 // --- short week (Sleeper dates are YYYY-MM-DD; 2026-09-17 is a Thursday)
 let r0;
-let sw =W.shortWeekMultiplier('2026-09-17'); near(sw.mult, 0.94); assert.strictEqual(sw.source, 'live'); assert.strictEqual(sw.label, 'TNF');
+let sw =W.shortWeekMultiplier('2026-09-17'); near(sw.mult, 0.98); assert.strictEqual(sw.source, 'live'); assert.strictEqual(sw.label, 'TNF');
 sw = W.shortWeekMultiplier('2026-09-20'); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');   // Sunday
 sw = W.shortWeekMultiplier('2026-09-21'); near(sw.mult, 1);                                             // Monday
 sw = W.shortWeekMultiplier(null); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');
 sw = W.shortWeekMultiplier('not a date'); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');
 sw = W.shortWeekMultiplier('2026-09-10', 0); near(sw.mult, 1); assert.strictEqual(sw.source, 'neutral');   // Thursday opener, full offseason rest
-sw = W.shortWeekMultiplier('2026-09-17', 1); near(sw.mult, 0.94);
+sw = W.shortWeekMultiplier('2026-09-17', 1); near(sw.mult, 0.98);
 r0 = W.computeLineupScore({ id: '1', position: 'WR', team: 'SF', injuryStatus: null }, { weeksPlayed: 0, base: 10, opponent: 'LAR', gameDate: '2026-09-10' });
 near(r0.score, 10); assert.strictEqual(r0.factors.shortWeek.source, 'neutral');
 
@@ -177,7 +177,7 @@ near(r.score, 12 * 1.25 * 1.1); assert.strictEqual(r.bye, false);
 r = W.computeLineupScore({ id: '1', position: 'WR', team: 'KC', injuryStatus: null },
   { week: 5, weeksPlayed: 4, base: 12, opponent: 'DEN', fpa: placeholder, vegas: null, defInjuries: defInj, history: hist,
     isHome: false, gameDate: '2026-10-01', weather: { windspeed: 22, precip: 10, indoor: false } });
-near(r.score, 12 * 1.25 * 1.1 * 0.975 * 0.94 * 0.89);   // away = 0.975 since the home/away recentering
+near(r.score, 12 * 1.25 * 1.1 * 0.975 * 0.98 * 0.89);   // away = 0.975 since the home/away recentering
 assert.strictEqual(r.factors.homeAway.source, 'live'); assert.strictEqual(r.factors.shortWeek.source, 'live'); assert.strictEqual(r.factors.weather.source, 'live');
 assert.strictEqual(r.factors.usage.source, 'neutral'); assert.strictEqual(r.factors.gameScript.source, 'neutral');
 // usage + game script stack in too (WR on a 7-pt underdog with a +10 pt target-share bump)

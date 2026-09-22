@@ -56,7 +56,7 @@ var WeeklyScore = (function () {
   // Home-field edge, centered on 1.0 so a home team and its away opponent average
   // to exactly 1.0 (no net league-wide inflation): +2.5% home, −2.5% away.
   var HOME_MULT = 1.025, AWAY_MULT = 0.975;
-  var SHORT_WEEK_MULT = 0.94;                  // Thursday game: 4 days' rest since Sunday
+  var SHORT_WEEK_MULT = 0.98;                  // Thursday game: reduced from 0.94 (backtest Week 2 showed -6% was overcorrecting)
   var PASSING_POS = ['QB', 'WR', 'TE'];         // positions the wind/rain penalties apply to
 
   // Usage (recent role) factor. Shares are fractions (0.25 = 25% of team targets).
