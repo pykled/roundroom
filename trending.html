@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Trending Players — Movers | Pocket</title>
+<meta name="description" content="See which NFL players are trending up or down this week — usage spikes, add/drop momentum, and form signals for your fantasy roster.">
+<link rel="canonical" href="https://pocketff.com/trending">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="Trending Players — Movers | Pocket">
+<meta property="og:description" content="Usage spikes, add/drop momentum, and form signals — who to pick up before the rest of your league figures it out.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/trending">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<script defer src="/shared/nav.js"></script>
+<style>
+#app { max-width: 900px; width: 100%; }
+
+/* Position pill filter */
+.pos-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: var(--space-4); }
+.pos-pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pos-pill:hover { border-color: var(--border-bright); color: var(--text-primary); }
+.pos-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pos-pill.RB.active  { background: var(--rb);  border-color: var(--rb);  }
+.pos-pill.WR.active  { background: var(--wr);  border-color: var(--wr);  }
+.pos-pill.TE.active  { background: var(--te);  border-color: var(--te);  }
+.pos-pill.QB.active  { background: var(--qb);  border-color: var(--qb);  }
+
+/* Two-column layout on desktop */
+.movers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .movers-grid { grid-template-columns: 1fr; }
+}
+
+.movers-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.movers-col-hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.movers-col-hdr.up   { color: var(--success); }
+.movers-col-hdr.down { color: var(--danger); }
+
+/* Player row */
+.mv-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.mv-row:last-child { border-bottom: none; }
+
+/* Trend bar */
+.mv-bar-wrap { width: 44px; flex-shrink: 0; display: flex; align-items: center; padding-top: 0.3rem; }
+.mv-bar-bg {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-elevated, rgba(255,255,255,0.05));
+  overflow: hidden;
+}
+.mv-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.up   .mv-bar-fill { background: var(--success); }
+.down .mv-bar-fill { background: var(--danger); }
+
+/* Headshot */
+.mv-hs {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+}
+
+/* Player info */
+.mv-info { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.mv-name-row { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.mv-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mv-inj  { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 700; color: var(--danger); }
+.mv-chips { display: flex; flex-wrap: wrap; gap: 0 0.55rem; margin-top: 0.1rem; }
+.mv-chip  { font-family: var(--font-mono); font-size: 0.59rem; color: var(--text-muted); opacity: 0.9; white-space: nowrap; line-height: 1.4; }
+
+/* Trend score */
+.mv-score { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; min-width: 32px; text-align: right; flex-shrink: 0; padding-top: 0.25rem; }
+.up   .mv-score { color: var(--success); }
+.down .mv-score { color: var(--danger); }
+
+/* Badges */
+.mv-badge {
+  display: inline-flex; align-items: center;
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.mv-badge.leading  { background: rgba(245,158,11,.15); color: var(--gold); }
+.mv-badge.conf-hi  { background: rgba(16,185,129,.12); color: var(--success); }
+
+/* Error / loading / empty */
+.mv-empty { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding: var(--space-5) 0; }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/" class="rr-logo">Pocket</a>
+  <div class="rr-links">
+    <a href="/draft" class="rr-link">Draft</a>
+    <a href="/research" class="rr-link">Research</a>
+    <a href="/trade" class="rr-link">Trade</a>
+    <a href="/lineup" class="rr-link">Lineup</a>
+    <a href="/team" class="rr-link">Team</a>
+    <a href="/trending" class="rr-link active">Movers</a>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
+</nav>
+
+<div id="app">
+  <header class="page-head tool-head" id="tool-head">
+    <div class="page-head-text">
+      <h1 class="page-title" id="page-title">Movers</h1>
+      <p class="page-sub" id="page-sub">Loading…</p>
+    </div>
+  </header>
+
+  <div class="pos-filter" id="pos-filter">
+    <button class="pos-pill active" data-pos="ALL">ALL</button>
+    <button class="pos-pill QB" data-pos="QB">QB</button>
+    <button class="pos-pill RB" data-pos="RB">RB</button>
+    <button class="pos-pill WR" data-pos="WR">WR</button>
+    <button class="pos-pill TE" data-pos="TE">TE</button>
+  </div>
+
+  <div class="movers-grid">
+    <div class="movers-col" id="col-up">
+      <div class="movers-col-hdr up">↑ Trending Up</div>
+      <div id="list-up"><div class="mv-empty">Loading…</div></div>
+    </div>
+    <div class="movers-col" id="col-down">
+      <div class="movers-col-hdr down">↓ Trending Down</div>
+      <div id="list-down"><div class="mv-empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script src="/shared/trending-score.js"></script>
+<script>
+var T = { data: null, activePos: 'ALL' };
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function headshot(id, name) {
+  if (!id) return '';
+  return '<img class="mv-hs" src="https://sleepercdn.com/content/nfl/players/thumb/' + esc(id) + '.jpg" ' +
+    'alt="' + esc(name) + '" onerror="this.style.display=\'none\'">';
+}
+
+function renderList(containerId, players, direction) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (!players || !players.length) {
+    el.innerHTML = '<div class="mv-empty">No ' + (direction === 'up' ? 'trending-up' : 'trending-down') + ' players for this filter</div>';
+    return;
+  }
+  el.innerHTML = players.map(function(m) {
+    var barPct = Math.round(Math.abs(m.trend) * 100);
+    var inj = m.injury ? '<span class="mv-inj">' + esc(m.injury) + '</span>' : '';
+    var badges = '';
+    if (m.leading) badges += '<span class="mv-badge leading">⚡ Leading</span>';
+    if (m.confidence === 'high') badges += '<span class="mv-badge conf-hi">Strong</span>';
+    var chips = (m.why || []).slice(0, 3).map(function(w) {
+      return '<span class="mv-chip">' + esc(w) + '</span>';
+    }).join('');
+    var scoreSign = direction === 'up' ? '+' : '';
+    return '<div class="mv-row ' + direction + '">' +
+      '<div class="mv-bar-wrap"><div class="mv-bar-bg"><div class="mv-bar-fill" style="width:' + barPct + '%"></div></div></div>' +
+      headshot(m.id, m.name) +
+      '<div class="mv-info">' +
+        '<div class="mv-name-row">' +
+          '<span class="mv-name">' + esc(m.name) + '</span>' +
+          '<span class="pos-badge ' + esc(m.pos) + '">' + esc(m.pos) + ' ' + esc(m.team) + '</span>' +
+          inj + badges +
+        '</div>' +
+        (chips ? '<div class="mv-chips">' + chips + '</div>' : '') +
+      '</div>' +
+      '<div class="mv-score">' + scoreSign + (m.trend > 0 ? '+' : '') + (m.trend * 100).toFixed(0) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function applyFilter() {
+  if (!T.data) return;
+  var pos = T.activePos;
+  var up, down;
+  if (pos === 'ALL') {
+    up   = T.data.up;
+    down = T.data.down;
+  } else {
+    up   = (T.data.up   || []).filter(function(m) { return m.pos === pos; });
+    down = (T.data.down || []).filter(function(m) { return m.pos === pos; });
+  }
+  renderList('list-up',   up,   'up');
+  renderList('list-down', down, 'down');
+}
+
+document.getElementById('pos-filter').addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-pos]');
+  if (!btn) return;
+  T.activePos = btn.dataset.pos;
+  document.querySelectorAll('.pos-pill').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.pos === T.activePos);
+  });
+  applyFilter();
+});
+
+async function boot() {
+  // Optional: wire up Clerk auth for future signed-in features
+  var key = window.__clerk_publishable_key;
+  if (key && key !== 'PUBLISHABLE_KEY_PLACEHOLDER' && window.Clerk) {
+    try {
+      var clerk = typeof window.Clerk.load === 'function' ? window.Clerk : new window.Clerk(key);
+      await clerk.load({ telemetry: { disabled: true } });
+      if (clerk.user) {
+        var mount = document.getElementById('user-btn-mount');
+        if (mount) clerk.mountUserButton(mount);
+      } else {
+        var btn = document.getElementById('rr-sign-in');
+        if (btn) {
+          btn.hidden = false;
+          btn.addEventListener('click', function() { clerk.openSignIn(); });
+        }
+      }
+    } catch (e) {}
+  }
+
+  try {
+    var resp = await fetch('/api/trending?n=25');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    T.data = await resp.json();
+
+    var week = T.data.lastCompleted || T.data.week;
+    document.getElementById('page-title').textContent = 'Movers';
+    document.getElementById('page-sub').textContent = 'After Week ' + week + ' — usage spikes, add/drop momentum, and form signals';
+
+    applyFilter();
+  } catch (err) {
+    document.getElementById('list-up').innerHTML   = '<div class="mv-empty">Could not load trending data — try again</div>';
+    document.getElementById('list-down').innerHTML = '<div class="mv-empty">Could not load trending data — try again</div>';
+    document.getElementById('page-sub').textContent = 'Failed to load';
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

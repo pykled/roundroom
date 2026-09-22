@@ -131,6 +131,17 @@
 .fx.rec.consider { color: var(--gold); }
 .fx.rec.sit { color: var(--text-muted); }
 .col-hdr .total small { color: var(--text-muted); font-weight: 400; margin-left: 0.3rem; }
+
+/* Movers strip — collapsible section below the lineup */
+.movers-strip { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); }
+.movers-strip summary { font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--text-primary); user-select: none; }
+.movers-strip summary::-webkit-details-marker { color: var(--text-muted); }
+.mv-compact { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.mv-compact:last-child { border-bottom: none; }
+.mv-compact .mv-arrow-up   { color: var(--success); font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+.mv-compact .mv-arrow-down { color: var(--danger);  font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+.mv-compact .mv-nm  { font-size: 0.78rem; font-weight: 500; }
+.mv-compact .mv-why { font-family: var(--font-mono); font-size: 0.59rem; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -143,6 +154,7 @@
     <a href="/trade" class="rr-link">Trade</a>
     <a href="/lineup" class="rr-link active">Lineup</a>
     <a href="/team" class="rr-link">Team</a>
+    <a href="/trending" class="rr-link">Movers</a>
   </div>
   <div class="rr-auth">
     <div id="user-btn-mount"></div>
@@ -211,6 +223,11 @@
         <div id="bench-list"><div class="empty-hint">No roster loaded</div></div>
       </section>
     </div>
+
+    <details class="movers-strip" id="movers-strip" hidden>
+      <summary>📈 Movers on your roster</summary>
+      <div id="movers-list" style="margin-top:0.6rem;"></div>
+    </details>
 
     <details class="legend info-details">
       <summary>How to read this</summary>
@@ -302,12 +319,55 @@ var S = {
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
   locked: {},          // player_id → true when his game has started (slot can't change on Sleeper)
   now: null,           // ms epoch override for lock checks (tests / previews); null = Date.now()
+  trendingData: null,  // cached /api/trending response; refreshed on roster load
 };
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
   });
+}
+
+async function loadMovers() {
+  var strip = document.getElementById('movers-strip');
+  if (!strip || !S.roster) return;
+  try {
+    var resp = await fetch('/api/trending?n=25');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    S.trendingData = await resp.json();
+    renderMovers();
+  } catch (e) {
+    // Non-critical: silently skip if trending fetch fails
+  }
+}
+
+function renderMovers() {
+  var strip = document.getElementById('movers-strip');
+  var list  = document.getElementById('movers-list');
+  if (!strip || !list || !S.roster || !S.trendingData) return;
+
+  var rosterIds = (S.roster.players || []);
+  var movers = rosterIds
+    .map(function (id) { return S.trendingData.byId[id]; })
+    .filter(function (m) { return m && Math.abs(m.trend) >= 0.3; })
+    .sort(function (a, b) { return Math.abs(b.trend) - Math.abs(a.trend); });
+
+  if (!movers.length) {
+    strip.hidden = true;
+    return;
+  }
+  strip.hidden = false;
+  list.innerHTML = movers.map(function (m) {
+    var isUp   = m.direction === 'up';
+    var arrow  = isUp ? '<span class="mv-arrow-up">↑</span>' : '<span class="mv-arrow-down">↓</span>';
+    var why    = m.why && m.why[0] ? '<span class="mv-why">' + esc(m.why[0]) + '</span>' : '';
+    return '<div class="mv-compact">' +
+      arrow +
+      '<span class="mv-nm">' + esc(m.name) + '</span>' +
+      '<span class="pos-badge ' + esc(m.pos) + '">' + esc(m.pos) + '</span>' +
+      why +
+    '</div>';
+  }).join('');
 }
 
 async function boot() {
@@ -574,6 +634,7 @@ async function selectLeague(lid) {
   await refreshMarket();
   setLeagueHint('');
   recompute();
+  loadMovers(); // fire and forget — non-critical; fills movers strip when done
 }
 
 // Match the signed-in user's Sleeper user_id to a roster owner; fall back to

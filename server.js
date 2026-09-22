@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const { pool: db, migrate } = require('./db/migrate');
 const WeekHistory = require('./scripts/log-week');
 const FPACalibration = require('./shared/fpa-calibration');
+const TrendingScore = require('./shared/trending-score');
 
 const app = express();
 // Trust Railway's proxy so req.ip is the real client IP (not 127.0.0.1),
@@ -1050,6 +1051,113 @@ app.get('/api/recent-points', async (req, res) => {
   }
 });
 
+// Sleeper platform-wide trending add/drop feed. direction = 'add' | 'drop'.
+// Returns [{ player_id, count }] sorted desc, numeric ids only, limit 100.
+// Cached 15 min — the feed changes by the minute but 15 min is granular enough
+// and keeps our Sleeper hit rate ≤8/hour.
+async function fetchSleeperTrending(direction, hours) {
+  hours = hours || 24;
+  return apiCached(`trending:${direction}:${hours}`, 15 * 60 * 1000, async () => {
+    const url = `https://api.sleeper.app/v1/players/nfl/trending/${direction}?lookback_hours=${hours}&limit=100`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`Sleeper trending ${res.status}`);
+    const data = await res.json();
+    return (Array.isArray(data) ? data : []).filter(e => /^\d+$/.test(e.player_id));
+  });
+}
+
+// GET /api/trending?pos=ALL&scoring=half_ppr&n=10&week=N
+// week defaults to Sleeper's current week − 1 (last completed).
+// Returns { week, lastCompleted, scoring, generatedAt, up, down, byId }
+// where up/down are the top n trending players in each direction and
+// byId is the full scored dict for the lineup page's roster filter.
+app.get('/api/trending', async (req, res) => {
+  const pos     = ['ALL', 'QB', 'RB', 'WR', 'TE'].includes(req.query.pos) ? req.query.pos : 'ALL';
+  const scoring = ['half_ppr', 'ppr', 'std'].includes(req.query.scoring) ? req.query.scoring : 'half_ppr';
+  let n = parseInt(req.query.n, 10);
+  if (!n || n < 1) n = 10;
+  if (n > 25) n = 25;
+
+  try {
+    const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    );
+    const currentWeek = Number(state.week) || 1;
+
+    let lastCompleted = parseInt(req.query.week, 10);
+    if (!lastCompleted || lastCompleted < 1 || lastCompleted >= currentWeek) lastCompleted = currentWeek - 1;
+    if (lastCompleted < 1) return res.status(400).json({ error: 'No completed weeks yet' });
+
+    const cacheKey = `trending:${pos}:${scoring}:${lastCompleted}`;
+    const fullResult = await apiCached(cacheKey, 15 * 60 * 1000, async () => {
+      const ttlLong  = 24 * 60 * 60 * 1000;
+      const ttlShort = 60 * 60 * 1000;
+      const hasPrior = lastCompleted > 1;
+
+      const [adds, drops, usageLast, usagePrior, ptsLast, ptsPrior, projLast, projPrior, slimDict] =
+        await Promise.all([
+          fetchSleeperTrending('add',  24),
+          fetchSleeperTrending('drop', 24),
+          fetchUsageWeek(lastCompleted, ttlShort),
+          hasPrior ? fetchUsageWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
+          fetchPointsWeek(lastCompleted, ttlShort),
+          hasPrior ? fetchPointsWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
+          apiCached(`proj:2026:${lastCompleted}`,     ttlLong, () => fetchSleeperWeek('projections', lastCompleted)),
+          hasPrior ? apiCached(`proj:2026:${lastCompleted - 1}`, ttlLong, () => fetchSleeperWeek('projections', lastCompleted - 1)) : Promise.resolve(null),
+          getPlayerSlim(),
+        ]);
+
+      // usageByWeek: { week: { playerId: { tgtShare, carryShare, snapPct } } }
+      const usageByWeek = {};
+      if (usageLast && usageLast.players) usageByWeek[lastCompleted] = usageLast.players;
+      if (usagePrior && usagePrior.players) usageByWeek[lastCompleted - 1] = usagePrior.players;
+
+      // pointsByWeek: { week: { playerId: { pts_half_ppr, pts_ppr, pts_std } } }
+      const pointsByWeek = {};
+      if (ptsLast && ptsLast.players) pointsByWeek[lastCompleted] = ptsLast.players;
+      if (ptsPrior && ptsPrior.players) pointsByWeek[lastCompleted - 1] = ptsPrior.players;
+
+      // projByWeek: slim fetchSleeperWeek result down to pts keys only
+      const PROJ_KEYS = ['pts_ppr', 'pts_half_ppr', 'pts_std'];
+      function slimProj(raw) {
+        if (!raw) return {};
+        const out = {};
+        for (const [pid, stats] of Object.entries(raw)) {
+          const s = {};
+          for (const k of PROJ_KEYS) if (stats[k] != null) s[k] = stats[k];
+          if (Object.keys(s).length) out[pid] = s;
+        }
+        return out;
+      }
+      const projByWeek = {};
+      if (projLast) projByWeek[lastCompleted] = slimProj(projLast);
+      if (projPrior) projByWeek[lastCompleted - 1] = slimProj(projPrior);
+
+      const scored = TrendingScore.scoreTrending(
+        slimDict, usageByWeek, pointsByWeek, projByWeek,
+        adds, drops,
+        { pos, scoring, n: 25, week: lastCompleted }
+      );
+
+      return {
+        week:          currentWeek,
+        lastCompleted: lastCompleted,
+        scoring:       scoring,
+        generatedAt:   new Date().toISOString(),
+        up:            scored.up,
+        down:          scored.down,
+        byId:          scored.byId,
+      };
+    });
+
+    res.setHeader('Cache-Control', 'public, max-age=900');
+    res.json({ ...fullResult, up: fullResult.up.slice(0, n), down: fullResult.down.slice(0, n) });
+  } catch (err) {
+    console.error('/api/trending error:', err.message);
+    res.status(503).json({ error: 'Failed to fetch trending data' });
+  }
+});
+
 // Game-day weather for the lineup optimizer's weather factor.
 // GET /api/weather?week=N (defaults to Sleeper's current week) →
 //   { week, teams: { KC: { windspeed: 8, precip: 0, indoor: false, date, forecast: true }, … }, fetchedAt }
@@ -1292,6 +1400,26 @@ app.get('/api/vegas', async (req, res) => {
     res.status(503).json({ error: 'Failed to fetch Vegas odds' });
   }
 });
+
+// Internal helper: returns { id: { name, pos, team, injury } } for QB/RB/WR/TE,
+// reusing the 24h playerCache so it never triggers a duplicate Sleeper fetch.
+async function getPlayerSlim() {
+  const now = Date.now();
+  let dict = playerCache && now - playerCacheTime < PLAYER_CACHE_TTL ? playerCache : null;
+  if (!dict) {
+    const r = await fetch('https://api.sleeper.app/v1/players/nfl', { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error('Sleeper players ' + r.status);
+    dict = await r.json();
+    playerCache = dict; playerCacheTime = now;
+  }
+  const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
+  const slim = {};
+  for (const [id, p] of Object.entries(dict)) {
+    if (!p || !p.full_name || !POSITIONS.has(p.position) || p.active === false) continue;
+    slim[id] = { name: p.full_name, pos: p.position, team: p.team || 'FA', injury: p.injury_status || null };
+  }
+  return slim;
+}
 
 // Slim players dict for trade/lineup UI — [name, pos, team, injury_status, age]
 // for skill positions. injury_status is Sleeper's raw value (Out, IR, Doubtful,
@@ -1812,6 +1940,17 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // /lineup — weekly lineup optimizer (server-injected Clerk publishable key)
+app.get('/trending', (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'trending.html'), 'utf8');
+    html = html.replace('PUBLISHABLE_KEY_PLACEHOLDER', process.env.CLERK_PUBLISHABLE_KEY || '');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Failed to load trending page');
+  }
+});
+
 app.get('/lineup', (req, res) => {
   try {
     let html = fs.readFileSync(path.join(__dirname, 'lineup.html'), 'utf8');
