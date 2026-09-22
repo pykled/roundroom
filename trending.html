@@ -134,9 +134,17 @@
 }
 .mv-badge.leading  { background: rgba(245,158,11,.15); color: var(--gold); }
 .mv-badge.conf-hi  { background: rgba(16,185,129,.12); color: var(--success); }
+.mv-badge.fa  { background: rgba(99,102,241,.15); color: #a5b4fc; }
+.mv-badge.hot { background: rgba(239,68,68,.15); color: #fca5a5; }
 
 /* Error / loading / empty */
 .mv-empty { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding: var(--space-5) 0; }
+
+/* Waiver Targets section */
+.waivers { margin-top: var(--space-5); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.waivers-hdr { color: var(--text-primary); justify-content: space-between; }
+.waivers-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
+.waivers .setup-card.gate { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -184,13 +192,21 @@
       <div id="list-down"><div class="mv-empty">Loading…</div></div>
     </div>
   </div>
+
+  <section id="waivers" class="waivers">
+    <div class="movers-col-hdr waivers-hdr">
+      <span>🎯 Waiver Targets</span>
+      <span class="waivers-sub" id="waivers-sub"></span>
+    </div>
+    <div id="waivers-body"><div class="mv-empty">Loading…</div></div>
+  </section>
 </div>
 
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script src="/shared/trending-score.js"></script>
 <script>
-var T = { data: null, activePos: 'ALL' };
+var T = { data: null, activePos: 'ALL', clerk: null, me: null, waivers: null };
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
@@ -204,6 +220,32 @@ function headshot(id, name) {
     'alt="' + esc(name) + '" onerror="this.style.display=\'none\'">';
 }
 
+function rowHtml(m, direction, extraBadges) {
+  var barPct = Math.round(Math.abs(m.trend) * 100);
+  var inj = m.injury ? '<span class="mv-inj">' + esc(m.injury) + '</span>' : '';
+  var badges = '';
+  if (m.leading) badges += '<span class="mv-badge leading">⚡ Leading</span>';
+  if (m.confidence === 'high') badges += '<span class="mv-badge conf-hi">Strong</span>';
+  badges += (extraBadges || '');
+  var chips = (m.why || []).slice(0, 3).map(function(w) {
+    return '<span class="mv-chip">' + esc(w) + '</span>';
+  }).join('');
+  var scoreSign = direction === 'up' ? '+' : '';
+  return '<div class="mv-row ' + direction + '">' +
+    '<div class="mv-bar-wrap"><div class="mv-bar-bg"><div class="mv-bar-fill" style="width:' + barPct + '%"></div></div></div>' +
+    headshot(m.id, m.name) +
+    '<div class="mv-info">' +
+      '<div class="mv-name-row">' +
+        '<span class="mv-name">' + esc(m.name) + '</span>' +
+        '<span class="pos-badge ' + esc(m.pos) + '">' + esc(m.pos) + ' ' + esc(m.team) + '</span>' +
+        inj + badges +
+      '</div>' +
+      (chips ? '<div class="mv-chips">' + chips + '</div>' : '') +
+    '</div>' +
+    '<div class="mv-score">' + scoreSign + (m.trend * 100).toFixed(0) + '</div>' +
+  '</div>';
+}
+
 function renderList(containerId, players, direction) {
   var el = document.getElementById(containerId);
   if (!el) return;
@@ -211,30 +253,7 @@ function renderList(containerId, players, direction) {
     el.innerHTML = '<div class="mv-empty">No ' + (direction === 'up' ? 'trending-up' : 'trending-down') + ' players for this filter</div>';
     return;
   }
-  el.innerHTML = players.map(function(m) {
-    var barPct = Math.round(Math.abs(m.trend) * 100);
-    var inj = m.injury ? '<span class="mv-inj">' + esc(m.injury) + '</span>' : '';
-    var badges = '';
-    if (m.leading) badges += '<span class="mv-badge leading">⚡ Leading</span>';
-    if (m.confidence === 'high') badges += '<span class="mv-badge conf-hi">Strong</span>';
-    var chips = (m.why || []).slice(0, 3).map(function(w) {
-      return '<span class="mv-chip">' + esc(w) + '</span>';
-    }).join('');
-    var scoreSign = direction === 'up' ? '+' : '';
-    return '<div class="mv-row ' + direction + '">' +
-      '<div class="mv-bar-wrap"><div class="mv-bar-bg"><div class="mv-bar-fill" style="width:' + barPct + '%"></div></div></div>' +
-      headshot(m.id, m.name) +
-      '<div class="mv-info">' +
-        '<div class="mv-name-row">' +
-          '<span class="mv-name">' + esc(m.name) + '</span>' +
-          '<span class="pos-badge ' + esc(m.pos) + '">' + esc(m.pos) + ' ' + esc(m.team) + '</span>' +
-          inj + badges +
-        '</div>' +
-        (chips ? '<div class="mv-chips">' + chips + '</div>' : '') +
-      '</div>' +
-      '<div class="mv-score">' + scoreSign + (m.trend * 100).toFixed(0) + '</div>' +
-    '</div>';
-  }).join('');
+  el.innerHTML = players.map(function(m) { return rowHtml(m, direction, ''); }).join('');
 }
 
 function applyFilter() {
@@ -250,6 +269,7 @@ function applyFilter() {
   }
   renderList('list-up',   up,   'up');
   renderList('list-down', down, 'down');
+  if (T.waivers) renderWaivers();
 }
 
 document.getElementById('pos-filter').addEventListener('click', function(e) {
@@ -263,15 +283,16 @@ document.getElementById('pos-filter').addEventListener('click', function(e) {
 });
 
 async function boot() {
-  // Optional: wire up Clerk auth for future signed-in features
   var key = window.__clerk_publishable_key;
   if (key && key !== 'PUBLISHABLE_KEY_PLACEHOLDER' && window.Clerk) {
     try {
       var clerk = typeof window.Clerk.load === 'function' ? window.Clerk : new window.Clerk(key);
       await clerk.load({ telemetry: { disabled: true } });
+      T.clerk = clerk;
       if (clerk.user) {
         var mount = document.getElementById('user-btn-mount');
         if (mount) clerk.mountUserButton(mount);
+        T.me = await fetch('/api/me').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
       } else {
         var btn = document.getElementById('rr-sign-in');
         if (btn) {
@@ -280,6 +301,9 @@ async function boot() {
         }
       }
     } catch (e) {}
+  } else {
+    var section = document.getElementById('waivers');
+    if (section) section.hidden = true;
   }
 
   try {
@@ -297,6 +321,137 @@ async function boot() {
     document.getElementById('list-down').innerHTML = '<div class="mv-empty">Could not load trending data — try again</div>';
     document.getElementById('page-sub').textContent = 'Failed to load';
   }
+
+  initWaivers();
+}
+
+function waiversGateHtml(eyebrow, heading, body, buttonId, buttonLabel) {
+  return '<div class="setup-card gate">' +
+    '<div class="gate-eyebrow">' + esc(eyebrow) + '</div>' +
+    '<h2>' + esc(heading) + '</h2>' +
+    '<p>' + esc(body) + '</p>' +
+    '<button class="btn-primary" id="' + buttonId + '">' + esc(buttonLabel) + '</button>' +
+  '</div>';
+}
+
+function showSignInGate() {
+  var body = document.getElementById('waivers-body');
+  body.innerHTML = waiversGateHtml(
+    'Waiver Targets',
+    'Sign in to see who\'s free in your leagues',
+    'Connects to your Sleeper leagues and flags trending-up players nobody has rostered yet.',
+    'waivers-auth-btn', 'Sign in'
+  );
+  document.getElementById('waivers-auth-btn').addEventListener('click', function() {
+    if (T.clerk) T.clerk.openSignIn({ redirectUrl: '/trending' });
+  });
+}
+
+function showConnectGate() {
+  var body = document.getElementById('waivers-body');
+  body.innerHTML = '<div class="setup-card gate">' +
+    '<div class="gate-eyebrow">Waiver Targets</div>' +
+    '<h2>Connect Your Sleeper Account</h2>' +
+    '<p>Enter your Sleeper username to load your leagues and rosters.</p>' +
+    '<div class="form-row">' +
+      '<input id="waivers-sleeper-input" type="text" placeholder="Sleeper username" autocomplete="off">' +
+      '<button class="btn-primary" id="waivers-sleeper-btn">Connect</button>' +
+    '</div>' +
+    '<div id="waivers-sleeper-err" class="error-msg" hidden></div>' +
+  '</div>';
+  document.getElementById('waivers-sleeper-btn').addEventListener('click', async function() {
+    var btn = document.getElementById('waivers-sleeper-btn');
+    var inp = document.getElementById('waivers-sleeper-input');
+    var err = document.getElementById('waivers-sleeper-err');
+    var u = inp.value.trim();
+    if (!u) return;
+    btn.disabled = true; btn.textContent = 'Connecting…'; err.hidden = true;
+    try {
+      var res = await fetch('/api/me/sleeper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sleeperUsername: u }),
+      });
+      if (!res.ok) {
+        var e = await res.json().catch(function() { return {}; });
+        err.textContent = e.error || 'Sleeper user not found';
+        err.hidden = false;
+        return;
+      }
+      T.me = await res.json();
+      await loadWaivers();
+    } catch (e) {
+      err.textContent = 'Network error — try again'; err.hidden = false;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Connect';
+    }
+  });
+}
+
+function initWaivers() {
+  var section = document.getElementById('waivers');
+  if (!section || section.hidden) return;
+  if (!T.clerk || !T.clerk.user) {
+    showSignInGate();
+  } else if (!T.me || !T.me.sleeperUserId) {
+    showConnectGate();
+  } else {
+    loadWaivers();
+  }
+}
+
+async function loadWaivers() {
+  var body = document.getElementById('waivers-body');
+  body.innerHTML = '<div class="mv-empty">Loading…</div>';
+  try {
+    var resp = await fetch('/api/me/waivers');
+    if (!resp.ok) {
+      var e = await resp.json().catch(function() { return {}; });
+      if (resp.status === 404 && e.error === 'Sleeper account not linked') {
+        showConnectGate();
+        return;
+      }
+      throw new Error(e.error || ('HTTP ' + resp.status));
+    }
+    T.waivers = await resp.json();
+    renderWaivers();
+  } catch (err) {
+    body.innerHTML = '<div class="mv-empty">Couldn\'t load waiver targets — try again</div>';
+  }
+}
+
+function renderWaivers() {
+  var body = document.getElementById('waivers-body');
+  var sub = document.getElementById('waivers-sub');
+  if (!T.waivers) return;
+
+  var leagueNames = {};
+  (T.waivers.leagues || []).forEach(function(l) { leagueNames[l.league_id] = l.name; });
+
+  var subText = 'Free agents in your ' + (T.waivers.leagues || []).length + ' leagues · after Week ' + (T.waivers.lastCompleted || T.waivers.week);
+  if (T.waivers.leaguesFailed && T.waivers.leaguesFailed.length) {
+    subText += ' · couldn\'t load: ' + T.waivers.leaguesFailed.map(function(l) { return l.name; }).join(', ');
+  }
+  sub.textContent = subText;
+
+  var pos = T.activePos;
+  var targets = (T.waivers.targets || []).filter(function(m) { return pos === 'ALL' || m.pos === pos; });
+
+  if (!targets.length) {
+    body.innerHTML = '<div class="mv-empty">' +
+      (pos === 'ALL'
+        ? 'No trending-up free agents in your leagues right now'
+        : 'No trending-up ' + esc(pos) + ' free agents in your leagues') +
+      '</div>';
+    return;
+  }
+
+  body.innerHTML = targets.map(function(m) {
+    var title = m.faIn.map(function(lid) { return leagueNames[lid] || lid; }).join(', ');
+    var extraBadges = '<span class="mv-badge fa" title="' + esc(title) + '">FA in ' + m.faCount + '/' + (T.waivers.leagues || []).length + ' leagues</span>';
+    if (m.highDemand) extraBadges += '<span class="mv-badge hot">🔥 High demand</span>';
+    return rowHtml(m, 'up', extraBadges);
+  }).join('');
 }
 
 boot();
