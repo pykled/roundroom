@@ -9,6 +9,7 @@ const { pool: db, migrate } = require('./db/migrate');
 const WeekHistory = require('./scripts/log-week');
 const FPACalibration = require('./shared/fpa-calibration');
 const TrendingScore = require('./shared/trending-score');
+const WaiverTargets = require('./shared/waiver-targets');
 
 const app = express();
 // Trust Railway's proxy so req.ip is the real client IP (not 127.0.0.1),
@@ -709,24 +710,28 @@ app.get('/api/nfl-state', async (req, res) => {
   }
 });
 
+function getLeagueData(id) {
+  return apiCached(`league:${id}`, 60 * 1000, async () => {
+    const [lr, rr, ur] = await Promise.all([
+      fetch(`https://api.sleeper.app/v1/league/${id}`),
+      fetch(`https://api.sleeper.app/v1/league/${id}/rosters`),
+      fetch(`https://api.sleeper.app/v1/league/${id}/users`),
+    ]);
+    if (!lr.ok) throw new Error(`Sleeper league ${lr.status}`);
+    const [league, rosters, users] = await Promise.all([
+      lr.json(),
+      rr.ok ? rr.json() : [],
+      ur.ok ? ur.json() : [],
+    ]);
+    return { ...league, rosters, users, fetched_at: new Date().toISOString() };
+  });
+}
+
 app.get('/api/league/:id', async (req, res) => {
   const { id } = req.params;
   if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'Invalid league ID' });
   try {
-    const data = await apiCached(`league:${id}`, 60 * 1000, async () => {
-      const [lr, rr, ur] = await Promise.all([
-        fetch(`https://api.sleeper.app/v1/league/${id}`),
-        fetch(`https://api.sleeper.app/v1/league/${id}/rosters`),
-        fetch(`https://api.sleeper.app/v1/league/${id}/users`),
-      ]);
-      if (!lr.ok) throw new Error(`Sleeper league ${lr.status}`);
-      const [league, rosters, users] = await Promise.all([
-        lr.json(),
-        rr.ok ? rr.json() : [],
-        ur.ok ? ur.json() : [],
-      ]);
-      return { ...league, rosters, users, fetched_at: new Date().toISOString() };
-    });
+    const data = await getLeagueData(id);
     res.setHeader('Cache-Control', 'public, max-age=60');
     res.json(data);
   } catch (err) {
@@ -1071,6 +1076,85 @@ async function fetchSleeperTrending(direction, hours) {
 // Returns { week, lastCompleted, scoring, generatedAt, up, down, byId }
 // where up/down are the top n trending players in each direction and
 // byId is the full scored dict for the lineup page's roster filter.
+// Current NFL week and the last fully-completed week, derived from Sleeper's
+// state endpoint. Shared by /api/trending and /api/me/waivers.
+async function getLastCompletedWeek() {
+  const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+    fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  );
+  const currentWeek = Number(state.week) || 1;
+  return currentWeek - 1;
+}
+
+async function getTrendingResult(pos, scoring, lastCompleted) {
+  const cacheKey = `trending:${pos}:${scoring}:${lastCompleted}`;
+  return apiCached(cacheKey, 15 * 60 * 1000, async () => {
+    const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    );
+    const currentWeek = Number(state.week) || 1;
+
+    const ttlLong  = 24 * 60 * 60 * 1000;
+    const ttlShort = 60 * 60 * 1000;
+    const hasPrior = lastCompleted > 1;
+
+    const [adds, drops, usageLast, usagePrior, ptsLast, ptsPrior, projLast, projPrior, slimDict] =
+      await Promise.all([
+        fetchSleeperTrending('add',  24),
+        fetchSleeperTrending('drop', 24),
+        fetchUsageWeek(lastCompleted, ttlShort),
+        hasPrior ? fetchUsageWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
+        fetchPointsWeek(lastCompleted, ttlShort),
+        hasPrior ? fetchPointsWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
+        apiCached(`proj:2026:${lastCompleted}`,     ttlLong, () => fetchSleeperWeek('projections', lastCompleted)),
+        hasPrior ? apiCached(`proj:2026:${lastCompleted - 1}`, ttlLong, () => fetchSleeperWeek('projections', lastCompleted - 1)) : Promise.resolve(null),
+        getPlayerSlim(),
+      ]);
+
+    // usageByWeek: { week: { playerId: { tgtShare, carryShare, snapPct } } }
+    const usageByWeek = {};
+    if (usageLast && usageLast.players) usageByWeek[lastCompleted] = usageLast.players;
+    if (usagePrior && usagePrior.players) usageByWeek[lastCompleted - 1] = usagePrior.players;
+
+    // pointsByWeek: { week: { playerId: { pts_half_ppr, pts_ppr, pts_std } } }
+    const pointsByWeek = {};
+    if (ptsLast && ptsLast.players) pointsByWeek[lastCompleted] = ptsLast.players;
+    if (ptsPrior && ptsPrior.players) pointsByWeek[lastCompleted - 1] = ptsPrior.players;
+
+    // projByWeek: slim fetchSleeperWeek result down to pts keys only
+    const PROJ_KEYS = ['pts_ppr', 'pts_half_ppr', 'pts_std'];
+    function slimProj(raw) {
+      if (!raw) return {};
+      const out = {};
+      for (const [pid, stats] of Object.entries(raw)) {
+        const s = {};
+        for (const k of PROJ_KEYS) if (stats[k] != null) s[k] = stats[k];
+        if (Object.keys(s).length) out[pid] = s;
+      }
+      return out;
+    }
+    const projByWeek = {};
+    if (projLast) projByWeek[lastCompleted] = slimProj(projLast);
+    if (projPrior) projByWeek[lastCompleted - 1] = slimProj(projPrior);
+
+    const scored = TrendingScore.scoreTrending(
+      slimDict, usageByWeek, pointsByWeek, projByWeek,
+      adds, drops,
+      { pos, scoring, n: 25, week: lastCompleted }
+    );
+
+    return {
+      week:          currentWeek,
+      lastCompleted: lastCompleted,
+      scoring:       scoring,
+      generatedAt:   new Date().toISOString(),
+      up:            scored.up,
+      down:          scored.down,
+      byId:          scored.byId,
+    };
+  });
+}
+
 app.get('/api/trending', async (req, res) => {
   const pos     = ['ALL', 'QB', 'RB', 'WR', 'TE'].includes(req.query.pos) ? req.query.pos : 'ALL';
   const scoring = ['half_ppr', 'ppr', 'std'].includes(req.query.scoring) ? req.query.scoring : 'half_ppr';
@@ -1088,67 +1172,7 @@ app.get('/api/trending', async (req, res) => {
     if (!lastCompleted || lastCompleted < 1 || lastCompleted >= currentWeek) lastCompleted = currentWeek - 1;
     if (lastCompleted < 1) return res.status(400).json({ error: 'No completed weeks yet' });
 
-    const cacheKey = `trending:${pos}:${scoring}:${lastCompleted}`;
-    const fullResult = await apiCached(cacheKey, 15 * 60 * 1000, async () => {
-      const ttlLong  = 24 * 60 * 60 * 1000;
-      const ttlShort = 60 * 60 * 1000;
-      const hasPrior = lastCompleted > 1;
-
-      const [adds, drops, usageLast, usagePrior, ptsLast, ptsPrior, projLast, projPrior, slimDict] =
-        await Promise.all([
-          fetchSleeperTrending('add',  24),
-          fetchSleeperTrending('drop', 24),
-          fetchUsageWeek(lastCompleted, ttlShort),
-          hasPrior ? fetchUsageWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
-          fetchPointsWeek(lastCompleted, ttlShort),
-          hasPrior ? fetchPointsWeek(lastCompleted - 1, ttlLong) : Promise.resolve(null),
-          apiCached(`proj:2026:${lastCompleted}`,     ttlLong, () => fetchSleeperWeek('projections', lastCompleted)),
-          hasPrior ? apiCached(`proj:2026:${lastCompleted - 1}`, ttlLong, () => fetchSleeperWeek('projections', lastCompleted - 1)) : Promise.resolve(null),
-          getPlayerSlim(),
-        ]);
-
-      // usageByWeek: { week: { playerId: { tgtShare, carryShare, snapPct } } }
-      const usageByWeek = {};
-      if (usageLast && usageLast.players) usageByWeek[lastCompleted] = usageLast.players;
-      if (usagePrior && usagePrior.players) usageByWeek[lastCompleted - 1] = usagePrior.players;
-
-      // pointsByWeek: { week: { playerId: { pts_half_ppr, pts_ppr, pts_std } } }
-      const pointsByWeek = {};
-      if (ptsLast && ptsLast.players) pointsByWeek[lastCompleted] = ptsLast.players;
-      if (ptsPrior && ptsPrior.players) pointsByWeek[lastCompleted - 1] = ptsPrior.players;
-
-      // projByWeek: slim fetchSleeperWeek result down to pts keys only
-      const PROJ_KEYS = ['pts_ppr', 'pts_half_ppr', 'pts_std'];
-      function slimProj(raw) {
-        if (!raw) return {};
-        const out = {};
-        for (const [pid, stats] of Object.entries(raw)) {
-          const s = {};
-          for (const k of PROJ_KEYS) if (stats[k] != null) s[k] = stats[k];
-          if (Object.keys(s).length) out[pid] = s;
-        }
-        return out;
-      }
-      const projByWeek = {};
-      if (projLast) projByWeek[lastCompleted] = slimProj(projLast);
-      if (projPrior) projByWeek[lastCompleted - 1] = slimProj(projPrior);
-
-      const scored = TrendingScore.scoreTrending(
-        slimDict, usageByWeek, pointsByWeek, projByWeek,
-        adds, drops,
-        { pos, scoring, n: 25, week: lastCompleted }
-      );
-
-      return {
-        week:          currentWeek,
-        lastCompleted: lastCompleted,
-        scoring:       scoring,
-        generatedAt:   new Date().toISOString(),
-        up:            scored.up,
-        down:          scored.down,
-        byId:          scored.byId,
-      };
-    });
+    const fullResult = await getTrendingResult(pos, scoring, lastCompleted);
 
     res.setHeader('Cache-Control', 'public, max-age=900');
     res.json({ ...fullResult, up: fullResult.up.slice(0, n), down: fullResult.down.slice(0, n) });
@@ -1543,6 +1567,68 @@ app.get('/api/me/leagues', auth, async (req, res) => {
   } catch (err) {
     console.error('/api/me/leagues error:', err.message);
     res.status(500).json({ error: 'Failed to fetch leagues' });
+  }
+});
+
+// Trending-up players who are free agents in the signed-in user's Sleeper
+// leagues. Composes the already-cached trending feed and per-league roster
+// data server-side so the client needs a single round trip.
+app.get('/api/me/waivers', auth, async (req, res) => {
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  const { userId } = getAuth(req);
+  const scoring = ['half_ppr', 'ppr', 'std'].includes(req.query.scoring) ? req.query.scoring : 'half_ppr';
+  try {
+    const { rows } = await db.query('SELECT sleeper_user_id FROM users WHERE clerk_user_id = $1', [userId]);
+    if (!rows.length || !rows[0].sleeper_user_id) return res.status(404).json({ error: 'Sleeper account not linked' });
+    const sleeperUserId = rows[0].sleeper_user_id;
+
+    const data = await apiCached(`waivers:${sleeperUserId}:${scoring}`, 60 * 1000, async () => {
+      const lastCompleted = await getLastCompletedWeek();
+      if (lastCompleted < 1) {
+        const err = new Error('No completed weeks yet');
+        err.status = 400;
+        throw err;
+      }
+
+      const trending = await getTrendingResult('ALL', scoring, lastCompleted);
+
+      let leagues;
+      try {
+        leagues = await fetchSleeperLeagues(sleeperUserId);
+      } catch (err) {
+        const wrapped = new Error('Failed to fetch leagues from Sleeper');
+        wrapped.status = 502;
+        throw wrapped;
+      }
+
+      const leagueResults = await Promise.allSettled(leagues.map(l => getLeagueData(l.league_id)));
+      const leagueDataById = {};
+      const leaguesFailed = [];
+      leagues.forEach((l, i) => {
+        const r = leagueResults[i];
+        if (r.status === 'fulfilled') leagueDataById[l.league_id] = r.value;
+        else leaguesFailed.push({ league_id: l.league_id, name: l.name });
+      });
+
+      const targets = WaiverTargets.buildWaiverTargets(trending.up, leagues, leagueDataById, sleeperUserId);
+
+      return {
+        week:          trending.week,
+        lastCompleted: trending.lastCompleted,
+        scoring:       scoring,
+        generatedAt:   new Date().toISOString(),
+        leagues:       leagues.map(l => ({ league_id: l.league_id, name: l.name })),
+        leaguesFailed: leaguesFailed,
+        targets:       targets,
+      };
+    });
+
+    res.setHeader('Cache-Control', 'private, max-age=60');
+    res.json(data);
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('/api/me/waivers error:', err.message);
+    res.status(503).json({ error: 'Failed to build waiver targets' });
   }
 });
 
