@@ -141,10 +141,23 @@
 .mv-empty { color: var(--text-muted); font-size: 0.78rem; text-align: center; padding: var(--space-5) 0; }
 
 /* Waiver Targets section */
-.waivers { margin-top: var(--space-5); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
-.waivers-hdr { color: var(--text-primary); justify-content: space-between; }
-.waivers-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
-.waivers .setup-card.gate { margin-bottom: 0; }
+.waivers { margin-top: 0; margin-bottom: var(--space-4); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.waivers-hdr { color: var(--text-primary); }
+.waivers-head { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); flex-wrap: wrap; }
+.waivers-head .movers-col-hdr { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.waivers #league-bar { margin-bottom: 0; }
+.waivers #league-bar select { min-width: 160px; max-width: 100%; }
+.waivers-sub { font-family: inherit; font-size: 0.72rem; color: var(--text-muted); margin: var(--space-2) 0 var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--border); }
+.mv-more { display:block; width:100%; margin-top: var(--space-2); padding: 0.45rem; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-secondary); background: none; border: 1px dashed var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+.mv-more:hover { border-color: var(--border-bright); color: var(--text-primary); }
+.waivers .setup-card.gate { padding: var(--space-4); margin: 0; text-align: left; }
+.waivers .setup-card.gate h2 { font-size: 0.95rem; margin-bottom: 0.3rem; }
+.waivers .setup-card.gate p { font-size: 0.8rem; margin: 0 0 var(--space-3); max-width: none; }
+.waivers .setup-card.gate .form-row { margin: 0; max-width: 380px; }
+@media (max-width: 640px) {
+  .waivers #league-bar { flex: 1 1 100%; }
+  .waivers #league-bar select { flex: 1 1 auto; }
+}
 </style>
 </head>
 <body>
@@ -182,6 +195,18 @@
     <button class="pos-pill TE" data-pos="TE">TE</button>
   </div>
 
+  <section id="waivers" class="waivers">
+    <div class="waivers-head">
+      <div class="movers-col-hdr waivers-hdr"><span>🎯 Waiver Targets</span></div>
+      <div id="league-bar" hidden>
+        <span>League:</span>
+        <select id="league-sel"></select>
+      </div>
+    </div>
+    <div class="waivers-sub" id="waivers-sub"></div>
+    <div id="waivers-body"><div class="mv-empty">Loading…</div></div>
+  </section>
+
   <div class="movers-grid">
     <div class="movers-col" id="col-up">
       <div class="movers-col-hdr up">↑ Trending Up</div>
@@ -192,21 +217,13 @@
       <div id="list-down"><div class="mv-empty">Loading…</div></div>
     </div>
   </div>
-
-  <section id="waivers" class="waivers">
-    <div class="movers-col-hdr waivers-hdr">
-      <span>🎯 Waiver Targets</span>
-      <span class="waivers-sub" id="waivers-sub"></span>
-    </div>
-    <div id="waivers-body"><div class="mv-empty">Loading…</div></div>
-  </section>
 </div>
 
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script src="/shared/trending-score.js"></script>
 <script>
-var T = { data: null, activePos: 'ALL', clerk: null, me: null, waivers: null };
+var T = { data: null, activePos: 'ALL', clerk: null, me: null, waivers: null, league: null, waiversExpanded: false };
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
@@ -276,6 +293,7 @@ document.getElementById('pos-filter').addEventListener('click', function(e) {
   var btn = e.target.closest('[data-pos]');
   if (!btn) return;
   T.activePos = btn.dataset.pos;
+  T.waiversExpanded = false;
   document.querySelectorAll('.pos-pill').forEach(function(b) {
     b.classList.toggle('active', b.dataset.pos === T.activePos);
   });
@@ -414,10 +432,57 @@ async function loadWaivers() {
       throw new Error(e.error || ('HTTP ' + resp.status));
     }
     T.waivers = await resp.json();
+    initLeaguePicker();
     renderWaivers();
   } catch (err) {
     body.innerHTML = '<div class="mv-empty">Couldn\'t load waiver targets — try again</div>';
   }
+}
+
+function initLeaguePicker() {
+  var sel = document.getElementById('league-sel');
+  var bar = document.getElementById('league-bar');
+  if (!sel || !bar) return;
+  sel.innerHTML = '';
+
+  var failed = new Set((T.waivers.leaguesFailed || []).map(function(l) { return l.league_id; }));
+  var loaded = (T.waivers.leagues || []).filter(function(l) { return !failed.has(l.league_id); });
+
+  if (loaded.length <= 1) {
+    bar.hidden = true;
+    T.league = 'ALL';
+    return;
+  }
+
+  loaded.forEach(function(l) {
+    var opt = document.createElement('option');
+    opt.value = l.league_id;
+    opt.textContent = l.name || ('League ' + l.league_id);
+    sel.appendChild(opt);
+  });
+  var allOpt = document.createElement('option');
+  allOpt.value = 'ALL';
+  allOpt.textContent = 'All leagues';
+  sel.appendChild(allOpt);
+
+  var primary = T.me && T.me.primaryLeagueId;
+  var hasPrimary = primary && loaded.some(function(l) { return String(l.league_id) === String(primary); });
+  var defaultLid = hasPrimary ? String(primary) : loaded[0].league_id;
+  sel.value = defaultLid;
+  T.league = defaultLid;
+  bar.hidden = false;
+
+  sel.onchange = function() {
+    var lid = sel.value;
+    T.league = lid;
+    T.waiversExpanded = false;
+    renderWaivers();
+    if (lid !== 'ALL') {
+      fetch('/api/me/leagues/' + encodeURIComponent(lid) + '/primary', { method: 'POST' })
+        .then(function(res) { if (res.ok && T.me) T.me.primaryLeagueId = lid; })
+        .catch(function() {});
+    }
+  };
 }
 
 function renderWaivers() {
@@ -428,30 +493,56 @@ function renderWaivers() {
   var leagueNames = {};
   (T.waivers.leagues || []).forEach(function(l) { leagueNames[l.league_id] = l.name; });
 
-  var subText = 'Free agents in your ' + (T.waivers.leagues || []).length + ' leagues · after Week ' + (T.waivers.lastCompleted || T.waivers.week);
+  var totalLeagues = (T.waivers.leagues || []).length;
+  var week = T.waivers.lastCompleted || T.waivers.week;
+  var leagueName = (T.league && T.league !== 'ALL') ? (leagueNames[T.league] || T.league) : null;
+
+  var subText = leagueName
+    ? 'Free agents in ' + leagueName + ' · after Week ' + week
+    : 'Free agents in your ' + totalLeagues + ' leagues · after Week ' + week;
   if (T.waivers.leaguesFailed && T.waivers.leaguesFailed.length) {
     subText += ' · couldn\'t load: ' + T.waivers.leaguesFailed.map(function(l) { return l.name; }).join(', ');
   }
   sub.textContent = subText;
 
   var pos = T.activePos;
-  var targets = (T.waivers.targets || []).filter(function(m) { return pos === 'ALL' || m.pos === pos; });
+  var targets = (T.waivers.targets || []).filter(function(m) {
+    return (pos === 'ALL' || m.pos === pos) && (T.league === 'ALL' || m.faIn.indexOf(T.league) !== -1);
+  });
 
   if (!targets.length) {
-    body.innerHTML = '<div class="mv-empty">' +
-      (pos === 'ALL'
-        ? 'No trending-up free agents in your leagues right now'
-        : 'No trending-up ' + esc(pos) + ' free agents in your leagues') +
-      '</div>';
+    var emptyMsg = leagueName
+      ? (pos === 'ALL'
+          ? 'No trending-up free agents in ' + esc(leagueName) + ' right now'
+          : 'No trending-up ' + esc(pos) + ' free agents in ' + esc(leagueName))
+      : (pos === 'ALL'
+          ? 'No trending-up free agents in your leagues right now'
+          : 'No trending-up ' + esc(pos) + ' free agents in your leagues');
+    body.innerHTML = '<div class="mv-empty">' + emptyMsg + '</div>';
     return;
   }
 
-  body.innerHTML = targets.map(function(m) {
-    var title = m.faIn.map(function(lid) { return leagueNames[lid] || lid; }).join(', ');
-    var extraBadges = '<span class="mv-badge fa" title="' + esc(title) + '">FA in ' + m.faCount + '/' + (T.waivers.leagues || []).length + ' leagues</span>';
+  var showing = (!T.waiversExpanded && targets.length > 8) ? targets.slice(0, 8) : targets;
+  var showMore = !T.waiversExpanded && targets.length > 8;
+  var remaining = targets.length - 8;
+
+  body.innerHTML = showing.map(function(m) {
+    var extraBadges = '';
+    if (T.league === 'ALL') {
+      var title = m.faIn.map(function(lid) { return leagueNames[lid] || lid; }).join(', ');
+      extraBadges += '<span class="mv-badge fa" title="' + esc(title) + '">FA in ' + m.faCount + '/' + totalLeagues + ' leagues</span>';
+    }
     if (m.highDemand) extraBadges += '<span class="mv-badge hot">🔥 High demand</span>';
     return rowHtml(m, 'up', extraBadges);
   }).join('');
+
+  if (showMore) {
+    body.innerHTML += '<button class="mv-more" id="waivers-more">Show ' + remaining + ' more</button>';
+    document.getElementById('waivers-more').addEventListener('click', function() {
+      T.waiversExpanded = true;
+      renderWaivers();
+    });
+  }
 }
 
 boot();
