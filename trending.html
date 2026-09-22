@@ -232,7 +232,7 @@ function renderList(containerId, players, direction) {
         '</div>' +
         (chips ? '<div class="mv-chips">' + chips + '</div>' : '') +
       '</div>' +
-      '<div class="mv-score">' + scoreSign + (m.trend > 0 ? '+' : '') + (m.trend * 100).toFixed(0) + '</div>' +
+      '<div class="mv-score">' + scoreSign + (m.trend * 100).toFixed(0) + '</div>' +
     '</div>';
   }).join('');
 }
