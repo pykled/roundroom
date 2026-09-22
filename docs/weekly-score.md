@@ -211,6 +211,26 @@ Own status multiplies directly. If the opposing team's depth-chart-1 CB
 gives RB/TE 1.1×. One boost max, never applied to a player who is himself out.
 `Questionable` defenders do not count.
 
+### Backtest (2026-09-22: all teams)
+
+```
+node scripts/backtest-lineup.js pykle [leagueId] [--week=N]      # one team
+node scripts/backtest-lineup.js --all-teams [--week=N] [--user=pykle] [--league=ID,ID] [--top=10]
+```
+
+`--week` defaults to the last completed week (Sleeper `state.week − 1`).
+`--all-teams` reruns the no-hindsight engine for every roster in every league
+the user is in (~66 teams / ~570 slots for pykle) and reports: per-team
+algo / actual / optimal / proj-only with accuracy and edge; per-slot accuracy
+(pick was optimal, ranked the position's top scorer #1, points lost);
+a factor scorecard on unique players (boosted vs penalized "direction right"
+rate against the pool-wide beat-projection rate, plus log-log correlation —
+verdict `helping` / `hurting` / `noise` needs ≥25 players); the top-N misses
+across all teams; pooled busts / sleepers; and a verdict against three
+baselines — what teams started, raw projection with no factors, and the mean
+of 200 random valid lineups per team. Feeds are fetched once and shared;
+pure Node, no browser. `runBacktest()` (used by `log-week.js`) is unchanged.
+
 ## Phase 2 — to wire for full accuracy
 
 ### 1. Matchup FPA — historical baseline (current season is wired)
