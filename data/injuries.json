@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-23T18:28:28.486Z",
+  "fetched_at": "2026-09-23T21:39:04.299Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -19,6 +19,13 @@
       "name": "Aaron Anderson",
       "position": "WR",
       "team": null,
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
+      "name": "Aaron Jones",
+      "position": "RB",
+      "team": "MIN",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -163,6 +170,13 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
+      "name": "Brenen Thompson",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Hip"
+    },
+    {
       "name": "Brittain Brown",
       "position": "RB",
       "team": "CHI",
@@ -289,6 +303,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Chris Bell",
+      "position": "WR",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Chris Brazzell",
       "position": "WR",
       "team": "CAR",
@@ -301,6 +322,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Chris Moore",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Chris Oladokun",
@@ -439,8 +467,8 @@
       "name": "David Njoku",
       "position": "TE",
       "team": "LAC",
-      "status": "Out",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Lower Leg"
     },
     {
       "name": "David Sills",
@@ -511,13 +539,6 @@
       "team": "CLE",
       "status": "IR",
       "body_part": "Back"
-    },
-    {
-      "name": "DJ Giddens",
-      "position": "RB",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "DJ Moore",
@@ -842,6 +863,20 @@
       "body_part": "Knee"
     },
     {
+      "name": "Jakobi Meyers",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Thumb"
+    },
+    {
+      "name": "Jalen Coker",
+      "position": "WR",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Jalen Virgil",
       "position": "WR",
       "team": null,
@@ -929,7 +964,7 @@
       "name": "Jayden Reed",
       "position": "WR",
       "team": "GB",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Neck"
     },
     {
@@ -1043,6 +1078,13 @@
       "team": "PHI",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jonah Coleman",
+      "position": "RB",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Jonathon Brooks",
@@ -1164,6 +1206,13 @@
       "body_part": "Foot"
     },
     {
+      "name": "Kyle Monangai",
+      "position": "RB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Kyron Hudson",
       "position": "WR",
       "team": null,
@@ -1197,6 +1246,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "LeQuint Allen",
+      "position": "RB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Levonte Whitfield",
@@ -1458,6 +1514,13 @@
       "body_part": null
     },
     {
+      "name": "Reggie Gilliam",
+      "position": "RB",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Ricky Pearsall",
       "position": "WR",
       "team": "SF",
@@ -1510,8 +1573,15 @@
       "name": "Ronnie Rivers",
       "position": "RB",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "Ryan Miller",
+      "position": "WR",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Sam Darnold",
@@ -1666,6 +1736,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Travis Etienne",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Trevor Etienne",
