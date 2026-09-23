@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-23T13:46:52.808Z",
+  "fetched_at": "2026-09-23T18:28:28.486Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -54,7 +54,7 @@
       "name": "Alec Pierce",
       "position": "WR",
       "team": "IND",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Heel"
     },
     {
@@ -70,6 +70,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Neck"
+    },
+    {
+      "name": "Andrei Iosivas",
+      "position": "WR",
+      "team": "CIN",
+      "status": "Out",
+      "body_part": "Thumb"
     },
     {
       "name": "Anthony Firkser",
@@ -109,7 +116,7 @@
     {
       "name": "Audric Estime",
       "position": "RB",
-      "team": "NO",
+      "team": null,
       "status": "Questionable",
       "body_part": "Thigh"
     },
@@ -453,7 +460,7 @@
       "name": "Demarcus Robinson",
       "position": "WR",
       "team": "SF",
-      "status": "Out",
+      "status": "Doubtful",
       "body_part": "Ankle"
     },
     {
@@ -901,14 +908,14 @@
       "name": "Jaxson Dart",
       "position": "QB",
       "team": "NYG",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee - MCL"
     },
     {
       "name": "Jayden Daniels",
       "position": "QB",
       "team": "WAS",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Elbow"
     },
     {
@@ -924,6 +931,13 @@
       "team": "GB",
       "status": "Doubtful",
       "body_part": "Neck"
+    },
+    {
+      "name": "Jaylen Warren",
+      "position": "RB",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Jaylen Wright",
@@ -1034,7 +1048,7 @@
       "name": "Jonathon Brooks",
       "position": "RB",
       "team": "CAR",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Abdomen"
     },
     {
@@ -1640,6 +1654,13 @@
       "body_part": null
     },
     {
+      "name": "Tony Pollard",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Tra Barnett",
       "position": "RB",
       "team": null,
@@ -1682,6 +1703,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Tyjae Spears",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Tyler Mabry",
       "position": "TE",
       "team": null,
@@ -1699,7 +1727,7 @@
       "name": "Tyreek Hill",
       "position": "WR",
       "team": null,
-      "status": "Out",
+      "status": "",
       "body_part": "Knee - ACL"
     },
     {

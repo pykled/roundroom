@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T13:46:52.907Z",
+  "generated_at": "2026-09-23T18:28:28.573Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -770,7 +770,7 @@
       "sources_count": 1,
       "composite_sf_adp": 19.93,
       "fantasypros_sf_adp": 8.64,
-      "injury_status": "Doubtful",
+      "injury_status": "Out",
       "bye": 7
     },
     {
@@ -941,6 +941,7 @@
       "sources_count": 1,
       "composite_sf_adp": 86.78,
       "fantasypros_sf_adp": 94.35,
+      "injury_status": "Questionable",
       "bye": 9
     },
     {
@@ -1084,6 +1085,7 @@
       "sources_count": 1,
       "composite_sf_adp": 117.43,
       "fantasypros_sf_adp": 98.45,
+      "injury_status": "Questionable",
       "bye": 9
     },
     {
@@ -1163,7 +1165,7 @@
       "sources_count": 1,
       "composite_sf_adp": 107.58,
       "fantasypros_sf_adp": 105.01,
-      "injury_status": "Out",
+      "injury_status": "IR",
       "bye": 5
     },
     {
@@ -1282,7 +1284,7 @@
       "sources_count": 1,
       "composite_sf_adp": 101.46,
       "fantasypros_sf_adp": 103.25,
-      "injury_status": "Doubtful",
+      "injury_status": "Out",
       "bye": 13
     },
     {
@@ -1309,7 +1311,7 @@
       "sources_count": 1,
       "composite_sf_adp": 45.5,
       "fantasypros_sf_adp": 27.73,
-      "injury_status": "Doubtful",
+      "injury_status": "Out",
       "bye": 8
     },
     {
@@ -1807,6 +1809,7 @@
       "sources_count": 1,
       "composite_sf_adp": 164.79,
       "fantasypros_sf_adp": 156.66,
+      "injury_status": "Questionable",
       "bye": 9
     },
     {
@@ -3917,6 +3920,7 @@
       "sources_count": 1,
       "composite_sf_adp": 248.78,
       "fantasypros_sf_adp": 248.78,
+      "injury_status": "Out",
       "bye": 6
     },
     {
@@ -4340,7 +4344,7 @@
       "sources_count": 1,
       "composite_sf_adp": 250.52,
       "fantasypros_sf_adp": 261.95,
-      "injury_status": "Out"
+      "injury_status": ""
     },
     {
       "name": "Jake Elliott",
@@ -4782,7 +4786,8 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 272.1,
-      "fantasypros_sf_adp": 272.1
+      "fantasypros_sf_adp": 272.1,
+      "injury_status": "Questionable"
     },
     {
       "name": "Jaleel McLaughlin",
@@ -5893,7 +5898,7 @@
       "sources_count": 1,
       "composite_sf_adp": 306.67,
       "fantasypros_sf_adp": 306.67,
-      "injury_status": "Out",
+      "injury_status": "Doubtful",
       "bye": 8
     },
     {
