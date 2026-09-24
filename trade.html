@@ -227,6 +227,8 @@
 .pl-form, .pl-po { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.08rem 0.4rem; border-radius: 999px; white-space: nowrap; cursor: default; }
 .pl-form.hot { background: rgba(249,115,22,.14); color: #fb923c; }
 .pl-form.cold { background: rgba(56,189,248,.14); color: #38bdf8; }
+.pl-form.role-up { background: rgba(16,185,129,.12); color: var(--rb); }
+.pl-form.role-down { background: rgba(239,68,68,.12); color: var(--danger); }
 .pl-po.easy { background: rgba(16,185,129,.12); color: var(--rb); }
 .pl-po.hard { background: rgba(239,68,68,.12); color: var(--danger); }
 
@@ -440,6 +442,7 @@
           <span class="hw-label">Dynasty</span><span>Dynasty market values + age curve (RBs peak at 27, WRs 29)</span>
           <span class="hw-label">Injuries</span><span>Q −3% · D −10% · Out −20% · IR −45%</span>
           <span class="hw-label">🔥 Form</span><span>Last 2 games vs projection — hot = sell high, cold = buy low (±5%)</span>
+          <span class="hw-label">⬆ Role</span><span>Usage jump or an injured teammate's vacated share — replaces Hot/Cold, no regression discount</span>
           <span class="hw-label">Playoffs</span><span>Opponent strength in your league's playoff weeks (±5%)</span>
           <span class="hw-label">Roster Fit</span><span>Need adjusts incoming/outgoing value · depth chart position adjusts within-position value</span>
         </div>
@@ -500,7 +503,10 @@ var S = {
   fpa: null,            // data/fpa-current.json (this season only) — opponent strength for the playoff factor
   schedule: {},         // week → { TEAM: { opp, home } } from /api/schedule/:week, playoff weeks only
   playoffWeeks: [],     // remaining fantasy playoff weeks for the current league / default 15–17
-  form: new Map(),      // id → TradeFit.formSignal (hot / cold / on pace)
+  usage: null,          // /api/recent-stats players — role-change signal; null → plain hot/cold form
+  usageWindow: 1,       // completed weeks inside the usage `recent` window
+  teamOuts: {},         // TradeFit.teamOuts — injured RB/WR/TE per team/pos (injury-implied role up)
+  form: new Map(),      // id → TradeFit.formMap entry (hot / cold / role-up / role-down / on pace)
   playoff: new Map(),   // id → TradeFit.playoffSOS (easy / hard / neutral slate)
 };
 
@@ -545,10 +551,15 @@ async function boot() {
     // factor): both optional — a miss just leaves those factors neutral.
     var recentP = fetch('/api/recent-points').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     var fpaP = fetch('/data/fpa-current.json').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
-    var results = await Promise.all([projP, plP, marketP, injP, recentP, fpaP]);
+    // Usage shares (role-change signal); optional — a miss leaves plain hot/cold.
+    var usageP = fetch('/api/recent-stats').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+    var results = await Promise.all([projP, plP, marketP, injP, recentP, fpaP, usageP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
     S.market = results[2] || {};
+    S.usage = results[6] && results[6].players ? results[6].players : null;
+    S.usageWindow = results[6] && Array.isArray(results[6].recentWeeks) && results[6].recentWeeks.length ? results[6].recentWeeks.length : 1;
+    S.teamOuts = TradeFit.teamOuts(S.players, S.usage);
     S.marketKey = '1:0:0';
     S.injuries = (results[3] && results[3].players && typeof results[3].players === 'object') ? results[3].players : {};
     S.season = String(nfl.season || S.season);
@@ -858,6 +869,8 @@ async function loadPlayoffSchedule() {
 //     give away is charged at his reduced value, not full price)
 //   → recent form: last 2 games ≥20% over the season projection = hot
 //     (sell high, ×0.95), ≥20% under = cold (buy low, ×1.05)
+//   → role gate: a usage jump or injured teammate's vacated share turns hot/cold
+//     into ⬆/⬇ Role (×1 — the streak is the new role, not luck)
 //   → playoff schedule: opponents in the league's playoff weeks ranked by
 //     points allowed to the position, easiest slate ×1.05 … hardest ×0.95
 function recompute() {
@@ -870,7 +883,10 @@ function recompute() {
   if (S.format.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
   S.vorpHealthy = ScoringEngine.blendWithMarket(scaled, S.market || {}, S.format.dynasty ? 0.5 : 0.3);
   var opts = { dynasty: S.format.dynasty };
-  S.form = TradeFit.formMap(S.players, S.recent && S.recent.stats, S.recent && S.recent.weeks, S.proj, { ppr: S.format.ppr, dynasty: S.format.dynasty });
+  S.form = TradeFit.formMap(S.players, S.recent && S.recent.stats, S.recent && S.recent.weeks, S.proj, {
+    ppr: S.format.ppr, dynasty: S.format.dynasty,
+    projByWeek: S.recent && S.recent.proj, usage: S.usage, teamOuts: S.teamOuts, recentWindow: S.usageWindow,
+  });
   S.playoffWeeks = getPlayoffWeeks();
   S.playoff = TradeFit.playoffMap(S.players, S.playoffWeeks, S.schedule, S.fpa, opts);
   S.vorp = TradeFit.applyFactors(TradeFit.applyInjury(S.vorpHealthy, S.players, opts), [S.form, S.playoff]);
@@ -905,6 +921,16 @@ function fmtMult(m) { return Number(m).toFixed(3).replace(/0$/, ''); }
 function formBits(id) {
   var f = S.form.get(id);
   if (!f || !f.label) return { pill: '', title: '' };
+  if (f.label === 'role-up' || f.label === 'role-down') {
+    var up = f.label === 'role-up', role = f.role, fm = f.form;
+    var rt = up
+      ? (role.source === 'injury'
+          ? 'Role upgrade: ' + role.text + '. ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected reflects the bigger role, not a hot streak — no sell-high discount. Projection hasn\'t caught up: ' + (role.hold ? 'hold' : 'lean buy') + '.'
+          : 'Role upgrade: ' + role.text + ' — ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected is the new role, not a hot streak; no sell-high discount.')
+      : 'Role cut: ' + role.text + '. ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected reflects the smaller role — not a buy-low.';
+    if (up && f.text.indexOf(role.text) === 0 && f.text.length > role.text.length) rt += ' ' + f.text.slice(role.text.length).replace(/^ — /, '') + '.';
+    return { pill: '<span class="pl-form ' + f.label + '" title="' + esc(rt) + '">' + (up ? '⬆ Role up' : '⬇ Role down') + '</span>', title: rt };
+  }
   var hot = f.label === 'hot';
   var title = (hot ? 'Hot: ' : 'Cold: ') + f.avg + ' pts/g over the last ' + f.games + ' games vs ' + f.proj + ' projected (' + Math.round(f.ratio * 100) + '%) — ' +
     (hot ? 'sell high — value × ' + fmtMult(f.mult) + ', expect regression toward the projection'
@@ -934,7 +960,9 @@ function valueTitle(id) {
   var inj = injuryBits(id);
   if (inj.mult !== 1) parts.push('× ' + fmtMult(inj.mult) + ' (' + inj.short + ')');
   var f = S.form.get(id);
-  if (f && f.mult !== 1) parts.push('× ' + fmtMult(f.mult) + ' (' + f.label + ': ' + f.avg + ' vs ' + f.proj + ' proj pts/g)');
+  if (f && f.label === 'role-up') parts.push('× 1.000 (role up — hot signal suppressed)');
+  else if (f && f.label === 'role-down') parts.push('× 1.000 (role down — cold signal suppressed)');
+  else if (f && f.mult !== 1) parts.push('× ' + fmtMult(f.mult) + ' (' + f.label + ': ' + f.avg + ' vs ' + f.proj + ' proj pts/g)');
   var p = S.playoff.get(id);
   if (p && p.mult !== 1) parts.push('× ' + fmtMult(p.mult) + ' (' + (p.label ? p.label + ' ' : '') + 'playoff slate, avg #' + p.avgRank + ')');
   if (!parts.length) return 'Value ' + base.toLocaleString() + ' — no adjustments';

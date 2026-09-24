@@ -284,6 +284,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script src="/shared/scoring.js"></script>
 <script src="/shared/lineup.js"></script>
+<script src="/shared/trade-fit.js"></script>
 <script src="/shared/weekly-score.js"></script>
 <script>
 var GAMES = 17;
@@ -498,21 +499,9 @@ function isLocked(id) {
 // each with his usage record, so the step-up factor can see which starters'
 // touches are up for grabs. Scans the whole player pool, not just this roster —
 // the injured star is usually on someone else's team.
-var TEAM_OUT_STATUS = { Out: 1, IR: 1, Doubtful: 1, PUP: 1, Sus: 1 };
-var STEP_UP_POS = { RB: 1, WR: 1, TE: 1 };
 function buildTeamOuts() {
-  var out = {};
-  if (!S.usage) { S.teamOuts = out; return out; }   // no usage feed → nothing to measure vacated volume with
-  for (var id in S.players) {
-    var p = S.players[id];
-    if (!p || !TEAM_OUT_STATUS[p[3]] || !STEP_UP_POS[p[1]] || !p[2] || p[2] === 'FA') continue;
-    var usage = S.usage[id];
-    if (!usage) continue;                             // never logged a snap this season → nothing vacated
-    var byPos = out[p[2]] || (out[p[2]] = {});
-    (byPos[p[1]] || (byPos[p[1]] = [])).push({ id: id, name: p[0], status: p[3], usage: usage });
-  }
-  S.teamOuts = out;
-  return out;
+  S.teamOuts = TradeFit.teamOuts(S.players, S.usage);   // no usage feed → {}
+  return S.teamOuts;
 }
 
 // fpa-baseline.json carries the per-position neutral values and (eventually)
