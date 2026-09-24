@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-24T18:29:51.861Z",
+  "fetched_at": "2026-09-24T21:41:45.766Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -42,6 +42,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Adonai Mitchell",
+      "position": "WR",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Finger"
     },
     {
       "name": "Aidan O'Connell",
@@ -224,6 +231,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cairo Santos",
+      "position": "K",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Caleb Douglas",
@@ -462,6 +476,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Daniel Bellinger",
+      "position": "TE",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Danny Gray",
@@ -978,8 +999,8 @@
       "name": "Jaxson Dart",
       "position": "QB",
       "team": "NYG",
-      "status": "Out",
-      "body_part": "Knee - MCL"
+      "status": "IR",
+      "body_part": "Knee - Meniscus"
     },
     {
       "name": "Jayden Daniels",
@@ -1227,6 +1248,13 @@
       "body_part": null
     },
     {
+      "name": "Kendre Miller",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Illness"
+    },
+    {
       "name": "Kendrick Law",
       "position": "WR",
       "team": "DET",
@@ -1358,13 +1386,6 @@
       "team": "DAL",
       "status": "IR",
       "body_part": "Hip"
-    },
-    {
-      "name": "Malik Nabers",
-      "position": "WR",
-      "team": "NYG",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Mario Williams",
@@ -1904,6 +1925,13 @@
       "team": "IND",
       "status": "IR",
       "body_part": "Thumb"
+    },
+    {
+      "name": "Xavier Legette",
+      "position": "WR",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Xavier Weaver",
