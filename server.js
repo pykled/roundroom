@@ -893,8 +893,10 @@ function averageUsage(weeks, id) {
 
 // GET /api/recent-stats?week=N (N = the week being set; defaults to Sleeper's
 // current week) → { week, recentWeeks, seasonWeeks, players: { id: { pos, team,
-// recent: { tgtShare, carryShare, snapPct, games }, season: { … } } } }.
-// `recent` averages the last two completed weeks, `season` every completed week
+// recent: { tgtShare, carryShare, snapPct, games }, season: { … }, prior: { … } } },
+// priorWeeks }. `recent` averages the last two completed weeks, `season` every
+// completed week, `prior` every completed week before the recent two (games 0 and
+// null shares at week ≤ 3) — the before/after baseline for role-change detection
 // (games = weeks the player logged an offensive snap). Feeds usageMultiplier in
 // shared/weekly-score.js. A week only counts as complete once 24+ teams have
 // stat lines, so a half-played week never pollutes the averages.
@@ -913,15 +915,16 @@ app.get('/api/recent-stats', async (req, res) => {
     const fetched = await Promise.all(candidates.map(w => fetchUsageWeek(w, w < week - 1 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000).catch(() => null)));
     const weeks = fetched.filter(w => w && w.teams >= 24);
     const recent = weeks.slice(-2);
+    const prior = weeks.slice(0, -2);
     const ids = new Set();
     for (const w of weeks) for (const id in w.players) ids.add(id);
     const players = {};
     for (const id of ids) {
       const last = [...weeks].reverse().find(w => w.players[id]).players[id];
-      players[id] = { pos: last.pos, team: last.team, recent: averageUsage(recent, id), season: averageUsage(weeks, id) };
+      players[id] = { pos: last.pos, team: last.team, recent: averageUsage(recent, id), season: averageUsage(weeks, id), prior: averageUsage(prior, id) };
     }
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.json({ week, recentWeeks: recent.map(w => w.week), seasonWeeks: weeks.map(w => w.week), players });
+    res.json({ week, recentWeeks: recent.map(w => w.week), seasonWeeks: weeks.map(w => w.week), priorWeeks: prior.map(w => w.week), players });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch recent stats' });
   }
@@ -1011,6 +1014,18 @@ app.get('/api/schedule/:week', async (req, res) => {
 // A week counts as complete when it is before Sleeper's current week AND has
 // 100+ stat lines, so a week that hasn't been played yet is never returned.
 const POINTS_KEYS = ['gp', 'pts_ppr', 'pts_half_ppr', 'pts_std'];
+const PROJ_KEYS = ['pts_ppr', 'pts_half_ppr', 'pts_std'];
+// Weekly projection dict → { id: { pts_ppr, pts_half_ppr, pts_std } }; null → {}.
+function slimProj(raw) {
+  if (!raw) return {};
+  const out = {};
+  for (const [pid, stats] of Object.entries(raw)) {
+    const s = {};
+    for (const k of PROJ_KEYS) if (stats[k] != null) s[k] = stats[k];
+    if (Object.keys(s).length) out[pid] = s;
+  }
+  return out;
+}
 const POINTS_POS = 'position[]=QB&position[]=RB&position[]=WR&position[]=TE';
 function fetchPointsWeek(week, ttlMs) {
   return apiCached(`points:2026:${week}`, ttlMs, async () => {
@@ -1032,6 +1047,12 @@ function fetchPointsWeek(week, ttlMs) {
   });
 }
 
+// GET /api/recent-points?n=N → { season, week, weeks, stats, proj } where
+// weeks = the last N completed weeks (most recent first), stats = { week: { id:
+// { gp, pts_ppr, pts_half_ppr, pts_std } } } and proj = { week: { id: { pts_ppr,
+// pts_half_ppr, pts_std } } } — Sleeper's weekly projections for those same
+// weeks (the contemporaneous expectation, unlike the stale season projection).
+// A week whose projections fail to load yields {} rather than an error.
 app.get('/api/recent-points', async (req, res) => {
   let n = parseInt(req.query.n, 10);
   if (!n || n < 1) n = 3;
@@ -1043,14 +1064,16 @@ app.get('/api/recent-points', async (req, res) => {
     const week = Number(state.week) || 1;
     const candidates = [];
     for (let w = week - 1; w >= 1 && candidates.length < n + 1; w--) candidates.push(w);
-    const fetched = await Promise.all(candidates.map(w =>
-      fetchPointsWeek(w, w < week - 1 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000).catch(() => null)
-    ));
-    const weeks = fetched.filter(w => w && w.rows >= 100).slice(0, n);
-    const stats = {};
-    for (const w of weeks) stats[w.week] = w.players;
+    const ttlFor = w => (w < week - 1 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000);
+    const fetched = await Promise.all(candidates.map(w => Promise.all([
+      fetchPointsWeek(w, ttlFor(w)).catch(() => null),
+      apiCached(`proj:2026:${w}`, ttlFor(w), () => fetchSleeperWeek('projections', w)).catch(() => null),
+    ])));
+    const kept = fetched.filter(([pts]) => pts && pts.rows >= 100).slice(0, n);
+    const stats = {}, proj = {};
+    for (const [pts, raw] of kept) { stats[pts.week] = pts.players; proj[pts.week] = slimProj(raw); }
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.json({ season: String(state.season || 2026), week, weeks: weeks.map(w => w.week), stats });
+    res.json({ season: String(state.season || 2026), week, weeks: kept.map(([pts]) => pts.week), stats, proj });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch recent points' });
   }
@@ -1121,18 +1144,7 @@ async function getTrendingResult(pos, scoring, lastCompleted) {
     if (ptsLast && ptsLast.players) pointsByWeek[lastCompleted] = ptsLast.players;
     if (ptsPrior && ptsPrior.players) pointsByWeek[lastCompleted - 1] = ptsPrior.players;
 
-    // projByWeek: slim fetchSleeperWeek result down to pts keys only
-    const PROJ_KEYS = ['pts_ppr', 'pts_half_ppr', 'pts_std'];
-    function slimProj(raw) {
-      if (!raw) return {};
-      const out = {};
-      for (const [pid, stats] of Object.entries(raw)) {
-        const s = {};
-        for (const k of PROJ_KEYS) if (stats[k] != null) s[k] = stats[k];
-        if (Object.keys(s).length) out[pid] = s;
-      }
-      return out;
-    }
+    // projByWeek: slim fetchSleeperWeek result down to pts keys only (slimProj)
     const projByWeek = {};
     if (projLast) projByWeek[lastCompleted] = slimProj(projLast);
     if (projPrior) projByWeek[lastCompleted - 1] = slimProj(projPrior);
