@@ -354,13 +354,18 @@ var TradeFit = (function () {
   // The entry applyFactors reads. A role change explains a hot/cold streak, so
   // it replaces the label and drops the regression nudge (mult 1, never stacked).
   // Anything else passes `form` through unchanged (role attached for tooltips).
+  // Gated entries (role-up / role-down) carry `form` and `role` sub-objects and
+  // have no top-level avg/proj/ratio/games — readers must use entry.form.*.
   function gateForm(form, role, opts) {
     if (!form) return null;
     if (role && form.label === 'hot' && role.label === 'up') {
       var effRatio = form.ratio / (role.volRatio || 1);
-      var text = role.text;
-      if (effRatio >= FORM_HOT) text += ' — also running hot per touch; some per-touch regression possible';
-      return { label: 'role-up', mult: 1, form: form, role: role, effRatio: Math.round(effRatio * 100) / 100, text: text };
+      // volRatio is only measured on the usage path (injury path fixes it at 1),
+      // so effRatio and the per-touch note apply there alone.
+      var measured = role.source === 'usage';
+      var perTouch = measured && effRatio >= FORM_HOT;
+      var text = role.text + (perTouch ? ' — also running hot per touch; some per-touch regression possible' : '');
+      return { label: 'role-up', mult: 1, form: form, role: role, effRatio: measured ? Math.round(effRatio * 100) / 100 : null, perTouch: perTouch, text: text };
     }
     if (role && form.label === 'cold' && role.label === 'down') {
       return { label: 'role-down', mult: 1, form: form, role: role, text: role.text };

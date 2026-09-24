@@ -309,6 +309,14 @@ console.log('role signal');
     const outs = Fit.teamOuts(players, flatUsage);
     const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, dynasty: true, usage: flatUsage, teamOuts: outs, recentWindow: 2 }).get('hub');
     check('Dynasty: role-up mult 1, hold wording', e && e.label === 'role-up' && e.mult === 1 && e.role.hold === true && /hold/.test(e.text), e && e.text);
+    check('Dynasty: injury-path role-up has no per-touch note, perTouch false, effRatio null', e && !/per touch|per-touch/.test(e.text) && e.perTouch === false && e.effRatio == null, e && JSON.stringify(e));
+    // Usage path: effRatio = form.ratio / measured volRatio
+    const uu = (a, b) => ({ recent: { carryShare: b, snapPct: 0.6, games: 2 }, season: { carryShare: a, snapPct: 0.6, games: 3 }, prior: { carryShare: a, snapPct: 0.6, games: 1 } });
+    const hotForm = { label: 'hot', mult: 0.95, avg: 19, proj: 9.5, games: 2, ratio: 2.0 };
+    const rBig = Fit.roleSignal(uu(0.30, 0.60), [], 'RB'), gBig = Fit.gateForm(hotForm, rBig);
+    check('Usage role-up: 0.30 → 0.60, ratio 2.0 → effRatio 1.0, perTouch false', rBig && rBig.source === 'usage' && gBig.effRatio === 1 && gBig.perTouch === false && !/per-touch/.test(gBig.text), JSON.stringify(gBig));
+    const rSm = Fit.roleSignal(uu(0.30, 0.40), [], 'RB'), gSm = Fit.gateForm(hotForm, rSm);
+    check('Usage role-up: 0.30 → 0.40, ratio 2.0 → effRatio 1.5, perTouch true', rSm && rSm.source === 'usage' && gSm.effRatio === 1.5 && gSm.perTouch === true && /per-touch regression/.test(gSm.text), JSON.stringify(gSm));
   }
 
   // 8. QB

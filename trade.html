@@ -928,7 +928,7 @@ function formBits(id) {
           ? 'Role upgrade: ' + role.text + '. ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected reflects the bigger role, not a hot streak — no sell-high discount. Projection hasn\'t caught up: ' + (role.hold ? 'hold' : 'lean buy') + '.'
           : 'Role upgrade: ' + role.text + ' — ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected is the new role, not a hot streak; no sell-high discount.')
       : 'Role cut: ' + role.text + '. ' + fm.avg + ' pts/g vs ' + fm.proj + ' projected reflects the smaller role — not a buy-low.';
-    if (up && f.text.indexOf(role.text) === 0 && f.text.length > role.text.length) rt += ' ' + f.text.slice(role.text.length).replace(/^ — /, '') + '.';
+    if (up && f.perTouch) rt += ' also running hot per touch; some per-touch regression possible.';
     return { pill: '<span class="pl-form ' + f.label + '" title="' + esc(rt) + '">' + (up ? '⬆ Role up' : '⬇ Role down') + '</span>', title: rt };
   }
   var hot = f.label === 'hot';
