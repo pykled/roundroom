@@ -217,6 +217,112 @@ console.log('rosterImbalance');
   check('1-for-3 → good, +2 bodies, drop 2', gain && gain.tone === 'good' && gain.net === 2 && /2 roster bodies/.test(gain.text) && /drop 2 players/.test(gain.text), gain && gain.text);
 }
 
+// ---- 8b. role signal (offline) ---------------------------------------------------
+console.log('role signal');
+{
+  const players = { hub: ['Chuba Hubbard', 'RB', 'CAR', null, 26], brooks: ['Jonathon Brooks', 'RB', 'CAR', 'IR', 22] };
+  const statsByWeek = { 4: { hub: { gp: 1, pts_ppr: 19 } }, 3: { hub: { gp: 1, pts_ppr: 19 } } };
+  const weeks = [4, 3];
+  const proj = { hub: { pts_ppr: 8.7 * 17 } };
+  const mkUsage = (hubRecent, hubPrior, brooksRecentGames) => ({
+    hub: { recent: hubRecent, season: { carryShare: 0.5, snapPct: 0.68, games: 3 }, prior: hubPrior },
+    brooks: { season: { carryShare: 0.34, snapPct: 0.6, games: 3 }, recent: { carryShare: 0.34, games: brooksRecentGames } },
+  });
+  const flatUsage = mkUsage({ carryShare: 0.55, snapPct: 0.7, games: 2 }, { carryShare: 0.52, snapPct: 0.66, games: 1 }, 1);
+
+  // 1. Hubbard — flat share, teammate on IR → injury path
+  {
+    const outs = Fit.teamOuts(players, flatUsage);
+    check('Hubbard: teamOuts groups the IR teammate by team/pos', outs.CAR && outs.CAR.RB.length === 1 && outs.CAR.RB[0].id === 'brooks');
+    const map = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, usage: flatUsage, teamOuts: outs, recentWindow: 2 });
+    const e = map.get('hub');
+    check('Hubbard: role-up, mult 1, injury source', e && e.label === 'role-up' && e.mult === 1 && e.role.source === 'injury', JSON.stringify(e && e.role));
+    check('Hubbard: vacated ≈ 0.17, underlying form hot', e && near(e.role.vacated, 0.17, 1e-6) && e.form.label === 'hot');
+    check('Hubbard: applyFactors applies no discount', Fit.applyFactors(new Map([['hub', 1000]]), [map]).get('hub') === 1000);
+    const r = Fit.roleSignal(flatUsage.hub, outs.CAR.RB, 'RB', { recentWindow: 2 });
+    check('Hubbard: roleSignal direct → up', r && r.label === 'up' && r.source === 'injury' && r.teammates[0].name === 'Jonathon Brooks');
+    const g = Fit.gateForm(Fit.formSignal([19, 19], 8.7), r);
+    check('Hubbard: gateForm(hot, up) → role-up mult 1', g.label === 'role-up' && g.mult === 1);
+  }
+
+  // 2. Soft-D — hot, flat usage, nobody out → stays hot
+  {
+    const healthy = Object.assign({}, players, { brooks: ['Jonathon Brooks', 'RB', 'CAR', null, 22] });
+    const u = mkUsage({ carryShare: 0.5, snapPct: 0.68, games: 2 }, { carryShare: 0.5, snapPct: 0.68, games: 1 }, 1);
+    const outs = Fit.teamOuts(healthy, u);
+    const e = Fit.formMap(healthy, statsByWeek, weeks, proj, { ppr: 1, usage: u, teamOuts: outs, recentWindow: 2 }).get('hub');
+    check('Soft-D: no teammate out → teamOuts empty', Object.keys(outs).length === 0);
+    check('Soft-D: stays hot ×0.95', e && e.label === 'hot' && e.mult === 0.95, JSON.stringify(e));
+  }
+
+  // 3. Role-down — cold + share collapse → not a buy-low
+  {
+    const cold = { 4: { hub: { gp: 1, pts_ppr: 4 } }, 3: { hub: { gp: 1, pts_ppr: 4 } } };
+    const p12 = { hub: { pts_ppr: 12 * 17 } };
+    const u = { hub: { recent: { carryShare: 0.30, snapPct: 0.45, games: 2 }, season: { carryShare: 0.5, snapPct: 0.6, games: 3 }, prior: { carryShare: 0.55, snapPct: 0.60, games: 1 } } };
+    const r = Fit.roleSignal(u.hub, [], 'RB', { recentWindow: 2 });
+    check('Role-down: roleSignal down/high', r && r.label === 'down' && r.confidence === 'high', JSON.stringify(r));
+    const map = Fit.formMap(players, cold, weeks, p12, { ppr: 1, usage: u, teamOuts: {}, recentWindow: 2 });
+    const e = map.get('hub');
+    check('Role-down: entry role-down mult 1', e && e.label === 'role-down' && e.mult === 1, JSON.stringify(e));
+    check('Role-down: applyFactors leaves value unchanged', Fit.applyFactors(new Map([['hub', 1000]]), [map]).get('hub') === 1000);
+    const plain = Fit.formMap(players, cold, weeks, p12, { ppr: 1 }).get('hub');
+    check('Role-down: without usage the plain cold ×1.05 remains', plain.label === 'cold' && plain.mult === 1.05);
+  }
+
+  // 4. Usage-confirmed thresholds
+  {
+    const u = (a, b, sa, sb) => ({ recent: { carryShare: b, snapPct: sb == null ? 0.6 : sb, games: 2 }, season: { carryShare: a, snapPct: sa == null ? 0.6 : sa, games: 3 }, prior: { carryShare: a, snapPct: sa == null ? 0.6 : sa, games: 1 } });
+    const hi = Fit.roleSignal(u(0.38, 0.61, 0.55, 0.78), [], 'RB');
+    check('Usage up: 0.38 → 0.61 fires up/high', hi && hi.label === 'up' && hi.confidence === 'high' && hi.source === 'usage', hi && hi.text);
+    check('Usage up: text quotes shares and snaps', hi && /Carry share 38% → 61%/.test(hi.text) && /snaps 55% → 78%/.test(hi.text));
+    check('Usage up: 0.07 → 0.10 does NOT fire', Fit.roleSignal(u(0.07, 0.10), [], 'RB') === null);
+    check('Usage up: 0.30 → 0.37 (+7pp) does NOT fire', Fit.roleSignal(u(0.30, 0.37), [], 'RB') === null);
+    const med = Fit.roleSignal(u(0.20, 0.30), [], 'RB');
+    check('Usage up: 0.20 → 0.30 fires med when snaps flat', med && med.label === 'up' && med.confidence === 'med');
+    const wu = { recent: { tgtShare: 0.25, snapPct: 0.6, games: 2 }, season: { tgtShare: 0.15, games: 3 }, prior: { tgtShare: 0.15, snapPct: 0.6, games: 1 } };
+    const wr = Fit.roleSignal(wu, [], 'WR');
+    check('Usage up: WR reads target share', wr && wr.label === 'up' && /Target share/.test(wr.text));
+    const one = u(0.2, 0.3); one.recent.games = 1;
+    check('Usage up: 1 game flagged as thin evidence', /1 game of evidence/.test(Fit.roleSignal(one, [], 'RB').text));
+  }
+
+  // 5. Weekly-projection baseline
+  {
+    const s = Fit.formSignal([19, 19], 8.7, { projGames: [18.5, 19.2] });
+    check('Weekly proj: label null, baseline weekly, ratio ≈ 1', s.label === null && s.baseline === 'weekly' && near(s.ratio, 1, 0.05), JSON.stringify(s));
+    const both = { 4: { hub: { pts_ppr: 18.5 } }, 3: { hub: { pts_ppr: 19.2 } } };
+    const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, projByWeek: both }).get('hub');
+    check('Weekly proj via formMap: no hot entry', !e || e.label === null, JSON.stringify(e));
+    const one = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, projByWeek: { 4: { hub: { pts_ppr: 18.5 } } } }).get('hub');
+    check('Weekly proj: one week only → season baseline → hot', one && one.label === 'hot' && one.baseline === 'season', JSON.stringify(one));
+  }
+
+  // 6. No-usage fallback
+  {
+    const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, dynasty: false }).get('hub');
+    check('No-usage fallback: hot ×0.95, plain shape', e && e.label === 'hot' && e.mult === 0.95 && e.avg === 19 && e.proj === 8.7 && e.games === 2 && e.ratio === 2.18 && !('role' in e), JSON.stringify(e));
+  }
+
+  // 7. Dynasty
+  {
+    const outs = Fit.teamOuts(players, flatUsage);
+    const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, dynasty: true, usage: flatUsage, teamOuts: outs, recentWindow: 2 }).get('hub');
+    check('Dynasty: role-up mult 1, hold wording', e && e.label === 'role-up' && e.mult === 1 && e.role.hold === true && /hold/.test(e.text), e && e.text);
+  }
+
+  // 8. QB
+  check('QB: no role signal', Fit.roleSignal(flatUsage.hub, [], 'QB') === null);
+
+  // 9. Stale injury — teammate out 2+ weeks (no recent games) → role already projected
+  {
+    const u = mkUsage({ carryShare: 0.55, snapPct: 0.7, games: 2 }, { carryShare: 0.52, snapPct: 0.66, games: 1 }, 0);
+    const outs = Fit.teamOuts(players, u);
+    const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, usage: u, teamOuts: outs, recentWindow: 2 }).get('hub');
+    check('Stale injury: does not fire, stays hot', e && e.label === 'hot' && e.mult === 0.95, JSON.stringify(e && e.label));
+  }
+}
+
 // ---- 9. live audit --------------------------------------------------------------
 async function getJSON(path) {
   const r = await fetch(BASE + path);
