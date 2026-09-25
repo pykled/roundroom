@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-25T18:45:32.528Z",
+  "fetched_at": "2026-09-25T23:21:41.883Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -19,13 +19,6 @@
       "name": "Aaron Anderson",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Aaron Jones",
-      "position": "RB",
-      "team": "MIN",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -138,7 +131,7 @@
       "name": "Barion Brown",
       "position": "WR",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -320,15 +313,8 @@
       "name": "Chig Okonkwo",
       "position": "TE",
       "team": "WAS",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Chris Bell",
-      "position": "WR",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Chris Brazzell",
@@ -343,13 +329,6 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Chris Moore",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Chris Oladokun",
@@ -471,13 +450,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Daniel Bellinger",
-      "position": "TE",
-      "team": "TEN",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Danny Gray",
       "position": "WR",
       "team": null,
@@ -518,13 +490,6 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Ankle"
-    },
-    {
-      "name": "DeeJay Dallas",
-      "position": "RB",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Toe"
     },
     {
       "name": "Demarcus Robinson",
@@ -884,13 +849,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Jadarian Price",
-      "position": "RB",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Chest"
-    },
-    {
       "name": "Jake Bentley",
       "position": "QB",
       "team": null,
@@ -910,13 +868,6 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Jakobi Meyers",
-      "position": "WR",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Thumb"
     },
     {
       "name": "Jalen Coker",
@@ -1024,13 +975,6 @@
       "body_part": "Foot"
     },
     {
-      "name": "Jaylin Lane",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Groin"
-    },
-    {
       "name": "Jeff Caldwell",
       "position": "WR",
       "team": "KC",
@@ -1132,7 +1076,7 @@
       "name": "Jonah Coleman",
       "position": "RB",
       "team": "DEN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1148,13 +1092,6 @@
       "team": "MIN",
       "status": "IR",
       "body_part": "Thumb"
-    },
-    {
-      "name": "Jordan Whittington",
-      "position": "WR",
-      "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Quadriceps"
     },
     {
       "name": "Jordyn Tyson",
@@ -1227,13 +1164,6 @@
       "body_part": null
     },
     {
-      "name": "Kendre Miller",
-      "position": "RB",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Kendrick Law",
       "position": "WR",
       "team": "DET",
@@ -1244,7 +1174,7 @@
       "name": "Kene Nwangwu",
       "position": "RB",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Back"
     },
     {
@@ -1267,13 +1197,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Foot"
-    },
-    {
-      "name": "Kyle Monangai",
-      "position": "RB",
-      "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Kyron Hudson",
@@ -1309,13 +1232,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "LeQuint Allen",
-      "position": "RB",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Levonte Whitfield",
@@ -1372,6 +1288,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Marquise Brown",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Marvin Mims",
@@ -1475,7 +1398,7 @@
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1570,13 +1493,6 @@
       "body_part": null
     },
     {
-      "name": "Reggie Gilliam",
-      "position": "RB",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Ricky Pearsall",
       "position": "WR",
       "team": "SF",
@@ -1587,7 +1503,7 @@
       "name": "Rico Dowdle",
       "position": "RB",
       "team": "PIT",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Toe"
     },
     {
@@ -1631,13 +1547,6 @@
       "team": "MIA",
       "status": "Questionable",
       "body_part": "Hip"
-    },
-    {
-      "name": "Saquon Barkley",
-      "position": "RB",
-      "team": "PHI",
-      "status": "Questionable",
-      "body_part": "Arm"
     },
     {
       "name": "Savion Williams",
@@ -1773,25 +1682,11 @@
       "body_part": null
     },
     {
-      "name": "Tony Pollard",
-      "position": "RB",
-      "team": "TEN",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Tra Barnett",
       "position": "RB",
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Travis Etienne",
-      "position": "RB",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Trevor Etienne",
