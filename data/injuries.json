@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-24T21:41:45.766Z",
+  "fetched_at": "2026-09-25T00:38:14.127Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -175,13 +175,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Brady Russell",
-      "position": "RB",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Chest"
     },
     {
       "name": "Brandon Aiyuk",
@@ -415,11 +408,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Cooper Kupp",
-      "position": "WR",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Back"
+      "name": "Cooper Rush",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Corey Rucker",
@@ -499,13 +492,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Dareke Young",
-      "position": "WR",
-      "team": "LV",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Darren Carrington",
       "position": "WR",
       "team": null,
@@ -579,6 +565,13 @@
       "name": "Devin Neal",
       "position": "RB",
       "team": null,
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
+      "name": "DeVonta Smith",
+      "position": "WR",
+      "team": "PHI",
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -744,13 +737,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "George Holani",
-      "position": "RB",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Graham Gano",
       "position": "K",
       "team": null,
@@ -849,13 +835,6 @@
       "body_part": "Back"
     },
     {
-      "name": "J.K. Dobbins",
-      "position": "RB",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "J'Mon Moore",
       "position": "WR",
       "team": null,
@@ -889,6 +868,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Jack Strand",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacoby Jones",
@@ -1619,13 +1605,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "RJ Harvey",
-      "position": "RB",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "RJ Maryland",
       "position": "TE",
       "team": null,
@@ -1659,13 +1638,6 @@
       "team": "MIA",
       "status": "Questionable",
       "body_part": "Hip"
-    },
-    {
-      "name": "Sam Darnold",
-      "position": "QB",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Lower Body"
     },
     {
       "name": "Saquon Barkley",
@@ -1738,6 +1710,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Tank Bigsby",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Abdomen"
+    },
+    {
       "name": "Tank Dell",
       "position": "WR",
       "team": "HOU",
@@ -1764,13 +1743,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Personal"
-    },
-    {
-      "name": "Terrance Ferguson",
-      "position": "TE",
-      "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Terrell Jennings",
@@ -1925,6 +1897,13 @@
       "team": "IND",
       "status": "IR",
       "body_part": "Thumb"
+    },
+    {
+      "name": "Will Shipley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Xavier Legette",
