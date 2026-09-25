@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-25T13:58:10.224Z",
+  "fetched_at": "2026-09-25T18:45:32.528Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -124,7 +124,7 @@
       "name": "Ashton Dulin",
       "position": "WR",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -187,8 +187,8 @@
       "name": "Brenen Thompson",
       "position": "WR",
       "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Hip"
+      "status": "Out",
+      "body_part": "Quadriceps"
     },
     {
       "name": "Brittain Brown",
@@ -236,7 +236,7 @@
       "name": "Caleb Douglas",
       "position": "WR",
       "team": "MIA",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -320,7 +320,7 @@
       "name": "Chig Okonkwo",
       "position": "TE",
       "team": "WAS",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Hamstring"
     },
     {
@@ -1020,8 +1020,8 @@
       "name": "Jaylen Wright",
       "position": "RB",
       "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Neck"
+      "status": "Doubtful",
+      "body_part": "Foot"
     },
     {
       "name": "Jaylin Lane",
@@ -1391,7 +1391,7 @@
       "name": "Mason Taylor",
       "position": "TE",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Thumb"
     },
     {
@@ -1475,7 +1475,7 @@
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Hamstring"
     },
     {
@@ -1531,8 +1531,8 @@
       "name": "Puka Nacua",
       "position": "WR",
       "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Groin"
+      "status": "Doubtful",
+      "body_part": "Hip"
     },
     {
       "name": "Quentin Moore",
@@ -1806,6 +1806,13 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Trey Lance",
+      "position": "QB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Groin"
     },
     {
       "name": "Trey Sermon",

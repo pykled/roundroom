@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T13:58:10.318Z",
+  "generated_at": "2026-09-25T18:45:32.625Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -48,7 +48,7 @@
       "sources_count": 1,
       "composite_sf_adp": 8.25,
       "fantasypros_sf_adp": 12.49,
-      "injury_status": "Questionable",
+      "injury_status": "Doubtful",
       "bye": 11
     },
     {
@@ -180,7 +180,7 @@
       "sources_count": 1,
       "composite_sf_adp": 32.28,
       "fantasypros_sf_adp": 28.48,
-      "injury_status": "Questionable",
+      "injury_status": "Doubtful",
       "bye": 8
     },
     {
@@ -2074,7 +2074,7 @@
       "sources_count": 1,
       "composite_sf_adp": 181.54,
       "fantasypros_sf_adp": 174.53,
-      "injury_status": "Questionable",
+      "injury_status": "Doubtful",
       "bye": 7
     },
     {
@@ -2671,7 +2671,7 @@
       "sources_count": 1,
       "composite_sf_adp": 169.42,
       "fantasypros_sf_adp": 206.72,
-      "injury_status": "Questionable",
+      "injury_status": "Out",
       "bye": 6
     },
     {
@@ -3199,7 +3199,7 @@
       "sources_count": 1,
       "composite_sf_adp": 211.17,
       "fantasypros_sf_adp": 211.17,
-      "injury_status": "Questionable",
+      "injury_status": "Doubtful",
       "bye": 6
     },
     {
@@ -3862,7 +3862,7 @@
       "sources_count": 1,
       "composite_sf_adp": 232.48,
       "fantasypros_sf_adp": 251.88,
-      "injury_status": "Doubtful",
+      "injury_status": "Out",
       "bye": 13
     },
     {
@@ -5055,7 +5055,7 @@
       "sources_count": 1,
       "composite_sf_adp": 279.98,
       "fantasypros_sf_adp": 279.98,
-      "injury_status": "Questionable",
+      "injury_status": "Out",
       "bye": 7
     },
     {
@@ -6038,7 +6038,7 @@
       "sources_count": 1,
       "composite_sf_adp": 310.48,
       "fantasypros_sf_adp": 310.48,
-      "injury_status": "Questionable",
+      "injury_status": "Out",
       "bye": 13
     },
     {
@@ -6913,6 +6913,7 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 376.5,
+      "injury_status": "Questionable",
       "bye": 7
     },
     {
