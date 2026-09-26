@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-26T16:32:51.935Z",
+  "fetched_at": "2026-09-26T21:20:30.896Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -47,7 +47,7 @@
       "name": "Aidan O'Connell",
       "position": "QB",
       "team": "LV",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Personal"
     },
     {
@@ -82,7 +82,7 @@
       "name": "Andrei Iosivas",
       "position": "WR",
       "team": "CIN",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Thumb"
     },
     {
@@ -219,13 +219,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Cairo Santos",
-      "position": "K",
-      "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Hip"
-    },
-    {
       "name": "Caleb Douglas",
       "position": "WR",
       "team": "MIA",
@@ -243,7 +236,7 @@
       "name": "Caleb Williams",
       "position": "QB",
       "team": "CHI",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -432,7 +425,7 @@
       "name": "Dallas Goedert",
       "position": "TE",
       "team": "PHI",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee - MCL"
     },
     {
@@ -530,13 +523,6 @@
       "name": "Devin Neal",
       "position": "RB",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
-      "name": "DeVonta Smith",
-      "position": "WR",
-      "team": "PHI",
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -1076,7 +1062,7 @@
       "name": "Jonah Coleman",
       "position": "RB",
       "team": "DEN",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1174,7 +1160,7 @@
       "name": "Kene Nwangwu",
       "position": "RB",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Back"
     },
     {
@@ -1293,7 +1279,7 @@
       "name": "Marquise Brown",
       "position": "WR",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1612,13 +1598,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Tank Bigsby",
-      "position": "RB",
-      "team": "PHI",
-      "status": "Questionable",
-      "body_part": "Abdomen"
-    },
-    {
       "name": "Tank Dell",
       "position": "WR",
       "team": "HOU",
@@ -1792,13 +1771,6 @@
       "team": "IND",
       "status": "IR",
       "body_part": "Thumb"
-    },
-    {
-      "name": "Will Shipley",
-      "position": "RB",
-      "team": "PHI",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Xavier Legette",
