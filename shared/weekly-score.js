@@ -39,13 +39,21 @@
 var WeeklyScore = (function () {
   'use strict';
 
+  // Canonical form / step-up thresholds live in shared/factors.js.
+  var Factors = (typeof PocketFactors !== 'undefined') ? PocketFactors
+    : (typeof require === 'function' ? require('./factors.js') : null);
+
   // Neutral fantasy points allowed per game by position (league-average
   // defence). Used when no team-specific FPA is known so every matchup ties at
   // rank 16.5 → multiplier 1.0. NOT team data — do not tune per team here.
   var POS_BASELINE_FPA = { QB: 22, RB: 14, WR: 13, TE: 8, K: 8, DEF: 8 };
 
   var FORM_WEIGHTS = [0.5, 0.3, 0.2];   // 1 week ago, 2 weeks ago, 3 weeks ago
-  var FORM_MIN = 0.8, FORM_MAX = 1.25;
+  // Ratio clamp for the momentum multiplier. The lower bound is the shared cold
+  // line (Factors.FORM_COLD = 0.8); the upper bound stays a hair above the hot
+  // line (1.25 vs 1.2) because this factor is a start-him boost, not the
+  // regression nudge formSignal returns — the two point opposite ways on purpose.
+  var FORM_MIN = Factors.FORM_COLD, FORM_MAX = 1.25;
   var VEGAS_MIN = 0.85, VEGAS_MAX = 1.2;
   // Fallback league-average implied team total, used only when the live per-week
   // mean isn't supplied (/api/vegas now returns avgImplied). Set near the modern
@@ -76,22 +84,9 @@ var WeeklyScore = (function () {
   var SCRIPT_FAV = { RB: 1.03, WR: 0.98, TE: 0.98 };
   var SCRIPT_DOG = { RB: 0.97, WR: 1.04, TE: 1.04 };
 
-  // Step-up (vacated volume). When a teammate at the same position who was
-  // carrying a real share of the work is Out/IR/Doubtful, the healthy players
-  // behind him inherit his touches. A teammate counts as a volume player once
-  // his season touch share (RB carries, WR/TE targets) clears STEP_UP_MIN_SHARE,
-  // or clears STEP_UP_SNAP_SHARE while playing STEP_UP_MIN_SNAP of the snaps
-  // (an every-down player with a moderate share). Snap share alone never
-  // qualifies — a WR who plays 88% of snaps for 8% of targets vacates almost
-  // nothing when he sits (live week-2 data made that mistake obvious). The boost
-  // scales with the vacated touch share: 25% → +10%, capped at STEP_UP_MAX.
-  // Freshness: a teammate who hasn't played in the recent window is old news —
-  // the replacement's projection and usage already reflect the bigger role, so
-  // his weight is (games in recent window ÷ window length) → 0.
-  var STEP_UP_MIN_SHARE = 0.15, STEP_UP_SNAP_SHARE = 0.10, STEP_UP_MIN_SNAP = 0.60;
-  var STEP_UP_PER_SHARE = 0.4;                 // +10% for a vacated 25% share
-  var STEP_UP_MAX_SHARE = 0.35, STEP_UP_MAX = 1.14;
-  var STEP_UP_POS = { RB: 'carryShare', WR: 'tgtShare', TE: 'tgtShare' };
+  // Step-up (vacated volume from an injured same-position teammate) is defined
+  // once in shared/factors.js (Factors.stepUpFactor); stepUpMultiplier below is a
+  // thin adapter. See the factors.js header for the share / snap / freshness rules.
 
   // Own-injury status → multiplier. Anything not listed (null, 'NA', 'COV' …) is 1.0.
   var STATUS_MULT = { Questionable: 0.85, Doubtful: 0.5, Out: 0, IR: 0, PUP: 0, Sus: 0, 'Sus.': 0 };
@@ -107,7 +102,7 @@ var WeeklyScore = (function () {
     FS: 'S', SS: 'S', WS: 'S', S: 'S', DB: 'S',
     MLB: 'LB', LILB: 'LB', RILB: 'LB', ILB: 'LB', LOLB: 'LB', ROLB: 'LB', OLB: 'LB', SLB: 'LB', WLB: 'LB', LB: 'LB',
   };
-  var OUT_STATUS = { Out: 1, IR: 1, Doubtful: 1, PUP: 1, Sus: 1, 'Sus.': 1 };
+  var OUT_STATUS = Factors.OUT_STATUS;
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function pct(mult) {
@@ -379,36 +374,10 @@ var WeeklyScore = (function () {
   //   — every same-team, same-position player whose status is in OUT_STATUS
   //   (the caller filters by team/position; this function decides who mattered).
   // recentWindow: number of completed weeks in the usage `recent` window (1–2).
-  // Returns the multiplier for the healthy player whose ctx this is.
+  // Returns the multiplier for the healthy player whose ctx this is. Delegates to
+  // the shared Factors.stepUpFactor so the thresholds match trade-fit's role signal.
   function stepUpMultiplier(teammatesOut, pos, recentWindow) {
-    var shareKey = STEP_UP_POS[pos];
-    if (!shareKey) return { mult: 1, label: 'Step-up', detail: 'No step-up rule for ' + pos, source: 'neutral' };
-    if (!teammatesOut || !teammatesOut.length) return { mult: 1, label: 'Step-up', detail: 'No injured starters at ' + pos + ' on this team', source: 'neutral' };
-    var window = recentWindow > 0 ? recentWindow : 1;
-    var vacated = 0, parts = [], hits = [];
-    for (var i = 0; i < teammatesOut.length; i++) {
-      var t = teammatesOut[i];
-      if (!t || !OUT_STATUS[t.status]) continue;
-      var sea = t.usage && t.usage.season, rec = t.usage && t.usage.recent;
-      if (!sea || !(sea.games > 0)) continue;                       // never played this season → projections already exclude him
-      var share = sea[shareKey] != null ? sea[shareKey] : 0;
-      var snap = sea.snapPct != null ? sea.snapPct : 0;
-      var volume = share >= STEP_UP_MIN_SHARE || (share >= STEP_UP_SNAP_SHARE && snap >= STEP_UP_MIN_SNAP);
-      if (!volume) continue;                                          // depth piece, no real volume to inherit
-      var fresh = clamp(((rec && rec.games) || 0) / window, 0, 1);
-      if (fresh === 0) continue;                                      // out for 2+ weeks: role already re-projected
-      vacated += share * fresh;
-      hits.push(t);
-      var statusTxt = (t.status === 'IR' || t.status === 'PUP') ? 'on ' + t.status : String(t.status).toLowerCase();
-      parts.push((t.name || t.id) + ' ' + statusTxt + ' (' + Math.round(share * 100) + '% of ' + (pos === 'RB' ? 'carries' : 'targets') + ', ' + Math.round(snap * 100) + '% snaps' + (fresh < 1 ? ', ' + Math.round(fresh * 100) + '% weight — missed last week too' : '') + ')');
-    }
-    if (!hits.length) return { mult: 1, label: 'Step-up', detail: 'Injured teammates were not carrying real volume', source: 'neutral' };
-    var mult = Math.min(STEP_UP_MAX, 1 + Math.min(vacated, STEP_UP_MAX_SHARE) * STEP_UP_PER_SHARE);
-    return {
-      mult: mult, label: 'Step-up', vacated: vacated, teammates: hits,
-      detail: parts.join(' · ') + ' — vacated volume (' + pct(mult) + ')',
-      source: 'live',
-    };
+    return Factors.stepUpFactor(teammatesOut, pos, { recentWindow: recentWindow });
   }
 
   // player: { id, position, team, injuryStatus }

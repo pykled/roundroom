@@ -21,6 +21,10 @@
 var TrendingScore = (function () {
   'use strict';
 
+  // Canonical form primitive lives in shared/factors.js.
+  var Factors = (typeof PocketFactors !== 'undefined') ? PocketFactors
+    : (typeof require === 'function' ? require('./factors.js') : null);
+
   var USAGE_POS = { RB: 1, WR: 1, TE: 1 };
   var SHARE_KEY = { RB: 'carryShare', WR: 'tgtShare', TE: 'tgtShare' };
 
@@ -144,7 +148,9 @@ var TrendingScore = (function () {
       var proj    = projRow ? (projRow[scoringKey] || 0) : 0;
 
       if (actual > 0 || proj > 0) {
-        var formLast = clamp((actual - proj) / Math.max(proj, 5), -1, 1);
+        // Shared with formSignal via Factors.MIN_BASELINE: both floor a noisy
+        // projection at 5 pts before reading recent-vs-expected form.
+        var formLast = Factors.formDeviation(actual, proj);
         formComponent = formLast;
 
         if (priorWeeks.length > 0) {
@@ -153,7 +159,7 @@ var TrendingScore = (function () {
           var actualP  = ptsP  ? (ptsP[scoringKey]  || 0) : 0;
           var projPv   = projP ? (projP[scoringKey] || 0) : 0;
           if (actualP > 0 || projPv > 0) {
-            var formPrior = clamp((actualP - projPv) / Math.max(projPv, 5), -1, 1);
+            var formPrior = Factors.formDeviation(actualP, projPv);
             formComponent = 0.6 * formLast + 0.4 * formPrior;
           }
         }
