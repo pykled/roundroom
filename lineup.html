@@ -105,6 +105,8 @@
 .pl-score.zero { color: var(--text-muted); font-weight: 400; }
 .pl-pts { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 400; color: var(--text-secondary); min-width: 58px; text-align: right; }
 .pl-pts small { color: var(--text-muted); font-size: 0.56rem; margin-left: 2px; }
+.pl-actual { color: var(--success); }
+.pl-actual small { color: var(--success); opacity: 0.75; font-size: 0.56rem; margin-left: 2px; }
 /* phones: score over proj in one narrow column, tighter slot label, so the name line keeps ~130px */
 /* team/opp is rendered twice: inline next to the name (desktop) and as the first tag under it (phones) */
 .fx.team-sub { display: none; cursor: default; }
@@ -749,16 +751,6 @@ var NEUTRAL_FACTORS = {
 function scoreFor(id) {
   if (S.scores[id]) return S.scores[id];
 
-  // Bug fixes: use actual stats when the game has started/finished.
-  // 1. Scores match the Sleeper app (actual pts, not projections).
-  // 2. Out-tagged players who already played are not zeroed.
-  var actual = actualPtsFor(id);
-  if (actual != null) {
-    var r = { score: actual, base: actual, mult: 1, bye: false, isActual: true, factors: NEUTRAL_FACTORS };
-    S.scores[id] = r;
-    return r;
-  }
-
   var info = S.players[id] || [id, '?', '', null];
   var team = info[2] && info[2] !== 'FA' ? info[2] : null;
   var game = team && S.schedule && S.schedule[team] ? S.schedule[team] : null;
@@ -778,6 +770,19 @@ function scoreFor(id) {
       teammatesOut: team && S.teamOuts[team] ? (S.teamOuts[team][info[1]] || []).filter(function(t){ return t.id !== id; }) : null,
       recentWindow: S.usageWindow,
     });
+
+  // When the game has started or finished, override score with actual Sleeper pts.
+  // Preserve r.algoScore so the UI can show proj vs actual side by side.
+  // Preserves the original bug fix: Out-tagged players who already played are not zeroed.
+  var actual = actualPtsFor(id);
+  if (actual != null) {
+    r.algoScore = r.score;
+    r.actual = actual;
+    r.score = actual;
+    r.bye = false;
+    r.isActual = true;
+  }
+
   S.scores[id] = r;
   return r;
 }
@@ -936,8 +941,8 @@ function playerRow(id, opts) {
       (sub ? '<span class="pl-fx">' + sub + '</span>' : '') +
     '</span>' +
     '<span class="pl-nums">' +
-      '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="' + (r.isActual ? 'Actual points scored this week' : 'Composite weekly score') + '">' + r.score.toFixed(1) + '</span>' +
-      '<span class="pl-pts" title="' + (r.isActual ? 'Actual points scored this week' : 'Raw weekly projection') + '">' + r.base.toFixed(1) + '<small>' + (r.isActual ? 'actual' : 'proj') + '</small></span>' +
+      '<span class="pl-score' + ((r.isActual ? r.algoScore : r.score) > 0 ? '' : ' zero') + '" title="' + (r.isActual ? 'Algo projection (pre-game composite)' : 'Composite weekly score') + '">' + (r.isActual ? r.algoScore : r.score).toFixed(1) + '</span>' +
+      '<span class="pl-pts" title="' + (r.isActual ? 'proj: algo prediction · actual: real Sleeper stats' : 'Raw weekly projection') + '">' + r.base.toFixed(1) + '<small>proj</small>' + (r.isActual ? ' <span class="pl-actual">· ' + r.actual.toFixed(1) + '<small>actual</small></span>' : '') + '</span>' +
     '</span>' +
     '</div>';
 }
