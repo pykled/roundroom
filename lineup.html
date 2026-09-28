@@ -99,14 +99,12 @@
 .pl-name .team { color: var(--text-muted); font-size: 0.68rem; flex-shrink: 0; }
 .pl-name .star { font-size: 0.7rem; flex-shrink: 0; }
 .pl-name .cur { font-size: 0.58rem; font-weight: 600; color: var(--text-muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0.05rem 0.4rem; letter-spacing: 0.02em; flex-shrink: 0; }
-/* score = composite weekly score (what the lineup ranks on); pts = the raw projection it started from */
+/* score = actual pts once the game is locked, else the composite weekly score (what the lineup ranks on); pts = the pre-game composite projection, shown only after kickoff to compare algo vs actual */
 .pl-nums { display: flex; align-items: center; gap: 0.45rem; flex-shrink: 0; }
 .pl-score { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--text-primary); min-width: 44px; text-align: right; }
 .pl-score.zero { color: var(--text-muted); font-weight: 400; }
 .pl-pts { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 400; color: var(--text-secondary); min-width: 58px; text-align: right; }
 .pl-pts small { color: var(--text-muted); font-size: 0.56rem; margin-left: 2px; }
-.pl-actual { color: var(--success); }
-.pl-actual small { color: var(--success); opacity: 0.75; font-size: 0.56rem; margin-left: 2px; }
 /* phones: score over proj in one narrow column, tighter slot label, so the name line keeps ~130px */
 /* team/opp is rendered twice: inline next to the name (desktop) and as the first tag under it (phones) */
 .fx.team-sub { display: none; cursor: default; }
@@ -234,8 +232,8 @@
     <details class="legend info-details">
       <summary>How to read this</summary>
       <div class="details-body">
-        <p><b>score</b> — composite weekly ranking number. Your Sleeper projection adjusted by matchup difficulty, Vegas lines, recent form, injuries, rest, and weather. Higher = start him.</p>
-        <p><b>proj</b> — raw Sleeper projection under your league's scoring. The score adjusts this up or down based on the factors below.</p>
+        <p><b>score</b> — the big number. Once a player's game starts it's his actual points; before kickoff it's the composite projection — your Sleeper projection adjusted by matchup difficulty, Vegas lines, recent form, injuries, rest, and weather. Higher = start him.</p>
+        <p><b>proj</b> — shown in muted text next to actual points after kickoff: the composite projection the algo made pre-game, so you can see how the call played out.</p>
         <table class="legend-table">
           <thead><tr><th>Tag</th><th>What it means</th></tr></thead>
           <tbody>
@@ -941,8 +939,11 @@ function playerRow(id, opts) {
       (sub ? '<span class="pl-fx">' + sub + '</span>' : '') +
     '</span>' +
     '<span class="pl-nums">' +
-      '<span class="pl-score' + ((r.isActual ? r.algoScore : r.score) > 0 ? '' : ' zero') + '" title="' + (r.isActual ? 'Algo projection (pre-game composite)' : 'Composite weekly score') + '">' + (r.isActual ? r.algoScore : r.score).toFixed(1) + '</span>' +
-      '<span class="pl-pts" title="' + (r.isActual ? 'proj: algo prediction · actual: real Sleeper stats' : 'Raw weekly projection') + '">' + r.base.toFixed(1) + '<small>proj</small>' + (r.isActual ? ' <span class="pl-actual">· ' + r.actual.toFixed(1) + '<small>actual</small></span>' : '') + '</span>' +
+      // Primary = actual pts once the game is locked (r.score is overridden to actual
+      // in scoreFor), else the composite algo projection. Never 0.0 when real stats exist.
+      '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="' + (r.isActual ? 'Actual points scored this week' : 'Composite weekly score') + '">' + r.score.toFixed(1) + '</span>' +
+      // Secondary (muted) only after the game starts: the pre-game algo projection, to compare algo vs reality.
+      (r.isActual ? '<span class="pl-pts" title="Algo projection (pre-game composite) — compare against actual above">' + r.algoScore.toFixed(1) + '<small>proj</small></span>' : '') +
     '</span>' +
     '</div>';
 }
