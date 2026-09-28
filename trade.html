@@ -994,12 +994,9 @@ function addPlayer(side, id) {
   var list = side === 'give' ? S.give : S.recv;
   if (list.indexOf(id) >= 0) return;
   list.push(id);
-  // Receive side, no partner chosen yet: a searched player names the team —
-  // open their roster below so the rest of the trade is a tap away.
-  if (side === 'recv' && pickerActive('recv') && S.partnerId == null) {
-    var r = ownerOf(id);
-    if (r && r.roster_id != null && !isMine(r.roster_id)) { S.partnerId = String(r.roster_id); renderPartnerSelect(); }
-  }
+  // Receive side: re-derive the partner from the current selection so the
+  // dropdown tracks whichever team the recv players belong to.
+  if (side === 'recv' && pickerActive('recv')) rederivePartnerId();
   renderSide(side);
   renderVerdict();
 }
@@ -1007,6 +1004,7 @@ function addPlayer(side, id) {
 function removePlayer(side, id) {
   if (side === 'give') S.give = S.give.filter(function(x){ return x !== id; });
   else S.recv = S.recv.filter(function(x){ return x !== id; });
+  if (side === 'recv' && pickerActive('recv')) rederivePartnerId();
   renderSide(side);
   renderVerdict();
 }
@@ -1554,6 +1552,25 @@ function syncPartnerFromRecv() {
     var r = ownerOf(S.recv[i]);
     if (r && r.roster_id != null && !isMine(r.roster_id)) { S.partnerId = String(r.roster_id); return; }
   }
+}
+
+// Re-derive S.partnerId from the current recv selection. If all recv players
+// belong to the same non-mine team, snap the dropdown to that team. If players
+// span multiple teams (edge case), leave S.partnerId alone so the user can
+// manage it manually.
+function rederivePartnerId() {
+  if (!pickerActive('recv') || !S.recv.length) return;
+  var seen = {};
+  for (var i = 0; i < S.recv.length; i++) {
+    var r = ownerOf(S.recv[i]);
+    if (!r || r.roster_id == null || isMine(r.roster_id)) continue;
+    seen[String(r.roster_id)] = true;
+  }
+  var ids = Object.keys(seen);
+  if (ids.length !== 1) return;
+  if (S.partnerId === ids[0]) return;
+  S.partnerId = ids[0];
+  renderPartnerSelect();
 }
 
 function setPartner(rid) {
