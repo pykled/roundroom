@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-27T23:10:37.927Z",
+  "fetched_at": "2026-09-28T05:37:39.442Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -126,6 +126,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Thigh"
+    },
+    {
+      "name": "Baker Mayfield",
+      "position": "QB",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Hand"
     },
     {
       "name": "Barion Brown",
@@ -387,6 +394,13 @@
       "body_part": "Calf"
     },
     {
+      "name": "CJ Daniels",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "CJ Williams",
       "position": "WR",
       "team": "JAX",
@@ -405,7 +419,7 @@
       "position": "TE",
       "team": "LAR",
       "status": "Questionable",
-      "body_part": "Knee"
+      "body_part": "Shoulder"
     },
     {
       "name": "Cole Burgess",
@@ -1276,6 +1290,13 @@
       "body_part": "Personal"
     },
     {
+      "name": "Josh Oliver",
+      "position": "TE",
+      "team": "MIN",
+      "status": "Questionable",
+      "body_part": "Arm"
+    },
+    {
       "name": "Julian Hill",
       "position": "TE",
       "team": "NE",
@@ -1664,7 +1685,7 @@
       "name": "Puka Nacua",
       "position": "WR",
       "team": "LAR",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Hip"
     },
     {
@@ -1743,6 +1764,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "RJ Harvey",
+      "position": "RB",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "RJ Maryland",
@@ -1892,6 +1920,13 @@
       "body_part": "Personal"
     },
     {
+      "name": "Terrance Ferguson",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Terrell Jennings",
       "position": "RB",
       "team": null,
@@ -1976,11 +2011,25 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Tutu Atwell",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Ty Chandler",
       "position": "RB",
       "team": "NO",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ty Simpson",
+      "position": "QB",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Tyjae Spears",
