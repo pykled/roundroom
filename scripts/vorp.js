@@ -3,7 +3,8 @@
  * vorp.js — projection-based VORP (Value Over Replacement Player).
  *
  * Strategy:
- *   1. Fetch Sleeper season projections (week 1 used as a proxy, scaled x17).
+ *   1. Fetch Sleeper full-season projections (regular/2026 endpoint; totals
+ *      are already season-long, no scaling needed).
  *   2. Join projection player_ids to names/positions using raw_picks.json.
  *   3. If projections are unavailable/insufficient, fall back to estimating
  *      points from ADP rank order using simple per-position decay curves.
@@ -42,10 +43,9 @@ const CURVES = {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchProjections() {
-  // Week-1 projections as a season proxy; scaled to a full season below.
-  const qs =
-    'season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE';
-  const url = `https://api.sleeper.app/v1/projections/nfl/${SEASON}/1?${qs}`;
+  // Full-season projections (same endpoint the trade calculator's
+  // /api/projections/season route uses) — totals are already season-long.
+  const url = `https://api.sleeper.app/v1/projections/nfl/regular/${SEASON}`;
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'Pocket/1.0' } });
     if (!res.ok) {
@@ -143,8 +143,6 @@ function fromProjections(projections, idIndex) {
     const stats = entry.stats;
     let pts = pickPoints(stats);
     if (pts == null) continue;
-    // Week-1 proxy -> full season (17 games).
-    pts = pts * 17;
 
     // Resolve name/position: prefer embedded player info, else id index.
     let name = null;
