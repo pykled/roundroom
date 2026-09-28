@@ -646,19 +646,18 @@ function leagueUser(userId) {
   return (S.league.users || []).find(function(u){ return String(u.user_id) === String(userId); }) || null;
 }
 
-// FantasyCalc params from league settings: PPR if rec >= 0.9, SF if a SUPER_FLEX slot exists.
+// FantasyCalc params from league settings, via TradeFit.leagueFormat (same
+// source of truth as the Trade page) so ppr/sf/dynasty never disagree.
 function getMarketParams() {
-  var sc = S.league.scoring_settings || {};
-  var ppr = (sc.rec != null && parseFloat(sc.rec) >= 0.9) ? 1 : 0;
-  var sf = (S.league.roster_positions || []).indexOf('SUPER_FLEX') >= 0 ? 1 : 0;
-  return { ppr: ppr, sf: sf };
+  var fmt = TradeFit.leagueFormat(S.league);
+  return { ppr: fmt.ppr, sf: fmt.sf ? 1 : 0, dynasty: fmt.dynasty ? 1 : 0 };
 }
 
 async function refreshMarket() {
   var p = getMarketParams();
-  var key = p.ppr + ':' + p.sf;
+  var key = p.ppr + ':' + p.sf + ':' + p.dynasty;
   if (S.marketKey === key && S.market && Object.keys(S.market).length) return;
-  var m = await fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf)
+  var m = await fetch('/api/market-values?ppr=' + p.ppr + '&sf=' + p.sf + '&dynasty=' + p.dynasty)
     .then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
   S.market = m && typeof m === 'object' && !Array.isArray(m) ? m : {};
   S.marketKey = key;
@@ -753,7 +752,9 @@ function recompute() {
   var pool = Object.keys(S.players).map(function(id) { return { player_id: id, position: S.players[id][1] }; });
   var raw = ScoringEngine.computeVORP(pool, S.proj, scoring, positions, teams);
   var scaled = ScoringEngine.rescaleVORP(raw);
-  S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {});
+  var fmt = TradeFit.leagueFormat(S.league);
+  if (fmt.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
+  S.vorp = ScoringEngine.blendWithMarket(scaled, S.market || {}, fmt.dynasty ? 0.5 : 0.3);
 
   var reserve = {};
   (S.roster.reserve || []).forEach(function(id){ reserve[id] = true; });
