@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-28T14:15:12.538Z",
+  "fetched_at": "2026-09-28T20:38:14.305Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -131,8 +131,8 @@
       "name": "Baker Mayfield",
       "position": "QB",
       "team": "TB",
-      "status": "Questionable",
-      "body_part": "Hand"
+      "status": "Out",
+      "body_part": "Thumb"
     },
     {
       "name": "Barion Brown",
@@ -565,8 +565,8 @@
       "name": "De'Von Achane",
       "position": "RB",
       "team": "MIA",
-      "status": "Out",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Knee - ACL"
     },
     {
       "name": "De'Zhaun Stribling",
@@ -935,7 +935,7 @@
     {
       "name": "J.J. McCarthy",
       "position": "QB",
-      "team": "MIN",
+      "team": "NYG",
       "status": "Out",
       "body_part": "Coach's Decision"
     },
@@ -1293,8 +1293,8 @@
       "name": "Josh Oliver",
       "position": "TE",
       "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Arm"
+      "status": "Out",
+      "body_part": "Biceps"
     },
     {
       "name": "Julian Hill",
@@ -1979,8 +1979,8 @@
       "name": "Travis Etienne",
       "position": "RB",
       "team": "NO",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "Out",
+      "body_part": "Hamstring"
     },
     {
       "name": "Trevor Etienne",
