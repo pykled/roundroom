@@ -27,6 +27,11 @@ var TradeFit = (function () {
   var Lineup = (typeof LineupOptimizer !== 'undefined') ? LineupOptimizer
     : (typeof require === 'function' ? require('./lineup.js') : null);
 
+  // Canonical form / step-up / role primitives live in shared/factors.js so
+  // trade-fit, weekly-score and trending-score share one set of thresholds.
+  var Factors = (typeof PocketFactors !== 'undefined') ? PocketFactors
+    : (typeof require === 'function' ? require('./factors.js') : null);
+
   var SKILL = { QB: 1, RB: 1, WR: 1, TE: 1 };
 
   // ---- League format ------------------------------------------------------
@@ -235,18 +240,13 @@ var TradeFit = (function () {
   }
 
   // ---- Recent form: sell high / buy low ------------------------------------
-  // The market half of the blend chases the last box score; the projection
-  // half ignores it. A player whose last two games ran ≥20% above his season
-  // projection is priced at his peak (sell high), one ≥20% below at his trough
-  // (buy low). Either way the number that matters is the regression-adjusted
-  // one, so the value is nudged 5% toward the projection: hot ×0.95, cold
-  // ×1.05. Symmetric on purpose — giving a hot player counts as giving less
-  // (you sold high), receiving a cold one counts as getting more (you bought
-  // low). Dynasty halves it: two games say little about a multi-year asset.
-  var FORM_GAMES = 2;               // games compared
-  var FORM_HOT = 1.2, FORM_COLD = 0.8;
-  var FORM_MULT = { hot: 0.95, cold: 1.05 };
-  var FORM_MIN_PROJ = 5;            // projected pts/game floor — below this the ratio is noise
+  // The market half of the blend chases the last box score; the projection half
+  // ignores it. formSignal (shared/factors.js) classifies a player hot when his
+  // last two games ran ≥20% above his season projection (sell high) or cold when
+  // ≥20% below (buy low), and returns the regression nudge that prices him back
+  // toward the projection: hot ×0.95, cold ×1.05, halved for dynasty. Symmetric
+  // on purpose — giving a hot player counts as giving less, receiving a cold one
+  // as getting more. See the factors.js header for the threshold reconciliation.
   var SEASON_GAMES = 17;            // season projection → per-game
   var POINTS_KEY = { 1: 'pts_ppr', 0.5: 'pts_half_ppr', 0: 'pts_std' };
 
@@ -254,102 +254,8 @@ var TradeFit = (function () {
   function mean(a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-  // games: actual points per game played, most recent first (byes / DNP
-  // omitted). projPerGame: season projection ÷ 17 under the same scoring.
-  // opts.projGames: Sleeper's per-game projection for those same games (same
-  // order/filter; NaN where a week has none). With 2+ finite entries the mean of
-  // the ones matching the compared games is the baseline — the contemporaneous
-  // expectation — else projPerGame ('season'), which never catches up to a role
-  // change. Returns null without two games or a readable baseline, else
-  // { label: 'hot' | 'cold' | null, ratio, avg, proj, games, mult, baseline }.
-  function formSignal(games, projPerGame, opts) {
-    var used = (games || []).filter(function (g) { return typeof g === 'number' && isFinite(g); }).slice(0, FORM_GAMES);
-    if (used.length < FORM_GAMES) return null;
-    var baseline = 'season', base = projPerGame;
-    var pg = ((opts && opts.projGames) || []).slice(0, FORM_GAMES).filter(function (g) { return typeof g === 'number' && isFinite(g); });
-    if (pg.length >= 2) { baseline = 'weekly'; base = mean(pg); }
-    if (!(base >= FORM_MIN_PROJ)) return null;
-    var avg = mean(used);
-    var ratio = avg / base;
-    var label = ratio >= FORM_HOT ? 'hot' : ratio <= FORM_COLD ? 'cold' : null;
-    var mult = label ? FORM_MULT[label] : 1;
-    if (label && opts && opts.dynasty) mult = 1 + (mult - 1) / 2;
-    return { label: label, ratio: Math.round(ratio * 100) / 100, avg: Math.round(avg * 10) / 10, proj: Math.round(base * 10) / 10, games: used.length, mult: Math.round(mult * 1000) / 1000, baseline: baseline };
-  }
-
-  // ---- Role change ------------------------------------------------------------
-  // A season projection is effectively preseason, so a player who just took over
-  // a backfield reads "hot" all year — the Hot discount would fire on a real role
-  // change. roleSignal detects the change (usage jump, or an injured teammate's
-  // vacated share); gateForm then swaps Hot/Cold for a role chip at mult 1.
-  var ROLE_SHARE_PP = 0.08;        // absolute share delta
-  var ROLE_SHARE_RATIO = 1.25;     // relative share delta (down: 1 / 1.25)
-  var ROLE_SNAP_PP = 0.10;         // snap-share move that corroborates → 'high'
-  var ROLE_MIN_SHARE = 0.15;       // teammate's season share to count as vacated
-  var ROLE_MIN_VACATED = 0.15;
-  var ROLE_OUT_STATUS = { Out: 1, IR: 1, PUP: 1, Doubtful: 1, Sus: 1 };
-  var ROLE_SHARE_KEY = { RB: 'carryShare', WR: 'tgtShare', TE: 'tgtShare' };   // QB → no role signal
-  var ROLE_EPS = 1e-9;
-
-  function pct(v) { return Math.round(v * 100) + '%'; }
-  function statusWord(st) {
-    return st === 'IR' || st === 'PUP' ? 'on ' + st : st === 'Sus' ? 'suspended' : String(st).toLowerCase();
-  }
-
-  // usage: one /api/recent-stats player { recent, season, prior? }. teammatesOut:
-  // [{ id, name, status, usage }] same team + position (self excluded).
-  // opts: { recentWindow (1–2), dynasty }. Returns null without a signal, else
-  // { label: 'up'|'down', confidence: 'high'|'med', source: 'usage'|'injury',
-  //   volRatio, share, sharePrev, snap, snapPrev, vacated, teammates, text, hold? }.
-  function roleSignal(usage, teammatesOut, pos, opts) {
-    var shareKey = ROLE_SHARE_KEY[pos];
-    if (!shareKey || !usage) return null;
-    var dynasty = !!(opts && opts.dynasty);
-    var rec = usage.recent;
-    var prev = usage.prior && usage.prior.games > 0 ? usage.prior : usage.season;
-    var noun = pos === 'RB' ? 'Carry' : 'Target';
-
-    if (rec && prev && rec.games >= 1 && prev.games >= 1 && rec[shareKey] != null && prev[shareKey] != null) {
-      var r = rec[shareKey], p = prev[shareKey];
-      var up = r - p >= ROLE_SHARE_PP - ROLE_EPS && (p > 0 ? r / p >= ROLE_SHARE_RATIO - ROLE_EPS : r >= ROLE_SHARE_PP);
-      var down = p - r >= ROLE_SHARE_PP - ROLE_EPS && r / p <= 1 / ROLE_SHARE_RATIO + ROLE_EPS;
-      if (up || down) {
-        var haveSnap = rec.snapPct != null && prev.snapPct != null;
-        var snapMove = haveSnap ? rec.snapPct - prev.snapPct : 0;
-        var high = up ? snapMove >= ROLE_SNAP_PP - ROLE_EPS : snapMove <= -ROLE_SNAP_PP + ROLE_EPS;
-        var text = noun + ' share ' + pct(p) + ' → ' + pct(r) + ' over ' + (rec.games >= 2 ? 'the last ' + rec.games + ' weeks' : 'the last week') +
-          (haveSnap ? ' (snaps ' + pct(prev.snapPct) + ' → ' + pct(rec.snapPct) + ')' : '') +
-          (rec.games === 1 ? ' — 1 game of evidence' : '');
-        var sig = { label: up ? 'up' : 'down', confidence: high ? 'high' : 'med', source: 'usage', volRatio: p > 0 ? r / p : 1, share: r, sharePrev: p, snap: rec.snapPct, snapPrev: prev.snapPct, vacated: 0, teammates: [], text: text };
-        if (dynasty && up) sig.hold = true;
-        return sig;
-      }
-    }
-
-    // Injury-implied: a same-position teammate who played recently and is now out
-    // — his absence is in no projection or box score yet (mirrors stepUpMultiplier).
-    var window = opts && opts.recentWindow > 0 ? opts.recentWindow : 1;
-    var vacated = 0, mates = [], parts = [];
-    (teammatesOut || []).forEach(function (t) {
-      if (!t || !ROLE_OUT_STATUS[t.status]) return;
-      var sea = t.usage && t.usage.season, tr = t.usage && t.usage.recent;
-      if (!sea || !(sea.games > 0)) return;                 // never played → projections already exclude him
-      var share = sea[shareKey] != null ? sea[shareKey] : 0;
-      if (share < ROLE_MIN_SHARE) return;                   // depth piece, no volume to inherit
-      var fresh = clamp(((tr && tr.games) || 0) / window, 0, 1);
-      if (fresh === 0) return;                              // out 2+ weeks: role already re-projected
-      vacated += share * fresh;
-      mates.push({ id: t.id, name: t.name, status: t.status, share: share, fresh: fresh });
-      parts.push((t.name || t.id) + ' ' + statusWord(t.status) + ' (' + pct(share) + ' of ' + (pos === 'RB' ? 'carries' : 'targets') + ', played ' + (fresh < 1 ? 'recently' : 'last week') + ')');
-    });
-    if (vacated >= ROLE_MIN_VACATED - ROLE_EPS) {
-      var t2 = parts.join(' · ') + (dynasty ? ' — temporary if he returns; hold, don\'t chase' : '');
-      var s2 = { label: 'up', confidence: 'med', source: 'injury', volRatio: 1, share: rec && rec[shareKey] != null ? rec[shareKey] : null, sharePrev: prev && prev[shareKey] != null ? prev[shareKey] : null, snap: rec && rec.snapPct != null ? rec.snapPct : null, snapPrev: prev && prev.snapPct != null ? prev.snapPct : null, vacated: vacated, teammates: mates, text: t2 };
-      if (dynasty) s2.hold = true;
-      return s2;
-    }
-    return null;
-  }
+  var formSignal = Factors.formSignal;   // discrete hot/cold classifier + regression nudge
+  var roleSignal = Factors.roleSignal;   // usage-delta / injury-vacated role change
 
   // The entry applyFactors reads. A role change explains a hot/cold streak, so
   // it replaces the label and drops the regression nudge (mult 1, never stacked).
@@ -363,7 +269,7 @@ var TradeFit = (function () {
       // volRatio is only measured on the usage path (injury path fixes it at 1),
       // so effRatio and the per-touch note apply there alone.
       var measured = role.source === 'usage';
-      var perTouch = measured && effRatio >= FORM_HOT;
+      var perTouch = measured && effRatio >= Factors.FORM_HOT;
       var text = role.text + (perTouch ? ' — also running hot per touch; some per-touch regression possible' : '');
       return { label: 'role-up', mult: 1, form: form, role: role, effRatio: measured ? Math.round(effRatio * 100) / 100 : null, perTouch: perTouch, text: text };
     }
@@ -380,7 +286,8 @@ var TradeFit = (function () {
   // players: slim dict { id: [name, pos, team, injury_status, age] }; usage:
   // /api/recent-stats `players`. Returns { TEAM: { POS: [{ id, name, status,
   // usage }] } } — out/IR/doubtful/PUP/suspended RB/WR/TE per team. No usage → {}.
-  var TEAM_OUT_STATUS = ROLE_OUT_STATUS;
+  var TEAM_OUT_STATUS = Factors.OUT_STATUS;
+  var ROLE_SHARE_KEY = Factors.ROLE_SHARE_KEY;
   function teamOuts(players, usage) {
     var out = {};
     if (!usage || !players) return out;
@@ -588,16 +495,16 @@ var TradeFit = (function () {
     INJURY_MULT: INJURY_MULT,
     AGE_CURVE: AGE_CURVE,
     BENCH_FACTOR: BENCH_FACTOR,
-    FORM_MULT: FORM_MULT,
-    FORM_HOT: FORM_HOT,
-    FORM_COLD: FORM_COLD,
-    ROLE_SHARE_PP: ROLE_SHARE_PP,
-    ROLE_SHARE_RATIO: ROLE_SHARE_RATIO,
-    ROLE_SNAP_PP: ROLE_SNAP_PP,
-    ROLE_MIN_SHARE: ROLE_MIN_SHARE,
-    ROLE_MIN_VACATED: ROLE_MIN_VACATED,
-    ROLE_OUT_STATUS: ROLE_OUT_STATUS,
-    ROLE_SHARE_KEY: ROLE_SHARE_KEY,
+    FORM_MULT: Factors.FORM_MULT,
+    FORM_HOT: Factors.FORM_HOT,
+    FORM_COLD: Factors.FORM_COLD,
+    ROLE_SHARE_PP: Factors.ROLE_SHARE_PP,
+    ROLE_SHARE_RATIO: Factors.ROLE_SHARE_RATIO,
+    ROLE_SNAP_PP: Factors.ROLE_SNAP_PP,
+    ROLE_MIN_SHARE: Factors.ROLE_MIN_SHARE,
+    ROLE_MIN_VACATED: Factors.ROLE_MIN_VACATED,
+    ROLE_OUT_STATUS: Factors.OUT_STATUS,
+    ROLE_SHARE_KEY: Factors.ROLE_SHARE_KEY,
     PLAYOFF_SWING: PLAYOFF_SWING,
     SEASON_GAMES: SEASON_GAMES,
   };

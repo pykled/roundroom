@@ -329,6 +329,22 @@ console.log('role signal');
     const e = Fit.formMap(players, statsByWeek, weeks, proj, { ppr: 1, usage: u, teamOuts: outs, recentWindow: 2 }).get('hub');
     check('Stale injury: does not fire, stays hot', e && e.label === 'hot' && e.mult === 0.95, JSON.stringify(e && e.label));
   }
+
+  // 10. 'Sus.' (trailing-dot suspension) counts as out, same as 'Sus' / 'Out',
+  //     and the role text normalizes the dot to "suspended".
+  {
+    const susPlayers = { hub: ['Chuba Hubbard', 'RB', 'CAR', null, 26], sus: ['Suspended Back', 'RB', 'CAR', 'Sus.', 25] };
+    const u = {
+      hub: { recent: { carryShare: 0.55, snapPct: 0.7, games: 2 }, season: { carryShare: 0.5, snapPct: 0.68, games: 3 }, prior: { carryShare: 0.52, snapPct: 0.66, games: 1 } },
+      sus: { season: { carryShare: 0.30, snapPct: 0.6, games: 3 }, recent: { carryShare: 0.30, games: 1 } },
+    };
+    const outs = Fit.teamOuts(susPlayers, u);
+    check("'Sus.' teammate grouped as out by teamOuts", outs.CAR && outs.CAR.RB.length === 1 && outs.CAR.RB[0].status === 'Sus.', JSON.stringify(outs));
+    const r = Fit.roleSignal(u.hub, outs.CAR.RB, 'RB', { recentWindow: 2 });
+    check("'Sus.' teammate → injury role-up, text says 'suspended' (no trailing dot)", r && r.label === 'up' && r.source === 'injury' && /suspended/.test(r.text) && !/sus\./i.test(r.text), r && r.text);
+    const g = Fit.gateForm(Fit.formSignal([19, 19], 8.7), r);
+    check("'Sus.' teammate: gateForm(hot, up) → role-up mult 1 (sell-high nudge dropped)", g && g.label === 'role-up' && g.mult === 1, JSON.stringify(g && { label: g.label, mult: g.mult }));
+  }
 }
 
 // ---- 9. live audit --------------------------------------------------------------
