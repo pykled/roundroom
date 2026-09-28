@@ -239,6 +239,9 @@ var S = {
   aiNames: null,   // { elite, liabilities } as displayed, so the AI prose matches the card
   sortKey: 'strength',
   sortDir: 'desc',
+  week: null,        // current NFL week (for actual-stats lookup)
+  schedule: undefined, // { TEAM: { kickoff, started } } for current week; undefined = not loaded
+  currentStats: {},  // player_id → raw Sleeper stat dict for this week (actual pts, in-progress or final)
 };
 
 function esc(s) {
@@ -368,6 +371,23 @@ async function selectLeague(lid) {
   if (!S.league) { setLeagueHint('Could not load league from Sleeper — try again', true); return; }
   S.roster = findMyRoster(S.league);
   await refreshMarket();
+
+  // Load current week's actual stats so seasonPts() can prefer real scores for
+  // started/finished games. Non-blocking: if it fails, projections are used.
+  if (!S.week) {
+    try {
+      var nfl = await fetch('/api/nfl-state').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+      S.week = nfl.display_week || nfl.week || null;
+    } catch(e) {}
+  }
+  if (S.week) {
+    var schedP = fetch('/api/schedule/' + S.week).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var statsP = fetch('/api/stats/' + S.week).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var weekData = await Promise.all([schedP, statsP]);
+    S.schedule = (weekData[0] && weekData[0].teams) ? weekData[0].teams : undefined;
+    S.currentStats = weekData[1] || {};
+  }
+
   setLeagueHint(S.roster ? '' : 'Could not find your roster in this league — showing the table only', !S.roster);
   recompute();
 }
@@ -432,9 +452,22 @@ function renderLeagueStrip() {
   strip.hidden = tags.length === 0;
 }
 
-// Season points under this league's scoring — DEF included (the VORP engine
-// only covers QB/RB/WR/TE/K, so DEF slots rank on raw projected points).
+// Points under this league's scoring. Prefers actual Sleeper stats when the
+// player's game has started or finished this week; falls back to season/17.
+// The scoring format is derived from the league's own scoring_settings (which
+// carries rec=1/0.5/0 for PPR/half-PPR/std, bonus_rec_te, etc.) so it matches
+// the league's exact format without any separate ppr string derivation.
 function seasonPts(id) {
+  // Use actual stats if the game is in-progress or finished this week
+  if (S.currentStats && S.currentStats[id]) {
+    var info = S.players[id] || [];
+    var team = info[2] && info[2] !== 'FA' ? info[2] : null;
+    var game = team && S.schedule ? S.schedule[team] : null;
+    if (game && (game.started || game.kickoff)) {
+      var actual = ScoringEngine.scorePlayer({ player_id: id }, S.currentStats, S.league.scoring_settings || {});
+      if (actual > 0) return actual;
+    }
+  }
   return ScoringEngine.scorePlayer({ player_id: id }, S.proj, S.league.scoring_settings || {});
 }
 
@@ -851,7 +884,6 @@ function renderMyTeam(mine) {
     : (t.lineup && Array.isArray(t.lineup.starters) ? t.lineup.starters.map(function(s){ return s.id; }).filter(Boolean) : []);
   var byV = starters.slice().sort(function(a, b){ return (S.vorp.get(b) || 0) - (S.vorp.get(a) || 0); });
   var top = byV.slice(0, 3);
-  document.getElementById('my-strengths').innerHTML = top.length ? top.map(function(id){ return playerLine(id); }).join('') : '<div class="rf-empty">No starters found</div>';
 
   // Liabilities: engine's list (entries may be ids or {id,...} objects), else
   // weakest starters at a need position, else weakest 3 starters
@@ -861,7 +893,26 @@ function renderMyTeam(mine) {
     liab = byV.slice().reverse().filter(function(id){ var i = S.players[id]; return i && needPos.indexOf(i[1]) >= 0; }).slice(0, 3);
   }
   if (!liab.length) liab = byV.slice().reverse().filter(function(id){ var i = S.players[id]; return i && POS.indexOf(i[1]) >= 0; }).slice(0, 3);
+
+  // A player is a strength OR a liability — never both. For anyone in both
+  // lists, keep only the stronger signal: whichever side of the VORP midpoint
+  // (5000) their value falls on. Above → strength wins; below → liability wins.
+  var VORP_MID = 5000;
+  var liabSet = {};
+  liab.forEach(function(id) { liabSet[id] = true; });
+  var topSet = {};
+  top.forEach(function(id) { topSet[id] = true; });
+  top = top.filter(function(id) {
+    if (!liabSet[id]) return true;
+    return (S.vorp.get(id) || 0) >= VORP_MID; // above midpoint: strength wins
+  });
+  liab = liab.filter(function(id) {
+    if (!topSet[id]) return true;
+    return (S.vorp.get(id) || 0) < VORP_MID; // below midpoint: liability wins
+  });
+
   liab.sort(function(a, b){ return (S.vorp.get(a) || 0) - (S.vorp.get(b) || 0); });
+  document.getElementById('my-strengths').innerHTML = top.length ? top.map(function(id){ return playerLine(id); }).join('') : '<div class="rf-empty">No starters found</div>';
   document.getElementById('my-liabilities').innerHTML = liab.length ? liab.slice(0, 3).map(function(id){ return playerLine(id); }).join('') : '<div class="rf-empty">No obvious weak spots</div>';
 
   // Names for the AI payload: the engine's elite list when it has one, else the
