@@ -325,7 +325,17 @@ async function boot() {
   }
 
   try {
-    var resp = await fetch('/api/trending?n=25');
+    var trendingScoring = 'half_ppr';
+    if (T.me && T.me.primaryLeagueId) {
+      var lg = await fetch('/api/league/' + T.me.primaryLeagueId)
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .catch(function() { return null; });
+      if (lg && lg.scoring_settings) {
+        var rec = lg.scoring_settings.rec != null ? parseFloat(lg.scoring_settings.rec) : 1;
+        trendingScoring = rec >= 0.9 ? 'ppr' : rec >= 0.3 ? 'half_ppr' : 'std';
+      }
+    }
+    var resp = await fetch('/api/trending?n=25&scoring=' + trendingScoring);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     T.data = await resp.json();
 
