@@ -316,6 +316,7 @@ var S = {
   past: [],            // [{ week, stats, proj }] most recent first, raw Sleeper stat dicts
   usage: null,         // { id: { recent, season } } share-of-team averages from /api/recent-stats
   usageWindow: 1,      // completed weeks inside the usage `recent` window (freshness denominator for step-up)
+  currentStats: {},    // player_id → raw Sleeper stat dict for S.week (actual points, in-progress or final)
   teamOuts: {},        // TEAM → POS → [{ id, name, status, usage }] injured (Out/IR/D/PUP/Sus) same-position teammates
   scores: {},          // player_id → computeLineupScore result for the current league
   rec: {},             // player_id → 'start' | 'consider' | 'sit'
@@ -469,6 +470,7 @@ async function loadWeeklyContext() {
     jsonOr('/api/weather?week=' + S.week, null),
     jsonOr('/api/recent-stats?week=' + S.week, null),
     jsonOr('/api/history?before=' + S.week, null),
+    jsonOr('/api/stats/' + S.week, {}),
   ]);
   S.schedule = results[0] && results[0].teams ? results[0].teams : undefined;
   S.defInj = results[1] || {};
@@ -484,6 +486,7 @@ async function loadWeeklyContext() {
   S.weather = results[6] && results[6].teams ? results[6].teams : null;
   S.usage = results[7] && results[7].players ? results[7].players : null;
   S.usageWindow = results[7] && Array.isArray(results[7].recentWeeks) && results[7].recentWeeks.length ? results[7].recentWeeks.length : 1;
+  S.currentStats = results[9] || {};
 }
 
 // A player is locked once his NFL game has kicked off (or Sleeper flags it
@@ -718,9 +721,44 @@ function formHistory(id, scoring) {
   });
 }
 
+// Actual points scored this week under league scoring, when the game has started
+// or finished and Sleeper has real stats for the player. Returns null when the
+// game hasn't started yet, or when the player has no stats in the feed (0 is
+// treated as "didn't play" — e.g. truly Out, DNP, or feed not yet populated).
+function actualPtsFor(id) {
+  var info = S.players[id] || [];
+  var team = info[2] && info[2] !== 'FA' ? info[2] : null;
+  var game = team && S.schedule ? S.schedule[team] : null;
+  if (!game || !WeeklyScore.isGameLocked(game, S.now)) return null;
+  if (!S.currentStats || !S.currentStats[id]) return null;
+  var pts = ScoringEngine.scorePlayer({ player_id: id }, S.currentStats, S.league.scoring_settings || {});
+  return pts > 0 ? pts : null;
+}
+
+// Neutral factor set used when actual stats are available (speculative factors
+// don't apply to real points already scored).
+var NEUTRAL_FACTORS = {
+  matchup: { mult: 1, source: 'neutral' }, vegas: { mult: 1, source: 'neutral' },
+  form: { mult: 1, source: 'neutral' }, injury: { mult: 1, own: 1, boost: 1, source: 'neutral' },
+  homeAway: { mult: 1, source: 'neutral' }, shortWeek: { mult: 1, source: 'neutral' },
+  weather: { mult: 1, source: 'neutral' }, usage: { mult: 1, source: 'neutral' },
+  gameScript: { mult: 1, source: 'neutral' }, stepUp: { mult: 1, source: 'neutral' },
+};
+
 // Composite weekly score for a rostered player (cached per recompute).
 function scoreFor(id) {
   if (S.scores[id]) return S.scores[id];
+
+  // Bug fixes: use actual stats when the game has started/finished.
+  // 1. Scores match the Sleeper app (actual pts, not projections).
+  // 2. Out-tagged players who already played are not zeroed.
+  var actual = actualPtsFor(id);
+  if (actual != null) {
+    var r = { score: actual, base: actual, mult: 1, bye: false, isActual: true, factors: NEUTRAL_FACTORS };
+    S.scores[id] = r;
+    return r;
+  }
+
   var info = S.players[id] || [id, '?', '', null];
   var team = info[2] && info[2] !== 'FA' ? info[2] : null;
   var game = team && S.schedule && S.schedule[team] ? S.schedule[team] : null;
@@ -898,8 +936,8 @@ function playerRow(id, opts) {
       (sub ? '<span class="pl-fx">' + sub + '</span>' : '') +
     '</span>' +
     '<span class="pl-nums">' +
-      '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="Composite weekly score">' + r.score.toFixed(1) + '</span>' +
-      '<span class="pl-pts" title="Raw weekly projection">' + r.base.toFixed(1) + '<small>proj</small></span>' +
+      '<span class="pl-score' + (r.score > 0 ? '' : ' zero') + '" title="' + (r.isActual ? 'Actual points scored this week' : 'Composite weekly score') + '">' + r.score.toFixed(1) + '</span>' +
+      '<span class="pl-pts" title="' + (r.isActual ? 'Actual points scored this week' : 'Raw weekly projection') + '">' + r.base.toFixed(1) + '<small>' + (r.isActual ? 'actual' : 'proj') + '</small></span>' +
     '</span>' +
     '</div>';
 }
