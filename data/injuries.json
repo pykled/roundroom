@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-28T20:38:14.305Z",
+  "fetched_at": "2026-09-29T02:05:54.727Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -427,6 +427,13 @@
       "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cole Payton",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Cole Turner",
@@ -1041,8 +1048,8 @@
       "name": "Jalen McMillan",
       "position": "WR",
       "team": "TB",
-      "status": "Questionable",
-      "body_part": "Knee"
+      "status": "Out",
+      "body_part": "Knee - PCL"
     },
     {
       "name": "Jalen Milroe",
@@ -1281,6 +1288,13 @@
       "team": "NO",
       "status": "IR",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Josh Allen",
+      "position": "QB",
+      "team": "BUF",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Josh Jacobs",
@@ -1584,13 +1598,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Miles Kitselman",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Leg"
-    },
-    {
       "name": "Moliki Matavao",
       "position": "TE",
       "team": "NO",
@@ -1892,6 +1899,13 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
+      "name": "Tanner McKee",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Tanner McLachlan",
       "position": "TE",
       "team": null,
@@ -2037,6 +2051,13 @@
       "team": "TEN",
       "status": "Questionable",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Tylan Wallace",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Tyler Conklin",
