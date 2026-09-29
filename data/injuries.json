@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-29T16:34:08.407Z",
+  "fetched_at": "2026-09-29T22:26:49.237Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -119,13 +119,6 @@
       "team": "IND",
       "status": "Out",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Audric Estime",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Thigh"
     },
     {
       "name": "Baker Mayfield",
@@ -620,7 +613,7 @@
     {
       "name": "Devin Neal",
       "position": "RB",
-      "team": null,
+      "team": "MIN",
       "status": "Questionable",
       "body_part": "Hamstring"
     },
@@ -992,7 +985,7 @@
       "name": "Jack Bech",
       "position": "WR",
       "team": "LV",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Forearm"
     },
     {
@@ -1068,13 +1061,6 @@
     {
       "name": "Jalen Walthall",
       "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Jam Miller",
-      "position": "RB",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
@@ -1232,13 +1218,6 @@
       "team": "CLE",
       "status": "PUP",
       "body_part": "Personal"
-    },
-    {
-      "name": "John FitzPatrick",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Achilles"
     },
     {
       "name": "John Jiles",
@@ -1428,13 +1407,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Lawrence Keys",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Leg"
     },
     {
       "name": "Le'Meke Brockington",
@@ -1939,13 +1911,6 @@
       "team": "LAR",
       "status": "Questionable",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Terrell Jennings",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Thomas Fidone",
