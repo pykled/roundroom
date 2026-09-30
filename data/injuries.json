@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-29T22:26:49.237Z",
+  "fetched_at": "2026-09-30T01:23:10.955Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -434,13 +434,6 @@
       "team": "MIA",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Coleman Owen",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Concussion"
     },
     {
       "name": "Connor Hulstein",
@@ -1136,6 +1129,13 @@
       "body_part": "Neck"
     },
     {
+      "name": "Jaylen Waddle",
+      "position": "WR",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Leg"
+    },
+    {
       "name": "Jaylen Wright",
       "position": "RB",
       "team": "MIA",
@@ -1286,7 +1286,7 @@
       "name": "Josh Oliver",
       "position": "TE",
       "team": "MIN",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Biceps"
     },
     {
@@ -1498,6 +1498,13 @@
       "team": "PHI",
       "status": "Out",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Marvin Jones",
+      "position": "WR",
+      "team": null,
+      "status": "Out",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Marvin Mims",
