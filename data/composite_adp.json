@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T08:46:33.874Z",
+  "generated_at": "2026-09-30T16:26:53.045Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -1321,7 +1321,7 @@
       "sources_count": 1,
       "composite_sf_adp": 120.97,
       "fantasypros_sf_adp": 116.48,
-      "injury_status": "Doubtful",
+      "injury_status": "Out",
       "bye": 11
     },
     {
@@ -1479,6 +1479,7 @@
       "sources_count": 1,
       "composite_sf_adp": 144.51,
       "fantasypros_sf_adp": 127.8,
+      "injury_status": "Questionable",
       "bye": 7
     },
     {
@@ -2172,7 +2173,7 @@
       "sources_count": 1,
       "composite_sf_adp": 172.9,
       "fantasypros_sf_adp": 174.77,
-      "injury_status": "Out",
+      "injury_status": "IR",
       "bye": 10
     },
     {
@@ -4342,7 +4343,7 @@
       "sources_count": 1,
       "composite_sf_adp": 250.52,
       "fantasypros_sf_adp": 261.95,
-      "injury_status": "Out"
+      "injury_status": ""
     },
     {
       "name": "Jake Elliott",
