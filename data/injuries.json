@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-30T20:55:02.086Z",
+  "fetched_at": "2026-10-01T01:22:14.355Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -198,6 +198,13 @@
       "body_part": "Quadriceps"
     },
     {
+      "name": "British Brooks",
+      "position": "RB",
+      "team": "HOU",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Brittain Brown",
       "position": "RB",
       "team": "CHI",
@@ -324,6 +331,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Chris Bell",
+      "position": "WR",
+      "team": "MIA",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Chris Brazzell",
       "position": "WR",
       "team": "CAR",
@@ -392,13 +406,6 @@
       "team": null,
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Cole Payton",
-      "position": "QB",
-      "team": "PHI",
-      "status": "Out",
-      "body_part": "Coach's Decision"
     },
     {
       "name": "Cole Turner",
@@ -555,6 +562,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "DeVonta Smith",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Dez Fitzpatrick",
       "position": "WR",
       "team": null,
@@ -567,6 +581,13 @@
       "team": "CLE",
       "status": "IR",
       "body_part": "Back"
+    },
+    {
+      "name": "DJ Moore",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "DJ Rogers",
@@ -716,6 +737,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "George Holani",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Ribs"
+    },
+    {
       "name": "Graham Gano",
       "position": "K",
       "team": null,
@@ -863,6 +891,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Jadarian Price",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Chest"
+    },
+    {
       "name": "Jake Bentley",
       "position": "QB",
       "team": null,
@@ -978,15 +1013,8 @@
       "name": "Jayden Reed",
       "position": "WR",
       "team": "GB",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Neck"
-    },
-    {
-      "name": "Jaylen Waddle",
-      "position": "WR",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Leg"
     },
     {
       "name": "Jaylen Wright",
@@ -1015,6 +1043,13 @@
       "team": "WAS",
       "status": "IR",
       "body_part": "Quadriceps"
+    },
+    {
+      "name": "Jeremy Ruckert",
+      "position": "TE",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Jermar Jefferson",
@@ -1108,13 +1143,6 @@
       "body_part": "Hamstring"
     },
     {
-      "name": "Josh Allen",
-      "position": "QB",
-      "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
@@ -1171,6 +1199,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Keaton Mitchell",
+      "position": "RB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Keilan Robinson",
       "position": "RB",
       "team": null,
@@ -1199,13 +1234,6 @@
       "body_part": "Knee - ACL"
     },
     {
-      "name": "Kene Nwangwu",
-      "position": "RB",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Kenny Yeboah",
       "position": "TE",
       "team": null,
@@ -1220,11 +1248,25 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Keon Coleman",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "KhaDarel Hodge",
       "position": "WR",
       "team": "SF",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ko Kieft",
+      "position": "TE",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Elbow"
     },
     {
       "name": "Kye Robichaux",
@@ -1239,6 +1281,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Ladd McConkey",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Lamar Jackson",
@@ -1344,13 +1393,6 @@
       "team": null,
       "status": "Out",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Marvin Mims",
-      "position": "WR",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Mason Fine",
@@ -1542,6 +1584,13 @@
       "body_part": null
     },
     {
+      "name": "Reggie Gilliam",
+      "position": "RB",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Ricky Pearsall",
       "position": "WR",
       "team": "SF",
@@ -1661,13 +1710,6 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
-      "name": "Tanner McKee",
-      "position": "QB",
-      "team": "PHI",
-      "status": "Out",
-      "body_part": "Coach's Decision"
-    },
-    {
       "name": "Tanner McLachlan",
       "position": "TE",
       "team": null,
@@ -1759,6 +1801,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Trey Lance",
+      "position": "QB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Trey Sermon",
       "position": "RB",
       "team": "ATL",
@@ -1848,6 +1897,13 @@
       "team": "IND",
       "status": "IR",
       "body_part": "Thumb"
+    },
+    {
+      "name": "Will Shipley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Xavier Legette",
