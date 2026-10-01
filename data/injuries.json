@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-01T17:04:19.291Z",
+  "fetched_at": "2026-10-01T22:48:02.017Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -112,13 +112,6 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Ashton Dulin",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Baker Mayfield",
@@ -352,13 +345,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Chris Godwin",
-      "position": "WR",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Chris Moore",
       "position": "WR",
       "team": "BAL",
@@ -441,6 +427,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "D'Andre Swift",
+      "position": "RB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Da'Quan Felton",
@@ -644,13 +637,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Durham Smythe",
-      "position": "TE",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Heel"
     },
     {
       "name": "Dylan Sampson",
@@ -1017,13 +1003,6 @@
       "body_part": "Neck"
     },
     {
-      "name": "Jaylen Wright",
-      "position": "RB",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Foot"
-    },
-    {
       "name": "Jeff Caldwell",
       "position": "WR",
       "team": "KC",
@@ -1083,7 +1062,7 @@
       "name": "Joe Mixon",
       "position": "RB",
       "team": null,
-      "status": "Out",
+      "status": "",
       "body_part": "Foot"
     },
     {
@@ -1206,6 +1185,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Keenan Allen",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Keilan Robinson",
       "position": "RB",
       "team": null,
@@ -1288,13 +1274,6 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Foot"
-    },
-    {
-      "name": "Lamar Jackson",
-      "position": "QB",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Larry Rose",
@@ -1479,6 +1458,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nate Boerkircher",
+      "position": "TE",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Illness"
+    },
+    {
       "name": "Nico Collins",
       "position": "WR",
       "team": "HOU",
@@ -1491,6 +1477,20 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Noah Fant",
+      "position": "TE",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Abdomen"
+    },
+    {
+      "name": "Noah Whittington",
+      "position": "RB",
+      "team": "HOU",
+      "status": "Out",
+      "body_part": "Quadriceps"
     },
     {
       "name": "Omar Cooper",
@@ -1766,13 +1766,6 @@
       "body_part": null
     },
     {
-      "name": "Tony Pollard",
-      "position": "RB",
-      "team": "TEN",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Tra Barnett",
       "position": "RB",
       "team": null,
@@ -1783,7 +1776,7 @@
       "name": "Travis Etienne",
       "position": "RB",
       "team": "NO",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
@@ -1939,13 +1932,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Zay Flowers",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     }
   ]
 }
