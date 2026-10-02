@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-01T22:48:02.017Z",
+  "fetched_at": "2026-10-02T05:55:36.638Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -618,6 +618,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Drew Allar",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -651,6 +658,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Eli Heidenreich",
+      "position": "RB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Eli Raridon",
@@ -1370,7 +1384,7 @@
       "name": "Marvin Jones",
       "position": "WR",
       "team": null,
-      "status": "Out",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1724,6 +1738,13 @@
       "body_part": null
     },
     {
+      "name": "Taylen Green",
+      "position": "QB",
+      "team": "CLE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Teddy Bridgewater",
       "position": "QB",
       "team": null,
@@ -1883,6 +1904,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Will Howard",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Will Mallory",
