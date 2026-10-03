@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-03T16:32:58.885Z",
+  "fetched_at": "2026-10-03T21:31:31.392Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -42,13 +42,6 @@
       "team": "NYJ",
       "status": "Out",
       "body_part": "Finger"
-    },
-    {
-      "name": "Aidan O'Connell",
-      "position": "QB",
-      "team": "LV",
-      "status": "Questionable",
-      "body_part": "Personal"
     },
     {
       "name": "Ainias Smith",
@@ -119,13 +112,6 @@
       "team": "TB",
       "status": "Out",
       "body_part": "Thumb"
-    },
-    {
-      "name": "Barion Brown",
-      "position": "WR",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Beaux Collins",
@@ -845,7 +831,7 @@
       "name": "Jadarian Price",
       "position": "RB",
       "team": "SEA",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Chest"
     },
     {
@@ -1811,7 +1797,7 @@
       "name": "Xavier Legette",
       "position": "WR",
       "team": "CAR",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
