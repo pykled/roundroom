@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-04T19:43:26.635Z",
+  "fetched_at": "2026-10-04T23:19:53.448Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -705,7 +705,7 @@
       "name": "Durham Smythe",
       "position": "TE",
       "team": "BAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Achilles"
     },
     {
@@ -728,6 +728,13 @@
       "team": "PIT",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Eli Raridon",
+      "position": "TE",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Eli Stowers",
@@ -870,6 +877,20 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Haynes King",
+      "position": "QB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Hunter Long",
+      "position": "TE",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Irv Charles",
       "position": "WR",
       "team": "SEA",
@@ -947,6 +968,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Ja'Tavion Sanders",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jack Bech",
       "position": "WR",
       "team": "LV",
@@ -992,7 +1020,7 @@
       "name": "Jalen Coker",
       "position": "WR",
       "team": "CAR",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -1008,6 +1036,13 @@
       "team": "SEA",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Jalen Nailor",
+      "position": "WR",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "Jalen Virgil",
@@ -1353,6 +1388,13 @@
       "body_part": "Foot"
     },
     {
+      "name": "Kyle Monangai",
+      "position": "RB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Thumb"
+    },
+    {
       "name": "Kylen Granson",
       "position": "TE",
       "team": "TEN",
@@ -1365,6 +1407,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Ladd McConkey",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Out",
+      "body_part": "Foot"
     },
     {
       "name": "Lamar Jackson",
@@ -1626,6 +1675,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Pat Bryant",
+      "position": "WR",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Leg"
+    },
+    {
       "name": "Patrick Taylor",
       "position": "RB",
       "team": null,
@@ -1680,6 +1736,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Rashee Rice",
+      "position": "WR",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Ray-Ray McCloud",
@@ -1850,6 +1913,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Tank Bigsby",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Tank Dell",
       "position": "WR",
       "team": "HOU",
@@ -1890,6 +1960,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Personal"
+    },
+    {
+      "name": "Tee Higgins",
+      "position": "WR",
+      "team": "CIN",
+      "status": "Questionable",
+      "body_part": "Groin"
     },
     {
       "name": "Terrance Ferguson",
