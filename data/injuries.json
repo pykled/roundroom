@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-04T01:43:41.261Z",
+  "fetched_at": "2026-10-04T08:36:10.106Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -105,6 +105,13 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ashton Dulin",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Baker Mayfield",
@@ -1330,13 +1337,6 @@
       "team": null,
       "status": "DNR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Mo Alie-Cox",
-      "position": "TE",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Illness"
     },
     {
       "name": "Moliki Matavao",
