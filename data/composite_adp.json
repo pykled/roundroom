@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T15:19:50.630Z",
+  "generated_at": "2026-10-06T21:04:44.446Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -2958,6 +2958,7 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 225.02,
+      "injury_status": "Questionable",
       "bye": 10
     },
     {
@@ -4998,7 +4999,8 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 282.57,
-      "fantasypros_sf_adp": 282.57
+      "fantasypros_sf_adp": 282.57,
+      "injury_status": ""
     },
     {
       "name": "Rasheen Ali",
@@ -6347,7 +6349,7 @@
       "sources_count": 1,
       "composite_sf_adp": 315.94,
       "fantasypros_sf_adp": 315.94,
-      "injury_status": "Out",
+      "injury_status": "IR",
       "bye": 7
     },
     {

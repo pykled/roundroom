@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-06T15:19:50.530Z",
+  "fetched_at": "2026-10-06T21:04:44.328Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -331,6 +331,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Chase McLaughlin",
+      "position": "K",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Chase Roberts",
       "position": "WR",
       "team": null,
@@ -518,13 +525,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Dante Miller",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Darius Slayton",
@@ -901,7 +901,7 @@
       "name": "Hunter Long",
       "position": "TE",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -987,6 +987,13 @@
       "team": "CAR",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Jacardia Wright",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Foot"
     },
     {
       "name": "Jack Bech",
@@ -1139,7 +1146,7 @@
       "name": "Jaylin Lane",
       "position": "WR",
       "team": "WAS",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1208,9 +1215,9 @@
     {
       "name": "Joe Mixon",
       "position": "RB",
-      "team": "SEA",
-      "status": "Active",
-      "body_part": null
+      "team": null,
+      "status": "",
+      "body_part": "Foot"
     },
     {
       "name": "Joe Royer",
@@ -1365,13 +1372,6 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Kenny Yeboah",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "KhaDarel Hodge",
