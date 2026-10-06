@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-05T22:47:35.961Z",
+  "fetched_at": "2026-10-06T06:36:02.330Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -70,6 +70,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Alvin Kamara",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Andre Baccellia",
@@ -434,6 +441,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cooper Rush",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Corey Rucker",
@@ -980,6 +994,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Forearm"
+    },
+    {
+      "name": "Jack Strand",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacoby Jones",
@@ -1657,7 +1678,7 @@
       "name": "Noah Fant",
       "position": "TE",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Abdomen"
     },
     {
@@ -2177,6 +2198,13 @@
       "team": "SEA",
       "status": "PUP",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Zach Wilson",
+      "position": "QB",
+      "team": "NO",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Zack Moss",
