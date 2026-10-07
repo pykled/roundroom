@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-07T08:57:51.663Z",
+  "fetched_at": "2026-10-07T17:28:58.092Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -287,13 +287,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
-    },
-    {
-      "name": "Chase McLaughlin",
-      "position": "K",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Chase Roberts",
@@ -1384,7 +1377,7 @@
       "name": "Mason Taylor",
       "position": "TE",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Questionable",
       "body_part": "Thumb"
     },
     {
@@ -1803,7 +1796,7 @@
     {
       "name": "Treyvhon Saunders",
       "position": "WR",
-      "team": "HOU",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1846,7 +1839,7 @@
       "name": "Tyreek Hill",
       "position": "WR",
       "team": null,
-      "status": "Out",
+      "status": "",
       "body_part": "Knee - ACL"
     },
     {
