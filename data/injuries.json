@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-07T23:12:50.277Z",
+  "fetched_at": "2026-10-08T06:22:00.595Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -35,6 +35,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Adam Trautman",
+      "position": "TE",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Adonai Mitchell",
@@ -770,6 +777,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "George Holani",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Ribs"
     },
     {
       "name": "Graham Gano",
@@ -1932,6 +1946,13 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Trey Lance",
+      "position": "QB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Groin"
     },
     {
       "name": "Trey Sermon",
