@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-09T09:21:00.809Z",
+  "fetched_at": "2026-10-09T17:05:19.641Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -40,7 +40,7 @@
       "name": "Adonai Mitchell",
       "position": "WR",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Finger"
     },
     {
@@ -194,7 +194,7 @@
       "name": "Breece Hall",
       "position": "RB",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -280,13 +280,6 @@
       "team": "DAL",
       "status": "Out",
       "body_part": "Coach's Decision"
-    },
-    {
-      "name": "Carnell Tate",
-      "position": "WR",
-      "team": "TEN",
-      "status": "Questionable",
-      "body_part": "Back"
     },
     {
       "name": "Carsen Ryan",
@@ -536,7 +529,7 @@
     {
       "name": "Dante Pettis",
       "position": "WR",
-      "team": "SF",
+      "team": null,
       "status": "Questionable",
       "body_part": "Calf"
     },
@@ -1363,8 +1356,8 @@
       "name": "Kyle Monangai",
       "position": "RB",
       "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Thumb"
+      "status": "Out",
+      "body_part": "Toe"
     },
     {
       "name": "Kyron Hudson",
