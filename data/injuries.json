@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-10T18:43:52.271Z",
+  "fetched_at": "2026-10-10T23:41:10.676Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -166,8 +166,8 @@
       "name": "Ben Yurosek",
       "position": "TE",
       "team": "MIN",
-      "status": "IR",
-      "body_part": "Undisclosed"
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "BenJarvus Green-Ellis",
@@ -231,13 +231,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Bryce Oliver",
-      "position": "WR",
-      "team": "HOU",
-      "status": "Out",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Bryson Nesbit",
@@ -369,7 +362,7 @@
       "name": "Chris Brooks",
       "position": "RB",
       "team": "GB",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1384,7 +1377,7 @@
       "name": "Mack Hollins",
       "position": "WR",
       "team": "NE",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Calf"
     },
     {
@@ -1461,7 +1454,7 @@
       "name": "Michael Pittman",
       "position": "WR",
       "team": "PIT",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Foot"
     },
     {
@@ -1608,7 +1601,7 @@
       "name": "Reggie Gilliam",
       "position": "RB",
       "team": "NE",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1808,13 +1801,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Tim Patrick",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "IR",
-      "body_part": "Groin"
-    },
-    {
       "name": "Tip Reiman",
       "position": "TE",
       "team": "ARI",
@@ -1860,7 +1846,7 @@
       "name": "Trey Lance",
       "position": "QB",
       "team": "LAC",
-      "status": "Doubtful",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
