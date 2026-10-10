@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-10T12:45:59.298Z",
+  "fetched_at": "2026-10-10T18:43:52.271Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -231,6 +231,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Achilles"
+    },
+    {
+      "name": "Bryce Oliver",
+      "position": "WR",
+      "team": "HOU",
+      "status": "Out",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Bryson Nesbit",
@@ -488,7 +495,7 @@
       "name": "Darius Slayton",
       "position": "WR",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -1185,6 +1192,13 @@
       "body_part": "Biceps"
     },
     {
+      "name": "Joshua Palmer",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Out",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Julian Hill",
       "position": "TE",
       "team": "NE",
@@ -1400,6 +1414,13 @@
       "team": "PHI",
       "status": "Out",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Marvin Harrison",
+      "position": "WR",
+      "team": "ARI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Marvin Jones",
