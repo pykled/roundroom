@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-12T15:48:18.433Z",
+  "fetched_at": "2026-10-12T23:05:49.744Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -166,7 +166,7 @@
       "name": "Ben Skowronek",
       "position": "WR",
       "team": "PIT",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Leg"
     },
     {
@@ -385,6 +385,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "CJ Daniels",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "CJ Williams",
@@ -628,8 +635,8 @@
       "name": "DJ Moore",
       "position": "WR",
       "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "Out",
+      "body_part": "Shoulder - AC Joint"
     },
     {
       "name": "DJ Rogers",
@@ -672,6 +679,13 @@
       "team": "PIT",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Drew Lock",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Forearm"
     },
     {
       "name": "DT Sheffield",
@@ -1092,6 +1106,13 @@
       "team": "TEN",
       "status": "IR",
       "body_part": "Pectoral"
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "position": "WR",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Jaxson Dart",
@@ -1549,6 +1570,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Max Klare",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "McCallan Castles",
       "position": "TE",
       "team": null,
@@ -1962,6 +1990,13 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
+      "name": "Tanner Hudson",
+      "position": "TE",
+      "team": "CIN",
+      "status": "Questionable",
+      "body_part": "Pectoral"
+    },
+    {
       "name": "Tanner McLachlan",
       "position": "TE",
       "team": null,
@@ -2021,8 +2056,8 @@
       "name": "Tom Kennedy",
       "position": "WR",
       "team": "DET",
-      "status": "Questionable",
-      "body_part": "Knee"
+      "status": "Out",
+      "body_part": "Knee - MCL"
     },
     {
       "name": "Tra Barnett",
@@ -2095,6 +2130,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Ty Simpson",
+      "position": "QB",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Tylan Wallace",
       "position": "WR",
       "team": "CLE",
@@ -2109,10 +2151,17 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Tyler Scott",
+      "position": "WR",
+      "team": "LV",
+      "status": "Out",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Tyquan Thornton",
       "position": "WR",
       "team": "KC",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
