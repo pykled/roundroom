@@ -1966,6 +1966,10 @@ app.post('/api/log-week', express.json({ limit: '200kb' }), async (req, res) => 
   }
 });
 
+// Pocket NBA (Yahoo High Score): /nfl alias, /nba pages, /api/nba/*. Must sit
+// before the static deny block and the '*' catch-all.
+app.use('/', require('./nba/router')({ auth, getAuth, db, apiCached }));
+
 // ---------------------------------------------------------------------------
 // Static serving — deny sensitive server-side files first
 // ---------------------------------------------------------------------------
@@ -2003,6 +2007,7 @@ const SITEMAP_PAGES = [
   { path: '/draft',    lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
   { path: '/research', lastmod: '2026-09-20', changefreq: 'weekly',  priority: '0.6' },
   { path: '/team',     lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.5' },
+  { path: '/nba',      lastmod: '2026-10-13', changefreq: 'weekly',  priority: '0.8' },
 ];
 
 app.get('/robots.txt', (req, res) => {

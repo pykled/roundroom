@@ -50,6 +50,14 @@ async function migrate() {
       generated_at TIMESTAMPTZ DEFAULT NOW(),
       PRIMARY KEY (season, week)
     );
+    -- Pocket NBA: Yahoo OAuth tokens, one row per Clerk user. token_blob is
+    -- AES-256-GCM ciphertext (nba/yahoo/crypto.js); never store plaintext.
+    CREATE TABLE IF NOT EXISTS nba_yahoo_tokens (
+      clerk_user_id TEXT PRIMARY KEY,
+      yahoo_guid TEXT,
+      token_blob TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
   console.log('DB migrations applied');
 }
