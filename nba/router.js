@@ -173,6 +173,10 @@ function createNbaRouter({
 
   router.get('/nba/auth/callback', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
+    // Without YAHOO_CLIENT_SECRET (and no NBA_TOKEN_KEY) verifyState throws inside
+    // this async handler; Express 4 doesn't catch that and Node exits on the
+    // unhandled rejection, taking the NFL site down with it.
+    if (!oauth.isConfigured(env)) return res.status(503).send('Yahoo is not configured');
     const uid = userId(req);
     if (!uid) return res.redirect(302, '/nba?yahoo=signin');
     if (req.query.error) return res.redirect(302, '/nba?yahoo=denied');
