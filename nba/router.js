@@ -29,7 +29,9 @@ function defaultLoadModel() {
   try {
     return require('./model');
   } catch (e) {
-    if (e.code === 'MODULE_NOT_FOUND' && /nba[\\/]model/.test(e.message)) return MODEL_STUB;
+    // Only the model module itself missing → stub; a missing dependency
+    // *inside* B's model is a real bug and should surface.
+    if (e.code === 'MODULE_NOT_FOUND' && /'\.\/model'/.test(e.message)) return MODEL_STUB;
     throw e;
   }
 }
@@ -315,4 +317,5 @@ function createNbaRouter({
 
 module.exports = createNbaRouter;
 module.exports.MODEL_STUB = MODEL_STUB;
+module.exports.defaultLoadModel = defaultLoadModel;
 module.exports.comingSoonHtml = comingSoonHtml;

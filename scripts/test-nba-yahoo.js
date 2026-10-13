@@ -421,6 +421,10 @@ async function freePort() {
       assert.strictEqual(m.matchYahooPlayer({}, []), null);
       const r = createNbaRouter({ auth: fakeAuth, getAuth: fakeGetAuth, apiCached, env: ENV });
       assert.strictEqual(typeof r, 'function');
+      const loaded = createNbaRouter.defaultLoadModel();
+      assert.strictEqual(typeof loaded.matchYahooPlayer, 'function');
+      assert.strictEqual(typeof loaded.getPlayers, 'function');
+      if (!fs.existsSync(path.join(ROOT, 'nba', 'model'))) assert.strictEqual(loaded, m, 'stub when nba/model absent');
     });
   } finally { srv.close(); }
 
