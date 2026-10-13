@@ -17,7 +17,8 @@
   }
   window.PocketNav = { sportSwitchHtml: sportSwitchHtml };
 
-  if (!nav || nav.querySelector('.rr-sport')) return;
+  // NBA pages ship their own static switch (#rr-sport-switch); don't add a second.
+  if (!nav || nav.querySelector('.rr-sport, #rr-sport-switch')) return;
   if (!document.getElementById('rr-sport-css')) {
     var css = document.createElement('style');
     css.id = 'rr-sport-css';
