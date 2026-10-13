@@ -1,0 +1,4 @@
+# Raw Sleeper responses (~60 MB) and runtime refresh cache — regenerate with
+# `node scripts/nba-ingest.js`. The compact *.json snapshot here IS committed.
+raw/
+cache/
