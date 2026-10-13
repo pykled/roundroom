@@ -109,6 +109,27 @@ function compactLogs(season, rowsByWeek) {
   return { season: String(season), generatedAt: new Date().toISOString(), weeks, teamGames, dedupe: counts, players };
 }
 
+// Replace the given weeks of a compact log file with freshly compacted ones.
+function mergeLogs(old, fresh) {
+  if (!old) return fresh;
+  const redone = new Set(Object.keys(fresh.weeks).map(Number));
+  const out = { ...fresh, weeks: { ...old.weeks, ...fresh.weeks }, teamGames: {}, players: {} };
+  for (const [team, byW] of Object.entries(old.teamGames)) out.teamGames[team] = { ...byW };
+  for (const [team, byW] of Object.entries(fresh.teamGames)) Object.assign(out.teamGames[team] ||= {}, byW);
+  for (const [pid, p] of Object.entries(old.players)) {
+    const rw = {};
+    for (const [w, n] of Object.entries(p.rw)) if (!redone.has(+w)) rw[w] = n;
+    out.players[pid] = { t: p.t, rw, g: p.g.filter(g => !redone.has(g[1])) };
+  }
+  for (const [pid, p] of Object.entries(fresh.players)) {
+    const o = (out.players[pid] ||= { t: p.t, rw: {}, g: [] });
+    o.t = p.t;
+    Object.assign(o.rw, p.rw);
+    o.g = o.g.concat(p.g).sort((a, b) => a[0] - b[0]);
+  }
+  return out;
+}
+
 // Per-game projection rows → per-player per-week [mean HS per projected game, mean minutes, projected games].
 // Rows projected at 0 minutes (expected DNP) are excluded from the mean and count.
 function compactProjections(season, rowsByWeek, seasonRows) {
@@ -158,5 +179,5 @@ function compactPlayers(raw) {
 
 module.exports = {
   FRANCHISES, URLS, hsScore, epochDay, dayToDate, fetchJson,
-  weekMeta, compactLogs, compactProjections, compactPlayers,
+  weekMeta, compactLogs, mergeLogs, compactProjections, compactPlayers,
 };

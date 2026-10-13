@@ -68,14 +68,18 @@ async function refresh() {
     const next = { ...cur, players: playersFile.players, state };
     const inSeason = String(state.season) === String(PROJ_SEASON) && state.season_type !== 'pre';
     if (inSeason) {
-      // Current-season game logs: weeks 1..current (each ~1-2 MB).
+      // Current-season game logs (each week ~1-2 MB). With a cached log file only
+      // the last two weeks are re-fetched (stat corrections, games in progress);
+      // a cold container without one backfills weeks 1..current once.
       const last = state.season_type === 'post' ? 30 : Math.max(1, state.week);
+      const prev = cur.logs.find(l => l.season === String(PROJ_SEASON));
+      const first = prev ? Math.max(1, last - 1) : 1;
       const byWeek = {};
-      const got = await Promise.all(Array.from({ length: last }, (_, i) =>
-        S.fetchJson(S.URLS.stats(PROJ_SEASON, i + 1), { timeoutMs: 30000 }).catch(() => null)));
-      got.forEach((rows, i) => { if (Array.isArray(rows) && rows.length) byWeek[i + 1] = rows; });
+      const got = await Promise.all(Array.from({ length: last - first + 1 }, (_, i) =>
+        S.fetchJson(S.URLS.stats(PROJ_SEASON, first + i), { timeoutMs: 30000 }).catch(() => null)));
+      got.forEach((rows, i) => { if (Array.isArray(rows) && rows.length) byWeek[first + i] = rows; });
       if (Object.keys(byWeek).length) {
-        const logs = S.compactLogs(PROJ_SEASON, byWeek);
+        const logs = S.mergeLogs(prev, S.compactLogs(PROJ_SEASON, byWeek));
         writeCache(`logs-${PROJ_SEASON}.json`, logs);
         next.logs = [...cur.logs.filter(l => l.season !== String(PROJ_SEASON)), logs];
       }

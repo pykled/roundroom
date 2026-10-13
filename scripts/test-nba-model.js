@@ -67,6 +67,20 @@ test('expectedMax: exact mixture integration agrees with seeded Monte-Carlo', ()
   }
 });
 
+test('mergeLogs: re-fetched weeks replace cached weeks', () => {
+  const S = require('../nba/model/sleeper');
+  const row = (pid, w, date, team, opp, sp, pts) => ({ player_id: pid, game_id: `${team}${date}`, week: w, date, team, opponent: opp, stats: sp ? { sp, pts } : {} });
+  const wk1 = [row('1', 1, '2026-10-21', 'DEN', 'GSW', 2000, 30), row('2', 1, '2026-10-21', 'GSW', 'DEN', 0)];
+  const wk2a = [row('1', 2, '2026-10-28', 'DEN', 'LAL', 1800, 10)];            // in-progress snapshot
+  const wk2b = [row('1', 2, '2026-10-28', 'DEN', 'LAL', 2100, 25), row('1', 2, '2026-10-30', 'DEN', 'PHX', 0)];
+  const cached = S.compactLogs(2026, { 1: wk1, 2: wk2a });
+  const merged = S.mergeLogs(cached, S.compactLogs(2026, { 2: wk2b }));
+  const full = S.compactLogs(2026, { 1: wk1, 2: wk2b });
+  assert.deepStrictEqual(merged.players, full.players);
+  assert.deepStrictEqual(merged.teamGames, full.teamGames);
+  assert.deepStrictEqual(merged.players['1'].g.map(g => g[2]), [30, 25]);
+});
+
 // ───────────────────────── names ─────────────────────────
 test('normalizeName', () => {
   const cases = [
