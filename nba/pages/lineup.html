@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA High Score Lineup | Pocket</title>
+<meta name="description" content="Weekly lineup picker for Yahoo High Score fantasy basketball — coming next.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://pocketff.com/nba/lineup">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<script defer src="/shared/nav.js"></script>
+<style>
+#app { max-width: 900px; width: 100%; }
+.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
+.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
+.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
+.gate ul { list-style: none; text-align: left; max-width: 36ch; margin: 0 auto var(--space-5); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; }
+.gate li { padding-left: 1.1rem; position: relative; }
+.gate li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: #fb923c; }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/nba" class="rr-logo">Pocket</a>
+  <div class="sport-switch" id="rr-sport-switch" aria-label="Sport">
+    <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
+  </div>
+  <div class="rr-links">
+    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba/lineup" class="rr-link active" aria-current="page">Lineup</a>
+  </div>
+  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
+</nav>
+
+<div id="app">
+  <section class="setup-card gate">
+    <span class="gate-eyebrow">Coming next</span>
+    <h2>Weekly lineup picker</h2>
+    <p>Not built yet. When it ships it will pick your six High Score starters each week from your Yahoo roster.</p>
+    <ul>
+      <li>Ranks your roster by expected best game for the week's actual schedule</li>
+      <li>Flags players with 2-game weeks and injuries</li>
+      <li>Warns before you bench someone mid-week, since that forfeits his earlier games</li>
+    </ul>
+    <a class="btn-primary" href="/nba/draft" style="display:inline-flex;align-items:center;min-height:40px;padding:0 1.2rem;text-decoration:none">Open the draft board</a>
+  </section>
+</div>
+
+<footer class="rr-footer">
+  <div class="rr-footer-inner">
+    <span class="rr-footer-brand">© 2026 Pocket</span>
+    <nav class="rr-footer-links" aria-label="Footer">
+      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
