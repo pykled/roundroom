@@ -1983,6 +1983,8 @@ app.use((req, res, next) => {
     /^\/db\//i.test(p) ||
     /^\/routes\//i.test(p) ||
     /^\/scripts\//i.test(p) ||
+    /^\/docs\//i.test(p) ||
+    /^\/data\/nba\//i.test(p) ||
     /^\/trade\.html$/i.test(p) ||
     /^\/research\.html$/i.test(p) ||
     /^\/lineup\.html$/i.test(p) ||
