@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA High Score Waiver Targets | Pocket</title>
+<meta name="description" content="Waiver and streaming targets for Yahoo High Score fantasy basketball: free agents ranked by how much they add to your best weekly lineup, driven by 4-game weeks.">
+<link rel="canonical" href="https://pocketff.com/nba/waivers">
+<meta name="theme-color" content="#000000">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="NBA High Score Waiver Targets | Pocket">
+<meta property="og:description" content="Add/drop pairs and a 4-game-week streamer calendar for Yahoo High Score fantasy basketball.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/nba/waivers">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<script defer src="/shared/nav.js"></script>
+<style>
+/* Shared tokens, nav, buttons, page head and footer come from /shared/styles.css.
+   This block is the waivers page only; G/F colours match the draft board. */
+:root {
+  --g: #fb923c; --f: #38bdf8; --util: rgba(255,255,255,0.55);
+  --g-bg: rgba(251,146,60,.14); --f-bg: rgba(56,189,248,.14);
+  --hot: #fb923c; --up: #34d399;
+}
+#app { max-width: 1180px; width: 100%; padding-top: var(--space-5); }
+.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
+.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
+.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
+
+.nw-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hot); margin-bottom: 0.35rem; }
+.nw-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.nw-ctl select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.6rem; min-height: 40px; max-width: 240px; }
+.nw-connect { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0 0.85rem; border-radius: var(--radius-pill); border: 1px solid rgba(124,58,237,.45); background: rgba(124,58,237,.12); color: #c4b5fd; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.nw-connect .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.7rem; font-weight: 800; }
+.nw-seg { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); flex-shrink: 0; }
+.nw-seg button { min-width: 44px; min-height: 36px; padding: 0 0.65rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500; cursor: pointer; }
+.nw-seg button[aria-pressed="true"] { background: var(--text-primary); color: var(--bg-primary); }
+.nw-mode { font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono); white-space: nowrap; }
+
+.nw-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: 0.75rem 0.9rem; margin-bottom: var(--space-4); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
+.nw-banner b { color: var(--text-primary); }
+.nw-banner.info { border-color: rgba(56,189,248,.3); border-left-color: var(--f); background: rgba(56,189,248,.05); }
+.nw-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
+
+/* cards */
+.nw-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); padding: 0.9rem 1rem; }
+.nw-card h2 { font-size: 0.66rem; font-weight: 700; letter-spacing: var(--tracking-label, .1em); text-transform: uppercase; color: var(--text-secondary); margin: 0 0 0.6rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.nw-card h2 .aside { font-family: var(--font-mono); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-muted); }
+.nw-empty { font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.5; }
+
+/* manual roster editor */
+.nw-manual { margin-bottom: var(--space-4); }
+.nw-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+.nw-chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 34px; padding: 0 0.35rem 0 0.65rem; border-radius: var(--radius-pill); border: 1px solid var(--border-bright); background: rgba(255,255,255,.03); font-size: 0.76rem; font-weight: 600; }
+.nw-chip button { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; font-size: 0.9rem; }
+.nw-chip button:hover { color: var(--text-primary); background: rgba(255,255,255,.08); }
+.nw-add { position: relative; display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.nw-add input { flex: 1 1 200px; min-height: 44px; background: var(--bg-primary); border: 1px solid var(--border-bright); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.75rem; }
+.nw-add .btn-secondary { min-height: 44px; }
+.nw-results { position: absolute; left: 0; right: 0; top: 48px; z-index: 30; list-style: none; margin: 0; padding: 4px; border: 1px solid var(--border-bright); border-radius: var(--radius-md); background: var(--bg-secondary); box-shadow: 0 16px 40px rgba(0,0,0,.6); }
+.nw-results button { width: 100%; min-height: 44px; display: flex; align-items: center; gap: .5rem; padding: 0 .6rem; border: none; border-radius: 6px; background: none; color: inherit; font: inherit; font-size: .82rem; text-align: left; cursor: pointer; }
+.nw-results button:hover, .nw-results button:focus-visible { background: var(--bg-hover); }
+.nw-results .tm { font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted); margin-left: auto; }
+
+/* best move */
+.nw-best { position: relative; overflow: hidden; border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: var(--space-4); background: radial-gradient(120% 140% at 0% 0%, rgba(52,211,153,.10), transparent 55%), var(--bg-card); }
+.nw-best .lbl { font-size: 0.62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); }
+.nw-move { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-3); margin-top: 0.5rem; }
+.nw-move-who { min-width: 0; }
+.nw-move-add { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-move-add .verb, .nw-move-drop .verb { font-size: .62rem; font-weight: 800; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; margin-right: .4rem; vertical-align: 2px; }
+.nw-move-add .verb { background: rgba(52,211,153,.15); color: var(--up); }
+.nw-move-drop { font-size: 0.82rem; color: var(--text-body); margin-top: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-move-drop .verb { background: rgba(239,68,68,.13); color: #f87171; }
+.nw-move-val { text-align: right; font-family: var(--font-mono); }
+.nw-move-val b { display: block; font-size: 1.6rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1; color: var(--up); }
+.nw-move-val span { font-size: 0.58rem; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
+.nw-alts { list-style: none; margin: 0.75rem 0 0; padding: 0.6rem 0 0; border-top: 1px solid var(--border); display: grid; gap: 0.35rem; }
+.nw-alts li { display: flex; align-items: center; gap: .5rem; font-size: .76rem; color: var(--text-body); min-height: 28px; }
+.nw-alts .arrow { color: var(--text-muted); }
+.nw-alts .g { margin-left: auto; font-family: var(--font-mono); color: var(--up); }
+.nw-alts .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* calendar strip */
+.nw-cal { margin-bottom: var(--space-4); }
+.nw-cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.nw-cal-head h2 { font-size: 0.66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); margin: 0; }
+.nw-cal-head p { margin: 0; font-size: .68rem; color: var(--text-muted); }
+.nw-cal-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.nw-wk { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); padding: .65rem .7rem; min-width: 0; }
+.nw-wk-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .45rem; }
+.nw-wk-h b { font-family: var(--font-mono); font-size: .8rem; font-weight: 500; }
+.nw-wk-h span { font-size: .66rem; color: var(--text-muted); }
+.nw-wk ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.nw-wk li { display: flex; align-items: center; gap: .4rem; font-size: .74rem; min-height: 26px; }
+.nw-wk li .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-wk li .v { font-family: var(--font-mono); font-size: .68rem; color: var(--text-secondary); }
+.nw-wk .none { font-size: .72rem; color: var(--text-muted); }
+
+/* layout */
+.nw-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
+.nw-side { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* filters + list */
+.nw-filters { position: sticky; top: var(--nav-h, 56px); z-index: 10; display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; padding: 0.5rem 0; background: var(--bg-primary); }
+.nw-toggle { min-height: 40px; padding: 0 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.nw-toggle[aria-pressed="true"] { color: var(--up); border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.08); }
+.nw-filters select { margin-left: auto; min-height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 .5rem; }
+.nw-count { font-size: 0.66rem; color: var(--text-muted); padding: 0 0 .3rem; }
+.nw-list { list-style: none; margin: 0; padding: 0; }
+.nw-row { border-bottom: 1px solid var(--border); }
+.nw-row-main { width: 100%; display: flex; align-items: center; gap: 0.6rem; min-height: 60px; padding: 0.45rem 0.4rem; background: none; border: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.nw-row-main:hover { background: var(--bg-hover); }
+.nw-rk { width: 22px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-align: right; }
+.nw-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.22rem; }
+.nw-name { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-size: 0.88rem; font-weight: 600; }
+.nw-name .n { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-name .badge, .nw-name .inj { flex-shrink: 0; }
+.nw-meta { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; min-width: 0; overflow: hidden; }
+.nw-meta .tm { font-family: var(--font-mono); }
+.pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
+.pp.G { background: var(--g-bg); color: var(--g); }
+.pp.F { background: var(--f-bg); color: var(--f); }
+.gm { font-family: var(--font-mono); font-size: 0.62rem; min-width: 22px; height: 18px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; border-radius: 4px; border: 1px solid var(--border-bright); color: var(--text-secondary); }
+.gm.hi { border-color: rgba(16,185,129,.5); color: #6ee7b7; background: rgba(16,185,129,.08); }
+.gm.lo { border-color: rgba(239,68,68,.35); color: #fca5a5; }
+.gm.zero { opacity: .5; }
+.gm small { font-size: .52rem; color: var(--text-muted); }
+.gms { display: inline-flex; gap: 3px; }
+.badge { font-size: 0.56rem; font-weight: 800; letter-spacing: .05em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; }
+.badge.up { background: rgba(52,211,153,.14); color: var(--up); }
+.badge.w { background: rgba(255,255,255,.07); color: var(--text-secondary); }
+.inj { font-size: 0.58rem; font-weight: 800; letter-spacing: .04em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; }
+.inj.OUT, .inj.SUS { background: rgba(239,68,68,.15); color: #f87171; }
+.inj.GTD, .inj.D { background: rgba(245,158,11,.15); color: #fbbf24; }
+.inj.P { background: rgba(255,255,255,.07); color: var(--text-secondary); }
+.nw-val { flex-shrink: 0; text-align: right; font-family: var(--font-mono); min-width: 64px; max-width: 120px; }
+.nw-val b { display: block; font-size: 1rem; font-weight: 500; letter-spacing: -0.02em; }
+.nw-val b.pos { color: var(--up); }
+.nw-val b.zero { color: var(--text-muted); }
+.nw-val small { display: block; font-family: var(--font-sans); font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-detail { padding: 0.2rem 0.4rem 0.8rem 2.1rem; font-size: 0.76rem; color: var(--text-body); line-height: 1.5; }
+.nw-detail table { border-collapse: collapse; font-family: var(--font-mono); font-size: .7rem; margin: .3rem 0 .5rem; }
+.nw-detail th, .nw-detail td { padding: 2px 10px 2px 0; text-align: right; font-weight: 400; }
+.nw-detail th { color: var(--text-muted); }
+.nw-detail td:first-child, .nw-detail th:first-child { text-align: left; color: var(--text-muted); }
+.nw-detail .acts { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .4rem; }
+.nw-detail .acts button { min-height: 36px; }
+.nw-more { width: 100%; min-height: 44px; margin-top: .5rem; }
+
+/* side lists */
+.nw-mini { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.nw-mini li { display: flex; align-items: center; gap: .45rem; min-height: 32px; font-size: .78rem; }
+.nw-mini .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nw-mini .v { font-family: var(--font-mono); font-size: .72rem; color: var(--text-secondary); }
+.nw-mini .slot { width: 34px; font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
+.nw-inj-item + .nw-inj-item { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--border); }
+.nw-inj-item .who { font-size: .8rem; font-weight: 700; display: flex; gap: .4rem; align-items: center; }
+.nw-inj-item .sub { font-size: .7rem; color: var(--text-muted); margin: .15rem 0 .35rem; }
+.nw-skel { height: 60px; border-bottom: 1px solid var(--border); background: linear-gradient(90deg, transparent, rgba(255,255,255,.035), transparent); background-size: 200% 100%; animation: nw-sh 1.3s infinite; }
+@keyframes nw-sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.nw-foot { font-size: .68rem; color: var(--text-muted); line-height: 1.6; margin-top: var(--space-4); }
+
+@media (max-width: 900px) {
+  .nw-grid { grid-template-columns: minmax(0, 1fr); }
+  .nw-side { order: 2; }
+  .nw-cal-strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: var(--space-2); margin: 0 calc(-1 * var(--space-4, 1rem)); padding: 0 var(--space-4, 1rem) 4px; scrollbar-width: none; }
+  .nw-cal-strip::-webkit-scrollbar { display: none; }
+  .nw-wk { flex: 0 0 78%; scroll-snap-align: start; }
+  .page-head { gap: var(--space-3); }
+  .nw-ctl { width: 100%; }
+  .nw-ctl select { flex: 1 1 0; max-width: none; min-width: 0; }
+}
+@media (max-width: 420px) {
+  .nw-filters select { margin-left: 0; flex: 1 1 100%; }
+  .nw-move-add { font-size: 1rem; }
+  .nw-move-val b { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) { .nw-skel { animation: none; } }
+</style>
+</head>
+<body>
+
+<nav id="rr-nav">
+  <a href="/nba" class="rr-logo">Pocket</a>
+  <div class="sport-switch" id="rr-sport-switch" aria-label="Sport">
+    <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
+  </div>
+  <div class="rr-links">
+    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba/lineup" class="rr-link">Lineup</a>
+    <a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
+</nav>
+
+<div id="app">
+  <header class="page-head">
+    <div class="page-head-text">
+      <p class="nw-eyebrow">NBA · Yahoo High Score</p>
+      <h1 class="page-title">Waiver targets</h1>
+      <p class="page-sub">Free agents ranked by how much they lift your best G, G, F, F, F, UTIL lineup. A 4-game week is the biggest edge in a best-game format.</p>
+    </div>
+    <div class="nw-ctl">
+      <a id="nw-connect" class="nw-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
+      <select id="nw-source" aria-label="League" hidden></select>
+      <div class="nw-seg" id="nw-horizon" role="group" aria-label="Horizon">
+        <button type="button" data-h="1" aria-pressed="true">1 wk</button>
+        <button type="button" data-h="2" aria-pressed="false">2 wk</button>
+        <button type="button" data-h="4" aria-pressed="false">4 wk</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="nw-banner" class="nw-banner" role="status" aria-live="polite" hidden></div>
+
+  <section id="nw-manual" class="nw-card nw-manual" hidden aria-labelledby="nw-manual-h">
+    <h2 id="nw-manual-h">My roster <span class="aside" id="nw-roster-count"></span></h2>
+    <div class="nw-chips" id="nw-chips"></div>
+    <div class="nw-add">
+      <input id="nw-search" type="search" placeholder="Add a player to your roster" autocomplete="off" aria-label="Search players to add" aria-controls="nw-results">
+      <button type="button" class="btn-secondary" id="nw-import">Import from draft board</button>
+      <ul class="nw-results" id="nw-results" role="listbox" hidden></ul>
+    </div>
+  </section>
+
+  <section id="nw-best" class="nw-best" hidden aria-label="Best move this week"></section>
+
+  <section class="nw-cal" id="nw-cal" hidden aria-labelledby="nw-cal-h">
+    <div class="nw-cal-head"><h2 id="nw-cal-h">Streamer calendar · 4-game weeks</h2><p>free agents only</p></div>
+    <div class="nw-cal-strip" id="nw-cal-strip"></div>
+  </section>
+
+  <div class="nw-grid">
+    <main>
+      <div class="nw-filters" id="nw-filters">
+        <div class="nw-seg" id="nw-pos" role="group" aria-label="Position">
+          <button type="button" data-pos="ALL" aria-pressed="true">All</button>
+          <button type="button" data-pos="G" aria-pressed="false">G</button>
+          <button type="button" data-pos="F" aria-pressed="false">F</button>
+        </div>
+        <button type="button" class="nw-toggle" id="nw-roleup" aria-pressed="false">Role ↑</button>
+        <select id="nw-sort" aria-label="Sort">
+          <option value="gain">Sort: net gain</option>
+          <option value="games">Sort: games this week</option>
+          <option value="ceiling">Sort: ceiling</option>
+        </select>
+      </div>
+      <div class="nw-count" id="nw-count"></div>
+      <ol class="nw-list" id="nw-list" aria-label="Waiver targets"></ol>
+      <button type="button" class="btn-secondary nw-more" id="nw-more" hidden>Show more</button>
+    </main>
+    <aside class="nw-side" id="nw-side">
+      <section class="nw-card" id="nw-inj" hidden><h2>Injury replacements</h2><div id="nw-inj-body"></div></section>
+      <section class="nw-card" id="nw-drops" hidden><h2>Drop candidates <span class="aside">cost to lineup</span></h2><ol class="nw-mini" id="nw-drops-body"></ol></section>
+      <section class="nw-card" id="nw-lineup" hidden><h2>My best lineup <span class="aside" id="nw-lineup-wk"></span></h2><ol class="nw-mini" id="nw-lineup-body"></ol></section>
+      <section class="nw-card" id="nw-unmatched" hidden><h2>Not matched</h2><p class="nw-empty" id="nw-unmatched-body"></p></section>
+    </aside>
+  </div>
+
+  <p class="nw-foot">Gain = change in your expected High Score points (sum of each starter's expected best game) over the chosen weeks, later weeks discounted 15% each, plus a small credit for bench depth. Games per week come from the NBA schedule. Yahoo waiver and FAB rules still apply to each claim.</p>
+</div>
+
+<footer class="rr-footer">
+  <div class="rr-footer-inner">
+    <span class="rr-footer-brand">© 2026 Pocket</span>
+    <nav class="rr-footer-links" aria-label="Footer">
+      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+    </nav>
+  </div>
+</footer>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="/nba/pages/waivers-logic.js"></script>
+<script src="/nba/pages/waivers.js"></script>
+</body>
+</html>
