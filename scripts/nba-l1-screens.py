@@ -66,11 +66,11 @@ def lineup(b):
 
 def trade(b):
     mine = [i for i, s in ROSTER]
-    st = {'pocket-nba-trade:manual': json.dumps({'v': 1, 'myRoster': mine, 'partnerRoster': PARTNER, 'give': ['2438', '1830'], 'get': ['2308'], 'updatedAt': 1})}
+    st = {'pocket-nba-trade:v1': json.dumps({'v': 1, 'mode': 'manual', 'myRoster': mine, 'give': ['2438', '1830'], 'get': ['2308']})}
     for w, h in SIZES:
         ctx, pg = page_for(b, w, h, st)
         pg.goto(BASE + '/nba/trade')
-        pg.wait_for_selector('#nt-result .nt-verdict, .nt-verdict', timeout=15000)
+        pg.wait_for_selector('.nt-v-top', timeout=20000)
         pg.wait_for_timeout(400)
         shot(pg, f'l1-trade-{w}.png')
         ctx.close()

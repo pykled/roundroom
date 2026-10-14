@@ -39,8 +39,11 @@
   }
 
   /* --------------------------------------------------------- rows */
+  // Yahoo positions (PG, SG, SF, PF, C), coloured by guard / forward / center.
+  var GROUP = { PG: 'G', SG: 'G', G: 'G', SF: 'F', PF: 'F', F: 'F', C: 'C' };
   function pips(p) {
-    return (p.elig || []).filter(function (e) { return e === 'G' || e === 'F'; }).map(function (e) { return '<span class="pp ' + e + '">' + e + '</span>'; }).join('');
+    var pos = p.yahooPos || p.pos || (p.elig || []).filter(function (e) { return e === 'G' || e === 'F'; });
+    return pos.map(function (e) { return '<span class="pp ' + (GROUP[e] || '') + '">' + esc(e) + '</span>'; }).join('');
   }
   function injTag(p) {
     if (!p.injury) return '';
@@ -135,8 +138,17 @@
     if (r.why && r.why.length) h += '<ul class="nt-why">' + r.why.filter(function (w) { return w !== r.consolidation; }).map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>';
     if (r.consolidation) h += '<div class="nt-note">' + esc(r.consolidation) + '</div>';
     if (r.warnings && r.warnings.length) h += '<div class="nt-note">' + esc(r.warnings.join(' · ')) + '</div>';
+    var ru = r.meta && r.meta.rules;
+    if (ru && ru.notes && ru.notes.length) h += '<div class="nt-rules' + (ru.open ? '' : ' closed') + '"><b>League trade rules</b><ul>' + ru.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>';
+    var se = r.meta && r.meta.settings;
+    if (se) h += '<p class="nt-setline">' + esc((r.profile && r.profile.name ? r.profile.name + ' · ' : '') + se.teams + ' teams · ' + se.starters + ' starters (' + slotText(se.slotList) + ') · ' + se.rosterSize + ' active + ' + se.il + ' IL · bench depth ' + (se.benchShare || []).map(function (x) { return Math.round(x * 1000) / 10 + '%'; }).join('/')) + '</p>';
     box.innerHTML = h;
     renderLineup(r); renderWeeks(r); renderVbar();
+  }
+  function slotText(list) {
+    var c = {}, o = [];
+    (list || []).forEach(function (s) { if (!c[s]) o.push(s); c[s] = (c[s] || 0) + 1; });
+    return o.map(function (s) { return (c[s] > 1 ? c[s] + ' ' : '') + s; }).join(', ');
   }
   function stat(who, s) {
     return '<div class="nt-stat"><div class="who">' + esc(who) + '</div>' +

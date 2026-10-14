@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Trade Calculator | Pocket</title>
-<meta name="description" content="Trade calculator for Yahoo High Score fantasy basketball. Values a trade by what it does to your best G, G, F, F, F, UTIL lineup for the rest of the season, and checks whether the other team would say yes.">
+<meta name="description" content="Trade calculator for Yahoo High Score fantasy basketball. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
 <link rel="canonical" href="https://pocketff.com/nba/trade">
 <meta name="theme-color" content="#000000">
 <meta property="og:site_name" content="Pocket">
@@ -89,6 +89,12 @@
 .pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
 .pp.G { background: var(--g-bg); color: var(--g); }
 .pp.F { background: var(--f-bg); color: var(--f); }
+.pp.C { background: rgba(167,139,250,.14); color: #a78bfa; }
+.nt-rules { margin-top: 0.7rem; font-size: 0.74rem; line-height: 1.45; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--text-secondary); }
+.nt-rules b { color: var(--text-body); font-weight: 600; }
+.nt-rules ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+.nt-rules.closed { border-color: rgba(248,113,113,.45); color: #fecaca; }
+.nt-setline { margin: 0.6rem 0 0; font-size: 0.68rem; color: var(--text-muted); line-height: 1.45; }
 .inj { font-size: 0.58rem; font-weight: 800; letter-spacing: .04em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; background: rgba(245,158,11,.15); color: #fbbf24; }
 .inj.OUT { background: rgba(239,68,68,.15); color: #f87171; }
 .nt-val { flex-shrink: 0; text-align: right; font-family: var(--font-mono); }
@@ -189,16 +195,17 @@
 @media (prefers-reduced-transparency: reduce) { .nt-vbar { background: #0a0a0a; -webkit-backdrop-filter: none; backdrop-filter: none; } }
 </style>
 </head>
-<body>
+<body class="sport-nba">
 <nav id="rr-nav">
   <a href="/nba" class="rr-logo">Pocket</a>
   <div class="sport-switch" id="rr-sport-switch" aria-label="Sport">
     <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
   </div>
   <div class="rr-links">
-    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba" class="rr-link">Draft board</a>
     <a href="/nba/lineup" class="rr-link">Lineup</a>
     <a href="/nba/trade" class="rr-link active" aria-current="page">Trade</a>
+    <a href="/nba/waivers" class="rr-link">Waivers</a>
   </div>
   <div class="rr-auth">
     <div id="user-btn-mount"></div>
@@ -210,9 +217,9 @@
 <div id="app">
   <header class="page-head">
     <div class="page-head-text">
-      <p class="nt-eyebrow">NBA · Yahoo High Score</p>
+      <p class="nt-eyebrow">NBA · HALIMSANITY 26-27 · High Score</p>
       <h1 class="page-title">Trade calculator</h1>
-      <p class="page-sub">Scores a trade by what it does to your best G, G, F, F, F, UTIL lineup each remaining week, not by adding up points.</p>
+      <p class="page-sub">Scores a trade by what it does to your best nine-man lineup (PG, SG, G, SF, PF, F, C, 2 UTIL) each remaining matchup week, under your league's scoring, not by adding up points.</p>
     </div>
     <div class="nt-head-ctl">
       <a id="nt-connect" class="nt-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
@@ -274,7 +281,7 @@
     </aside>
   </div>
 
-  <p class="nt-method"><b>How it works.</b> Each player is worth what he adds to your best G, G, F, F, F, UTIL lineup each remaining week: his expected best game given that week's games and injury outlook, minus the lineup without him. Players who would sit behind your starters count only as bench depth (a small share above waiver level). An empty roster spot is filled at waiver replacement level, so 2-for-1 deals count the drop or the freed spot. Playoff weeks weigh 1.5× when your Yahoo league sets them. The other team's side is scored the same way to judge whether they'd accept; without their roster, a typical mid-draft roster stands in.</p>
+  <p class="nt-method"><b>How it works.</b> Each player is worth what he adds to your best lineup over your league's starting slots each remaining matchup week (14-day weeks included): his expected best game given that week's games and injury outlook, minus the lineup without him. Players who would sit behind your starters count as bench depth, a share above waiver level that grows with the number of starters it covers (nine starters: 18% for the first bench player). An empty roster spot, or a slot nobody on your roster can play, is filled at waiver replacement level, so 2-for-1 deals count the drop or the freed spot. Out players can sit in IL without forcing a drop. Playoff weeks (20-22) weigh 1.5×. The other team's side is scored the same way to judge whether they'd accept; without their roster, a typical mid-draft roster stands in.</p>
 </div>
 
 <div class="nt-vbar" id="nt-vbar" aria-hidden="true">

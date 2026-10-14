@@ -388,6 +388,7 @@ function evaluateTrade(input = {}) {
   const lineupBefore = E.typicalLineup(myBefore, myCap);
   const lineupAfter = E.typicalLineup(you.roster, you.capAfter);
   alignSlots(lineupBefore.starters, lineupAfter.starters);
+  stabilize(lineupBefore.starters, lineupAfter.starters, id => { const p = index.get(id); return p ? R.eligFor(p, st.profile) : null; });
   const changed = lineupBefore.starters.filter((r, i) => r.id !== lineupAfter.starters[i].id).map(r => r.slot);
 
   const out = {
@@ -459,6 +460,33 @@ function alignSlots(before, after) {
     idx.forEach((bi, k) => { const j = rows.findIndex(r => r && r.id && r.id === before[bi].id); if (j >= 0) { placed[k] = rows[j]; rows[j] = null; } });
     const rest = rows.filter(Boolean);
     idx.forEach((ai, k) => { const r = placed[k] || rest.shift(); after[ai] = { ...r, slot: before[ai].slot }; });
+  }
+}
+
+// With distinct slot names (PG, SG, …) an incoming player can shuffle others
+// between slots. Swap pairs of after-rows while it puts a player back in his
+// before slot and both stay eligible, so only real changes are highlighted.
+function stabilize(before, after, eligOf) {
+  const type = r => r.slot.replace(/\d+$/, '');
+  const ok = (row, slotRow) => {
+    if (!row.id) return !!row.replacement;
+    const e = eligOf(row.id);
+    return !!(e && e.has(type(slotRow)));
+  };
+  for (let pass = 0; pass < after.length; pass++) {
+    let changed = false;
+    for (let i = 0; i < after.length; i++) {
+      const want = before[i] && before[i].id;
+      if (!want || after[i].id === want) continue;
+      const j = after.findIndex(r => r.id === want);
+      if (j < 0) continue;
+      const x = after[i], y = after[j];
+      if (!ok(y, after[i]) || !ok(x, after[j])) continue;
+      after[i] = { ...y, slot: x.slot };
+      after[j] = { ...x, slot: y.slot };
+      changed = true;
+    }
+    if (!changed) break;
   }
 }
 
