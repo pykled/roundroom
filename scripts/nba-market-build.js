@@ -76,7 +76,7 @@ async function main(argv) {
   let snapshot = null;
   try { snapshot = JSON.parse(fs.readFileSync(SNAPSHOT, 'utf8')); } catch (e) { console.error('yahoo snapshot unreadable:', e.message); }
   let players = [];
-  try { players = (await require('../nba/model').getPlayers()).players; } catch (e) { console.error('model getPlayers failed:', e.message); }
+  try { players = (await require('../nba/model').getPlayers({ profile: '242808' })).players; } catch (e) { console.error('model getPlayers failed:', e.message); }
 
   const m = buildMarket({ players, yahooSnapshot: snapshot, adpSources: adp });
   const doc = { builtAt: new Date().toISOString(), fetchStatus: status, asOf: m.asOf, weights: m.weights, params: m.params, stats: m.stats,
