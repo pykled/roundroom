@@ -19,6 +19,7 @@
 :root {
   --g: #fb923c; --f: #38bdf8; --util: rgba(255,255,255,0.7);
   --g-bg: rgba(251,146,60,.14); --f-bg: rgba(56,189,248,.14); --u-bg: rgba(255,255,255,.08);
+  --c: #a78bfa; --c-bg: rgba(167,139,250,.14);
   --hot: #fb923c;
 }
 #app { max-width: 1080px; width: 100%; padding-top: var(--space-5); padding-bottom: var(--space-8); }
@@ -45,7 +46,7 @@
 .ln-connect .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.7rem; font-weight: 800; }
 
 /* day strip: "today" = first unplayed day */
-.ln-days { display: grid; grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); gap: 4px; margin-bottom: var(--space-4); }
+.ln-days { display: grid; grid-template-columns: repeat(var(--n, 7), minmax(38px, 1fr)); gap: 4px; margin-bottom: var(--space-4); overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
 .ln-day { min-height: 46px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); font-size: 0.68rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; }
 .ln-day b { font-family: var(--font-mono); font-weight: 500; font-size: 0.8rem; color: var(--text-primary); }
 .ln-day.done { opacity: .45; background: transparent; }
@@ -111,6 +112,7 @@
 .sp.G { background: var(--g-bg); color: var(--g); }
 .sp.F { background: var(--f-bg); color: var(--f); }
 .sp.UTIL { background: var(--u-bg); color: var(--util); font-size: 0.6rem; }
+.sp.C { background: var(--c-bg); color: var(--c); }
 .ln-who { flex: 1; min-width: 0; }
 .ln-name { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ln-meta { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; }
@@ -150,6 +152,11 @@
 .pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
 .pp.G { background: var(--g-bg); color: var(--g); }
 .pp.F { background: var(--f-bg); color: var(--f); }
+.pp.C { background: var(--c-bg); color: var(--c); }
+.pp.UTIL { background: var(--u-bg); color: var(--util); }
+.ln-spots { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; align-items: center; font-size: 0.74rem; color: var(--text-secondary); margin: 0 0 var(--space-3); padding: 0.45rem 0.7rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); }
+.ln-spots b { font-family: var(--font-mono); color: var(--text-primary); font-weight: 500; }
+.ln-spots .open { color: var(--hot); }
 
 /* ── Manual roster editor ─────────────────────────────────────────────── */
 .ln-editor { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); padding: 0.9rem 1rem; margin-bottom: var(--space-4); }
@@ -197,7 +204,7 @@ details.ln-more summary { cursor: pointer; font-size: 0.78rem; font-weight: 600;
 }
 </style>
 </head>
-<body>
+<body class="sport-nba">
 
 <nav id="rr-nav">
   <a href="/nba" class="rr-logo">Pocket</a>
@@ -205,8 +212,10 @@ details.ln-more summary { cursor: pointer; font-size: 0.78rem; font-weight: 600;
     <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
   </div>
   <div class="rr-links">
-    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba" class="rr-link">Draft board</a>
     <a href="/nba/lineup" class="rr-link active" aria-current="page">Lineup</a>
+    <a href="/nba/trade" class="rr-link">Trade</a>
+    <a href="/nba/waivers" class="rr-link">Waivers</a>
   </div>
   <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
 </nav>
@@ -214,9 +223,9 @@ details.ln-more summary { cursor: pointer; font-size: 0.78rem; font-weight: 600;
 <main id="app">
   <header class="ln-head">
     <div>
-      <div class="ln-eyebrow">Yahoo High Score · Lineup</div>
+      <div class="ln-eyebrow" id="ln-eyebrow">HALIMSANITY 26-27 · Lineup</div>
       <h1 class="ln-title" id="ln-title">Weekly lineup</h1>
-      <div class="ln-sub" id="ln-sub">Six starters, each scores his single best game of the week.</div>
+      <div class="ln-sub" id="ln-sub">Nine starters, each scores his single best game of the matchup week.</div>
     </div>
     <div class="ln-ctl">
       <div class="ln-week" aria-label="Week">
@@ -242,7 +251,7 @@ details.ln-more summary { cursor: pointer; font-size: 0.78rem; font-weight: 600;
 
   <div id="ln-result"><div class="ln-loading">Loading lineup…</div></div>
 
-  <p class="ln-foot">Expected = average best single game from now to Sunday (pts + reb + 2·ast + 3·stl + 3·blk), with injury, rest and games-left built in. Band = 10th–90th percentile of 2,000 seeded simulations. Benching a starter mid-week wipes his earlier games (<a href="https://help.yahoo.com/kb/SLN37162.html" target="_blank" rel="noopener">Yahoo rules</a>).</p>
+  <p class="ln-foot">Expected = average best single game from now to the end of the matchup week (<span id="ln-foot-scoring">league scoring</span>), with injury, rest and games-left from the real NBA schedule built in. Lineups lock per game; set them daily. Band = 10th–90th percentile of 2,000 seeded simulations. Benching a starter mid-week wipes his earlier games (<a href="https://help.yahoo.com/kb/SLN37162.html" target="_blank" rel="noopener">Yahoo rules</a>).</p>
 </main>
 
 <footer class="rr-footer">

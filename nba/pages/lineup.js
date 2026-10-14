@@ -9,10 +9,19 @@
   var $ = function (id) { return document.getElementById(id); };
   var LEAGUE_PREF = 'pocket-nba-league';
   var MODE_PREF = 'pocket-nba-lineup-mode';
-  var MAX_WEEK = 25;
+  var DEFAULT_LEAGUE = '242808';
+  // League profile (slots, matchup weeks, scoring) from /api/nba/league-profile.
+  function maxWeek() { return S.profile && S.profile.weeks && S.profile.weeks.length ? S.profile.weeks.length : 25; }
+  function leagueId() { var m = /\.l\.(\d+)$/.exec(S.leagueKey || ''); return S.mode === 'yahoo' && m ? m[1] : DEFAULT_LEAGUE; }
+  function slotListOf() { return (S.result && S.result.spots && S.result.spots.slots) || (S.profile && profileSlots(S.profile)) || ['G', 'G', 'FC', 'FC', 'FC', 'UTIL']; }
+  function profileSlots(p) {
+    var order = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'FC', 'UTIL'], out = [];
+    order.forEach(function (k) { for (var i = 0; i < ((p.slots || {})[k] || 0); i++) out.push(k); });
+    return out;
+  }
 
   var S = {
-    players: [], byId: {}, currentWeek: 1, week: null, day: null,
+    players: [], byId: {}, currentWeek: 1, week: null, day: null, profile: null,
     mode: 'manual', connected: false, leagues: [], leagueKey: null, myTeamKey: null,
     manual: L.emptyManual(), yahooBanked: {},
     result: null, error: null, loading: false, seq: 0,
@@ -41,8 +50,12 @@
       S.players = (d.players || []).slice().sort(function (a, b) { return (a.rank || 9999) - (b.rank || 9999); });
       S.byId = {};
       S.players.forEach(function (p) { S.byId[String(p.id)] = p; });
-      if (d.currentWeek) S.currentWeek = Math.max(1, Math.min(MAX_WEEK, d.currentWeek));
+      if (d.currentWeek) S.currentWeek = Math.max(1, Math.min(maxWeek(), d.currentWeek));
     });
+  }
+  function loadProfile() {
+    return api('/api/nba/league-profile?league_id=' + encodeURIComponent(leagueId())).then(function (p) { S.profile = p; })
+      .catch(function () { S.profile = null; /* unknown league → High Score defaults (server side) */ });
   }
 
   function refresh() {
@@ -58,7 +71,7 @@
       p = api(q);
     } else {
       if (!S.manual.roster.length) { S.loading = false; S.result = null; renderAll(); return Promise.resolve(); }
-      p = api('/api/nba/lineup/manual', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(L.manualBody(S.manual, S.week, S.day)) });
+      p = api('/api/nba/lineup/manual', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(L.manualBody(S.manual, S.week, S.day, DEFAULT_LEAGUE)) });
     }
     return p.then(function (r) {
       if (seq !== S.seq) return;
@@ -94,7 +107,7 @@
     return api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(S.leagueKey)).then(function (d) {
       S.myTeamKey = d.myTeamKey || null;
       var cw = d.league && Number(d.league.current_week);
-      if (cw >= 1 && cw <= MAX_WEEK && S.week == null) S.week = cw;
+      if (cw >= 1 && cw <= maxWeek() && S.week == null) S.week = cw;
       try { S.yahooBanked = JSON.parse(read(L.storageKey(yahooScope())) || '{}') || {}; } catch (e) { S.yahooBanked = {}; }
       if (S.myTeamKey && read(MODE_PREF) !== 'manual') S.mode = 'yahoo';
     }).catch(function (e) {
@@ -112,19 +125,30 @@
 
   function renderHead() {
     var sel = $('ln-week');
-    if (!sel.options.length) {
+    var weeks = (S.profile && S.profile.weeks) || [];
+    var key = weeks.length + ':' + (S.profile && S.profile.leagueId);
+    if (sel.dataset.key !== key) {
       var h = '';
-      for (var w = 1; w <= MAX_WEEK; w++) h += '<option value="' + w + '">Wk ' + w + '</option>';
+      for (var w = 1; w <= maxWeek(); w++) {
+        var wk = weeks[w - 1];
+        h += '<option value="' + w + '">Wk ' + w + (wk ? ' · ' + fmtDate(wk.start) + (wk.days !== 7 ? ' · ' + wk.days + 'd' : '') + (wk.playoffs ? ' · PO' : '') : '') + '</option>';
+      }
       sel.innerHTML = h;
+      sel.dataset.key = key;
     }
     sel.value = String(S.week);
     $('ln-prev').disabled = S.week <= 1;
-    $('ln-next').disabled = S.week >= MAX_WEEK;
-    $('ln-title').textContent = 'Week ' + S.week + ' lineup';
+    $('ln-next').disabled = S.week >= maxWeek();
     var r = S.result;
+    var win = r && r.window;
+    $('ln-title').textContent = 'Week ' + S.week + ' lineup' + (win && win.days > 7 ? ' · ' + win.days + '-day matchup' : '');
     var sub = S.mode === 'yahoo' ? 'From your Yahoo roster' : 'Manual roster';
     if (r && r.dates) sub += ' · ' + fmtDate(r.dates[0]) + ' – ' + fmtDate(r.dates[1]);
+    var sl = slotListOf();
+    sub += ' · ' + L.countWord(sl.length) + ' starters (' + L.slotListText(sl) + '), each scores his single best game of the matchup week';
     $('ln-sub').textContent = sub;
+    var ey = $('ln-eyebrow');
+    if (ey) ey.textContent = (r && r.profile && r.profile.name ? r.profile.name : S.profile ? S.profile.name : 'Yahoo High Score') + ' · Lineup';
     $('ln-mode').hidden = !S.connected || !S.myTeamKey;
     Array.prototype.forEach.call($('ln-mode').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
     var lg = $('ln-league');
@@ -157,6 +181,9 @@
     var after = day >= len;
     h += '<button type="button" class="ln-day' + (after ? ' today' : '') + '" data-day="' + len + '" aria-pressed="' + after + '">Final<b>✓</b></button>';
     el.innerHTML = h;
+    // Long (14-day) weeks scroll sideways on phones: keep today in view.
+    var t = el.querySelector('.today');
+    if (t && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, t.offsetLeft - el.offsetLeft - el.clientWidth / 2 + t.offsetWidth / 2);
     $('ln-days-range').textContent = day === 0 ? 'Nothing played yet' : after ? 'Week over' : (day + ' day' + (day > 1 ? 's' : '') + ' played');
   }
 
@@ -166,9 +193,11 @@
     var out = /out|ir|sus/i.test(inj);
     return '<span class="inj' + (out ? ' out' : '') + '">' + esc(String(inj).slice(0, 4).toUpperCase()) + '</span>';
   }
-  function posPills(elig) {
-    return (elig || []).filter(function (e) { return e !== 'UTIL'; }).map(function (e) { return '<span class="pp ' + e + '">' + e + '</span>'; }).join('');
+  // Position pills: Yahoo positions (PG, SG, SF, PF, C) when we have them.
+  function posPills(pos) {
+    return (pos || []).filter(function (e) { return e !== 'UTIL'; }).map(function (e) { return '<span class="pp ' + L.slotGroup(e) + '">' + esc(e) + '</span>'; }).join('');
   }
+  function posOf(p) { return p ? (p.yahooPos || p.pos || p.elig) : []; }
 
   function renderEditor() {
     var ed = $('ln-editor');
@@ -176,13 +205,15 @@
     if (ed.hidden) return;
     var ros = S.manual.roster;
     var h = '<h3>Your roster <small>' + ros.length + '/' + L.MAX_ROSTER + '</small></h3>';
-    h += '<p class="hint">' + (S.connected ? 'Manual mode. Switch to Yahoo above to load your real roster.' : 'Not connected to Yahoo: add your players, then mark who is starting now (G / F / UTIL) so swaps and forfeits are checked.') + '</p>';
+    var choices = L.slotChoices(slotListOf(), S.profile && S.profile.slots ? S.profile.slots.IL : null);
+    h += '<p class="hint">' + (S.connected ? 'Manual mode. Switch to Yahoo above to load your real roster.' : 'Not connected to Yahoo: add your players, then mark who is starting now (' + esc(choices.slice(1).filter(function (c) { return c !== 'IL'; }).join(' / ')) + ') and who is on IL, so swaps, forfeits and IL spots are checked.') + '</p>';
     h += '<div class="ln-search"><input id="ln-q" type="search" autocomplete="off" placeholder="Add a player: name or team" value="' + esc(S.q) + '" aria-label="Add a player">' + resultsHtml(S.q, 'add') + '</div>';
     if (ros.length) {
       h += '<div class="ln-rlist">' + ros.map(function (r, i) {
         var p = playerOf(r.id);
-        return '<div class="ln-rrow"><div class="nm">' + esc(p ? p.name : r.id) + '<small>' + esc(p ? p.team || '' : '?') + '</small> ' + (p ? posPills(p.elig) : '') + '</div>' +
-          '<select data-slot="' + i + '" aria-label="Current slot for ' + esc(p ? p.name : r.id) + '">' + L.SLOT_CHOICES.map(function (s) { return '<option value="' + s + '"' + (r.slot === s ? ' selected' : '') + '>' + (s === 'BN' ? 'Bench' : s) + '</option>'; }).join('') + '</select>' +
+        var opts = choices.indexOf(r.slot) >= 0 ? choices : choices.concat([r.slot]);
+        return '<div class="ln-rrow"><div class="nm">' + esc(p ? p.name : r.id) + '<small>' + esc(p ? p.team || '' : '?') + '</small> ' + (p ? posPills(posOf(p)) + injBadge(p.injury) : '') + '</div>' +
+          '<select data-slot="' + i + '" aria-label="Current slot for ' + esc(p ? p.name : r.id) + '">' + opts.map(function (s) { return '<option value="' + s + '"' + (r.slot === s ? ' selected' : '') + '>' + (s === 'BN' ? 'Bench' : s) + '</option>'; }).join('') + '</select>' +
           '<button type="button" class="ln-x" data-rm="' + i + '" aria-label="Remove ' + esc(p ? p.name : r.id) + '">✕</button></div>';
       }).join('') + '</div>';
     }
@@ -204,17 +235,18 @@
     var res = L.searchPlayers(q, S.players, 7).filter(function (p) { return !taken[p.id]; });
     if (!res.length) return '<div class="ln-results"><button type="button" disabled>No players match</button></div>';
     return '<div class="ln-results" role="listbox">' + res.map(function (p) {
-      return '<button type="button" data-' + kind + '="' + esc(p.id) + '">' + posPills(p.elig) + ' ' + esc(p.name) + injBadge(p.injury) + '<span class="tm">' + esc(p.team || 'FA') + ' · ' + n1(p.hsValue) + '</span></button>';
+      return '<button type="button" data-' + kind + '="' + esc(p.id) + '">' + posPills(posOf(p)) + ' ' + esc(p.name) + injBadge(p.injury) + '<span class="tm">' + esc(p.team || 'FA') + ' · ' + n1(p.hsValue) + '</span></button>';
     }).join('') + '</div>';
   }
 
   function renderResult() {
     var el = $('ln-result');
-    if (S.loading && !S.result) { el.innerHTML = '<div class="ln-loading">Working out your best six…</div>'; return; }
+    if (S.loading && !S.result) { el.innerHTML = '<div class="ln-loading">Working out your best lineup…</div>'; return; }
     if (S.error && !S.result) { el.innerHTML = '<div class="ln-banner error"><div><b>Couldn’t build the lineup.</b> ' + esc(S.error.message) + '</div></div>'; return; }
     var r = S.result;
     if (!r) {
-      el.innerHTML = S.mode === 'manual' ? '<div class="ln-banner info"><div><b>Add your roster above.</b> Up to 20 players: the picker chooses the six starters (G, G, F, F, F, UTIL) with the highest expected best game.</div></div>' : '';
+      var sl0 = slotListOf();
+      el.innerHTML = S.mode === 'manual' ? '<div class="ln-banner info"><div><b>Add your roster above.</b> Up to 20 players: the picker chooses the ' + L.countWord(sl0.length) + ' starters (' + esc(L.slotListText(sl0)) + ') with the highest expected best game.</div></div>' : '';
       return;
     }
     var h = '';
@@ -224,7 +256,7 @@
 
     // summary
     var g = L.bandGeometry(r.total);
-    h += '<div class="ln-top"><div class="ln-card"><div class="ln-lbl">Expected week total · optimal six</div><div class="ln-total"><span class="big">' + n1(r.total.expected) + '</span>' +
+    h += '<div class="ln-top"><div class="ln-card"><div class="ln-lbl">Expected week total · optimal ' + L.countWord(r.spots ? r.spots.starters : r.slots.length) + '</div><div class="ln-total"><span class="big">' + n1(r.total.expected) + '</span>' +
       (r.gain != null ? '<span class="gain' + (r.gain > 0.05 ? '' : ' zero') + '">' + (r.gain > 0.05 ? L.sign(r.gain) + ' vs current' : 'current lineup is optimal') + '</span>' : '') + '</div>' +
       (g ? '<div class="ln-band" aria-hidden="true"><div class="track"></div><div class="rng" style="left:' + g.left + '%;width:' + g.width + '%"></div><div class="mk" style="left:' + g.mark + '%"></div></div><div class="ln-band-lbl"><span>p10 ' + n1(r.total.p10) + '</span><span>p90 ' + n1(r.total.p90) + '</span></div>' : '') + '</div>';
     if (r.matchup) {
@@ -253,14 +285,21 @@
     }
     var others = (r.warnings || []).filter(function (w) { return w.type !== 'forfeit' && w.type !== 'forfeit-unknown'; });
     others.forEach(function (w) { h += '<div class="ln-banner"><div>' + esc(w.message) + '</div></div>'; });
+    // Roster spots: active (starters + bench) and IL.
+    if (r.spots) {
+      var sp = r.spots;
+      h += '<div class="ln-spots" aria-label="Roster spots"><span><b>' + sp.active + '</b>/' + sp.activeCap + ' active</span><span><b>' + sp.il + '</b>/' + sp.ilCap + ' IL</span>' +
+        (sp.benchOpen ? '<span class="open">' + sp.benchOpen + ' open spot' + (sp.benchOpen > 1 ? 's' : '') + ' for an add</span>' : '') + '</div>';
+      (sp.ilMoves || []).forEach(function (m) { h += '<div class="ln-banner info"><div>' + esc(m.message) + '</div></div>'; });
+    }
 
     // slots
     h += '<div class="ln-sec"><h2>Starters</h2><small>expected best game from today</small></div><div class="ln-slots">';
     r.slots.forEach(function (s) {
-      var isNew = r.current && s.currentSlot !== 'G' && s.currentSlot !== 'F' && s.currentSlot !== 'UTIL';
+      var isNew = r.current && (!s.currentSlot || s.currentSlot === 'BN' || s.currentSlot === 'IL');
       var pips = s.unmatched ? '' : L.gamePips(s.gamesLeft, s.gamesWeek).map(function (c) { return '<i class="pip ' + c + '"></i>'; }).join('');
       h += '<article class="ln-slot' + (isNew ? ' new' : '') + (s.locked ? ' locked' : '') + '">' +
-        '<div class="ln-slot-top"><span class="sp ' + s.slot + '">' + s.slot + '</span><div class="ln-who"><div class="ln-name">' + esc(s.player.name) + '</div><div class="ln-meta"><span class="tm">' + esc(s.player.team || '') + '</span>' + posPills(s.player.elig) + injBadge(s.player.injury) + (isNew ? '<span class="ln-tag new">Start</span>' : '') + (s.locked ? '<span class="ln-tag lock">Locked</span>' : '') + '</div></div>' +
+        '<div class="ln-slot-top"><span class="sp ' + L.slotGroup(s.slot) + '">' + s.slot + '</span><div class="ln-who"><div class="ln-name">' + esc(s.player.name) + '</div><div class="ln-meta"><span class="tm">' + esc(s.player.team || '') + '</span>' + posPills(s.player.pos && s.player.pos.length ? s.player.pos : s.player.elig) + injBadge(s.player.injury) + (isNew ? '<span class="ln-tag new">Start</span>' : '') + (s.locked ? '<span class="ln-tag lock">Locked</span>' : '') + '</div></div>' +
         '<div class="ln-xv"><b>' + n1(s.expected) + '</b><span>exp</span></div></div>' +
         '<div class="ln-chips">' + (s.unmatched ? '<span class="chip zero">Not in our data</span>' : '<span class="chip' + (s.gamesLeft ? '' : ' zero') + '" title="' + s.gamesLeft + ' of ' + s.gamesWeek + ' games left"><span class="pips">' + pips + '</span>' + s.gamesLeft + ' left</span>') +
         (s.banked != null ? '<span class="chip bank" title="Best game so far while started">Banked ' + n1(s.banked) + (s.pBeat != null ? ' · ' + Math.round(s.pBeat * 100) + '% to beat' : '') + '</span>' : '') +
@@ -276,18 +315,24 @@
     if (r.bench.length) {
       h += '<div class="ln-sec"><h2>Bench</h2><small>' + r.bench.length + ' player' + (r.bench.length > 1 ? 's' : '') + '</small></div><div class="ln-bench">';
       r.bench.forEach(function (b) {
-        h += '<div class="ln-brow"><div class="ln-who" style="flex:1"><div class="ln-name" style="font-size:.85rem">' + esc(b.player.name) + '</div><div class="ln-meta"><span class="tm">' + esc(b.player.team || '') + '</span>' + posPills(b.player.elig) + injBadge(b.player.injury) + '<span class="why">' + b.gamesLeft + ' left · ' + esc(b.reason) + '</span></div></div><span class="v">' + n1(b.expected) + '</span></div>';
+        h += '<div class="ln-brow"><div class="ln-who" style="flex:1"><div class="ln-name" style="font-size:.85rem">' + esc(b.player.name) + (b.slot === 'IL' ? ' <span class="ln-tag lock">IL</span>' : '') + '</div><div class="ln-meta"><span class="tm">' + esc(b.player.team || '') + '</span>' + posPills(b.player.pos && b.player.pos.length ? b.player.pos : b.player.elig) + injBadge(b.player.injury) + '<span class="why">' + b.gamesLeft + ' left · ' + esc(b.reason) + '</span></div></div><span class="v">' + n1(b.expected) + '</span></div>';
       });
       h += '</div>';
     }
     el.innerHTML = h;
   }
 
-  function renderAll() { renderHead(); renderDays(); renderEditor(); renderResult(); }
+  function renderFoot() {
+    var f = $('ln-foot-scoring');
+    if (!f) return;
+    var sc = (S.result && S.result.profile && S.result.profile.scoring) || (S.profile && S.profile.scoring);
+    f.textContent = sc ? L.scoringText(sc) : 'pts + reb + 2·ast + 3·stl + 3·blk';
+  }
+  function renderAll() { renderHead(); renderDays(); renderEditor(); renderResult(); renderFoot(); }
 
   /* ------------------------------------------------------------ events */
   function setWeek(w) {
-    w = Math.max(1, Math.min(MAX_WEEK, w));
+    w = Math.max(1, Math.min(maxWeek(), w));
     if (w === S.week) return;
     S.week = w; S.day = null; S.result = null;
     renderAll(); refresh();
@@ -305,12 +350,13 @@
     var b = e.target.closest('[data-mode]');
     if (!b || b.dataset.mode === S.mode) return;
     S.mode = b.dataset.mode; store(MODE_PREF, S.mode);
-    S.result = null; renderAll(); refresh();
+    S.result = null;
+    loadProfile().then(function () { renderAll(); refresh(); });
   });
   $('ln-league').addEventListener('change', function (e) {
     S.leagueKey = e.target.value; store(LEAGUE_PREF, S.leagueKey);
     S.result = null; S.myTeamKey = null;
-    loadLeague().then(function () { renderAll(); refresh(); });
+    Promise.all([loadLeague(), loadProfile()]).then(function () { renderAll(); refresh(); });
   });
 
   var ed = $('ln-editor');
@@ -371,9 +417,9 @@
   S.manual = L.deserialize(read(L.storageKey('manual')));
   var qs = new URLSearchParams(location.search);
   if (qs.get('yahoo') === 'signin') banner('Sign in first, then connect Yahoo.', 'info');
-  Promise.all([loadPlayers(null).catch(function (e) { banner('Player data unavailable (' + esc(e.message) + ').', 'error'); }), initYahoo()]).then(function () {
+  Promise.all([loadPlayers(null).catch(function (e) { banner('Player data unavailable (' + esc(e.message) + ').', 'error'); }), initYahoo()]).then(loadProfile).then(function () {
     var qw = Number(qs.get('week'));
-    if (qw >= 1 && qw <= MAX_WEEK) S.week = qw;
+    if (qw >= 1 && qw <= maxWeek()) S.week = qw;
     var qd = qs.get('day');
     if (qd != null && /^\d{1,2}$/.test(qd)) S.day = Number(qd);
     if (S.week == null) S.week = S.currentWeek;

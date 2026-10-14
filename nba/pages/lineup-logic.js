@@ -12,7 +12,9 @@
 
   var STORAGE_PREFIX = 'pocket-nba-lineup:';
   var MAX_ROSTER = 20;
-  var SLOT_CHOICES = ['BN', 'G', 'F', 'UTIL'];
+  // Every slot name any profile uses (242808: PG…C, UTIL; High Score: G, FC, UTIL).
+  var SLOT_CHOICES = ['BN', 'PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'FC', 'UTIL', 'IL'];
+  var SLOT_GROUP = { PG: 'G', SG: 'G', G: 'G', SF: 'F', PF: 'F', F: 'F', FC: 'F', C: 'C', UTIL: 'UTIL' };
   var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   function normName(s) {
@@ -92,18 +94,46 @@
     return Object.keys(map || {}).filter(function (id) { return map[id] > 0; }).map(function (id) { return id + ':' + map[id]; }).join(',');
   }
 
-  function manualBody(state, week, day) {
+  // Slot picker options for a profile's starting slots: bench, each slot once, IL.
+  function slotChoices(slotList, ilSlots) {
+    var seen = {}, out = ['BN'];
+    (slotList || ['G', 'F', 'UTIL']).forEach(function (s) { if (!seen[s]) { seen[s] = 1; out.push(s); } });
+    if (ilSlots == null || ilSlots > 0) out.push('IL');
+    return out;
+  }
+  // CSS colour group for a slot or position badge.
+  function slotGroup(s) { return SLOT_GROUP[s] || 'UTIL'; }
+  // "PTS 1 · REB 1.2 · AST 1.5 · … · DD +5" from a profile scoring map.
+  function scoringText(sc) {
+    if (!sc) return '';
+    var lab = { pts: 'PTS', reb: 'REB', ast: 'AST', stl: 'STL', blk: 'BLK', to: 'TO', pf: 'PF', tech: 'TECH', dd: 'DD', td: 'TD' };
+    return Object.keys(lab).filter(function (k) { return sc[k]; }).map(function (k) {
+      var v = sc[k];
+      return lab[k] + ' ' + (k === 'dd' || k === 'td' ? '+' + v : v < 0 ? '−' + Math.abs(v) : v);
+    }).join(' · ');
+  }
+  // "PG, SG, G, SF, PF, F, C, 2 UTIL"
+  function slotListText(slotList) {
+    var counts = {}, order = [];
+    (slotList || []).forEach(function (s) { if (!counts[s]) order.push(s); counts[s] = (counts[s] || 0) + 1; });
+    return order.map(function (s) { return (counts[s] > 1 ? counts[s] + ' ' : '') + s; }).join(', ');
+  }
+  var NUM_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+  function countWord(n) { return NUM_WORD[n] || String(n); }
+
+  function manualBody(state, week, day, leagueId) {
     var b = bankedFor(state.banked, week);
     var body = {
       week: week,
       roster: state.roster.map(function (r) {
         var e = { id: r.id, slot: r.slot || 'BN' };
-        if (r.slot && r.slot !== 'BN' && b[r.id] > 0) e.banked = b[r.id];
+        if (r.slot && r.slot !== 'BN' && r.slot !== 'IL' && b[r.id] > 0) e.banked = b[r.id];
         return e;
       })
     };
     if (day != null) body.day = day;
     if (state.opponent && state.opponent.length) body.opponent = state.opponent.slice();
+    if (leagueId) body.league_id = String(leagueId);
     return body;
   }
 
@@ -157,6 +187,7 @@
 
   return {
     STORAGE_PREFIX: STORAGE_PREFIX, MAX_ROSTER: MAX_ROSTER, SLOT_CHOICES: SLOT_CHOICES,
+    slotChoices: slotChoices, slotGroup: slotGroup, scoringText: scoringText, slotListText: slotListText, countWord: countWord,
     normName: normName, searchPlayers: searchPlayers, parseRosterText: parseRosterText,
     emptyManual: emptyManual, storageKey: storageKey, serialize: serialize, deserialize: deserialize,
     bankedFor: bankedFor, setBanked: setBanked, bankedQuery: bankedQuery, manualBody: manualBody,
