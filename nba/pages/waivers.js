@@ -112,15 +112,15 @@
     if (a.max == null) addsTile = U.statTile({ label: 'Adds this week', value: 'No limit', sub: a.seasonMax == null ? 'No season cap' : a.seasonMax + ' per season' });
     else {
       var pips = L.addPips(a).map(function (p) { return '<i class="' + (p.used ? 'u' : '') + '"></i>'; }).join('');
-      addsTile = '<div class="nu-stat"><span class="nu-stat__label">Add budget this week</span>' +
+      addsTile = '<div class="nu-stat"><span class="nu-stat__label">Add budget</span>' +
         '<span class="nu-stat__value">' + esc(a.left) + '<small>of ' + esc(a.max) + ' left</small></span>' +
         '<div class="wv-pips" style="--n:' + a.max + '" aria-hidden="true">' + pips + '</div>' +
-        (manual ? '<span class="nu-stat__sub">' + (S.manual.addsUsed != null ? S.manual.addsUsed + ' used' : 'Assumes none used') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-adds-used">Set</button></span>'
+        (manual ? '<span class="nu-stat__sub">' + (S.manual.addsUsed != null ? S.manual.addsUsed + ' used' : '0 used') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-adds-used">Set</button></span>'
           : '<span class="nu-stat__sub">' + (a.source === 'yahoo' ? 'From Yahoo' : a.known ? '' : 'Yahoo didn\'t report adds used') + (a.seasonMax == null ? ' · no season cap' : '') + '</span>') + '</div>';
     }
     var prTile = '<div class="nu-stat"><span class="nu-stat__label">Waiver priority</span>' +
       '<span class="nu-stat__value">' + (pr.position ? '#' + esc(pr.position) + '<small>of ' + esc(pr.teams) + '</small>' : '—') + '</span>' +
-      (manual ? '<span class="nu-stat__sub">' + (pr.position ? (pr.rolling ? 'A claim sends you last' : 'Priority list') : 'Not set: claims cost nothing') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-priority">Set</button></span>'
+      (manual ? '<span class="nu-stat__sub">' + (pr.position ? (pr.rolling ? 'A claim sends you last' : 'Priority list') : 'Not set') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-priority">Set</button></span>'
         : '<span class="nu-stat__sub">' + esc(pr.position ? (pr.rolling ? 'Rolling list: a claim sends you last' : 'Priority list') : 'Not reported by Yahoo') + '</span>') + '</div>';
     var best = (r.pairs || [])[0];
     var bestTile = U.statTile({ label: 'Best gain ' + (r.midWeek ? 'rest of week' : 'this week'), value: best ? L.fmtGain(best.netGain) : '—', tone: best ? 'accent' : null, sub: best ? 'Add ' + best.add.name : 'No swap helps' });
@@ -304,11 +304,11 @@
     var hasDraft = !!L.importFromDraft(store.get(L.DRAFT_MANUAL_KEY));
     if (!ids.length) {
       sec.innerHTML = U.emptyState({ title: 'Add your roster to find pickups', body: 'Search your players and we\'ll rank every free agent by how much he adds to your lineup. Your roster stays on this device.',
-        action: '<div class="nu-row-flex" style="justify-content:center;gap:8px;margin-top:16px"><button type="button" class="nu-btn nu-btn--primary" data-open-roster>Add players</button>' + (hasDraft ? '<button type="button" class="nu-btn" data-import>Import from draft board</button>' : '') + '<a class="nu-btn nu-btn--yahoo" href="/nba/auth/login"' + ($('wv-connect').hidden ? ' hidden' : '') + '><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a></div>' });
+        action: '<div class="nu-row-flex" style="justify-content:center;gap:8px;margin-top:16px"><button type="button" class="nu-btn nu-btn--primary" data-open-roster>Add players</button>' + (hasDraft ? '<button type="button" class="nu-btn" data-import>Import from draft board</button>' : '') + '</div>' });
     } else {
       var stack = ids.slice(0, 7).map(function (id) { var p = S.byId[id] || { id: id, name: id }; return U.avatar(p, { size: 'sm' }); }).join('');
-      sec.innerHTML = '<div class="wv-roster-sum"><span class="wv-stack" aria-hidden="true">' + stack + '</span><span class="wv-roster-sum__txt"><b>' + ids.length + ' player' + (ids.length === 1 ? '' : 's') + ' on your team</b><span class="nu-hint">Manual roster · ' +
-        (S.manual.assumeTaken === false ? 'every other player counts as available' : 'top of the board treated as owned by other teams') + (S.manual.exclude.length ? ' · ' + S.manual.exclude.length + ' hidden' : '') + '</span></span>' +
+      sec.innerHTML = '<div class="wv-roster-sum"><span class="wv-stack" aria-hidden="true">' + stack + '</span><span class="wv-roster-sum__txt"><b>' + ids.length + ' player' + (ids.length === 1 ? '' : 's') + ' on your team</b><span class="nu-hint">' +
+        (S.manual.assumeTaken === false ? 'Everyone else counts as available' : 'Top of the board counts as owned') + (S.manual.exclude.length ? ' · ' + S.manual.exclude.length + ' hidden' : '') + '</span></span>' +
         '<button type="button" class="nu-btn nu-btn--sm" data-open-roster>Edit roster</button></div>';
     }
     renderRosterSheet();
@@ -342,6 +342,10 @@
     renderSide(r);
     renderRules(r);
     if (!r && !S.loading) { $('wv-list').innerHTML = ''; $('wv-count').textContent = ''; }
+    var emptyManual = S.source === 'manual' && !S.manual.roster.length;
+    $('wv-grid').hidden = !r && !S.loading;
+    $('wv-horizon').hidden = emptyManual;
+    if (emptyManual) $('wv-week').hidden = true;
     U.hydrateImages(document.getElementById('wv-app'));
   }
 
