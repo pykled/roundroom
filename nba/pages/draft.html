@@ -59,8 +59,12 @@
     <span id="nd-sync" class="nd-sync" role="status" aria-live="polite"></span>
     <span class="nd-status__txt" id="nd-sub"></span>
     <select id="nd-league" class="nu-select nd-league" aria-label="Yahoo league" hidden></select>
+    <button type="button" class="nd-status__edit" id="nd-league-switch" aria-label="Switch Yahoo league" hidden>Leagues</button>
     <button type="button" class="nd-status__edit" id="nd-slot-edit" aria-label="Change league settings">Edit</button>
   </div>
+
+  <!-- "Which league?" when Yahoo has several, or a Yahoo notice (down / not approved / no leagues / categories). -->
+  <section id="nd-leaguepick" class="nd-slotpick nd-leaguepick" aria-label="Yahoo league" hidden></section>
 
   <!-- "Which pick are you?": only when Yahoo hasn't supplied the draft slot. -->
   <section id="nd-slotpick" class="nd-slotpick" aria-label="Your draft slot" hidden></section>

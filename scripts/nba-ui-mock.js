@@ -13,6 +13,10 @@
                    on       connected, draft predraft (no picks yet)
                    live     connected, a pick lands every --interval seconds
                    degraded connected, but /api/nba/yahoo/draft returns 503
+                   blocked  /status 503 yahoo_app_blocked (Yahoo refuses the app, 2026-07 policy)
+                   upstream /status 502 yahoo_upstream (Yahoo 5xx)
+                   expired  /status { connected:false, reauth:true } (refresh token dead)
+       --leagues   one (default) | multi (3 leagues: 12t points, 10t points, 12t categories) | zero
    Runtime switch (handy for screenshots):
      POST /__mock/mode?yahoo=live&interval=2&reset=1&profile=off&lean=1   → { mode, picks }
      POST /__mock/advance?n=5                          → force n picks now
@@ -28,6 +32,7 @@ let mode = arg('yahoo', 'off');
 let intervalSec = Number(arg('interval', 3)) || 3;
 let profileOn = arg('profile', 'on') !== 'off';
 let lean = arg('lean', '0') === '1';
+let leagueSet = arg('leagues', 'one');
 
 /* ------------------------------------------------------------- fixture */
 // Real names/positions/ranks from Dillon's league (Yahoo player-list snapshot,
@@ -120,10 +125,19 @@ const YAHOO_FIELDS = ['yahooElig', 'eligConfidence', 'vorp', 'vorpBySlot', 'yaho
 const leanPlayers = () => PLAYERS.map(p => { const q = Object.assign({}, p); YAHOO_FIELDS.forEach(k => delete q[k]); return q; });
 
 /* ---------------------------------------------------------- yahoo mock */
-const LEAGUES = [
-  { league_key: '466.l.242808', name: 'HALIMSANITY 26-27', num_teams: 12, draft_status: 'predraft' },
-  { league_key: '466.l.67890', name: 'Office Hoops', num_teams: 12, draft_status: 'postdraft' }
+const ALL_LEAGUES = [
+  { league_key: '466.l.242808', name: 'HALIMSANITY 26-27', num_teams: 12, draft_status: 'predraft', scoring_type: 'headone' },
+  { league_key: '466.l.55555', name: 'Ten Team Points', num_teams: 10, draft_status: 'predraft', scoring_type: 'headpoint' },
+  { league_key: '466.l.67890', name: 'Office Hoops', num_teams: 12, draft_status: 'postdraft', scoring_type: 'head' }
 ];
+const leagueList = () => leagueSet === 'zero' ? [] : leagueSet === 'multi' ? ALL_LEAGUES : ALL_LEAGUES.slice(0, 1);
+// Other leagues: their own team count, and my draft_position 4 in each.
+function otherLeague(key) {
+  const meta = ALL_LEAGUES.find(l => l.league_key === key);
+  if (!meta) return null;
+  const tms = Array.from({ length: meta.num_teams }, (_, i) => ({ team_key: key + '.t.' + (i + 1), name: i === 3 ? 'Your Team' : 'Team ' + (i + 1), draft_position: i + 1, is_owned_by_current_login: i === 3 ? 1 : 0 }));
+  return { league: Object.assign({}, league, meta, { league_key: key }), teams: tms, myTeamKey: key + '.t.4' };
+}
 const TEAM_NAMES = ['Splash Bros', 'Glass Cleaners', 'Paint Protectors', 'Euro Steps', 'Your Team', 'Fast Breakers', 'Bench Mob', 'Lob City', 'Triple Doubles', 'Corner Threes', 'Iso Joes', 'Pick & Pop'];
 const NTEAMS = 12, ROUNDS = 16, MY_DP = 5;
 const LK = '466.l.242808';
@@ -197,7 +211,10 @@ app.get('/api/nba/league-profile', (req, res) => {
 app.get('/api/nba/health', (req, res) => res.json({ ok: true, yahooConfigured: true, modelAsOf: new Date().toISOString() }));
 app.get('/api/nba/yahoo/status', (req, res) => {
   if (mode === 'off') return res.json({ connected: false });
-  res.json({ connected: true, yahooGuid: 'MOCKGUID', leagues: LEAGUES.map(l => Object.assign({}, l, l.league_key === league.league_key ? { draft_status: draftStatus() } : {})) });
+  if (mode === 'blocked') return res.status(503).json({ error: 'Yahoo hasn’t approved Pocket’s Fantasy API access yet — manual mode works meanwhile', code: 'yahoo_app_blocked' });
+  if (mode === 'upstream') return res.status(502).json({ error: 'Yahoo is having trouble — try again in a minute', code: 'yahoo_upstream' });
+  if (mode === 'expired') return res.json({ connected: false, reauth: true });
+  res.json({ connected: true, yahooGuid: 'MOCKGUID', leagues: leagueList().map(l => Object.assign({}, l, l.league_key === league.league_key ? { draft_status: draftStatus() } : {})) });
 });
 function draftStatus() { return picks.length === 0 ? 'predraft' : picks.length >= NTEAMS * ROUNDS ? 'postdraft' : 'drafting'; }
 // Remaining slots (G's /draft `order`): the snake from the next pick on.
@@ -208,13 +225,16 @@ function remainingOrder() {
 }
 app.get('/api/nba/yahoo/league', (req, res) => {
   if (mode === 'off') return res.status(401).json({ error: 'yahoo_not_connected' });
-  if (req.query.league_key !== league.league_key) return res.json({ league: Object.assign({}, league, LEAGUES[1], { roster_positions: league.roster_positions }), teams: [], myTeamKey: null });
+  if (req.query.league_key !== league.league_key) return otherLeague(req.query.league_key) ? res.json(otherLeague(req.query.league_key)) : res.status(404).json({ error: 'Not found on Yahoo', code: 'yahoo_not_found' });
   res.json({ league: Object.assign({}, league, { draft_status: draftStatus() }), teams, myTeamKey: MY_TEAM_KEY });
 });
 app.get('/api/nba/yahoo/draft', (req, res) => {
   if (mode === 'off') return res.status(401).json({ error: 'yahoo_not_connected' });
   if (mode === 'degraded') return res.status(503).json({ error: 'yahoo_unavailable' });
-  if (req.query.league_key !== league.league_key) return res.json({ status: 'postdraft', picks: [], unmatched: [], polledAt: new Date().toISOString() });
+  if (req.query.league_key !== league.league_key) {
+    const meta = ALL_LEAGUES.find(l => l.league_key === req.query.league_key);
+    return res.json({ status: meta && meta.draft_status === 'postdraft' ? 'postdraft' : 'predraft', picks: [], unmatched: [], polledAt: new Date().toISOString() });
+  }
   const unmatched = picks.filter(p => !p.sleeperId).map(p => ({ player_key: p.player_key, name: { full: p.name }, editorial_team_abbr: '', display_position: '' }));
   res.json({ status: draftStatus(), picks, unmatched, order: remainingOrder(), onClock: remainingOrder()[0] || null, polledAt: new Date().toISOString() });
 });
@@ -226,6 +246,7 @@ app.post('/__mock/mode', (req, res) => {
   if (req.query.reset) picks.length = 0;
   if (req.query.profile) profileOn = req.query.profile !== 'off';
   if (req.query.lean != null) lean = req.query.lean === '1';
+  if (req.query.leagues) leagueSet = req.query.leagues;
   schedule();
   res.json({ mode, interval: intervalSec, picks: picks.length });
 });

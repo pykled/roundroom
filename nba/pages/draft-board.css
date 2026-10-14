@@ -31,6 +31,7 @@
 .nd-page .nd-status__txt b { color: var(--nu-text); font-weight: 700; }
 .nd-page .nd-status__edit { flex: none; background: none; border: 0; padding: 0 4px; min-height: 32px; color: var(--nu-accent-2); font: inherit; font-weight: 600; cursor: pointer; position: relative; }
 .nd-page .nd-status__edit::after { content: ""; position: absolute; inset: -6px -4px; }
+.nd-page .nd-status__edit[hidden] { display: none; }
 .nd-page .nd-status__edit:hover { text-decoration: underline; text-underline-offset: 3px; }
 .nd-page .nd-league { width: auto; max-width: 260px; min-height: 34px; padding-left: 10px; font-size: var(--nu-fs-sm); }
 .nd-page .nd-sync { display: inline-flex; align-items: center; gap: 7px; flex: none; height: 26px; padding: 0 10px; border-radius: var(--nu-r-pill); background: var(--nu-s2); border: 1px solid var(--nu-line); font-size: var(--nu-fs-xs); font-weight: 600; color: var(--nu-text-2); white-space: nowrap; }
@@ -55,6 +56,19 @@
 .nd-page .nd-slotpick__txt { min-width: 0; }
 .nd-page .nd-slotpick__txt b { color: var(--nu-text); font-weight: 700; }
 .nd-page .nd-slotpick__change { min-height: var(--nu-tap); border: 0; border-left: 1px solid var(--nu-line); border-radius: 0 var(--nu-r-md) var(--nu-r-md) 0; }
+/* League picker / Yahoo notices (reuses the .nd-slotpick card). */
+.nd-page .nd-leaguepick[data-mode="pick"] { border-color: var(--nu-accent-line); background: linear-gradient(180deg, var(--nu-accent-soft), transparent 70%), var(--nu-s1); }
+.nd-page .nd-leaguepick[data-mode="notice"] { padding: 0; border: 0; background: none; gap: var(--nu-2); }
+.nd-page .nd-leaguepick[data-mode="notice"] .nu-callout { flex: 1 1 100%; margin: 0; }
+.nd-page .nd-leaguepick__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--nu-2); width: 100%; }
+.nd-page .nd-leaguepick__list { display: grid; gap: 6px; width: 100%; }
+.nd-page .nd-leaguepick__opt { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; width: 100%; min-height: var(--nu-tap); padding: 8px var(--nu-3); border: 1px solid var(--nu-line); border-radius: var(--nu-r-md); background: var(--nu-s2, var(--nu-s1)); color: var(--nu-text); font: inherit; text-align: left; cursor: pointer; }
+.nd-page .nd-leaguepick__opt:hover, .nd-page .nd-leaguepick__opt:focus-visible { border-color: var(--nu-accent-line); }
+.nd-page .nd-leaguepick__opt[aria-pressed="true"] { border-color: var(--nu-accent-line); box-shadow: inset 3px 0 0 var(--nu-accent, #ff8a3d); }
+.nd-page .nd-leaguepick__opt--manual { background: none; border-style: dashed; }
+.nd-page .nd-leaguepick__nm { font-weight: 700; font-size: var(--nu-fs-body); overflow-wrap: anywhere; }
+.nd-page .nd-leaguepick__meta { color: var(--nu-text-2); font-size: var(--nu-fs-sm); }
+.nd-page .nd-leaguepick__flag { color: var(--nu-warn, #f59e0b); font-weight: 600; }
 @keyframes nd-ping { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); } 70% { box-shadow: 0 0 0 6px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
 
 .nd-page .nd-banner { margin-bottom: var(--nu-3); }
@@ -461,6 +475,10 @@
   .nd-page .nd-otc__who { font-size: var(--nu-fs-sm); white-space: normal; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .nd-page .nd-otc__sub { font-size: var(--nu-fs-xs); white-space: normal; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .nd-page .nd-league { display: none !important; }
+  /* Room for Leagues + Edit at 375: the sync pill gives way, never the buttons. */
+  .nd-page .nd-sync { flex: 0 1 auto; min-width: 0; overflow: hidden; }
+  .nd-page .nd-sync .nd-ago { display: none; }
+  .nd-page .nd-status__edit { flex: none; }
   .nd-page .nd-degraded { flex-wrap: wrap; font-size: var(--nu-fs-xs); }
   .nd-page .nd-degraded > div { flex: 1 1 calc(100% - 40px); }
   .nd-page .nd-degraded .nu-btn { margin-left: 30px; }

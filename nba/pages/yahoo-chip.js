@@ -99,7 +99,9 @@
       cls += ' on'; label = 'Yahoo';
       var cur = getLeague();
       var guid = s.yahooGuid ? String(s.yahooGuid) : '';
-      menu += '<div class="nyc-h"><b>Connected to Yahoo</b>' + (guid ? '<br>account ••••' + esc(guid.slice(-4)) : '') + '<br>' + s.leagues.length + ' NBA league' + (s.leagues.length === 1 ? '' : 's') + '</div>';
+      menu += '<div class="nyc-h"><b>Connected to Yahoo</b>' + (guid ? '<br>account ••••' + esc(guid.slice(-4)) : '') + '<br>' +
+        (s.leagues.length ? s.leagues.length + ' NBA league' + (s.leagues.length === 1 ? '' : 's') : 'No NBA leagues on this account this season. Joined with another Yahoo account? Reconnect with it.') + '</div>';
+      if (!s.leagues.length) cls += ' warn';
       if (s.leagues.length) {
         menu += '<div class="nyc-sec">League</div>';
         s.leagues.forEach(function (l) {
@@ -112,12 +114,23 @@
     } else if (s.httpStatus === 401) {
       label = 'Yahoo';
       menu = '<div class="nyc-h"><b>Sign in to connect Yahoo.</b><br>The board works without it in manual mode.</div><button type="button" class="nyc-item" role="menuitem" data-act="signin">Sign in</button>';
+    } else if (s.code === 'yahoo_app_blocked') {
+      // Yahoo refuses our app on every Fantasy endpoint until it is approved;
+      // retrying or reconnecting won't help, so no buttons that suggest it will.
+      cls += ' warn'; label = 'Yahoo sync off';
+      menu = '<div class="nyc-h"><b>Yahoo sync is unavailable.</b><br>Yahoo hasn’t approved Pocket’s Fantasy API access yet. Your connection is kept; the board works in manual mode.</div>';
+    } else if (s.reauth || s.code === 'yahoo_reauth') {
+      cls += ' warn'; label = 'Reconnect Yahoo';
+      menu = '<div class="nyc-h"><b>Yahoo sign-in expired.</b><br>Reconnect to keep live sync.</div><a class="nyc-item" role="menuitem" href="/nba/auth/login">Reconnect Yahoo</a>';
     } else if (s.httpStatus === 503 || s.code === 'yahoo_misconfigured') {
       cls += ' err'; label = 'Yahoo unavailable';
       menu = '<div class="nyc-h"><b>Yahoo is unavailable right now.</b><br>Your connection is kept; manual mode works meanwhile.</div><button type="button" class="nyc-item" role="menuitem" data-act="retry">Try again</button>';
-    } else if (s.httpStatus) {
+    } else if (s.httpStatus === 429) {
       cls += ' err'; label = 'Yahoo';
-      menu = '<div class="nyc-h"><b>Couldn’t check Yahoo (HTTP ' + esc(s.httpStatus) + ').</b></div><button type="button" class="nyc-item" role="menuitem" data-act="retry">Try again</button>';
+      menu = '<div class="nyc-h"><b>Yahoo is rate-limiting us.</b><br>Wait a few seconds and try again.</div><button type="button" class="nyc-item" role="menuitem" data-act="retry">Try again</button>';
+    } else if (s.httpStatus || s.httpStatus === 0) {
+      cls += ' err'; label = 'Yahoo';
+      menu = '<div class="nyc-h"><b>' + (s.httpStatus === 0 ? 'Can’t reach Pocket right now.' : 'Yahoo isn’t responding right now.') + '</b><br>Your connection is kept; manual mode works meanwhile.</div><button type="button" class="nyc-item" role="menuitem" data-act="retry">Try again</button>';
     } else if (s.reauth) {
       cls += ' warn'; label = 'Reconnect Yahoo';
       menu = '<div class="nyc-h"><b>Yahoo sign-in expired.</b><br>Reconnect to keep live sync.</div><a class="nyc-item" role="menuitem" href="/nba/auth/login">Reconnect Yahoo</a>';

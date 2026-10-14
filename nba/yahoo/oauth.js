@@ -38,13 +38,20 @@ function errorCode(data, status) {
 //   'misconfigured' — our app credentials are bad (invalid_client etc.): keep
 //                     every user's tokens; it is a server problem.
 //   'not_connected' — no tokens stored.
+//   'app_blocked'   — the Fantasy API refuses our app on every endpoint (403
+//                     "This application is not authorized to perform this
+//                     action"). Since 2026-07 Yahoo only serves apps approved
+//                     at sports.yahoo.com/developer/access; reconnecting does
+//                     not help, so user tokens are kept.
 //   'transient'     — anything else (network, 5xx, throttling).
 const CONFIG_CODES = new Set(['invalid_client', 'unauthorized_client', 'unsupported_grant_type', 'invalid_scope']);
+const APP_BLOCKED_RE = /not authorized to perform this action/i;
 function classifyError(err) {
   const code = err && err.code;
   if (code === 'not_connected') return 'not_connected';
   if (code === 'invalid_grant') return 'revoked';
   if (CONFIG_CODES.has(code)) return 'misconfigured';
+  if (err && err.status === 403 && err.source !== 'token' && APP_BLOCKED_RE.test(String(err.message || ''))) return 'app_blocked';
   return 'transient';
 }
 

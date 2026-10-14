@@ -390,7 +390,8 @@ async function freePort() {
       assert.ok(!/FAKE_ACCESS_TOKEN|FAKE_REFRESH_TOKEN/.test(txt));
       const j = JSON.parse(txt);
       assert.strictEqual(j.connected, true); assert.strictEqual(j.yahooGuid, 'FAKEGUID123');
-      assert.deepStrictEqual(j.leagues[0], { league_key: '466.l.12345', name: 'Pocket High Score', num_teams: 10, draft_status: 'predraft' });
+      assert.deepStrictEqual(j.leagues[0], { league_key: '466.l.12345', name: 'Pocket High Score', num_teams: 10, draft_status: 'predraft', scoring_type: 'headpoint' });
+      assert.deepStrictEqual(j.leagues.map(l => [l.league_key, l.num_teams, l.scoring_type]).slice(0, 2), [['466.l.12345', 10, 'headpoint'], ['466.l.67890', 12, 'head']]);
       assert.deepStrictEqual(await (await get('/api/nba/yahoo/status', 'user_C')).json(), { connected: false });
     });
     await test('league: settings + teams + myTeamKey', async () => {
@@ -589,6 +590,9 @@ async function freePort() {
     for (const c of ['invalid_client', 'unauthorized_client']) assert.strictEqual(oauthG.classifyError({ code: c }), 'misconfigured');
     assert.strictEqual(oauthG.classifyError({ code: 'not_connected' }), 'not_connected');
     assert.strictEqual(oauthG.classifyError({ status: 503 }), 'transient');
+    assert.strictEqual(oauthG.classifyError({ status: 403, message: 'Yahoo API 403: This application is not authorized to perform this action.' }), 'app_blocked');
+    assert.strictEqual(oauthG.classifyError({ status: 403, message: 'Yahoo API 403: You are not allowed to view this page' }), 'transient', 'other 403s are not app-level');
+    assert.strictEqual(oauthG.classifyError({ status: 403, source: 'token', message: 'not authorized to perform this action' }), 'transient');
   });
 
   console.log('nonces: persisted, single-use, multi-instance');
@@ -697,7 +701,15 @@ async function freePort() {
         fetchImpl: async url => {
           if (mode === 'keepers' && /draftresults/.test(url)) return resp(200, Q('draftresults-keepers-traded.json'));
           if (mode === 'auction' && /draftresults/.test(url)) return resp(200, Q('draftresults-auction.json'));
-          return mode === 'ok' || mode === 'keepers' || mode === 'auction' ? resp(200, yahooFixtureFor(url)) : resp(401, {});
+          // Yahoo's 2026-07 app-level refusal (every Fantasy endpoint, valid token).
+          if (mode === 'blocked') return resp(403, { error: { 'xml:lang': 'en-US', 'yahoo:uri': '/fantasy/v2/game/nba?format=json', description: 'This application is not authorized to perform this action.', detail: '' } });
+          if (mode === 'upstream') return resp(503, {});
+          if (mode === 'zero' && /users;use_login=1/.test(url)) {
+            const z = JSON.parse(JSON.stringify(yahooFixtureFor(url)));
+            z.fantasy_content.users['0'].user[1].games = { count: 0 };
+            return resp(200, z);
+          }
+          return mode === 'ok' || mode === 'zero' || mode === 'keepers' || mode === 'auction' ? resp(200, yahooFixtureFor(url)) : resp(401, {});
         } }),
     }));
     const gSrv = await new Promise(r => { const s2 = gApp.listen(0, '127.0.0.1', () => r(s2)); });
@@ -732,6 +744,35 @@ async function freePort() {
         await new Promise(r2 => setTimeout(r2, 5));
         assert.strictEqual(await gStore.get('user_R'), null);
         assert.ok(await gStore.get('user_M'), 'other users keep their tokens');
+      });
+      await test('Yahoo 403 "application is not authorized": 503 yahoo_app_blocked, tokens KEPT, no bare 502', async () => {
+        await seed('user_B'); gCache.clear(); mode = 'blocked'; logs.length = 0;
+        const st = await gGet('/api/nba/yahoo/status', 'user_B');
+        assert.strictEqual(st.status, 503);
+        const j = await st.json();
+        assert.strictEqual(j.code, 'yahoo_app_blocked');
+        assert.match(j.error, /approved/);
+        for (const p of ['/api/nba/yahoo/league?league_key=466.l.12345', '/api/nba/yahoo/draft?league_key=466.l.12345']) {
+          gCache.clear();
+          const r = await gGet(p, 'user_B');
+          assert.strictEqual(r.status, 503, p); assert.strictEqual((await r.json()).code, 'yahoo_app_blocked', p);
+        }
+        assert.ok(await gStore.get('user_B'), 'reconnecting would not help: tokens kept');
+        assert.strictEqual(logs.filter(l => /sports\.yahoo\.com\/developer\/access/.test(l)).length, 1, 'logged once per minute');
+        assert.ok(logs.every(l => !/ACC_SECRET_|REF_SECRET_/.test(l)));
+      });
+      await test('Yahoo 5xx after retries: 502 yahoo_upstream with a try-again message', async () => {
+        await seed('user_U'); gCache.clear(); mode = 'upstream';
+        const r = await gGet('/api/nba/yahoo/status', 'user_U');
+        assert.strictEqual(r.status, 502);
+        const j = await r.json();
+        assert.strictEqual(j.code, 'yahoo_upstream'); assert.match(j.error, /try again/i);
+        assert.ok(await gStore.get('user_U'));
+      });
+      await test('zero NBA leagues this season: connected, leagues []', async () => {
+        await seed('user_Z'); gCache.clear(); mode = 'zero';
+        const j = await (await gGet('/api/nba/yahoo/status', 'user_Z')).json();
+        assert.strictEqual(j.connected, true); assert.deepStrictEqual(j.leagues, []);
       });
       await test('diagnose endpoint: auth required, 409 when not connected, JSON + text report', async () => {
         mode = 'ok'; gCache.clear();

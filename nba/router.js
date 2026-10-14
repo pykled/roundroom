@@ -192,6 +192,11 @@ function createNbaRouter({
   }
   const MISCONFIGURED = { error: 'Yahoo app misconfigured — try again later', code: 'yahoo_misconfigured' };
 
+  // Yahoo refuses our app on every Fantasy endpoint (see oauth.classifyError).
+  // Not the user's fault and not fixed by reconnecting: tokens kept, one log a minute.
+  let lastBlockedLog = 0;
+  const APP_BLOCKED = { error: 'Yahoo hasn’t approved Pocket’s Fantasy API access yet — manual mode works meanwhile', code: 'yahoo_app_blocked' };
+
   function sendYahooError(res, err, uid) {
     switch (oauth.classifyError(err)) {
       case 'not_connected':
@@ -203,10 +208,19 @@ function createNbaRouter({
       case 'misconfigured':
         logMisconfigured(err);
         return res.status(503).json(MISCONFIGURED);
+      case 'app_blocked':
+        if (Date.now() - lastBlockedLog > 60 * 1000) {
+          lastBlockedLog = Date.now();
+          log.error('[nba] Yahoo Fantasy API refused the app (403 not authorized); needs approval at sports.yahoo.com/developer/access. User tokens kept.');
+        }
+        return res.status(503).json(APP_BLOCKED);
       default: {
-        const status = err && err.status === 429 ? 429 : err && err.status === 404 ? 404 : 502;
+        const s = err && err.status;
         log.error('[nba] yahoo error:', err && err.message);
-        return res.status(status).json({ error: status === 429 ? 'Yahoo rate limit — retry shortly' : 'Yahoo request failed' });
+        if (s === 429) return res.status(429).json({ error: 'Yahoo rate limit — retry shortly', code: 'yahoo_rate_limited' });
+        if (s === 404) return res.status(404).json({ error: 'Not found on Yahoo', code: 'yahoo_not_found' });
+        if (s === 401 || s === 403) return res.status(409).json({ error: 'Yahoo refused this request — reconnect Yahoo', code: 'yahoo_reauth' });
+        return res.status(502).json({ error: 'Yahoo is having trouble — try again in a minute', code: 'yahoo_upstream' });
       }
     }
   }
@@ -398,7 +412,9 @@ function createNbaRouter({
       res.json({
         connected: true,
         yahooGuid: tokens.xoauth_yahoo_guid || undefined,
-        leagues: leagues.map(l => ({ league_key: l.league_key, name: l.name, num_teams: l.num_teams, draft_status: l.draft_status })),
+        // Current-season NBA leagues only (getUserLeagues resolves this season's game key).
+        // scoring_type lets the page flag category/roto leagues before loading settings.
+        leagues: leagues.map(l => ({ league_key: l.league_key, name: l.name, num_teams: l.num_teams, draft_status: l.draft_status, scoring_type: l.scoring_type || null })),
       });
     } catch (err) {
       const kind = oauth.classifyError(err);
@@ -512,6 +528,7 @@ function createNbaRouter({
     // dropped; an app-credential failure only logs.
     const kinds = report.steps.filter(s => !s.ok).map(s => oauth.classifyError(s.error));
     if (kinds.includes('revoked')) { store.remove(uid).catch(() => {}); report.reauth = true; }
+    if (kinds.includes('app_blocked')) report.appBlocked = true; // Yahoo refuses the app itself; see oauth.classifyError
     if (kinds.includes('misconfigured')) { logMisconfigured({ code: (report.steps.find(s => !s.ok && oauth.classifyError(s.error) === 'misconfigured') || {}).error.code }); report.appMisconfigured = true; }
     if (req.query.format === 'text') {
       let text;

@@ -28,6 +28,8 @@
     sync: 'off',            // off | connecting | live | degraded
     failures: 0, lastOk: 0, nextPollAt: 0, pollTimer: null, lastErr: '',
     auction: false, signedOut: false, yahooDown: false,
+    // league picker / Yahoo notices: leagueMode from L.leagueChoice, problem from L.yahooProblem
+    leagueMode: null, pickerOpen: false, yahooProblem: null, support: { recos: true, kind: null, label: '' },
     // slot picker hold (no chip flash while Yahoo may still supply the slot)
     statusResolved: false, bootAt: Date.now(), maybeYahoo: false, leagueReady: true, leagueLoadAt: 0, slotHoldTimer: null,
     // pick timer: restarts whenever the pick on the clock changes
@@ -241,7 +243,7 @@
   }
   function render() {
     snapshot();
-    renderHead(); renderSlotPick(); renderFirstRun(); renderClock(); renderPulse(); renderReco(); renderWarns(); renderFilters(); renderBoard();
+    renderHead(); renderLeaguePick(); renderSlotPick(); renderFirstRun(); renderClock(); renderPulse(); renderReco(); renderWarns(); renderFilters(); renderBoard();
     renderRoster(); renderPicks(); renderReview(); renderSync(); renderMinibar();
     if (S.view === 'cheat') renderCheat();
     if (S.sheetId) renderSheet();
@@ -271,7 +273,8 @@
   function renderSlotPick() {
     var el = $('nd-slotpick'), v = L.slotPickerView(S.state.settings, { yahooKnown: slotKnownFromYahoo(), hold: slotHold(), chosen: S.state.slotChosen, open: S.slotOpen });
     el.setAttribute('data-mode', v.mode);
-    if (v.mode === 'hold') { el.hidden = true; el.innerHTML = ''; return; }
+    // Choosing between Yahoo leagues: the slot depends on which one, so ask that first.
+    if (v.mode === 'hold' || pickingLeague()) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
     if (v.mode === 'pick') {
       el.innerHTML = '<div class="nd-slotpick__head"><span class="nd-slotpick__q">Which pick are you?</span><span class="nu-hint">Your spot in round 1 of ' + esc(v.teams) + '</span></div>' +
@@ -357,7 +360,7 @@
   var recoCache = [];
   function renderReco() {
     var el = $('nd-reco'), ci = V.ci, st = V.st;
-    if (!S.players.length || ci.done || !ci.myNext) { el.hidden = true; recoCache = []; return; }
+    if (!S.players.length || ci.done || !ci.myNext || !S.support.recos) { el.hidden = true; recoCache = []; return; }
     var k = ci.onMe ? ci.gapNow : ci.gapNext;
     var list = L.bestAvailable(V.avail, V.matched, st, { picksUntilNext: k, nextPick: ci.myAfter, limit: 3 });
     recoCache = list;
@@ -984,46 +987,137 @@
       S.connected = !!(st && st.connected);
       S.leagues = (st && st.leagues) || [];
       S.signedOut = !!(st && st.httpStatus === 401);
-      S.yahooDown = !!(st && (st.httpStatus === 503 || st.code === 'yahoo_misconfigured'));
-    }).catch(function () { S.connected = false; S.leagues = []; }).then(function () {
+      S.yahooProblem = L.yahooProblem(st);
+      S.yahooDown = S.yahooProblem === 'down' || S.yahooProblem === 'blocked';
+    }).catch(function () { S.connected = false; S.leagues = []; S.yahooProblem = 'down'; S.yahooDown = true; }).then(function () {
       S.statusResolved = true;
-      var sel = $('nd-league');
-      if (!S.connected || !S.leagues.length) { sel.hidden = true; return selectLeague(null); }
       var pref = null; try { pref = localStorage.getItem(LEAGUE_PREF); } catch (e) {}
-      var pick = S.leagues.filter(function (l) { return l.league_key === pref; })[0]
-        || S.leagues.filter(function (l) { return l.draft_status !== 'postdraft'; })[0] || S.leagues[0];
-      sel.innerHTML = S.leagues.map(function (l) {
-        return '<option value="' + esc(l.league_key) + '">' + esc(l.name) + ' · ' + esc(l.num_teams) + ' teams' + (l.draft_status === 'postdraft' ? ' · drafted' : '') + '</option>';
-      }).join('') + '<option value="">Manual board (no league)</option>';
-      sel.value = pref === '' ? '' : pick.league_key;
-      sel.hidden = false;
-      return selectLeague(sel.value || null);
+      var choice = S.connected ? L.leagueChoice(S.leagues, pref) : { mode: 'none', key: null };
+      S.leagueMode = choice.mode;
+      fillLeagueSelect(choice.key || (choice.mode === 'manual' ? '' : null));
+      // 'pick': several leagues, none chosen on this device. Stay on the manual
+      // board without saving '' so the picker keeps showing until they choose.
+      return selectLeague(choice.key, { remember: choice.mode === 'auto' || choice.mode === 'saved' });
     });
   }
 
-  function selectLeague(key) {
+  function fillLeagueSelect(value) {
+    var sel = $('nd-league');
+    if (!S.connected || !S.leagues.length || S.leagueMode === 'pick') { sel.hidden = true; return; }
+    sel.innerHTML = S.leagues.map(function (l) {
+      return '<option value="' + esc(l.league_key) + '">' + esc(l.name) + ' · ' + esc(l.num_teams) + ' teams' + (l.draft_status === 'postdraft' ? ' · drafted' : '') + '</option>';
+    }).join('') + '<option value="">Manual board (no league)</option>';
+    sel.value = value == null ? '' : value;
+    sel.hidden = false;
+  }
+
+  function leagueMeta(key) { return S.leagues.filter(function (l) { return l.league_key === key; })[0] || null; }
+
+  // Chosen from the in-page picker, the select or the nav chip.
+  function chooseLeague(key) {
+    var same = S.pickerOpen && (key || null) === S.leagueKey;
+    S.pickerOpen = false;
+    if (same) { render(); return Promise.resolve(); } // re-tapped the current league: just close
+    S.leagueMode = key ? 'saved' : 'manual';
+    fillLeagueSelect(key || '');
+    return selectLeague(key || null);
+  }
+
+  function selectLeague(key, opts) {
+    var remember = !opts || opts.remember !== false;
     stopPolling();
     S.leagueKey = key; S.league = null; S.teams = []; S.myTeamKey = null; S.failures = 0; S.lastOk = 0; S.lastYahooCount = -1; S.auction = false;
+    S.support = L.leagueSupport(key ? leagueMeta(key) : null, null);
     S.slotOpen = false; S.leagueReady = !(key && S.connected); S.leagueLoadAt = Date.now();
-    try { if (S.connected) localStorage.setItem(LEAGUE_PREF, key || ''); } catch (e) {}
-    if (S.connected) window.dispatchEvent(new CustomEvent('pocket-nba:league', { detail: { leagueKey: key || null, source: 'page' } }));
+    try { if (S.connected && remember) localStorage.setItem(LEAGUE_PREF, key || ''); } catch (e) {}
+    if (S.connected && remember) window.dispatchEvent(new CustomEvent('pocket-nba:league', { detail: { leagueKey: key || null, source: 'page' } }));
     load(key, L.DEFAULT_SETTINGS);
     if (!key) { S.sync = 'off'; applyProfile(); recompute(); render(); return Promise.resolve(); }
     S.sync = 'connecting'; recompute(); render();
     return api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(key)).then(function (d) {
+      if (key !== S.leagueKey) return;
       S.league = d.league || null; S.teams = d.teams || []; S.myTeamKey = d.myTeamKey || null;
       // Yahoo's roster_positions win; the profile fills anything Yahoo leaves out.
       var base = S.profile ? L.settingsFromProfile(S.profile, S.state.settings) : S.state.settings;
       S.state.settings = L.settingsFromYahoo(S.league, S.myTeamKey, S.teams, base);
-      S.auction = L.isAuction(S.league, null);
+      S.support = L.leagueSupport(Object.assign({}, leagueMeta(key), S.league), null);
+      S.auction = S.support.kind === 'auction';
       save();
     }).catch(function (e) {
-      S.lastErr = e.code === 'yahoo_misconfigured' ? 'Yahoo unavailable' : e.status ? 'league ' + e.status : 'network';
+      if (key !== S.leagueKey) return;
+      S.lastErr = errText(e, 'league');
     }).then(function () {
+      if (key !== S.leagueKey) return;
       recompute(); render();
       if (S.auction) { S.sync = 'off'; stopPolling(); return; } // auction: manual mode, no Yahoo pick sync
       poll(true);
     });
+  }
+
+  // Short reason for the "Can't reach Yahoo (…)" banner, from the API error code.
+  function errText(e, what) {
+    switch (e && e.code) {
+      case 'yahoo_app_blocked': return 'Yahoo hasn’t approved Pocket’s API access yet';
+      case 'yahoo_upstream': return 'Yahoo is having trouble';
+      case 'yahoo_misconfigured': return 'Yahoo app issue on our side';
+      case 'yahoo_reauth': return 'Yahoo sign-in expired — reconnect';
+      case 'yahoo_rate_limited': return 'Yahoo rate limit';
+      case 'yahoo_not_connected': return 'Yahoo not connected';
+    }
+    return e && e.status ? (what ? what + ' ' : 'HTTP ') + e.status : 'offline';
+  }
+
+  function pickingLeague() {
+    return !!(S.connected && S.leagues.length && ((S.leagueMode === 'pick' && !S.leagueKey) || S.pickerOpen));
+  }
+
+  /* League picker + Yahoo notices, above the slot picker. One panel, one message. */
+  function renderLeaguePick() {
+    var el = $('nd-leaguepick');
+    if (!el) return;
+    // "Leagues" in the status line: the only league switch on phones (the
+    // select and the nav chip are desktop-only).
+    var sw = $('nd-league-switch');
+    if (sw) sw.hidden = !(S.connected && S.leagues.length > 1 && !pickingLeague());
+    var html = '', mode = '';
+    var reconnect = '<a class="nu-btn nu-btn--sm" href="/nba/auth/login">Reconnect Yahoo</a>';
+    if (S.yahooProblem === 'blocked') {
+      mode = 'notice';
+      html = U.callout('warn', '<b>Yahoo sync is unavailable.</b> Yahoo hasn’t approved Pocket’s access to its Fantasy API yet, so leagues and live picks can’t load. Your connection is kept. The board works in manual mode: pick your slot and tap Draft as picks happen.');
+    } else if (S.yahooProblem === 'down') {
+      mode = 'notice';
+      html = U.callout('error', '<b>Yahoo isn’t responding right now.</b> Manual mode works meanwhile; your connection is kept.') +
+        '<button type="button" class="nu-btn nu-btn--sm" data-act="yahoo-retry">Try again</button>';
+    } else if (S.yahooProblem === 'reauth') {
+      mode = 'notice';
+      html = U.callout('warn', '<b>Yahoo sign-in expired.</b> Reconnect to load your leagues and live picks.') + reconnect;
+    } else if (S.connected && !S.leagues.length) {
+      mode = 'notice';
+      html = U.callout('info', '<b>No NBA leagues on this Yahoo account for this season.</b> Joined with a different Yahoo account? Reconnect with that one. Manual mode works meanwhile.') + reconnect;
+    } else if (pickingLeague()) {
+      mode = 'pick';
+      html = '<div class="nd-leaguepick__head"><span class="nd-slotpick__q">Which league are you drafting?</span><span class="nu-hint">' + S.leagues.length + ' NBA leagues on your Yahoo account</span></div>' +
+        '<div class="nd-leaguepick__list" role="group" aria-label="Yahoo leagues">' + S.leagues.map(function (l) {
+          var sup = L.leagueSupport(l, null);
+          return '<button type="button" class="nd-leaguepick__opt" data-act="league" data-league="' + esc(l.league_key) + '" aria-pressed="' + (S.leagueKey === l.league_key) + '">' +
+            '<span class="nd-leaguepick__nm">' + esc(l.name || l.league_key) + '</span>' +
+            '<span class="nd-leaguepick__meta">' + esc(L.leagueSummary(l)) + (sup.kind === 'categories' ? ' · <span class="nd-leaguepick__flag">tracker only</span>' : '') + '</span></button>';
+        }).join('') +
+        '<button type="button" class="nd-leaguepick__opt nd-leaguepick__opt--manual" data-act="league" data-league="" aria-pressed="' + (S.pickerOpen && !S.leagueKey) + '"><span class="nd-leaguepick__nm">Manual board</span><span class="nd-leaguepick__meta">No Yahoo sync</span></button></div>';
+    } else if (S.connected && S.leagueKey && S.support.kind === 'categories') {
+      mode = 'notice';
+      var nm = (S.league && S.league.name) || (leagueMeta(S.leagueKey) || {}).name || 'This league';
+      html = U.callout('info', '<b>Recommendations are off for this league.</b> “' + esc(nm) + '” uses ' + esc(S.support.label) + ' scoring, and Pocket’s values are built for points leagues. Picks still sync, so the board works as a tracker.');
+    }
+    el.hidden = !html;
+    el.setAttribute('data-mode', mode);
+    if (el._html !== html) { el.innerHTML = html; el._html = html; }
+  }
+
+  function retryYahoo() {
+    S.yahooProblem = null; renderLeaguePick();
+    if (window.PocketYahoo) window.PocketYahoo.refresh();
+    initYahoo();
   }
 
   function stopPolling() { clearTimeout(S.pollTimer); S.pollTimer = null; }
@@ -1062,7 +1156,7 @@
       S.lastYahooCount = n;
     }).catch(function (e) {
       if (key !== S.leagueKey) return;
-      S.failures++; S.lastErr = e.code === 'yahoo_misconfigured' ? 'Yahoo app issue on our side' : e.code === 'yahoo_reauth' ? 'Yahoo sign-in expired — reconnect' : e.status ? 'HTTP ' + e.status : 'offline';
+      S.failures++; S.lastErr = errText(e);
       if (S.failures >= 2 || !S.lastOk) S.sync = 'degraded';
     }).then(function () {
       inflight = false;
@@ -1116,14 +1210,20 @@
       U.sheet.close(); toast('Draft reset');
     };
     $('nd-league').onchange = function () {
-      selectLeague(this.value || null);
+      chooseLeague(this.value || null);
     };
+    $('nd-leaguepick').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]');
+      if (!b) return;
+      if (b.getAttribute('data-act') === 'league') chooseLeague(b.getAttribute('data-league') || null);
+      else if (b.getAttribute('data-act') === 'yahoo-retry') retryYahoo();
+    });
+    $('nd-league-switch').onclick = function () { S.pickerOpen = true; render(); };
     // League chosen from the nav chip.
     window.addEventListener('pocket-nba:league', function (e) {
       if (!e.detail || e.detail.source !== 'chip' || !S.connected) return;
       var k = e.detail.leagueKey || '';
-      $('nd-league').value = k;
-      if ((k || null) !== S.leagueKey) selectLeague(k || null);
+      if ((k || null) !== S.leagueKey || S.leagueMode === 'pick') chooseLeague(k || null);
     });
     $('nd-timer').onclick = function () { S.timer.startedAt = Date.now(); S.timer.beeped = false; saveTimerRun(); renderTimer(clockInfo()); };
     $('nd-fr-manual').onclick = function () { dismissFirstRun(); toast('Manual board: tap Draft as picks happen'); };

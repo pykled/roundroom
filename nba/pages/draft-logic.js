@@ -821,6 +821,65 @@
     return !!(yahoo && (yahoo.auction === true || (yahoo.picks || []).some(function (p) { return p && p.cost != null; })));
   }
 
+  /* Which Yahoo league to open after /status. `pref` is the device's saved
+     choice: a league_key, '' (manual board), or null (never chosen).
+       none   — no NBA leagues this season (board stays manual)
+       saved  — the remembered league is still on the account
+       manual — the user picked "Manual board" before
+       auto   — exactly one league: open it without asking
+       pick   — several and nothing saved: ask (board stays manual meanwhile) */
+  function leagueChoice(leagues, pref) {
+    var ls = (leagues || []).filter(function (l) { return l && l.league_key; });
+    if (!ls.length) return { mode: 'none', key: null };
+    if (pref === '') return { mode: 'manual', key: null };
+    if (pref && ls.some(function (l) { return l.league_key === pref; })) return { mode: 'saved', key: pref };
+    if (ls.length === 1) return { mode: 'auto', key: ls[0].league_key };
+    return { mode: 'pick', key: null };
+  }
+
+  /* Yahoo scoring_type: headpoint (H2H points / High Score) and point are what
+     the board's values model; head (H2H categories) and roto are not. */
+  var CATEGORY_SCORING = { head: 'H2H categories', roto: 'Rotisserie' };
+  function scoringLabel(t) {
+    t = String(t || '').toLowerCase();
+    return CATEGORY_SCORING[t] || (t === 'headpoint' ? 'H2H points' : t === 'point' ? 'Points' : '');
+  }
+  // What the board can do for a league: { recos, kind: null|'auction'|'categories', label }.
+  // Auction keeps its own manual-mode path (isAuction); category scoring keeps
+  // pick sync (a tracker still helps) but hides points-based recommendations.
+  function leagueSupport(league, yahoo) {
+    if (isAuction(league, yahoo)) return { recos: true, kind: 'auction', label: 'Auction' };
+    var t = league && (league.scoring_type || (league.settings && league.settings.scoring_type));
+    if (t && CATEGORY_SCORING[String(t).toLowerCase()]) return { recos: false, kind: 'categories', label: CATEGORY_SCORING[String(t).toLowerCase()] };
+    return { recos: true, kind: null, label: scoringLabel(t) };
+  }
+
+  var DRAFT_STATUS_TEXT = { predraft: 'Draft not started', draft: 'Drafting now', drafting: 'Drafting now', postdraft: 'Drafted' };
+  // "12 teams · Draft not started · H2H categories" for the league picker.
+  function leagueSummary(l) {
+    var parts = [];
+    var n = parseInt(l && l.num_teams, 10);
+    if (n > 0) parts.push(n + ' teams');
+    if (l && DRAFT_STATUS_TEXT[l.draft_status]) parts.push(DRAFT_STATUS_TEXT[l.draft_status]);
+    var sc = scoringLabel(l && l.scoring_type);
+    if (sc) parts.push(sc);
+    return parts.join(' · ');
+  }
+
+  /* /status failure → what to tell the user. kind: 'blocked' (Yahoo refuses
+     our app; nothing the user can do), 'down' (Yahoo 5xx / unreachable: retry),
+     'reauth' (reconnect), 'signin', or null (no problem / not connected). */
+  function yahooProblem(st) {
+    if (!st) return null;
+    if (st.connected) return null;
+    if (st.reauth || st.code === 'yahoo_reauth') return 'reauth';
+    if (st.httpStatus === 401) return 'signin';
+    if (st.code === 'yahoo_app_blocked') return 'blocked';
+    if (st.httpStatus === 0 || st.httpStatus >= 500 || st.httpStatus === 429 || st.code === 'yahoo_upstream' || st.code === 'yahoo_misconfigured') return 'down';
+    if (st.httpStatus) return 'down';
+    return null;
+  }
+
   /* ---------------------------------------------------------- pick timer */
   var DEFAULT_PICK_SECONDS = 60;
   function normalizeTimerSeconds(v) {
@@ -1087,6 +1146,7 @@
     mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, yahooOrderSlot: yahooOrderSlot, slotPickerView: slotPickerView,
     slotPickerHold: slotPickerHold, SLOT_HOLD_STATUS_MS: SLOT_HOLD_STATUS_MS, SLOT_HOLD_LEAGUE_MS: SLOT_HOLD_LEAGUE_MS, legacySlotChosen: legacySlotChosen,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
+    leagueChoice: leagueChoice, leagueSupport: leagueSupport, leagueSummary: leagueSummary, scoringLabel: scoringLabel, yahooProblem: yahooProblem,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
     probGone: probGone, mktKey: mktKey,
