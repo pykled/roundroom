@@ -31,7 +31,13 @@
 .wv-controls .nu-seg { flex-shrink: 0; }
 .wv-week { flex: 1 1 180px; max-width: 260px; }
 .wv-src { flex: 1 1 180px; max-width: 260px; }
-@media (max-width: 560px) { .wv-week, .wv-src { max-width: none; } }
+@media (max-width: 560px) {
+  .wv-week, .wv-src { max-width: none; }
+  .nba-ui #wv-horizon { display: flex; width: 100%; }
+  .nba-ui #wv-horizon > button { flex: 1 1 0; }
+  .nba-ui #wv-horizon[hidden] { display: none; }
+  .wv-controls { gap: var(--nu-2); margin-bottom: var(--nu-4); }
+}
 #wv-callout:empty { display: none; }
 #wv-callout { margin-bottom: var(--nu-4); }
 
@@ -245,7 +251,7 @@
     <div class="wv-cal" id="wv-cal"></div>
   </section>
 
-  <div class="wv-grid">
+  <div class="wv-grid" id="wv-grid">
     <div>
       <section class="wv-sec" aria-labelledby="wv-list-h">
         <div class="nu-section__head"><h2 class="nu-section__title" id="wv-list-h">Best adds</h2><span class="nu-hint" id="wv-list-hint"></span></div>
