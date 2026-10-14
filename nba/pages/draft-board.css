@@ -6,6 +6,7 @@
    under body.nd-page and uses --nu-* tokens only. */
 
 .nd-page { --nd-nav-h: 56px; --nd-clock-h: 72px; --nd-filters-h: 96px; --nd-gap: 12px; --nd-mb-h: 64px; }
+@media (max-width: 768px) { .nd-page { --nd-nav-h: 52px; } } /* matches #rr-nav min-height on phones */
 .nd-page .nd-nav-fallback { display: none; }
 .nd-page [data-fam="G"] { --fam: var(--nu-pos-g); }
 .nd-page [data-fam="F"] { --fam: var(--nu-pos-f); }
@@ -192,14 +193,14 @@
 .nd-page .nd-sel { width: auto; flex: none; font-size: var(--nu-fs-sm); padding-left: 12px; }
 .nd-page .nd-chips { align-items: center; }
 .nd-page .nd-seg { display: contents; }
-.nd-page .nd-slotchip { min-height: 34px; padding: 0 11px; font-family: var(--nu-mono); font-size: 12px; font-weight: 500; gap: 7px; }
+.nd-page .nd-slotchip { min-height: 36px; padding: 0 11px; font-family: var(--nu-mono); font-size: 12px; font-weight: 500; gap: 7px; }
 .nd-page .nd-slotchip > span:first-child { color: var(--fam); }
 .nd-page .nd-slotchip[data-pos="ALL"] > span:first-child { color: inherit; font-family: var(--nu-font); font-weight: 650; }
 .nd-page .nd-slotchip.scarce .nu-chip__n { color: var(--nu-warn); }
 .nd-page .nd-slotchip.run .nu-chip__n { color: var(--nu-bad); }
 .nd-page .nd-slotchip.run::before { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--nu-bad); }
 .nd-page .nd-chips__sep { flex: none; width: 1px; height: 20px; background: var(--nu-line-2); margin: 0 4px; }
-.nd-page .nd-chips .nu-chip { min-height: 34px; }
+.nd-page .nd-chips .nu-chip { min-height: 36px; }
 .nd-page .nd-elig-note { margin: 0 0 8px; }
 
 /* ── Board table (div grid: dense on desktop, card rows on phones) ───── */
@@ -282,7 +283,7 @@
 
 /* sticky filter bar on wide screens (phones: filters scroll away) */
 @media (min-width: 768px) {
-  .nd-page .nd-filters { position: sticky; top: calc(var(--nd-nav-h) + var(--nd-clock-h) + var(--nd-gap)); z-index: 6; background: var(--nu-bg); padding-top: 6px; }
+  .nd-page .nd-filters { position: sticky; top: calc(var(--nd-nav-h) + var(--nd-clock-h) + var(--nd-gap)); z-index: 6; background: var(--nu-bg); padding-top: 6px; box-shadow: 0 calc(var(--nd-gap) * -1) 0 var(--nu-bg); }
 }
 /* tablets: drop the least-used columns */
 @media (min-width: 768px) and (max-width: 1199px) {
@@ -462,6 +463,7 @@
   .nd-page .nd-hbtn { width: 40px; padding: 0; }
   .nd-page .nd-hbtn .lbl-txt { display: none; }
   .nd-page .nd-status { margin-bottom: var(--nu-2); }
+  .nd-page .nd-status__txt { white-space: normal; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .nd-page .nd-status__more { display: none; }
   .nd-page .nd-status__lg { display: inline; }
   .nd-page .nd-league { max-width: 44vw; }

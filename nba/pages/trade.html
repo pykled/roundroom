@@ -220,7 +220,7 @@
   <nav id="rr-nav" aria-label="Main">
     <a href="/nba" class="rr-logo">Pocket</a>
     <div class="rr-links">
-      <a href="/nba" class="rr-link">Draft board</a>
+      <a href="/nba" class="rr-link">Draft Board</a>
       <a href="/nba/research" class="rr-link">Research</a>
       <a href="/nba/lineup" class="rr-link">Lineup</a>
       <a href="/nba/trade" class="rr-link active" aria-current="page">Trade</a>
@@ -234,11 +234,11 @@
   <header class="nu-page-head nu-page-head--court">
     <div class="nu-page-head__text">
       <div class="nu-eyebrow" id="nt-eyebrow">Yahoo High Score · Trade</div>
-      <h1 class="nu-page-head__title">Trade calculator</h1>
+      <h1 class="nu-page-head__title">Trade Calculator</h1>
       <p class="nu-page-head__sub">Accept, counter or decline, judged on your starting lineup for the rest of the season.</p>
     </div>
     <div class="nu-page-head__actions">
-      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="nt-how">How it works</button>
+      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="nt-how">How It Works</button>
     </div>
   </header>
 
@@ -248,7 +248,7 @@
     <span class="nu-tag" id="nt-mode-tag">Manual</span>
     <span class="nt-mode__note" id="nt-mode-note"></span>
     <span class="nu-spacer"></span>
-    <button type="button" class="nu-btn nu-btn--sm" id="nt-roster-btn">Your roster <span class="nu-count" id="nt-roster-count">0</span></button>
+    <button type="button" class="nu-btn nu-btn--sm" id="nt-roster-btn">Your Roster <span class="nu-count" id="nt-roster-count">0</span></button>
   </div>
 
   <div id="nt-banner" hidden></div>
@@ -257,7 +257,7 @@
       <div class="nt-sides">
         <section class="nu-card nu-card--flush nt-side-card" data-side="give" aria-labelledby="nt-give-h">
           <div class="nu-card__head">
-            <div class="nt-side-card__label"><span class="nt-side-card__dot" aria-hidden="true"></span><h2 class="nu-label" id="nt-give-h">You give</h2></div>
+            <div class="nt-side-card__label"><span class="nt-side-card__dot" aria-hidden="true"></span><h2 class="nu-label" id="nt-give-h">You Give</h2></div>
             <span class="nt-side-card__sum" id="nt-give-sum"></span>
           </div>
           <div class="nt-side-card__tools">
@@ -273,7 +273,7 @@
 
         <section class="nu-card nu-card--flush nt-side-card" data-side="get" aria-labelledby="nt-get-h">
           <div class="nu-card__head">
-            <div class="nt-side-card__label"><span class="nt-side-card__dot" aria-hidden="true"></span><h2 class="nu-label" id="nt-get-h">You get</h2></div>
+            <div class="nt-side-card__label"><span class="nt-side-card__dot" aria-hidden="true"></span><h2 class="nu-label" id="nt-get-h">You Get</h2></div>
             <span class="nt-side-card__sum" id="nt-get-sum"></span>
           </div>
           <div class="nt-side-card__tools">
@@ -292,7 +292,7 @@
     <div class="nt-detail">
       <section class="nu-card nu-card--flush" id="nt-lineup-card" aria-labelledby="nt-lu-h" hidden>
         <div class="nu-card__head" style="padding: var(--nu-4) var(--nu-4) 0">
-          <h2 class="nu-card__title" id="nt-lu-h">Your lineup, before → after</h2>
+          <h2 class="nu-card__title" id="nt-lu-h">Your Lineup, Before → After</h2>
           <span class="nu-num" id="nt-lu-delta"></span>
         </div>
         <p class="nu-hint" style="padding: 0 var(--nu-4) var(--nu-3)">A typical week. Highlighted slots change.</p>
@@ -302,7 +302,7 @@
 
       <section class="nu-card" id="nt-weeks-card" aria-labelledby="nt-wk-h" hidden>
         <div class="nu-card__head">
-          <h2 class="nu-card__title" id="nt-wk-h">Week by week</h2>
+          <h2 class="nu-card__title" id="nt-wk-h">Week by Week</h2>
           <span class="nu-num" id="nt-weeks-sum"></span>
         </div>
         <div class="nt-weeks" id="nt-weeks" role="img"></div>
@@ -325,14 +325,14 @@
   <div class="nu-actionbar nt-actionbar" id="nt-actionbar" hidden>
     <span class="nt-vpill" id="nt-ab-pill"></span>
     <div class="nu-actionbar__info"><b id="nt-ab-title"></b><span id="nt-ab-sub"></span></div>
-    <button type="button" class="nu-btn nu-btn--primary nu-btn--sm" id="nt-ab-btn">See why</button>
+    <button type="button" class="nu-btn nu-btn--primary nu-btn--sm" id="nt-ab-btn">See Why</button>
   </div>
 </main>
 
 <!-- add-player sheet (phones; the desktop uses the inline search) -->
 <div class="nu-sheet" id="nt-pick-sheet" role="dialog" aria-modal="true" aria-labelledby="nt-pick-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-pick-t">Add a player</h2>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-pick-t">Add a Player</h2>
     <button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body">
     <div class="nt-sheet-search"><label class="nu-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
@@ -345,7 +345,7 @@
 <!-- roster sheet (manual mode) -->
 <div class="nu-sheet" id="nt-roster-sheet" role="dialog" aria-modal="true" aria-labelledby="nt-roster-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-roster-t">Your roster</h2>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-roster-t">Your Roster</h2>
     <button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body nu-stack">
     <p class="nu-hint" id="nt-roster-hint">The calculator needs your whole team to know who'd start. Add your 14 players (bench included).</p>
@@ -354,16 +354,16 @@
         <input class="nu-input" type="search" id="nt-roster-q" placeholder="Add a player to your roster" autocomplete="off" aria-label="Add a player to your roster" aria-controls="nt-roster-opts"></label></div>
       <div class="nt-picklist" id="nt-roster-opts" role="listbox" aria-label="Search results"></div>
     </div>
-    <div class="nt-roster-head"><span class="nu-label" id="nt-roster-n">0 players</span><button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="nt-import">Import from draft board</button></div>
+    <div class="nt-roster-head"><span class="nu-label" id="nt-roster-n">0 players</span><button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="nt-import">Import from Draft Board</button></div>
     <div class="nu-list" id="nt-roster-list"></div>
   </div>
-  <div class="nu-sheet__foot"><button type="button" class="nu-btn" id="nt-roster-clear">Clear roster</button><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn" id="nt-roster-clear">Clear Roster</button><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
 </div>
 
 <!-- explainer -->
 <div class="nu-sheet nt-explain" id="nt-how-sheet" role="dialog" aria-modal="true" aria-labelledby="nt-how-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-how-t">How the trade calculator works</h2>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nt-how-t">How the Trade Calculator Works</h2>
     <button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body">
     <ol>
@@ -374,13 +374,13 @@
       <li><b>Playoffs count extra.</b> The playoff weeks weigh 1.5× because that's where titles are won.</li>
       <li><b>We check the other side too.</b> Their team is scored the same way, so you can see whether they'd say yes. Without their roster, a typical team stands in.</li>
     </ol>
-    <h3>Reading the verdict</h3>
+    <h3>Reading the Verdict</h3>
     <dl>
       <dt class="nu-good">Accept</dt><dd>You gain at least a few points a week.</dd>
       <dt style="color:var(--nu-warn)">Counter</dt><dd>Close to even, or a small loss they'd win big on. Ask for a small add.</dd>
       <dt class="nu-bad">Decline</dt><dd>You lose clearly, whatever they gain.</dd>
     </dl>
-    <h3>The range</h3>
+    <h3>The Range</h3>
     <p class="nu-body">Projections are guesses. The shaded band shows where the real result probably lands. A wide band crossing zero means the deal could go either way.</p>
   </div>
 </div>

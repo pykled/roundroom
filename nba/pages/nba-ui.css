@@ -307,6 +307,7 @@ body.nba-ui {
 .nba-ui .nu-page-head__title { font-size: var(--nu-fs-display); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
 .nba-ui .nu-page-head__sub { font-size: var(--nu-fs-body); color: var(--nu-text-2); max-width: 62ch; line-height: 1.5; }
 .nba-ui .nu-page-head__actions { display: flex; gap: var(--nu-2); flex-wrap: wrap; align-items: center; }
+@media (max-width: 767px) { .nba-ui .nu-page-head__actions > .nu-btn--ghost:first-child { margin-left: -12px; } }
 /* court lines: half-court circle + 3pt arc, top-right, masked; 1px, 8% */
 .nba-ui .nu-page-head--court::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
@@ -815,6 +816,7 @@ body.nba-ui.nu-scroll-lock { overflow: hidden; }
 .nba-ui .nu-actionbar__info span { font-size: var(--nu-fs-xs); color: var(--nu-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 768px) {
   body.nba-ui.nu-has-tabbar .nu-actionbar { bottom: calc(var(--nu-tabbar-h) + var(--nu-2) + var(--nu-safe-b)); }
+  .nba-ui .nu-actionbar__info span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.35; }
 }
 
 

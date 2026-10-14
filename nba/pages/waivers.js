@@ -141,7 +141,7 @@
       '</div>' +
       '<div class="wv-swap__foot"><div class="wv-swap__gain"><b>' + L.fmtGain(p.netGain) + '</b><span>pts ' + esc(span) + '</span></div>' +
         (focus ? statusChip(add) : '') +
-        '<button type="button" class="nu-btn' + (focus ? '' : ' nu-btn--sm nu-btn--ghost') + '" data-copy="' + i + '" data-umami-event="nba-waivers-copy">Copy claim</button></div>' +
+        '<button type="button" class="nu-btn' + (focus ? '' : ' nu-btn--sm nu-btn--ghost') + '" data-copy="' + i + '" data-umami-event="nba-waivers-copy">Copy Claim</button></div>' +
     '</article>';
   }
 
@@ -153,9 +153,9 @@
     var wk = L.weekLabel(r.weeks[0], r.weekDates);
     $('wv-swaps-hint').textContent = wk.title + (wk.span ? ' · ' + wk.span : '');
     if (!pairs.length) {
-      var why = r.adds && r.adds.left === 0 ? { title: 'No adds left this week', body: 'You\'ve used your weekly adds. The list below still shows who to watch for next week.' }
-        : r.targets && r.targets.length ? { title: 'Your roster is set', body: 'No add/drop beats your current lineup this week. Check the calendar for next week\'s 4-game streamers.' }
-        : { title: 'No free agents to rank', body: r.unmatched && r.unmatched.roster && r.unmatched.roster.length ? 'Some of your players aren\'t in our model yet (see Not matched).' : 'Try a different week or show more players.' };
+      var why = r.adds && r.adds.left === 0 ? { title: 'No Adds Left This Week', body: 'You\'ve used your weekly adds. The list below still shows who to watch for next week.' }
+        : r.targets && r.targets.length ? { title: 'Your Roster Is Set', body: 'No add/drop beats your current lineup this week. Check the calendar for next week\'s 4-game streamers.' }
+        : { title: 'No Free Agents to Rank', body: r.unmatched && r.unmatched.roster && r.unmatched.roster.length ? 'Some of your players aren\'t in our model yet (see Not matched).' : 'Try a different week or show more players.' };
       $('wv-swaps').innerHTML = '<div class="nu-card">' + U.emptyState(why) + '</div>';
       $('wv-more-swaps').innerHTML = ''; $('wv-more-swaps-h').hidden = true;
       $('wv-actionbar').hidden = true; document.body.classList.remove('nu-has-actionbar');
@@ -202,7 +202,7 @@
         '<div>Typical game <b class="nu-num">' + L.fmt1(t.mean) + '</b> · ceiling <b class="nu-num">' + L.fmt1(t.ceiling) + '</b> · floor <b class="nu-num">' + L.fmt1(t.floor) + '</b>' +
         (t.role && !t.role.stale ? ' · minutes last 5: <b class="nu-num">' + L.fmt1(t.role.recentMin) + '</b> vs ' + L.fmt1(t.role.seasonMin) : '') + '</div>' +
         (t.reasons && t.reasons.length ? '<div>' + t.reasons.map(esc).join(' · ') + '</div>' : '') +
-        '<div class="wv-acts"><button type="button" class="nu-btn nu-btn--sm" data-copy-t="' + esc(t.id) + '">Copy claim</button>' +
+        '<div class="wv-acts"><button type="button" class="nu-btn nu-btn--sm" data-copy-t="' + esc(t.id) + '">Copy Claim</button>' +
         (S.source === 'manual' ? '<button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="taken" data-id="' + esc(t.id) + '">Someone owns him</button><button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="waiver" data-id="' + esc(t.id) + '">' + (t.onWaivers ? 'He\'s a free agent' : 'He\'s on waivers') + '</button><button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="add" data-id="' + esc(t.id) + '">I added him</button>' : '') +
         '</div></div>';
     }
@@ -224,7 +224,7 @@
     $('wv-count').textContent = all.length + ' of ' + r.targets.length + ' free agents';
     $('wv-list-hint').textContent = r.midWeek ? 'Counts only games left this week' : 'Gain to your best lineup';
     if (!all.length) {
-      list.innerHTML = '<li class="nu-card">' + U.emptyState(r.targets.length ? { title: 'Nobody matches these filters', body: 'Turn a filter off to see more players.' } : { title: 'No free agents found', body: 'Your league may have no one left to add.' }) + '</li>';
+      list.innerHTML = '<li class="nu-card">' + U.emptyState(r.targets.length ? { title: 'Nobody Matches These Filters', body: 'Turn a filter off to see more players.' } : { title: 'No Free Agents Found', body: 'Your league may have no one left to add.' }) + '</li>';
       $('wv-more').hidden = true;
       return;
     }
@@ -303,8 +303,8 @@
     var ids = S.manual.roster;
     var hasDraft = !!L.importFromDraft(store.get(L.DRAFT_MANUAL_KEY));
     if (!ids.length) {
-      sec.innerHTML = U.emptyState({ title: 'Add your roster to find pickups', body: 'Search your players and we\'ll rank every free agent by how much he adds to your lineup. Your roster stays on this device.',
-        action: '<div class="nu-row-flex" style="justify-content:center;gap:8px;margin-top:16px"><button type="button" class="nu-btn nu-btn--primary" data-open-roster>Add players</button>' + (hasDraft ? '<button type="button" class="nu-btn" data-import>Import from draft board</button>' : '') + '</div>' });
+      sec.innerHTML = U.emptyState({ title: 'Add Your Roster to Find Pickups', body: 'Search your players and we\'ll rank every free agent by how much he adds to your lineup. Your roster stays on this device.',
+        action: '<div class="nu-row-flex" style="justify-content:center;gap:8px;margin-top:16px"><button type="button" class="nu-btn nu-btn--primary" data-open-roster>Add Players</button>' + (hasDraft ? '<button type="button" class="nu-btn" data-import>Import from Draft Board</button>' : '') + '</div>' });
     } else {
       var stack = ids.slice(0, 7).map(function (id) { var p = S.byId[id] || { id: id, name: id }; return U.avatar(p, { size: 'sm' }); }).join('');
       sec.innerHTML = '<div class="wv-roster-sum"><span class="wv-stack" aria-hidden="true">' + stack + '</span><span class="wv-roster-sum__txt"><b>' + ids.length + ' player' + (ids.length === 1 ? '' : 's') + ' on your team</b><span class="nu-hint">' +
@@ -316,7 +316,7 @@
 
   function renderRosterSheet() {
     var ids = S.manual.roster;
-    $('wv-rcount').textContent = 'On your team · ' + ids.length + ' / ' + L.MAX_ROSTER;
+    $('wv-rcount').textContent = 'On Your Team · ' + ids.length + ' / ' + L.MAX_ROSTER;
     $('wv-rlist').innerHTML = ids.map(function (id) {
       var p = S.byId[id] || { id: id, name: id };
       return '<li>' + U.playerCell(p, { size: 'md', meta: U.posPill(posOf(p).slice(0, 3)) + '<span>' + esc(p.team || '') + '</span>' + (p.injury ? U.injuryBadge(p.injury) : '') }) +
@@ -585,7 +585,7 @@
     var key = window.__clerk_publishable_key;
     if (!key || key.indexOf('PLACEHOLDER') >= 0) return;
     var auth = document.querySelector('#rr-nav .rr-auth');
-    if (auth && !$('user-btn-mount')) auth.insertAdjacentHTML('beforeend', '<div id="user-btn-mount"></div><button type="button" class="nu-btn nu-btn--sm" id="rr-sign-in" hidden>Sign in</button>');
+    if (auth && !$('user-btn-mount')) auth.insertAdjacentHTML('beforeend', '<div id="user-btn-mount"></div><button type="button" class="nu-btn nu-btn--sm" id="rr-sign-in" hidden>Sign In</button>');
     var s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
     s.crossOrigin = 'anonymous'; s.async = true;

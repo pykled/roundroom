@@ -29,7 +29,7 @@
 <!-- Static fallback (replaced by NbaUI.mountNav before first paint). -->
 <div data-nu-nav>
   <nav id="rr-nav" class="nd-nav-fallback" aria-label="Main">
-    <a href="/nba">Draft board</a> <a href="/nba/research">Research</a> <a href="/nba/lineup">Lineup</a> <a href="/nba/trade">Trade</a> <a href="/nba/waivers">Waivers</a>
+    <a href="/nba">Draft Board</a> <a href="/nba/research">Research</a> <a href="/nba/lineup">Lineup</a> <a href="/nba/trade">Trade</a> <a href="/nba/waivers">Waivers</a>
   </nav>
 </div>
 <script>NbaUI.mountNav({ active: 'board' });</script>
@@ -43,10 +43,10 @@
     <div class="nd-head__actions">
       <div class="nu-seg nd-views" id="nd-views" role="group" aria-label="View">
         <button type="button" data-view="board" aria-pressed="true">Board</button>
-        <button type="button" data-view="cheat" aria-pressed="false">Cheat sheet</button>
+        <button type="button" data-view="cheat" aria-pressed="false">Cheat Sheet</button>
       </div>
-      <button id="nd-about-btn" class="nu-btn nu-btn--ghost nu-btn--sm nd-hbtn" type="button" aria-haspopup="dialog" aria-controls="nd-about" aria-label="How it works">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="lbl-txt">How it works</span>
+      <button id="nd-about-btn" class="nu-btn nu-btn--ghost nu-btn--sm nd-hbtn" type="button" aria-haspopup="dialog" aria-controls="nd-about" aria-label="How It Works">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="lbl-txt">How It Works</span>
       </button>
       <button id="nd-settings-btn" class="nu-btn nu-btn--sm nd-hbtn" type="button" aria-haspopup="dialog" aria-label="League settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span class="lbl-txt">League</span>
@@ -74,7 +74,7 @@
 
   <section id="nd-firstrun" class="nu-card nd-setup" aria-labelledby="nd-fr-h" hidden>
     <div class="nd-setup__head">
-      <h2 id="nd-fr-h" class="nu-card__title">Set up your draft</h2>
+      <h2 id="nd-fr-h" class="nu-card__title">Set Up Your Draft</h2>
       <button id="nd-fr-close" type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" aria-label="Dismiss setup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
@@ -87,7 +87,7 @@
       </div>
       <div class="nd-setup__opt">
         <p><b>Or track it by hand.</b> Set your draft slot under League, then tap <b>Draft</b> as picks happen. Saved on this device.</p>
-        <button id="nd-fr-manual" type="button" class="nu-btn nu-btn--sm">Use manual board</button>
+        <button id="nd-fr-manual" type="button" class="nu-btn nu-btn--sm">Use Manual Board</button>
       </div>
     </div>
   </section>
@@ -134,7 +134,7 @@
             <div class="nd-seg" id="nd-seg" role="group" aria-label="Slot filter (number = eligible players left in the top 40)"></div>
             <span class="nd-chips__sep" aria-hidden="true"></span>
             <button id="nd-hide-out" class="nu-chip" type="button" aria-pressed="false">Hide OUT</button>
-            <button id="nd-show-taken" class="nu-chip" type="button" aria-pressed="false">Show drafted</button>
+            <button id="nd-show-taken" class="nu-chip" type="button" aria-pressed="false">Show Drafted</button>
           </div>
         </div>
         <p class="nu-hint nd-elig-note" id="nd-elig-note" hidden>Dashed position tags are estimates until Yahoo eligibility loads. Check a player’s Yahoo positions before counting on a slot.</p>
@@ -151,7 +151,7 @@
 
     <aside id="nd-side" class="nd-side" aria-label="My team">
       <section class="nu-card nd-team" aria-labelledby="nd-roster-h">
-        <div class="nd-team__head"><h2 class="nu-card__title" id="nd-roster-h">My team</h2><span class="nu-hint" id="nd-roster-total"></span></div>
+        <div class="nd-team__head"><h2 class="nu-card__title" id="nd-roster-h">My Team</h2><span class="nu-hint" id="nd-roster-total"></span></div>
         <div id="nd-roster"></div>
       </section>
       <details id="nd-review" class="nd-review" hidden>
@@ -160,14 +160,14 @@
         <div id="nd-review-list"></div>
       </details>
       <section class="nu-card nd-picks-card" aria-labelledby="nd-picks-h">
-        <div class="nd-team__head"><h2 class="nu-section__title" id="nd-picks-h">Recent picks</h2><span class="nu-hint" id="nd-picks-total"></span></div>
+        <div class="nd-team__head"><h2 class="nu-section__title" id="nd-picks-h">Recent Picks</h2><span class="nu-hint" id="nd-picks-total"></span></div>
         <div id="nd-picks"></div>
       </section>
     </aside>
   </div>
 
   <section class="nd-about-seo">
-    <h2 class="nu-label">How the High Score draft board ranks players</h2>
+    <h2 class="nu-label">How the High Score Draft Board Ranks Players</h2>
     <p class="nu-hint">In Yahoo High Score leagues only each starter's single best game of the week counts, scored with your league's own stat values. The board ranks players by the expected value of that best game over a typical week, so volatile players with big ceilings and teams with four-game weeks rise. The best-available pick weighs what each player adds to your open starter slots (PG, SG, G, SF, PF, F, C, UTIL, using Yahoo's position eligibility) against what will still be there at your next turn, and flags positions that are running dry.</p>
   </section>
 </main>
@@ -193,7 +193,7 @@
 <!-- My team on phones -->
 <div class="nu-sheet" id="nd-team-sheet" role="dialog" aria-modal="true" aria-labelledby="nd-ts-h" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-ts-h">My team</h2><span class="nu-hint" id="nd-ts-total"></span>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-ts-h">My Team</h2><span class="nu-hint" id="nd-ts-total"></span>
     <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" id="nd-side-close" data-nu-close type="button" aria-label="Close my team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body" id="nd-ts-body"></div>
 </div>
@@ -202,7 +202,7 @@
 <div class="nu-sheet" id="nd-settings" role="dialog" aria-modal="true" aria-labelledby="nd-settings-h" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
   <form id="nd-settings-form" class="nd-settings-form" novalidate>
-    <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-settings-h">League settings</h2>
+    <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-settings-h">League Settings</h2>
       <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div class="nu-sheet__body">
       <p class="nu-hint" id="nd-settings-hint">Manual draft tracking.</p>
@@ -213,10 +213,10 @@
       </div>
       <div class="nu-label nd-fields-h">Roster slots</div>
       <div class="nd-fields nd-slot-fields" id="nd-slot-fields"></div>
-      <button type="button" class="nd-link" id="nd-profile-reset" hidden>Use the league profile again</button>
+      <button type="button" class="nd-link" id="nd-profile-reset" hidden>Use the League Profile Again</button>
     </div>
     <div class="nu-sheet__foot nd-settings-foot">
-      <button type="button" class="nu-btn nu-btn--ghost nd-danger" id="nd-reset">Reset draft</button>
+      <button type="button" class="nu-btn nu-btn--ghost nd-danger" id="nd-reset">Reset Draft</button>
       <button type="button" value="cancel" class="nu-btn" data-nu-close>Cancel</button>
       <button type="submit" value="save" class="nu-btn nu-btn--primary">Save</button>
     </div>
@@ -226,7 +226,7 @@
 <!-- How it works -->
 <div class="nu-sheet" id="nd-about" role="dialog" aria-modal="true" aria-labelledby="nd-about-h" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-about-h">How it works</h2>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-about-h">How It Works</h2>
     <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body">
     <ol class="nd-about-list">
@@ -238,7 +238,7 @@
     </ol>
     <p class="nu-hint nd-about-foot">Values use your league’s scoring and roster slots. Players drafted by anyone leave the board. Shortcuts: <span class="nu-kbd">/</span> search · <span class="nu-kbd">c</span> cheat sheet · <span class="nu-kbd">⌘Z</span> undo.</p>
   </div>
-  <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got it</button></div>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got It</button></div>
 </div>
 
 <footer class="rr-footer">

@@ -141,7 +141,7 @@
     var wk = weeks[S.week - 1];
     var r = S.result;
     var win = (r && r.window) || (wk ? { start: wk.start, end: wk.end, days: wk.days, playoffs: wk.playoffs } : null);
-    $('ln-title').textContent = 'Week ' + S.week + ' lineup';
+    $('ln-title').textContent = 'Week ' + S.week + ' Lineup';
     var name = (r && r.profile && r.profile.name) || (S.profile && S.profile.name);
     $('ln-eyebrow').textContent = (name ? name + ' · ' : '') + 'Yahoo High Score';
     var sl = slotListOf();
@@ -195,7 +195,7 @@
       el.innerHTML = '<div class="ln-layout"><section class="nu-card ln-hero" aria-busy="true"><div class="nu-stats nu-stats--2">' + U.skeleton(2, { kind: 'tile' }) + '</div></section><section class="ln-board"><div class="nu-list">' + U.skeleton(9) + '</div></section></div>';
       return;
     }
-    if (S.error && !r) { el.innerHTML = U.callout('error', '<b>Couldn’t build the lineup.</b> ' + esc(S.error.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-act="retry">Try again</button>'); return; }
+    if (S.error && !r) { el.innerHTML = U.callout('error', '<b>Couldn’t build the lineup.</b> ' + esc(S.error.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-act="retry">Try Again</button>'); return; }
     if (!r) { el.innerHTML = S.mode === 'manual' ? emptyHtml() : ''; hydrate(el); return; }
 
     var h = '';
@@ -226,10 +226,10 @@
       h += '<div class="nu-label">Win probability' + (r.matchup.opponentName ? ' · vs ' + esc(r.matchup.opponentName) : '') + '</div><div class="ln-hero__pct">' + L.winText(wp) + '</div>' +
         '<div class="nu-meter nu-meter--split" role="img" aria-label="' + L.winText(wp) + ' chance to win"><span class="ln-me" style="width:' + (wp * 100).toFixed(1) + '%"></span><span class="ln-them" style="width:' + ((1 - wp) * 100).toFixed(1) + '%"></span></div>' +
         '<div class="ln-hero__vs"><span>You ' + n1(t.expected) + '</span><span>Them ' + n1(r.matchup.opponentExpected) + '</span></div>' +
-        (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="opp" style="margin-left:-12px">Edit opponent</button></div>' : '');
+        (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="opp" style="margin-left:-12px">Edit Opponent</button></div>' : '');
     } else {
       h += '<div class="nu-label">Win probability</div><p class="nu-hint" style="line-height:1.5">' + (S.mode === 'yahoo' ? 'No opponent found for this week.' : 'Add your opponent’s players to see your odds this week.') + '</p>' +
-        (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--sm" data-act="opp">Add opponent</button></div>' : '');
+        (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--sm" data-act="opp">Add Opponent</button></div>' : '');
     }
     h += '</div>';
     var len = r.weekLength || 7, day = r.day || 0;
@@ -246,7 +246,7 @@
       var moved = (r.moved || []).length;
       return '<section class="nu-card ln-moves" aria-label="Suggested moves"><div class="ln-ok"><span class="ln-ok__icon">' + icon('check') + '</span><div><b>Lineup is set</b><span>' + (moved ? 'Only slot shuffles left (' + moved + '), no points at stake.' : 'No move beats your current starters.') + '</span></div></div></section>';
     }
-    var h = '<section class="nu-card nu-card--focus ln-moves" aria-label="Suggested moves"><div class="nu-card__head"><h2 class="nu-card__title">' + (sug.length === 1 ? 'One move to make' : sug.length + ' moves to make') + '</h2><span class="ln-moves__gain">' + L.sign(r.gain) + '</span></div>';
+    var h = '<section class="nu-card nu-card--focus ln-moves" aria-label="Suggested moves"><div class="nu-card__head"><h2 class="nu-card__title">' + (sug.length === 1 ? 'One Move to Make' : sug.length + ' Moves to Make') + '</h2><span class="ln-moves__gain">' + L.sign(r.gain) + '</span></div>';
     sug.forEach(function (s) {
       var pin = s.inId ? full({ id: s.inId, name: s.inName }) : null;
       var pout = s.outId ? full({ id: s.outId, name: s.outName }) : null;
@@ -256,7 +256,7 @@
         (s.warning ? '<div class="ln-note">' + icon('alert') + '<span>' + esc(s.warning) + '</span></div>' : '') + '</div>';
     });
     var extra = r.diff.length - sug.length;
-    if (extra > 0) h += '<div class="ln-also">+' + extra + ' smaller move' + (extra > 1 ? 's' : '') + ' included in Apply all.</div>';
+    if (extra > 0) h += '<div class="ln-also">+' + extra + ' smaller move' + (extra > 1 ? 's' : '') + ' included in Apply All.</div>';
     if (r.moved && r.moved.length) h += '<div class="ln-also">Also shuffles ' + r.moved.map(function (m) { return esc(m.name) + ' ' + m.from + '→' + m.to; }).join(', ') + '. Active-to-active moves should keep banked games.</div>';
     if (S.mode === 'yahoo') h += '<div class="ln-also">Make these moves in Yahoo; Pocket can’t edit your lineup.</div>';
     return h + '</section>';
@@ -294,13 +294,13 @@
     var sp = r.spots;
     var bench = r.bench.filter(function (b) { return b.slot !== 'IL'; }), il = r.bench.filter(function (b) { return b.slot === 'IL'; });
     var h = '<div class="ln-board"><section class="nu-section"><div class="nu-section__head"><h2 class="nu-section__title">Starters · ' + r.slots.length + '</h2>' +
-      (S.mode === 'manual' ? '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="roster">Edit roster <span class="nu-count">' + S.manual.roster.length + '</span></button>' : '') + '</div>' +
+      (S.mode === 'manual' ? '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="roster">Edit Roster <span class="nu-count">' + S.manual.roster.length + '</span></button>' : '') + '</div>' +
       '<ul class="nu-list ln-slots">' + colhead() + r.slots.map(slotRow).join('') + '</ul></section>';
     h += '<section class="nu-section"><div class="nu-section__head"><h2 class="nu-section__title">Bench · ' + bench.length + (sp ? '/' + (sp.activeCap - sp.starters) : '') + '</h2>' +
       (sp && sp.benchOpen ? '<span class="nu-hint">' + sp.benchOpen + ' open spot' + (sp.benchOpen > 1 ? 's' : '') + ' for an add</span>' : '') + '</div>' +
       (bench.length ? '<ul class="nu-list ln-slots">' + bench.map(benchRow).join('') + '</ul>' : '<p class="nu-hint">Nobody on the bench.</p>') + '</section>';
     if (il.length || (sp && sp.ilCap)) {
-      h += '<section class="nu-section"><div class="nu-section__head"><h2 class="nu-section__title">Injured list · ' + il.length + (sp ? '/' + sp.ilCap : '') + '</h2></div>' +
+      h += '<section class="nu-section"><div class="nu-section__head"><h2 class="nu-section__title">Injured List · ' + il.length + (sp ? '/' + sp.ilCap : '') + '</h2></div>' +
         (il.length ? '<ul class="nu-list ln-slots">' + il.map(benchRow).join('') + '</ul>' : '<p class="nu-hint">Empty. Players listed Out can go here to free a bench spot.</p>') + '</section>';
     }
     return h + '</div>';
@@ -309,9 +309,9 @@
   /* ------------------------------------------------------------ manual roster builder */
   function emptyHtml() {
     var sl = slotListOf();
-    return '<div class="ln-empty"><section class="nu-card nu-card--focus"><div class="nu-card__head"><h2 class="nu-card__title">Build your roster</h2><span class="ln-cap">0/' + rosterCap() + '</span></div>' +
+    return '<div class="ln-empty"><section class="nu-card nu-card--focus"><div class="nu-card__head"><h2 class="nu-card__title">Build Your Roster</h2><span class="ln-cap">0/' + rosterCap() + '</span></div>' +
       '<div class="ln-builder" data-builder>' + builderInner() + '</div></section>' +
-      '<aside class="nu-card"><h2 class="nu-card__title" style="margin-bottom:var(--nu-4)">How it works</h2><ol class="ln-empty__how">' +
+      '<aside class="nu-card"><h2 class="nu-card__title" style="margin-bottom:var(--nu-4)">How It Works</h2><ol class="ln-empty__how">' +
       '<li><span><b>Add your players.</b> Search by name or paste your Yahoo roster. Not connected to Yahoo? This is the way in.</span></li>' +
       '<li><span><b>Set who is starting now</b> (' + esc(L.slotListText(sl)) + '), so swaps and forfeits are checked.</span></li>' +
       '<li><span><b>Get your moves.</b> We pick the ' + L.countWord(sl.length) + ' starters with the highest expected best game and tell you exactly what to change.</span></li></ol></aside></div>';
@@ -330,9 +330,9 @@
           '<button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-rm="' + i + '" aria-label="Remove ' + esc(p.name) + '">' + icon('close') + '</button></div></div>';
       }).join('') + '</div>';
     }
-    h += '<div class="nu-row-flex" style="gap:var(--nu-2);flex-wrap:wrap"><button type="button" class="nu-btn nu-btn--sm" data-act="paste">' + (S.showPaste ? 'Hide paste' : 'Paste a roster') + '</button>' +
-      (ros.length ? '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="clear">Clear all</button>' : '') + '</div>';
-    if (S.showPaste) h += '<div class="ln-paste nu-stack nu-stack--sm"><textarea class="nu-input" id="ln-paste" aria-label="Paste roster, one player per line" placeholder="One player per line (or commas)&#10;Nikola Jokic&#10;Luka Doncic&#10;Cooper Flagg"></textarea><div><button type="button" class="nu-btn nu-btn--sm" data-act="paste-go">Add players</button></div></div>';
+    h += '<div class="nu-row-flex" style="gap:var(--nu-2);flex-wrap:wrap"><button type="button" class="nu-btn nu-btn--sm" data-act="paste">' + (S.showPaste ? 'Hide Paste' : 'Paste a Roster') + '</button>' +
+      (ros.length ? '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="clear">Clear All</button>' : '') + '</div>';
+    if (S.showPaste) h += '<div class="ln-paste nu-stack nu-stack--sm"><textarea class="nu-input" id="ln-paste" aria-label="Paste roster, one player per line" placeholder="One player per line (or commas)&#10;Nikola Jokic&#10;Luka Doncic&#10;Cooper Flagg"></textarea><div><button type="button" class="nu-btn nu-btn--sm" data-act="paste-go">Add Players</button></div></div>';
     if (S.unknown.length) h += U.callout('warn', 'Not found: ' + S.unknown.map(esc).join(', '));
     return h;
   }
@@ -387,7 +387,7 @@
     }
     if (s.alternatives && s.alternatives.length) {
       var risky = s.banked > 0 ? 'Swapping him out wipes his banked ' + n1(s.banked) + '. Only games after he’s restarted would count.' : (S.day > 0 && !isNew ? 'If he has played this week, swapping him out wipes those games.' : '');
-      h += '<div class="nu-section"><div class="nu-section__head"><h3 class="nu-section__title">' + (S.mode === 'manual' ? 'Swap in' : 'Next best') + '</h3></div>' +
+      h += '<div class="nu-section"><div class="nu-section__head"><h3 class="nu-section__title">' + (S.mode === 'manual' ? 'Swap In' : 'Next Best') + '</h3></div>' +
         (risky ? '<div class="ln-note" style="margin-bottom:var(--nu-2)">' + icon('alert') + '<span>' + esc(risky) + '</span></div>' : '') +
         '<div class="nu-list ln-sheet-alts">' + s.alternatives.map(function (a) {
           var ap = full({ id: a.id, name: a.name });
@@ -413,7 +413,7 @@
   }
   function openRoster() {
     $('ln-sheet-roster-body').innerHTML = '<div class="ln-builder" data-builder>' + builderInner() + '</div>';
-    $('ln-sheet-roster-t').textContent = 'Your roster · ' + S.manual.roster.length + '/' + rosterCap();
+    $('ln-sheet-roster-t').textContent = 'Your Roster · ' + S.manual.roster.length + '/' + rosterCap();
     hydrate($('ln-sheet-roster-body'));
     U.sheet.open('ln-sheet-roster', { initialFocus: '#ln-q' });
   }
@@ -432,14 +432,14 @@
       if (S.mode !== 'manual') { el.innerHTML = ''; return; }
       var n = S.manual.roster.length;
       info = '<b>' + (n ? n + ' player' + (n > 1 ? 's' : '') + ' added' : 'No roster yet') + '</b><span>Add your players to get this week’s moves</span>';
-      btn = '<button type="button" class="nu-btn nu-btn--primary" data-act="focus-search">Add players</button>';
+      btn = '<button type="button" class="nu-btn nu-btn--primary" data-act="focus-search">Add Players</button>';
     } else if (r.current && r.diff.length) {
       info = '<b>' + r.diff.length + ' move' + (r.diff.length > 1 ? 's' : '') + ' · ' + L.sign(r.gain) + ' expected</b><span>' + n1(r.current.expected) + ' now → ' + n1(r.total.expected) + ' with the best lineup</span>';
-      btn = S.mode === 'manual' ? '<button type="button" class="nu-btn nu-btn--primary" data-apply="all">Apply all</button>'
+      btn = S.mode === 'manual' ? '<button type="button" class="nu-btn nu-btn--primary" data-apply="all">Apply All</button>'
         : '<a class="nu-btn nu-btn--primary" href="' + esc(L.yahooTeamUrl(S.myTeamKey)) + '" target="_blank" rel="noopener">Set in Yahoo</a>';
     } else {
       info = '<b>Lineup is set · ' + n1(r.total.expected) + ' expected</b><span>' + (r.matchup ? L.winText(r.matchup.winProb) + ' to win this week' : 'Check back daily as games are played') + '</span>';
-      btn = S.mode === 'manual' ? '<button type="button" class="nu-btn" data-act="roster">Edit roster</button>' : '';
+      btn = S.mode === 'manual' ? '<button type="button" class="nu-btn" data-act="roster">Edit Roster</button>' : '';
     }
     el.innerHTML = '<div class="nu-actionbar" role="region" aria-label="Lineup actions"><div class="nu-actionbar__info">' + info + '</div>' + btn + '</div>';
   }
@@ -495,7 +495,7 @@
     if (S.manual.roster.length >= L.MAX_ROSTER) return;
     S.manual.roster.push({ id: id, slot: 'BN' }); S.q = '';
     saveManual(); renderBuilder(); renderBar();
-    var t = $('ln-sheet-roster-t'); if (t) t.textContent = 'Your roster · ' + S.manual.roster.length + '/' + rosterCap();
+    var t = $('ln-sheet-roster-t'); if (t) t.textContent = 'Your Roster · ' + S.manual.roster.length + '/' + rosterCap();
     var q = $('ln-q'); if (q) q.focus();
     refreshSoon();
   }

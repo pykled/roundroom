@@ -341,7 +341,7 @@
 
   // ---- nav -------------------------------------------------------------------
   var NAV_TABS = [
-    { key: 'board', href: '/nba', label: 'Board', long: 'Draft board', icon: 'board' },
+    { key: 'board', href: '/nba', label: 'Board', long: 'Draft Board', icon: 'board' },
     { key: 'research', href: '/nba/research', label: 'Research', long: 'Research', icon: 'research' },
     { key: 'lineup', href: '/nba/lineup', label: 'Lineup', long: 'Lineup', icon: 'lineup' },
     { key: 'trade', href: '/nba/trade', label: 'Trade', long: 'Trade', icon: 'trade' },

@@ -207,7 +207,7 @@
 </style>
 </head>
 <body class="sport-nba nba-ui">
-<div data-nu-nav><nav id="rr-nav"><a href="/nba" class="rr-logo">Pocket</a><div class="rr-links"><a href="/nba" class="rr-link">Draft board</a><a href="/nba/research" class="rr-link">Research</a><a href="/nba/lineup" class="rr-link">Lineup</a><a href="/nba/trade" class="rr-link">Trade</a><a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a></div></nav></div>
+<div data-nu-nav><nav id="rr-nav"><a href="/nba" class="rr-logo">Pocket</a><div class="rr-links"><a href="/nba" class="rr-link">Draft Board</a><a href="/nba/research" class="rr-link">Research</a><a href="/nba/lineup" class="rr-link">Lineup</a><a href="/nba/trade" class="rr-link">Trade</a><a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a></div></nav></div>
 <script>NbaUI.mountNav({ active: 'waivers' });</script>
 
 <main class="nu-shell" id="wv-app">
@@ -226,7 +226,7 @@
     <a id="wv-connect" class="nu-btn nu-btn--yahoo nu-btn--sm" href="/nba/auth/login" hidden><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a>
     <select id="wv-source" class="nu-select wv-src" aria-label="League" hidden></select>
     <div class="nu-seg" id="wv-horizon" role="group" aria-label="Rank by">
-      <button type="button" data-h="1" aria-pressed="true">This week</button>
+      <button type="button" data-h="1" aria-pressed="true">This Week</button>
       <button type="button" data-h="2" aria-pressed="false">2 wks</button>
       <button type="button" data-h="4" aria-pressed="false">4 wks</button>
     </div>
@@ -240,21 +240,21 @@
   <section class="wv-hero" id="wv-hero" aria-label="This week at a glance"></section>
 
   <section class="wv-sec" id="wv-swaps-sec" hidden aria-labelledby="wv-swaps-h">
-    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-swaps-h">Best move</h2><span class="nu-hint" id="wv-swaps-hint"></span></div>
+    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-swaps-h">Best Move</h2><span class="nu-hint" id="wv-swaps-hint"></span></div>
     <div id="wv-swaps" class="wv-swaps"></div>
-    <div class="nu-section__head" id="wv-more-swaps-h" style="margin-top:var(--nu-5)" hidden><h3 class="nu-section__title">More swaps</h3></div>
+    <div class="nu-section__head" id="wv-more-swaps-h" style="margin-top:var(--nu-5)" hidden><h3 class="nu-section__title">More Swaps</h3></div>
     <div id="wv-more-swaps" class="wv-swaps wv-swaps--more"></div>
   </section>
 
   <section class="wv-sec" id="wv-cal-sec" hidden aria-labelledby="wv-cal-h">
-    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-cal-h">Streamer calendar</h2><span class="nu-hint">Free agents with 4+ games</span></div>
+    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-cal-h">Streamer Calendar</h2><span class="nu-hint">Free agents with 4+ games</span></div>
     <div class="wv-cal" id="wv-cal"></div>
   </section>
 
   <div class="wv-grid" id="wv-grid">
     <div>
       <section class="wv-sec" aria-labelledby="wv-list-h">
-        <div class="nu-section__head"><h2 class="nu-section__title" id="wv-list-h">Best adds</h2><span class="nu-hint" id="wv-list-hint"></span></div>
+        <div class="nu-section__head"><h2 class="nu-section__title" id="wv-list-h">Best Adds</h2><span class="nu-hint" id="wv-list-hint"></span></div>
         <div class="wv-filters" id="wv-filters">
           <div class="wv-filters__row">
             <div class="nu-chip-row nu-chip-row--scroll" role="group" aria-label="Filters">
@@ -263,31 +263,31 @@
               <button type="button" class="nu-chip" data-pos="F" aria-pressed="false">F</button>
               <button type="button" class="nu-chip" data-pos="C" aria-pressed="false">C</button>
               <span class="wv-sep" aria-hidden="true"></span>
-              <button type="button" class="nu-chip" data-flag="fourGame" aria-pressed="false">4-game week</button>
+              <button type="button" class="nu-chip" data-flag="fourGame" aria-pressed="false">4-Game Week</button>
               <button type="button" class="nu-chip" data-flag="roleUp" aria-pressed="false">Role ↑</button>
-              <button type="button" class="nu-chip" data-flag="hideInjured" aria-pressed="false">Hide injured</button>
+              <button type="button" class="nu-chip" data-flag="hideInjured" aria-pressed="false">Hide Injured</button>
             </div>
           </div>
           <div class="wv-filters__row">
             <div class="nu-seg" id="wv-sort" role="group" aria-label="Sort by">
-              <button type="button" data-sort="gain" aria-pressed="true">Best gain</button>
-              <button type="button" data-sort="games" aria-pressed="false">Most games</button>
+              <button type="button" data-sort="gain" aria-pressed="true">Best Gain</button>
+              <button type="button" data-sort="games" aria-pressed="false">Most Games</button>
               <button type="button" data-sort="ceiling" aria-pressed="false">Ceiling</button>
             </div>
             <span class="nu-spacer"></span><span class="wv-count" id="wv-count"></span>
           </div>
         </div>
         <ol class="wv-list" id="wv-list" aria-label="Waiver targets"></ol>
-        <button type="button" class="nu-btn nu-btn--block wv-more" id="wv-more" hidden>Show more</button>
+        <button type="button" class="nu-btn nu-btn--block wv-more" id="wv-more" hidden>Show More</button>
       </section>
 
     </div>
 
     <aside class="wv-side" id="wv-side" aria-label="Your roster">
-      <section class="nu-card" id="wv-drops" hidden><div class="nu-card__head"><h2 class="nu-card__title">Drop candidates</h2></div><div id="wv-drops-body"></div></section>
-      <section class="nu-card" id="wv-inj" hidden><div class="nu-card__head"><h2 class="nu-card__title">Injury cover</h2></div><div id="wv-inj-body"></div></section>
-      <section class="nu-card" id="wv-lineup" hidden><div class="nu-card__head"><h2 class="nu-card__title">Your best lineup</h2><span class="nu-hint nu-num" id="wv-lineup-wk"></span></div><ol class="wv-mini" id="wv-lineup-body"></ol></section>
-      <section class="nu-card" id="wv-unmatched" hidden><div class="nu-card__head"><h2 class="nu-card__title">Not matched</h2></div><p class="nu-meta" id="wv-unmatched-body" style="margin:0"></p></section>
+      <section class="nu-card" id="wv-drops" hidden><div class="nu-card__head"><h2 class="nu-card__title">Drop Candidates</h2></div><div id="wv-drops-body"></div></section>
+      <section class="nu-card" id="wv-inj" hidden><div class="nu-card__head"><h2 class="nu-card__title">Injury Cover</h2></div><div id="wv-inj-body"></div></section>
+      <section class="nu-card" id="wv-lineup" hidden><div class="nu-card__head"><h2 class="nu-card__title">Your Best Lineup</h2><span class="nu-hint nu-num" id="wv-lineup-wk"></span></div><ol class="wv-mini" id="wv-lineup-body"></ol></section>
+      <section class="nu-card" id="wv-unmatched" hidden><div class="nu-card__head"><h2 class="nu-card__title">Not Matched</h2></div><p class="nu-meta" id="wv-unmatched-body" style="margin:0"></p></section>
     </aside>
   </div>
 
@@ -296,52 +296,52 @@
 
   <div class="nu-actionbar wv-actionbar" id="wv-actionbar" hidden>
     <div class="nu-actionbar__info"><b id="wv-ab-title"></b><span id="wv-ab-sub"></span></div>
-    <button type="button" class="nu-btn nu-btn--primary" id="wv-ab-copy" data-umami-event="nba-waivers-copy-bar">Copy claim</button>
+    <button type="button" class="nu-btn nu-btn--primary" id="wv-ab-copy" data-umami-event="nba-waivers-copy-bar">Copy Claim</button>
   </div>
 </main>
 
 <div class="nu-sheet" id="wv-roster-sheet" role="dialog" aria-modal="true" aria-labelledby="wv-roster-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-roster-t">Your roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-roster-x"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-roster-t">Your Roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-roster-x"></button></div>
   <div class="nu-sheet__body">
-    <div class="nu-section__head"><h3 class="nu-section__title">This week in your league</h3></div>
+    <div class="nu-section__head"><h3 class="nu-section__title">This Week in Your League</h3></div>
     <div class="wv-fields">
       <div class="nu-field"><label for="wv-adds-used">Adds used</label><input class="nu-input" type="number" id="wv-adds-used" inputmode="numeric" min="0" max="99" placeholder="0"></div>
       <div class="nu-field"><label for="wv-priority">Waiver spot</label><input class="nu-input" type="number" id="wv-priority" inputmode="numeric" min="1" max="20" placeholder="#"></div>
     </div>
     <p class="nu-hint" style="margin:0 0 var(--nu-5)">Find both on Yahoo's team page. Your spot sets how much a waiver claim costs.</p>
-    <div class="nu-section__head"><h3 class="nu-section__title">Add players</h3></div>
+    <div class="nu-section__head"><h3 class="nu-section__title">Add Players</h3></div>
     <label class="nu-search"><span id="wv-search-ic"></span><input class="nu-input" id="wv-search" type="search" placeholder="Search players to add" autocomplete="off" aria-label="Search players to add" aria-controls="wv-results"></label>
     <ul class="wv-results" id="wv-results" role="listbox" aria-label="Search results"></ul>
-    <div class="nu-section__head" style="margin-top:var(--nu-4)"><h3 class="nu-section__title" id="wv-rcount">On your team</h3></div>
+    <div class="nu-section__head" style="margin-top:var(--nu-4)"><h3 class="nu-section__title" id="wv-rcount">On Your Team</h3></div>
     <ul class="wv-rlist" id="wv-rlist"></ul>
     <div class="wv-assume"><span><b>Hide players other teams likely own</b>Treats the top of the board as drafted by the other 11 teams.</span><button type="button" class="nu-switch" role="switch" aria-checked="true" id="wv-assume" aria-label="Hide players other teams likely own"></button></div>
   </div>
-  <div class="nu-sheet__foot"><button type="button" class="nu-btn" id="wv-import" hidden>Import from draft board</button><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn" id="wv-import" hidden>Import from Draft Board</button><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
 </div>
 
 <div class="nu-sheet" id="wv-how-sheet" role="dialog" aria-modal="true" aria-labelledby="wv-how-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-how-t">How waivers work here</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-how-x"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-how-t">How Waivers Work Here</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-how-x"></button></div>
   <div class="nu-sheet__body wv-explain">
-    <h3>What the numbers mean</h3>
+    <h3>What the Numbers Mean</h3>
     <p>Your weekly score counts each starter's single best game. A player helps you if his best game beats the starter he'd replace. <b>Gain</b> is how many points your best lineup goes up after the move, for this week and for the next few weeks (later weeks count a little less).</p>
-    <h3>Why games matter so much</h3>
+    <h3>Why Games Matter So Much</h3>
     <p>More games means more chances at a big night. A player with 4 games this week often beats a better player with 2. Green chips mark 4-game weeks. Weeks 7 and 17 last 14 days, so games pile up.</p>
-    <h3>Free agent or waivers</h3>
+    <h3>Free Agent or Waivers</h3>
     <ul>
       <li><b>Free agent</b>: add him now. He can play today.</li>
       <li><b>Waivers</b>: you put in a claim. It clears after the waiver period, so he misses today's game.</li>
       <li>Your league uses a rolling list. A claim that goes through sends you to the back of the line; one that fails keeps your spot. When a claim only adds a little, we suggest keeping your spot for a bigger pickup later.</li>
     </ul>
-    <h3>Add budget</h3>
+    <h3>Add Budget</h3>
     <p>Your league allows a set number of adds per week. Every free agent or waiver add uses one. When you're out, we stop suggesting moves.</p>
     <h3>Drops</h3>
     <p>We suggest dropping whoever your lineup misses least. We never suggest dropping a player who's worth more over the season than the free agent replacing him.</p>
-    <h3 id="wv-rules-h" hidden>Your league's rules</h3>
+    <h3 id="wv-rules-h" hidden>Your League's Rules</h3>
     <ul id="wv-rules"></ul>
   </div>
-  <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got it</button></div>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got It</button></div>
 </div>
 
 <script defer src="/nba/pages/yahoo-chip.js"></script>

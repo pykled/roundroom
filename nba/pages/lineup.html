@@ -207,7 +207,7 @@
   <nav id="rr-nav" aria-label="Main">
     <a href="/nba" class="rr-logo">Pocket</a>
     <div class="rr-links">
-      <a href="/nba" class="rr-link">Draft board</a>
+      <a href="/nba" class="rr-link">Draft Board</a>
       <a href="/nba/lineup" class="rr-link active" aria-current="page">Lineup</a>
       <a href="/nba/trade" class="rr-link">Trade</a>
       <a href="/nba/waivers" class="rr-link">Waivers</a>
@@ -220,7 +220,7 @@
   <header class="nu-page-head nu-page-head--court">
     <div class="nu-page-head__text">
       <div class="nu-eyebrow" id="ln-eyebrow">Yahoo High Score · Lineup</div>
-      <h1 class="nu-page-head__title" id="ln-title">Weekly lineup</h1>
+      <h1 class="nu-page-head__title" id="ln-title">Weekly Lineup</h1>
       <p class="nu-page-head__sub" id="ln-sub">Each starter scores his single best game of the matchup week.</p>
     </div>
     <div class="nu-page-head__actions">
@@ -230,7 +230,7 @@
       </div>
       <select id="ln-league" class="nu-select" aria-label="Yahoo league" hidden></select>
       <a class="nu-btn nu-btn--yahoo nu-btn--sm" id="ln-connect" href="/nba/auth/login" hidden><span class="nu-y">Y!</span>Connect Yahoo</a>
-      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="about">How it works</button>
+      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="about">How It Works</button>
     </div>
   </header>
 
@@ -261,30 +261,30 @@
 </div>
 <div class="nu-sheet" id="ln-sheet-week" role="dialog" aria-modal="true" aria-labelledby="ln-sheet-week-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-week-t">Matchup week</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-week-t">Matchup Week</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
   <div class="nu-sheet__body" style="padding:0"><div class="nu-list nu-list--plain ln-weeks" id="ln-weeks"></div></div>
 </div>
 <div class="nu-sheet" id="ln-sheet-roster" role="dialog" aria-modal="true" aria-labelledby="ln-sheet-roster-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-roster-t">Your roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-roster-t">Your Roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
   <div class="nu-sheet__body" id="ln-sheet-roster-body"></div>
   <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
 </div>
 <div class="nu-sheet" id="ln-sheet-opp" role="dialog" aria-modal="true" aria-labelledby="ln-sheet-opp-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-opp-t">Opponent roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-opp-t">Opponent Roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
   <div class="nu-sheet__body" id="ln-sheet-opp-body"></div>
   <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
 </div>
 <div class="nu-sheet" id="ln-sheet-about" role="dialog" aria-modal="true" aria-labelledby="ln-sheet-about-t" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
-  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-about-t">How the lineup works</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="ln-sheet-about-t">How the Lineup Works</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" data-icon="close"></button></div>
   <div class="nu-sheet__body ln-about">
-    <div><h3>High Score in one line</h3><p>Each starter's single best game of the matchup week counts. Your week total is the sum of those best games across all <span data-starters>nine</span> starters.</p></div>
-    <div><h3>Benching wipes points</h3><p>If you bench a starter mid-week, every game he played so far stops counting. Put him back later and only games from then on count. That's why some moves come with a note about what you'd give up.</p></div>
-    <div><h3>Expected best game</h3><p>For each player we simulate his remaining games (injury status, back-to-backs, games left on the real schedule) and take the average of his best one, never below the score he has already banked.</p></div>
-    <div><h3>Week total and range</h3><p>The big number is your expected total with the best lineup. The bar shows the middle 80% of 2,000 simulated weeks. Win probability uses the same simulations for your opponent's best lineup.</p></div>
-    <div><h3>Banked scores</h3><p>Yahoo doesn't share per-game scores yet, so mid-week tap <b>Banked</b> on a starter and type his best game so far. It is saved on this device.</p></div>
+    <div><h3>High Score in One Line</h3><p>Each starter's single best game of the matchup week counts. Your week total is the sum of those best games across all <span data-starters>nine</span> starters.</p></div>
+    <div><h3>Benching Wipes Points</h3><p>If you bench a starter mid-week, every game he played so far stops counting. Put him back later and only games from then on count. That's why some moves come with a note about what you'd give up.</p></div>
+    <div><h3>Expected Best Game</h3><p>For each player we simulate his remaining games (injury status, back-to-backs, games left on the real schedule) and take the average of his best one, never below the score he has already banked.</p></div>
+    <div><h3>Week Total and Range</h3><p>The big number is your expected total with the best lineup. The bar shows the middle 80% of 2,000 simulated weeks. Win probability uses the same simulations for your opponent's best lineup.</p></div>
+    <div><h3>Banked Scores</h3><p>Yahoo doesn't share per-game scores yet, so mid-week tap <b>Banked</b> on a starter and type his best game so far. It is saved on this device.</p></div>
     <div><h3>Data</h3><p id="ln-about-data">Projections refresh daily.</p></div>
   </div>
 </div>

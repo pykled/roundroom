@@ -650,7 +650,7 @@
       set('error', 'Yahoo sync paused');
       banner.className = 'nd-banner';
       banner.innerHTML = '<div class="nu-callout nu-callout--warn nd-degraded" role="alert">' + U.icon.alert + '<div><b>Can’t reach Yahoo' + (S.lastErr ? ' (' + esc(S.lastErr) + ')' : '') + '.</b> Keep tapping Draft as picks happen; they’re marked pending until Yahoo confirms. ' +
-        (S.lastOk ? 'Last sync ' + esc(ago) + ' · ' : '') + 'retry in <span class="nu-num">' + wait + 's</span>.</div><button type="button" class="nu-btn nu-btn--sm" id="nd-retry">Retry now</button></div>';
+        (S.lastOk ? 'Last sync ' + esc(ago) + ' · ' : '') + 'retry in <span class="nu-num">' + wait + 's</span>.</div><button type="button" class="nu-btn nu-btn--sm" id="nd-retry">Retry Now</button></div>';
       banner.hidden = false;
       $('nd-retry').onclick = function () { poll(true); };
     } else {
@@ -697,7 +697,7 @@
     var cs = L.cheatSheet({ available: V.avail, settings: st, cur: ci.cur, myPicks: myRemainingPicks(ci), made: made,
       roster: V.matched, perRound: 5, perSlot: 10 });
     var roundsLeft = cs.rounds.filter(function (r) { return !r.done; }).length;
-    var html = '<div class="nd-cheat-head"><div><h2 class="nu-title">Cheat sheet</h2><p class="nu-hint">' + esc(leagueName()) + ' · slot ' + st.mySlot + ' of ' + st.teams + ' · ' + roundsLeft + ' pick' + (roundsLeft === 1 ? '' : 's') + ' left. Targets are the players the board expects near each of your picks; ★ = fills a starter slot you still need.</p></div>' +
+    var html = '<div class="nd-cheat-head"><div><h2 class="nu-title">Cheat Sheet</h2><p class="nu-hint">' + esc(leagueName()) + ' · slot ' + st.mySlot + ' of ' + st.teams + ' · ' + roundsLeft + ' pick' + (roundsLeft === 1 ? '' : 's') + ' left. Targets are the players the board expects near each of your picks; ★ = fills a starter slot you still need.</p></div>' +
       '<button type="button" class="nu-btn nu-btn--sm" data-act="print">Print</button></div>';
     html += '<div class="nd-cs-warns">' + (S.warns || []).filter(function (w) { return w.level !== 'info'; }).map(function (w) { return '<div class="nd-warn ' + w.level + '">' + esc(w.text) + '</div>'; }).join('') + '</div>';
     html += '<ol class="nd-cs-rounds">' + cs.rounds.map(function (r) {
@@ -875,11 +875,11 @@
     var acts = $('nd-sheet-actions');
     if (S.matching) acts.innerHTML = '<button type="button" class="nu-btn nu-btn--primary" data-act="match" data-id="' + esc(p.id) + '">This is ' + esc(S.matching.name) + '</button>';
     else if (t) acts.innerHTML = t.source === 'manual'
-      ? '<button type="button" class="nu-btn" data-act="remove" data-id="' + esc(p.id) + '">Remove pick</button><button type="button" class="nu-btn" data-act="mine-toggle" data-id="' + esc(p.id) + '">' + (t.mine ? 'Not mine' : 'Mine') + '</button>'
+      ? '<button type="button" class="nu-btn" data-act="remove" data-id="' + esc(p.id) + '">Remove Pick</button><button type="button" class="nu-btn" data-act="mine-toggle" data-id="' + esc(p.id) + '">' + (t.mine ? 'Not Mine' : 'Mine') + '</button>'
       : '<button type="button" class="nu-btn" disabled>Drafted on Yahoo</button>';
-    else if (ci.done) acts.innerHTML = '<button type="button" class="nu-btn" disabled>Draft complete</button>';
+    else if (ci.done) acts.innerHTML = '<button type="button" class="nu-btn" disabled>Draft Complete</button>';
     else acts.innerHTML = ci.onMe
-      ? '<button type="button" class="nu-btn" data-act="other" data-id="' + esc(p.id) + '">Other team</button><button type="button" class="nu-btn nu-btn--primary" data-act="mine" data-id="' + esc(p.id) + '">Draft to my team</button>'
+      ? '<button type="button" class="nu-btn" data-act="other" data-id="' + esc(p.id) + '">Other Team</button><button type="button" class="nu-btn nu-btn--primary" data-act="mine" data-id="' + esc(p.id) + '">Draft to My Team</button>'
       : '<button type="button" class="nu-btn" data-act="other" data-id="' + esc(p.id) + '">' + esc(clockTeamName(ci)) + ' took him</button><button type="button" class="nu-btn nu-btn--primary" data-act="mine" data-id="' + esc(p.id) + '">Mine</button>';
   }
   // Lazy part of the sheet: last season's per-game line, weekly best-game
@@ -1267,7 +1267,7 @@
     if (!key || key.indexOf('PLACEHOLDER') >= 0) return;
     // The NbaUI nav has no auth slots of its own: add them next to the Yahoo chip.
     var auth = document.querySelector('#rr-nav .rr-auth');
-    if (auth && !$('user-btn-mount')) auth.insertAdjacentHTML('beforeend', '<div id="user-btn-mount"></div><button id="rr-sign-in" class="nu-btn nu-btn--sm" type="button" hidden>Sign in</button>');
+    if (auth && !$('user-btn-mount')) auth.insertAdjacentHTML('beforeend', '<div id="user-btn-mount"></div><button id="rr-sign-in" class="nu-btn nu-btn--sm" type="button" hidden>Sign In</button>');
     var s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
     s.crossOrigin = 'anonymous'; s.async = true;
@@ -1306,7 +1306,7 @@
       rowCache = {}; $('nd-list').innerHTML = '';
       migrateIds();
     }).catch(function (e) {
-      $('nd-list').innerHTML = U.emptyState({ title: 'Couldn’t load players' + (e.status ? ' (HTTP ' + e.status + ')' : ''), body: 'Your picks are saved on this device.', action: '<button type="button" class="nu-btn" id="nd-reload">Try again</button>' });
+      $('nd-list').innerHTML = U.emptyState({ title: 'Couldn’t load players' + (e.status ? ' (HTTP ' + e.status + ')' : ''), body: 'Your picks are saved on this device.', action: '<button type="button" class="nu-btn" id="nd-reload">Try Again</button>' });
       $('nd-reload').onclick = function () { loadPlayers().then(function () { recompute(); render(); }); };
     });
   }
