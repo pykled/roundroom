@@ -250,6 +250,7 @@ function buildBoard(data, opts = {}) {
       yahooElig: profile ? Slots.slotsForPositions(r.pos).filter(s => profileSlots.has(s)) : Slots.slotsForPositions(r.pos),
       eligConfidence: 'sleeper-mapped',
       injury: outForSeason ? (r.sp.i || 'Out') : r.sp.i,
+      injuryBody: r.sp.ib || null,
       outForSeason,
       mean: f ? r1(f.mean) : 0,
       sd: f ? r1(f.sd) : 0,

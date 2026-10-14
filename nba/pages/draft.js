@@ -72,7 +72,8 @@
       (low ? '<span class="nd-elig-badge" title="Positions not confirmed by Yahoo (' + esc(why) + ')" aria-label="Positions not confirmed by Yahoo">?</span>' : '');
   }
   function vorpTxt(p) { return typeof p.vorp === 'number' && isFinite(p.vorp) ? (p.vorp >= 0 ? '+' : '') + p.vorp.toFixed(1) : null; }
-  function injBadge(p) { return p && (p.injury || p.outForSeason) ? U.injuryBadge(p.injury, { outForSeason: p.outForSeason }) : ''; }
+  // Preseason "Rest" DTD tags are dropped (L.draftInjury); real injuries stay.
+  function injBadge(p) { var inj = L.draftInjury(p); return p && (inj || p.outForSeason) ? U.injuryBadge(inj, { outForSeason: p.outForSeason }) : ''; }
   function isOut(p) { return /OUT|SUS/.test(L.injuryShort(p.injury)); }
   function gamesChip(p) {
     if (typeof p.games !== 'number') return '';
@@ -175,7 +176,7 @@
     }
     var cur = currentPick(), total = L.totalPicks(st);
     var done = cur > total;
-    var slot = done ? null : L.slotForPick(cur, st.teams);
+    var slot = done ? null : L.slotForPick(cur, st.teams, st.thirdRoundReversal);
     var mine = L.nextPickFor(st.mySlot, cur, st);
     var after = mine ? L.nextPickFor(st.mySlot, mine + 1, st) : null;
     return { cur: cur, total: total, done: done, round: done ? L.draftRounds(st) : L.roundOf(cur, st.teams), slot: slot, teamKey: null, onMe: slot === st.mySlot, myNext: mine, myAfter: after,
@@ -340,7 +341,7 @@
       });
     } else {
       for (var p = ci.cur; p <= Math.min(ci.total, ci.cur + 25); p++) {
-        var s = L.slotForPick(p, st.teams);
+        var s = L.slotForPick(p, st.teams, st.thirdRoundReversal);
         items.push({ pick: p, me: s === st.mySlot, round: L.roundOf(p, st.teams), who: teamName(s) });
       }
     }
@@ -690,30 +691,72 @@
     }
     return ci.done ? [] : L.myPicksSnake(st, ci.cur);
   }
+  function pctTxt(q) { return q >= 0.995 ? '99%+' : q < 0.01 ? '<1%' : Math.round(q * 100) + '%'; }
+  // One player chip: name, positions, odds he's still there at this pick.
+  function csChip(x, extra) {
+    var p = x.player, band = L.pickBand(x.p), inj = L.injuryShort(L.draftInjury(p));
+    var tip = p.name + ': ' + pctTxt(x.p) + ' likely still on the board' + (p.marketRank != null ? ' (ADP #' + p.marketRank + ')' : ' (no ADP)') +
+      (x.need && x.need.length ? '; fills open ' + x.need.map(slotLabel).join('/') : '') + (extra ? '; ' + extra : '');
+    return '<button type="button" class="nd-cs-p is-' + band + (x.need && x.need.length ? ' need' : '') + '" data-act="sheet" data-id="' + esc(p.id) + '" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">' +
+      (x.need && x.need.length ? '<b class="st" aria-hidden="true">★</b>' : '') + '<span class="nm">' + esc(p.name) + '</span>' +
+      '<i>' + esc(L.displayPositions(p).join('/') || 'U') + (inj ? ' · ' + esc(inj) : '') + '</i><span class="pc">' + pctTxt(x.p) + '</span>' + (extra ? '<span class="ex">' + esc(extra) + '</span>' : '') + '</button>';
+  }
+  function csRow(label, cls, items) {
+    if (!items.length) return '';
+    return '<div class="nd-cs-row ' + cls + '"><span class="lb">' + label + '</span><span class="tg">' + items.join('') + '</span></div>';
+  }
   function renderCheat() {
     var el = $('nd-cheat'), st = V.st, ci = V.ci;
     if (!S.players.length) { el.innerHTML = U.skeleton(6); return; }
+    var yahooOrder = !!ci.fromYahoo, slotKnown = yahooOrder || slotKnownFromYahoo() || S.state.slotChosen;
+    var setLine = '<div class="nd-cs-set"><span class="nd-cs-set__txt"><b>' + esc(st.teams) + ' Teams</b> · ' + (slotKnown ? 'Pick <b>#' + esc(st.mySlot) + '</b>' : 'No pick chosen') + ' · ' + esc(L.draftRounds(st)) + ' Rounds · ' +
+      (yahooOrder ? 'Yahoo’s pick order' : 'Snake, 3rd-round reversal <b>' + (st.thirdRoundReversal ? 'On' : 'Off') + '</b>') + '</span>' +
+      (yahooOrder ? '' : '<button type="button" class="nu-chip nd-cs-rr" data-act="cs-rr" aria-pressed="' + !!st.thirdRoundReversal + '">3RR ' + (st.thirdRoundReversal ? 'On' : 'Off') + '</button>') +
+      '<button type="button" class="nu-btn nu-btn--sm" data-act="cs-settings">Change</button></div>';
+    var html = '<div class="nd-cheat-head"><div><h2 class="nu-title">Cheat Sheet</h2>' +
+      '<p class="nu-hint">Who you can realistically get at each of your picks. The odds are an estimate from ADP (Yahoo-first market rank), not a guarantee; real drafts swing a few picks early and 10-20 picks later.</p></div>' +
+      '<button type="button" class="nu-btn nu-btn--sm" data-act="print">Print</button></div>' + setLine;
+    if (!slotKnown) {
+      html += '<section class="nu-card nd-cs-ask"><p class="nd-slotpick__q">Which pick are you?</p><p class="nu-hint">Choose your round-1 spot to see who should be there at each of your picks.</p>' +
+        '<div class="nd-slotpick__chips" role="group" aria-label="Draft slot">' + Array.apply(null, Array(st.teams)).map(function (_, i) {
+          return '<button type="button" class="nu-chip nd-slotpick__chip nu-num" data-act="slot" data-slot="' + (i + 1) + '" aria-label="Pick ' + (i + 1) + ' of ' + st.teams + '">' + (i + 1) + '</button>';
+        }).join('') + '</div></section>';
+      el.innerHTML = html;
+      return;
+    }
     var made = S.merged.picks.filter(function (p) { return p.mine; }).map(function (p) { return { pick: p.pick, round: p.round, player: p.playerId ? S.byId[p.playerId] : null, name: p.name }; });
-    var cs = L.cheatSheet({ available: V.avail, settings: st, cur: ci.cur, myPicks: myRemainingPicks(ci), made: made,
-      roster: V.matched, perRound: 5, perSlot: 10 });
-    var roundsLeft = cs.rounds.filter(function (r) { return !r.done; }).length;
-    var html = '<div class="nd-cheat-head"><div><h2 class="nu-title">Cheat Sheet</h2><p class="nu-hint">' + esc(leagueName()) + ' · slot ' + st.mySlot + ' of ' + st.teams + ' · ' + roundsLeft + ' pick' + (roundsLeft === 1 ? '' : 's') + ' left. Targets are the players the board expects near each of your picks; ★ = fills a starter slot you still need.</p></div>' +
-      '<button type="button" class="nu-btn nu-btn--sm" data-act="print">Print</button></div>';
+    var cs = L.cheatSheet({ available: V.avail, settings: st, cur: ci.cur, myPicks: myRemainingPicks(ci), made: made, roster: V.matched, perSlot: 10 });
+    html += '<div class="nd-cs-legend" aria-label="Legend"><span class="is-likely">75%+ Likely There</span><span class="is-could">25-75% Could Fall to You</span><span class="is-gone">Under 25% Likely Gone</span>' + (V.matched.length ? '<span>★ Fills an open starter slot</span>' : '') + '</div>';
     html += '<div class="nd-cs-warns">' + (S.warns || []).filter(function (w) { return w.level !== 'info'; }).map(function (w) { return '<div class="nd-warn ' + w.level + '">' + esc(w.text) + '</div>'; }).join('') + '</div>';
     html += '<ol class="nd-cs-rounds">' + cs.rounds.map(function (r) {
-      var head = '<span class="r">R' + r.round + '</span><span class="pk">#' + r.pick + '</span>';
-      if (r.done) return '<li class="done">' + head + '<span class="got">' + (r.player ? avatar(r.player, 'xs') : '') + esc(r.player ? r.player.name : r.name || '—') + (r.player ? ' ' + posPills(r.player) : '') + '</span></li>';
-      return '<li' + (r.pick === ci.cur && ci.onMe ? ' class="now"' : '') + '>' + head + '<span class="tg">' + r.targets.map(function (x) {
-        return '<button type="button" class="nd-cs-p' + (x.need.length ? ' need' : '') + '" data-act="sheet" data-id="' + esc(x.player.id) + '" title="' + esc(x.need.length ? 'Fills open ' + x.need.map(slotLabel).join('/') : 'Depth') + '">' + avatar(x.player, 'xs') + (x.need.length ? '★ ' : '') + esc(x.player.name) + ' <i>' + esc(L.displayPositions(x.player).join('/') || 'U') + ' · T' + esc(x.player.tier) + '</i></button>';
-      }).join('') + '</span></li>';
+      var head = '<div class="nd-cs-rh"><span class="r">R' + r.round + '</span><span class="pk">Pick ' + r.pick + '</span>';
+      if (r.done) return '<li class="done">' + head + '<span class="got">' + (r.player ? avatar(r.player, 'xs') : '') + esc(r.player ? r.player.name : r.name || '—') + (r.player ? ' ' + posPills(r.player) : '') + '</span></div></li>';
+      var now = r.pick === ci.cur;
+      head += '<span class="meta">' + (now ? 'On the clock now' : r.before + ' pick' + (r.before === 1 ? '' : 's') + ' before yours') +
+        (r.range ? ' · ADP ~' + r.range.lo + '-' + r.range.hi + ' usually go here' : '') + '</span></div>';
+      var body = csRow('Target', 'is-take', (r.take ? [csChip(r.take)] : []).concat(r.fallback.map(function (x) { return csChip(x); }))) +
+        csRow('Don’t Reach', 'is-wait', r.wait.map(function (x) { return csChip(x, pctTxt(x.pNext) + ' still there at #' + r.next); })) +
+        csRow('Could Fall', 'is-could', r.could.map(function (x) { return csChip(x); })) +
+        csRow('Likely Gone', 'is-gone', r.gone.map(function (x) { return csChip(x); }));
+      return '<li' + (now && ci.onMe ? ' class="now"' : '') + '>' + head + (body || '<p class="nu-hint">No ranked players left.</p>') + '</li>';
     }).join('') + '</ol>';
-    html += '<h3 class="nu-section__title nd-cs-h3">By slot · best available, tiered</h3><div class="nd-cs-slots">' + cs.bySlot.map(function (b) {
+    html += '<h3 class="nu-section__title nd-cs-h3">By Slot · Best Available, Tiered</h3><p class="nu-hint nd-cs-sub">Tag = your last pick where he’s still more likely than not on the board.</p><div class="nd-cs-slots">' + cs.bySlot.map(function (b) {
       return '<section class="nd-cs-slot"><h4><span class="nu-pos" data-pos="' + esc(b.slot === 'FC' ? 'F' : b.slot) + '">' + esc(slotLabel(b.slot)) + '</span>' + (b.open ? '<span class="nd-flag">' + b.open + ' open</span>' : '<span class="nu-hint">set</span>') + '</h4>' +
         b.tiers.map(function (t) {
-          return '<div class="nd-cs-tier"><span class="t">T' + esc(t.tier) + '</span><span class="ps">' + t.players.map(function (p) { return '<button type="button" data-act="sheet" data-id="' + esc(p.id) + '">' + esc(p.name) + (L.injuryShort(p.injury) ? ' <em>' + esc(L.injuryShort(p.injury)) + '</em>' : '') + '</button>'; }).join('') + '</span></div>';
+          return '<div class="nd-cs-tier"><span class="t">T' + esc(t.tier) + '</span><span class="ps">' + t.players.map(function (x) {
+            var p = x.player, inj = L.injuryShort(L.draftInjury(p));
+            var tag = x.last ? 'R' + x.last.round : 'Gone';
+            var tip = x.last ? 'Still ' + pctTxt(x.last.p) + ' likely at your R' + x.last.round + ' pick (#' + x.last.pick + ')' : 'Under 50% at every pick you have left';
+            return '<button type="button" data-act="sheet" data-id="' + esc(p.id) + '" title="' + esc(tip) + '">' + esc(p.name) + (inj ? ' <em>' + esc(inj) + '</em>' : '') + ' <span class="sh' + (x.last ? '' : ' is-gone') + '">' + tag + '</span></button>';
+          }).join('') + '</span></div>';
         }).join('') + '</section>';
     }).join('') + '</div>';
     el.innerHTML = html;
+  }
+  function toggleRR() {
+    S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { thirdRoundReversal: !S.state.settings.thirdRoundReversal }));
+    save(); recompute(); render();
+    toast('3rd-round reversal ' + (S.state.settings.thirdRoundReversal ? 'on' : 'off'));
   }
   function setView(v) {
     S.view = v === 'cheat' ? 'cheat' : 'board';
@@ -1006,6 +1049,7 @@
     $('nd-slot-fields').innerHTML = types.map(function (t) { return fld(slotLabel(t), 'slot_' + t, st.slots[t] || 0, 6); }).join('') +
       fld('BN', 'bench', st.bench, 15) + fld('IL', 'il', st.il || 0, 5) + fld('Rounds', 'rounds', L.draftRounds(st), 30);
     f.teams.value = st.teams; f.mySlot.value = st.mySlot;
+    f.rr.checked = !!st.thirdRoundReversal;
     f.timer.value = timerSeconds();
     f.teams.disabled = !!live;
     // Locked whenever the picker says "synced from Yahoo" (draft_position, round-1 order or a Yahoo pick of mine).
@@ -1021,9 +1065,9 @@
     if (!live) {
       var slots = {};
       Array.prototype.forEach.call(f.querySelectorAll('input[name^="slot_"]'), function (i) { slots[i.name.slice(5)] = i.value; });
-      S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value, rounds: f.rounds.value });
+      S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value, rounds: f.rounds.value, thirdRoundReversal: f.rr.checked });
       S.state.settingsSource = 'user';
-    } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value }));
+    } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value, thirdRoundReversal: f.rr.checked }));
     if (!f.mySlot.disabled) S.state.slotChosen = true;
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
     S.timer.beeped = false;
@@ -1253,6 +1297,8 @@
         renderFilters(); renderBoard();
       }
       else if (act === 'print') { window.print(); }
+      else if (act === 'cs-rr') { toggleRR(); }
+      else if (act === 'cs-settings') { openSettings(); }
       else if (act === 'slot') { chooseSlot(parseInt(b.getAttribute('data-slot'), 10)); }
       else if (act === 'slot-change') { S.slotOpen = true; renderSlotPick(); var c = document.querySelector('#nd-slotpick [aria-pressed="true"]'); if (c) c.focus(); }
     });

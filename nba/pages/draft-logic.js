@@ -76,6 +76,8 @@
       il: clampInt(s.il, 0, 5, base ? base.il : 0)
     };
     out.mySlot = clampInt(s.mySlot, 1, out.teams, 1);
+    // Only present when on, so snake-only settings keep their old shape.
+    if (s.thirdRoundReversal === true || s.thirdRoundReversal === 'true' || s.thirdRoundReversal === 'on') out.thirdRoundReversal = true;
     // Draft rounds: Yahoo drafts active + bench spots only (IL starts empty), so
     // the default is starters + BN; a profile / the League dialog can override.
     var n = 0; Object.keys(slots).forEach(function (k) { n += slots[k] || 0; });
@@ -96,8 +98,9 @@
     if (!profile || !profile.slots || typeof profile.slots !== 'object') return normalizeSettings(prev);
     var sl = {};
     SLOT_TYPES.forEach(function (t) { if (profile.slots[t] != null) sl[t] = profile.slots[t]; });
+    var d = profile.draft || {};
     return normalizeSettings({ teams: profile.teams, mySlot: prev && prev.mySlot, slots: sl, bench: profile.slots.BN, il: profile.slots.IL,
-      rounds: profile.draft && profile.draft.rounds });
+      rounds: d.rounds, thirdRoundReversal: typeof d.thirdRoundReversal === 'boolean' ? d.thirdRoundReversal : !!(prev && prev.thirdRoundReversal) });
   }
   function profilePickSeconds(profile) {
     var n = profile && profile.draft && parseInt(profile.draft.pickSeconds, 10);
@@ -105,28 +108,34 @@
   }
 
   /* ---------------------------------------------------------------- snake */
+  /* The one pick-order rule: board, clock strip, timeline and cheat sheet all
+     derive from roundForward(). Snake: odd rounds run slot 1→N, even rounds
+     N→1. Third-round reversal (rr): round 3 runs N→1 like round 2, then it
+     alternates again from round 4 (forward), so slot N picks N, N+1, 2N+1,
+     4N, 4N+1… and slot 1 picks 1, 2N, 3N, 3N+1… */
 
   function roundOf(pick, teams) { return Math.ceil(pick / teams); }
 
-  function slotForPick(pick, teams) {
-    var r = roundOf(pick, teams);
+  function roundForward(round, rr) { return rr && round >= 3 ? round % 2 === 0 : round % 2 === 1; }
+
+  function slotForPick(pick, teams, rr) {
     var idx = (pick - 1) % teams;
-    return r % 2 === 1 ? idx + 1 : teams - idx;
+    return roundForward(roundOf(pick, teams), rr) ? idx + 1 : teams - idx;
   }
 
-  function snakeOrder(teams, rounds) {
+  function snakeOrder(teams, rounds, rr) {
     var out = [];
     for (var p = 1; p <= teams * rounds; p++) {
-      out.push({ pick: p, round: roundOf(p, teams), pickInRound: ((p - 1) % teams) + 1, slot: slotForPick(p, teams) });
+      out.push({ pick: p, round: roundOf(p, teams), pickInRound: ((p - 1) % teams) + 1, slot: slotForPick(p, teams, rr) });
     }
     return out;
   }
 
   // Overall pick numbers belonging to `slot`, at or after `fromPick`.
-  function picksForSlot(slot, teams, rounds, fromPick) {
+  function picksForSlot(slot, teams, rounds, fromPick, rr) {
     var out = [];
     for (var r = 1; r <= rounds; r++) {
-      var p = r % 2 === 1 ? (r - 1) * teams + slot : r * teams - slot + 1;
+      var p = (r - 1) * teams + (roundForward(r, rr) ? slot : teams - slot + 1);
       if (p >= (fromPick || 1)) out.push(p);
     }
     return out;
@@ -134,7 +143,7 @@
 
   // Next pick number >= currentPick owned by mySlot, or null when the draft is over for us.
   function nextPickFor(slot, currentPick, settings) {
-    var list = picksForSlot(slot, settings.teams, draftRounds(settings), currentPick);
+    var list = picksForSlot(slot, settings.teams, draftRounds(settings), currentPick, !!settings.thirdRoundReversal);
     return list.length ? list[0] : null;
   }
 
@@ -522,7 +531,7 @@
         // (offline 96-draft sim vs market bots: +2.8 starter pts over gain + 0.6·vona).
         score = 0.5 * gain + vona + 0.15 * pressure * gain + upside;
       }
-      score *= injuryFactor(p.injury);
+      score *= injuryFactor(draftInjury(p));
       if (!isFinite(score)) score = 0;
       return { player: p, slot: slot, gain: gain, vona: vona, score: score, opens: info.opens, upgrade: info.upgrade, supply: supply, pressure: pressure,
         pGone: pGone, depthFor: slot === 'BENCH' && needSlot && need >= 0.5 ? needSlot : null };
@@ -549,7 +558,7 @@
   function reasonFor(r, a, settings, opts, topN) {
     var p = r.player;
     var ceil = typeof p.ceiling === 'number' && isFinite(p.ceiling) ? Math.round(p.ceiling) : null;
-    var inj = injuryShort(p.injury);
+    var inj = injuryShort(draftInjury(p));
     var parts;
     if (r.slot === 'BENCH') {
       parts = ['Starters set — best bench upside' + (ceil != null ? ' (ceiling ' + ceil + ')' : '') + (r.depthFor ? '; adds ' + r.depthFor + ' depth' : '')];
@@ -641,48 +650,160 @@
     return out;
   }
 
-  /* ---------------------------------------------------------- cheat sheet */
+  /* ------------------------------------------------- availability (ADP) */
+  /* Where each player goes is modelled as Normal(mu, sd) in overall-pick units.
+     mu = his place in the market (Yahoo-first ADP rank) among the players still
+     on the board, counted from the pick on the clock: pre-draft mu = marketRank;
+     mid-draft a faller (market #3 still there at pick 10) gets mu = 10, not 3.
+     ADP rank is already an overall-pick number (the Nth player off the board),
+     so it compares to pick numbers the same way in 8-, 12- or 14-team leagues.
+     sd = 1.5 + 0.18·mu (cap 40): between the cross-site gap in
+     data/nba/market.json (ESPN/Sleeper vs Yahoo: median |gap| 2 picks at
+     1-12, 10 at 25-48, 21 at ~120, i.e. sd ≈ 1.5 + 0.22·rank) and published
+     single-site ADP spreads (~0.13-0.15·ADP); a Yahoo room mostly follows
+     Yahoo's ranks, so the cross-site gap is an upper bound.
+     The k − cur picks before pick k remove exactly k − cur players, so a shared
+     threshold t(k) is solved from Σ Φ((t − mu)/sd) = k − cur and
+     P(still there at k) = 1 − Φ((t − mu)/sd). t rises with k, so P falls as k
+     grows, and P rises with mu. */
+  var ADP_SD_BASE = 1.5, ADP_SD_SLOPE = 0.18, ADP_SD_MAX = 40;
+  function adpSd(mu) { return Math.min(ADP_SD_MAX, ADP_SD_BASE + ADP_SD_SLOPE * Math.max(0, mu)); }
+  function normCdf(z) { // Abramowitz-Stegun 7.1.26 (|error| < 1.5e-7)
+    var x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.3275911 * x);
+    var e = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return z >= 0 ? 0.5 * (1 + e) : 0.5 * (1 - e);
+  }
+  // Players with no market rank sort after every ranked one, in board order.
+  function adpModel(available, cur) {
+    cur = Math.max(1, cur || 1);
+    var list = (available || []).filter(Boolean).map(function (p, i) { return { p: p, i: i }; });
+    list.sort(function (x, y) { return mktKey(x.p) - mktKey(y.p) || x.i - y.i; });
+    var mu = new Float64Array(list.length), sd = new Float64Array(list.length), idx = new Map();
+    list.forEach(function (x, j) { mu[j] = cur + j; sd[j] = adpSd(mu[j]); idx.set(x.p, j); });
+    var cache = {};
+    function gone(t) { var s = 0; for (var j = 0; j < mu.length; j++) s += normCdf((t - mu[j]) / sd[j]); return s; }
+    // Shared threshold for pick k (null = nobody gone yet, Infinity = everyone).
+    function threshold(k) {
+      var n = k - cur;
+      if (n <= 0) return null;
+      if (cache[k] !== undefined) return cache[k];
+      if (n >= mu.length) return (cache[k] = Infinity);
+      var lo = cur - 4 * ADP_SD_MAX, hi = k + 4 * ADP_SD_MAX;
+      for (var it = 0; it < 50; it++) { var m = (lo + hi) / 2; if (gone(m) < n) lo = m; else hi = m; }
+      return (cache[k] = (lo + hi) / 2);
+    }
+    // P(player p is still on the board when pick k comes up).
+    function pAvail(p, k) {
+      var j = idx.get(p);
+      if (j == null) return 0;
+      var t = threshold(k);
+      if (t === null) return 1;
+      if (t === Infinity) return 0;
+      return 1 - normCdf((t - mu[j]) / sd[j]);
+    }
+    function muOf(p) { var j = idx.get(p); return j == null ? null : mu[j]; }
+    return { pAvail: pAvail, mu: muOf, threshold: threshold, cur: cur, size: list.length };
+  }
 
-  /* Rounds 1..N targets + by-slot tiers.
-     ctx: { available (board order), settings, cur (pick on the clock),
-            myPicks: [{ pick, round }] my remaining picks (Yahoo order or snake),
-            made: [{ pick, round, player }] my picks so far, roster: [player], perRound }
-     Returns { rounds: [{ round, pick, done, player?, targets: [{ player, need }] }],
-               bySlot: [{ slot, tiers: [{ tier, players }] }] } */
+  /* Sleeper tags preseason rest days DTD/GTD with body part "Rest" or "Not
+     Injury Related" (and DNP Coach's Decision); that's not an injury for a season-long draft. */
+  var REST_BODY = /^(rest|not injury related|coach.?s decision)$/i;
+  function draftInjury(p) {
+    if (!p) return '';
+    if (!p.injury) return p.outForSeason ? 'Out' : '';
+    if (p.injuryBody && REST_BODY.test(String(p.injuryBody).trim()) && !/OUT|IR|SUS/i.test(String(p.injury))) return '';
+    return p.injury;
+  }
+
+  /* ---------------------------------------------------------- cheat sheet */
+  var LIKELY = 0.75, COULD = 0.25, WAIT = 0.6;
+  function pickBand(prob) { return prob >= LIKELY ? 'likely' : prob >= COULD ? 'could' : 'gone'; }
+
+  /* Pick-by-pick plan for my remaining picks + by-slot tiers, from ADP odds.
+     ctx: { available (board order = our value order), settings, cur (pick on the clock),
+            myPicks: [{ pick, round }] my remaining picks (Yahoo order or snake/3RR),
+            made: [{ pick, round, player }] my picks so far, roster: [player], perSlot }
+     Each remaining pick k (next = my following pick) gets, in board order:
+       take      best value with P(k) ≥ 75% that is NOT likely (≥ 60%) back at next
+       fallback  the next two of those
+       wait      better-valued than take but ≥ 60% still there at next: don't reach
+       could     25-75% at k (could fall to you)
+       gone      better-valued than take but < 25% at k (likely gone)
+       expect    best 5 with P(k) ≥ 75% (who is realistically there)
+       range     {lo, hi} market ranks that usually go around k (P 20-80%)
+     Rows: { player, p, pNext, need: [open slot types] }.
+     Returns { rounds: [{ round, pick, done, next, before, take, fallback, wait,
+               could, gone, expect, targets (= take + fallback + could), range }],
+               bySlot: [{ slot, open, tiers: [{ tier, players: [{ player, p1, last }] }] }],
+               model } */
   function cheatSheet(ctx) {
     var settings = normalizeSettings(ctx.settings);
-    var avail = (ctx.available || []).filter(Boolean);
-    var cur = ctx.cur || 1, per = ctx.perRound || 5;
+    var avail = (ctx.available || []).filter(function (p) { return p && !p.outForSeason; });
+    var cur = ctx.cur || 1;
     var a = assignSlots(ctx.roster || [], settings);
     var openTypes = slotTypes(settings).filter(function (t) { return t !== 'UTIL' && a.open[t] > 0; });
+    var model = adpModel(avail, cur);
+    var mine = (ctx.myPicks || []).filter(function (m) { return m && m.pick >= cur; }).slice().sort(function (x, y) { return x.pick - y.pick; });
+    // ★ only means something once a position slot is filled (pre-draft everyone fills one).
+    var nonUtil = slotTypes(settings).filter(function (t) { return t !== 'UTIL'; }).length;
+    var need = function (p) { return openTypes.length < nonUtil ? openTypes.filter(function (t) { return canFill(p, t, settings); }) : []; };
+    var scan = avail.slice(0, 400); // value order; deeper than any realistic target
     var rounds = [];
     (ctx.made || []).forEach(function (m) { rounds.push({ round: m.round, pick: m.pick, done: true, player: m.player || null, name: m.name, targets: [] }); });
-    (ctx.myPicks || []).forEach(function (m) {
-      var idx = Math.max(0, m.pick - cur);
-      // Players expected around this pick: others take ~ (pick − cur) first.
-      var win = avail.slice(Math.max(0, idx - Math.floor(per / 2)), Math.max(0, idx - Math.floor(per / 2)) + per);
-      rounds.push({ round: m.round, pick: m.pick, done: false, targets: win.map(function (p) {
-        return { player: p, need: openTypes.filter(function (t) { return canFill(p, t, settings); }) };
-      }) });
+    var planned = new Set(); // earlier picks' "take": not offered again at later picks
+    mine.forEach(function (m, i) {
+      var k = m.pick, next = mine[i + 1] ? mine[i + 1].pick : null;
+      var likely = [], could = [], goneAll = [], lo = null, hi = null;
+      scan.forEach(function (p, vi) {
+        if (planned.has(p)) return;
+        var q = model.pAvail(p, k);
+        var r = { player: p, p: q, pNext: next ? model.pAvail(p, next) : 0, need: need(p), vi: vi };
+        if (q >= LIKELY) likely.push(r); else if (q >= COULD) could.push(r); else goneAll.push(r);
+        var mk = mktKey(p);
+        if (q >= 0.2 && q <= 0.8 && mk < 1e6) { lo = lo == null ? mk : Math.min(lo, mk); hi = hi == null ? mk : Math.max(hi, mk); }
+      });
+      var nowOnly = likely.filter(function (r) { return !next || r.pNext < WAIT; });
+      // Back-to-back turns (or nothing that won't last): plain best-available.
+      var pool = nowOnly.length ? nowOnly : likely;
+      var take = pool[0] || null;
+      if (take) planned.add(take.player);
+      var cut = take ? take.vi : scan.length;
+      var fallback = pool.filter(function (r) { return r !== take; }).slice(0, 2);
+      rounds.push({
+        round: m.round, pick: k, done: false, next: next, before: k - cur,
+        take: take, fallback: fallback,
+        wait: likely.filter(function (r) { return next && r.pNext >= WAIT && r.vi < cut; }).slice(0, 3),
+        could: could.slice(0, 3),
+        gone: goneAll.filter(function (r) { return r.vi < cut && r.p >= 0.01; }).sort(function (x, y) { return y.p - x.p || x.vi - y.vi; }).slice(0, 3),
+        expect: likely.slice(0, 5),
+        targets: (take ? [take] : []).concat(fallback, could.slice(0, 2)),
+        range: lo != null ? { lo: lo, hi: hi } : null
+      });
     });
     rounds.sort(function (x, y) { return x.pick - y.pick; });
+    // Latest of my picks where p is still more likely than not on the board.
+    var lastShot = function (p) {
+      var last = null;
+      mine.forEach(function (m) { var q = model.pAvail(p, m.pick); if (q >= 0.5) last = { pick: m.pick, round: m.round, p: q }; });
+      return last;
+    };
     var bySlot = slotTypes(settings).filter(function (t) { return t !== 'UTIL'; }).map(function (t) {
       var list = avail.filter(function (p) { return canFill(p, t, settings); }).slice(0, ctx.perSlot || 10);
       var tiers = [];
       list.forEach(function (p) {
         var last = tiers[tiers.length - 1];
         if (!last || last.tier !== p.tier) tiers.push(last = { tier: p.tier, players: [] });
-        last.players.push(p);
+        last.players.push({ player: p, p1: mine.length ? model.pAvail(p, mine[0].pick) : null, last: lastShot(p) });
       });
       return { slot: t, open: a.open[t] || 0, tiers: tiers };
     });
-    return { rounds: rounds, bySlot: bySlot };
+    return { rounds: rounds, bySlot: bySlot, model: model };
   }
 
   // My remaining picks on the snake from `fromPick`: [{pick, round}].
   function myPicksSnake(settings, fromPick) {
     settings = normalizeSettings(settings);
-    return picksForSlot(settings.mySlot, settings.teams, draftRounds(settings), fromPick || 1).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
+    return picksForSlot(settings.mySlot, settings.teams, draftRounds(settings), fromPick || 1, settings.thirdRoundReversal).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
   }
 
   /* ------------------------------------------------------ Yahoo pick merge */
@@ -722,7 +843,7 @@
       if (id && seen[id]) id = null; // same player twice → treat the later one as unmatched
       if (id) seen[id] = 1;
       var row = {
-        pick: yp.pick, round: yp.round || roundOf(yp.pick, settings.teams), slot: slotForPick(yp.pick, settings.teams),
+        pick: yp.pick, round: yp.round || roundOf(yp.pick, settings.teams), slot: slotForPick(yp.pick, settings.teams, settings.thirdRoundReversal),
         playerId: id, name: (id && byId[id] && byId[id].name) || yp.name || 'Unknown player',
         mine: !!(ctx.myTeamKey && yp.team_key === ctx.myTeamKey), source: 'yahoo', confirmed: true,
         player_key: yp.player_key, team_key: yp.team_key
@@ -757,7 +878,7 @@
       var o = open[oi++], pk;
       if (o) pk = o.pick; else { n++; pk = n; }
       var row = {
-        pick: pk, round: (o && o.round) || roundOf(pk, settings.teams), slot: slotForPick(pk, settings.teams),
+        pick: pk, round: (o && o.round) || roundOf(pk, settings.teams), slot: slotForPick(pk, settings.teams, settings.thirdRoundReversal),
         playerId: id, name: (byId[id] && byId[id].name) || m.name || id,
         mine: !!m.mine, source: 'manual', confirmed: !yahoo
       };
@@ -1234,7 +1355,7 @@
     clockKey: clockKey, newClock: newClock, isPaused: isPaused, clockLeftMs: clockLeftMs, pauseClock: pauseClock, resumeClock: resumeClock,
     resetClock: resetClock, advanceClock: advanceClock, clockView: clockView, serializeClock: serializeClock, restoreClock: restoreClock,
     resetDraftCount: resetDraftCount, resetDraftState: resetDraftState, undoResetDraft: undoResetDraft,
-    probGone: probGone, mktKey: mktKey,
+    probGone: probGone, mktKey: mktKey, roundForward: roundForward, adpModel: adpModel, adpSd: adpSd, normCdf: normCdf, pickBand: pickBand, draftInjury: draftInjury,
     storageKey: storageKey, emptyState: emptyState, serializeState: serializeState, deserializeState: deserializeState,
     pollDelay: pollDelay, agoText: agoText, normName: normName, matchesQuery: matchesQuery, matchesPos: matchesPos
   };

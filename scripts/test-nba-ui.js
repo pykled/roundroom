@@ -408,11 +408,19 @@ t('rounds 1-14 for slot 5 at pick 1, with targets near each pick + by-slot tiers
   const st = Object.assign({}, LP, { mySlot: 5 });
   const cs = L.cheatSheet({ available: av, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [], perRound: 5 });
   eq(cs.rounds.length, 14); eq(cs.rounds[0].pick, 5); eq(cs.rounds[1].pick, 20);
-  eq(cs.rounds[0].targets.map(x => x.player.id), ['2', '3', '4', '5', '6']);
-  ok(cs.rounds[0].targets.every(x => x.need.length > 0), 'empty roster: everyone fills a need');
+  // No ADP in this fixture → market order = board order: picks 1-4 take ids 0-3, so
+  // the best 75%+ player at #5 is id 5 (id 4 is a coin flip, ids 0-1 are gone).
+  eq(cs.rounds[0].take.player.id, '5');
+  ok(cs.rounds[0].take.p >= 0.75 && cs.rounds[0].could.every(x => x.p >= 0.25 && x.p < 0.75), 'bands');
+  ok(cs.rounds[0].gone.every(x => x.p < 0.25), 'gone band');
+  ok(cs.rounds[0].targets.every(x => x.need.length === 0), 'empty roster: no ★ (everyone would fill a need)');
+  const c1 = av.find(p => p.pos.join() === 'C');
+  const cs2 = L.cheatSheet({ available: av.filter(p => p !== c1), settings: st, cur: 6, myPicks: L.myPicksSnake(st, 6), roster: [c1] });
+  const rows = []; cs2.rounds.forEach(r => r.expect.concat(r.could).forEach(x => rows.push(x)));
+  ok(rows.some(x => x.need.length) && rows.filter(x => x.player.pos.join() === 'C').every(x => x.need.length === 0), 'C filled: C-only players lose the ★');
   eq(cs.bySlot.map(s => s.slot), ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C']);
-  ok(cs.bySlot.find(s => s.slot === 'C').tiers[0].players.every(p => L.canFill(p, 'C', st)));
-  ok(cs.bySlot.find(s => s.slot === 'F').tiers.every(t => t.players.every(p => p.pos.join() !== 'C')), 'C-only never listed under F');
+  ok(cs.bySlot.find(s => s.slot === 'C').tiers[0].players.every(x => L.canFill(x.player, 'C', st)));
+  ok(cs.bySlot.find(s => s.slot === 'F').tiers.every(t => t.players.every(x => x.player.pos.join() !== 'C')), 'C-only never listed under F');
 });
 t('cheat sheet mixes made picks (done) with remaining ones in pick order', () => {
   const av = boardFixture(), st = Object.assign({}, LP, { mySlot: 1 });
@@ -444,7 +452,9 @@ t('no NaN / no throw on junk players, rosters and settings', () => {
     L.slotPulse(avail, roster.slice(0, 12), players, st, 40).forEach(x => ok(isFinite(x.left) && isFinite(x.recent), JSON.stringify(x)));
     const ns = L.normalizeSettings(st);
     const cs = L.cheatSheet({ available: avail, settings: st, cur: 1 + Math.floor(r() * 50), myPicks: L.myPicksSnake(ns, 1), roster });
-    ok(cs.rounds.length === L.draftRounds(ns), 'rounds ' + cs.rounds.length);
+    const curN = cs.model.cur;
+    ok(cs.rounds.length === L.myPicksSnake(ns, 1).filter(m => m.pick >= curN).length, 'rounds ' + cs.rounds.length);
+    cs.rounds.forEach(rd => (rd.targets || []).forEach(x => ok(isFinite(x.p) && x.p >= 0 && x.p <= 1, 'p ' + x.p)));
   }
 });
 t('settingsSource survives a round trip; anything else resets to null', () => {
