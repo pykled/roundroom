@@ -74,7 +74,7 @@
     var wk = L.weekLabel(r.weeks[0], r.weekDates);
     if (!pairs.length) {
       el.innerHTML = '<div class="lbl">Best move · ' + esc(wk.title) + (wk.span ? ' · ' + esc(wk.span) : '') + '</div>' +
-        '<p class="nw-empty" style="margin:.5rem 0 0">No add/drop improves your lineup this week. Your bench already covers the free-agent pool.</p>';
+        '<p class="nw-empty" style="margin:.5rem 0 0">' + (r.targets && r.targets.length ? 'No add/drop improves your lineup this week. Your bench already covers the free-agent pool.' : 'No free agents to rank' + (r.unmatched && r.unmatched.roster && r.unmatched.roster.length ? '; some of your players aren’t in our model (see Not matched).' : '.')) + '</p>';
       return;
     }
     var p = pairs[0];

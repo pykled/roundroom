@@ -24,7 +24,7 @@ Branch `nba-f-waivers`, based on `nba` @ 4313300. Only stream-F files were touch
 - When D ships `nba/model/lineup.js`, `bestLineup` here can be swapped for it. The semantics are the same: slot caps 2/3/1 and UTIL takes anyone.
 
 ## Gaps
-- **Mid-week adds:** there is no per-day schedule, so an add counts the full week's games. In reality only the remaining games count, and Yahoo's add timing rules (waiver period, Sunday deadline) apply. Plan to add later.
+- **Mid-week adds:** fixed by the checker (a2616d8): adds count only their team's games left. There's still no per-day schedule, so the stale-log fallback is a days-gone estimate, and Yahoo's add timing (waiver period, W players not addable until claims clear) isn't modelled.
 - No FAB bid suggestion, and no enforcement of weekly or season add limits (we return them when Yahoo provides them).
 - Yahoo FA pull is the default-sorted first 100 FA plus 25 W, because the client has no `sort` parameter (G owns the client). Deep sleepers beyond that aren't seen.
 - Role signal is stale in preseason (all games are from last season), so no badges until games are played. The mock injects demo logs for the screenshots.
