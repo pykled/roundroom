@@ -466,10 +466,11 @@ body.nba-ui {
 .nba-ui .nu-seg--block { display: flex; }
 .nba-ui .nu-seg--block > * { flex: 1; }
 .nba-ui .nu-seg > button {
-  min-height: 38px; padding: 0 14px; border: 0; border-radius: 9px; background: none; cursor: pointer;
+  position: relative; min-height: 38px; padding: 0 14px; border: 0; border-radius: 9px; background: none; cursor: pointer;
   font-family: var(--nu-font); font-size: var(--nu-fs-sm); font-weight: 650; color: var(--nu-text-2); white-space: nowrap;
   transition: background var(--nu-dur-2) var(--nu-ease), color var(--nu-dur-1) var(--nu-ease);
 }
+.nba-ui .nu-seg > button::after { content: ""; position: absolute; inset: -4px 0; } /* 44px hit */
 .nba-ui .nu-seg > button:hover { color: var(--nu-text); }
 .nba-ui .nu-seg > button[aria-pressed="true"], .nba-ui .nu-seg > button[aria-selected="true"] {
   background: var(--nu-s3); color: var(--nu-text); box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.45);
@@ -510,13 +511,22 @@ body.nba-ui {
   background: radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--team) 70%, #000) 0%, var(--nu-s3) 75%);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.85); font-weight: 800; font-size: calc(var(--sz) * 0.36); letter-spacing: -0.02em;
-  overflow: hidden; user-select: none;
+  overflow: hidden; user-select: none; isolation: isolate;
 }
 .nba-ui .nu-avatar img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%;
   opacity: 0; transition: opacity var(--nu-dur-2) var(--nu-ease);
 }
 .nba-ui .nu-avatar img.is-loaded { opacity: 1; }
+/* Sleeper + ESPN headshots are shot on white / transparent: once a photo has
+   loaded the disc turns into a light, team-tinted "card" and the JPG is
+   multiplied onto it, so the white background takes the disc colour. */
+.nba-ui .nu-avatar:has(img.is-loaded) {
+  background: radial-gradient(circle at 50% 28%, #f6f7f9 0%, color-mix(in srgb, var(--team) 26%, #d9dde4) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 1px 2px rgba(0,0,0,0.5);
+}
+.nba-ui .nu-avatar:has(img.is-loaded) > span { visibility: hidden; }
+.nba-ui .nu-avatar img[data-src-kind="sleeper"] { mix-blend-mode: multiply; }
 .nba-ui .nu-avatar img[data-src-kind="espn"] { object-fit: cover; object-position: 50% 0; transform: scale(1.35); transform-origin: 50% 0; }
 .nba-ui .nu-avatar--xs { --sz: 24px; }
 .nba-ui .nu-avatar--sm { --sz: 32px; }
@@ -771,6 +781,7 @@ body.nba-ui.nu-has-actionbar .nu-toast-region { bottom: calc(var(--nu-tabbar-h) 
   transform: translateY(100%); transition: transform 420ms var(--nu-ease-spring); visibility: hidden;
 }
 .nba-ui .nu-sheet.is-open { transform: none; visibility: visible; }
+.nba-ui .nu-sheet:focus-visible, .nba-ui .nu-sheet:focus { outline: none; box-shadow: var(--nu-shadow-3); }
 .nba-ui .nu-sheet__grab { width: 36px; height: 5px; border-radius: 3px; background: var(--nu-line-3); margin: 8px auto 0; flex: none; }
 .nba-ui .nu-sheet__head { display: flex; align-items: center; gap: var(--nu-3); padding: var(--nu-3) var(--nu-5) var(--nu-3); border-bottom: 1px solid var(--nu-line); flex: none; }
 .nba-ui .nu-sheet__title { font-size: var(--nu-fs-h3); font-weight: 750; letter-spacing: -0.015em; flex: 1; min-width: 0; }
