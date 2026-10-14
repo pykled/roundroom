@@ -1,21 +1,23 @@
-/* Pocket NBA — trade calculator controller (stream E).
-   Board from /api/nba/players, verdict from POST /api/nba/trade/evaluate,
+/* Pocket NBA — trade calculator controller (stream E, UI rebuilt in P4 on nba-ui).
+   Board from /api/nba/players?profile=242808, verdict from POST /api/nba/trade/evaluate,
    Yahoo rosters from /api/nba/yahoo/status + /api/nba/trade/context.
    Works fully without Yahoo (manual roster, persisted in localStorage). */
 (function () {
   'use strict';
-  var L = window.NbaTrade;
+  var L = window.NbaTrade, U = window.NbaUI;
+  var esc = U.esc;
   var $ = function (id) { return document.getElementById(id); };
+  var PROFILE = '242808';
   var S = {
-    st: L.emptyState(), players: [], byId: {}, ctx: null, connected: false, leagues: [],
-    editing: false, result: null, busy: false, seq: 0, timer: null, error: null
+    st: L.emptyState(), players: [], byId: {}, ctx: null, connected: false, leagues: [], profileName: null,
+    result: null, busy: false, seq: 0, timer: null, error: null, loading: true, pickSide: null
   };
 
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function save() { try { localStorage.setItem(L.STORAGE_KEY, L.serialize(S.st)); } catch (e) {} }
   function load() { try { S.st = L.parseState(localStorage.getItem(L.STORAGE_KEY)); } catch (e) { S.st = L.emptyState(); } }
-  function fmt(n) { return (Math.round((Number(n) || 0) * 10) / 10).toFixed(1); }
-  function tone(n) { return n > 0.05 ? 'pos' : n < -0.05 ? 'neg' : ''; }
+  function f1(n) { return U.fmt.score(Number(n) || 0, 1); }
+  function dir(n) { return n > 0.05 ? 'is-up' : n < -0.05 ? 'is-down' : ''; }
+  var reduceMotion = function () { return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; };
 
   function api(url, opts) {
     opts = opts || {};
@@ -33,147 +35,315 @@
 
   function banner(msg, kind) {
     var b = $('nt-banner');
-    if (!msg) { b.hidden = true; return; }
-    b.className = 'nt-banner' + (kind === 'error' ? ' error' : '');
-    b.textContent = msg; b.hidden = false;
+    if (!msg) { b.hidden = true; b.innerHTML = ''; return; }
+    b.innerHTML = U.callout(kind === 'error' ? 'error' : 'warn', esc(msg));
+    b.hidden = false;
   }
-
-  /* --------------------------------------------------------- rows */
-  // Yahoo positions (PG, SG, SF, PF, C), coloured by guard / forward / center.
-  var GROUP = { PG: 'G', SG: 'G', G: 'G', SF: 'F', PF: 'F', F: 'F', C: 'C' };
-  function pips(p) {
-    var pos = p.yahooPos || p.pos || (p.elig || []).filter(function (e) { return e === 'G' || e === 'F'; });
-    return pos.map(function (e) { return '<span class="pp ' + (GROUP[e] || '') + '">' + esc(e) + '</span>'; }).join('');
-  }
-  function injTag(p) {
-    if (!p.injury) return '';
-    var k = String(p.injury).toUpperCase();
-    var short = /OUT|^O$|IR|SEASON/.test(k) ? 'OUT' : /SUS/.test(k) ? 'SUS' : /DTD|GTD|DAY/.test(k) ? 'GTD' : k.slice(0, 3);
-    return '<span class="inj ' + (short === 'OUT' ? 'OUT' : '') + '">' + esc(short) + '</span>';
-  }
-  function row(p, side, on, opts) {
-    opts = opts || {};
-    if (!p) return '';
-    var meta = pips(p) + '<span class="tm">' + esc(p.team || 'FA') + '</span>' + (p.games ? '<span>' + fmt(p.games) + ' g/wk</span>' : '') + injTag(p);
-    var main = '<button type="button" class="nt-row-main" data-side="' + side + '" data-id="' + esc(p.id) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
-      '<span class="nt-check" aria-hidden="true">' + (on ? '✓' : '') + '</span>' +
-      '<span class="nt-who"><span class="nt-name">' + esc(p.name) + '</span><span class="nt-meta">' + meta + '</span></span>' +
-      '<span class="nt-val"><b>' + fmt(p.hsValue) + '</b><span>/wk</span></span></button>';
-    var x = opts.remove ? '<button type="button" class="nt-x" data-remove="' + esc(p.id) + '" data-from="' + esc(opts.remove) + '" aria-label="Remove ' + esc(p.name) + '">×</button>' : '';
-    return '<li class="nt-row' + (on ? ' on' : '') + '">' + main + x + '</li>';
-  }
-  function unmatchedRow(yp) {
-    return '<li class="nt-row unmatched"><div class="nt-row-main"><span class="nt-check" aria-hidden="true"></span><span class="nt-who"><span class="nt-name">' + esc(yp.name) +
-      '</span><span class="nt-meta">Not matched to the model, so not tradeable here</span></span></div></li>';
-  }
-  function sortByValue(list) { return list.slice().sort(function (a, b) { return (b.hsValue || 0) - (a.hsValue || 0); }); }
 
   function myTeam() { return S.st.mode === 'yahoo' ? L.teamOf(S.ctx, S.st.myTeamKey) : null; }
   function partnerTeam() { return S.st.mode === 'yahoo' ? L.teamOf(S.ctx, S.st.partnerKey) : null; }
+  function isYahoo() { return S.st.mode === 'yahoo' && !!S.ctx; }
+  function byValue(list) { return list.slice().sort(function (a, b) { return (b.hsValue || 0) - (a.hsValue || 0); }); }
+  function rosterPlayers() { return byValue(S.st.myRoster.map(function (id) { return S.byId[id]; }).filter(Boolean)); }
+  function partnerPlayers() { var t = partnerTeam(); return t ? byValue(L.rosterIds(t).map(function (id) { return S.byId[id]; }).filter(Boolean)) : []; }
+  function resPlayer(id) { var r = S.result; return r && r.players ? r.players.filter(function (p) { return String(p.id) === String(id); })[0] : null; }
+  function themName() { var r = S.result; return r && r.them && r.them.estimated ? 'Typical team' : (partnerTeam() ? partnerTeam().name : 'Them'); }
 
-  function renderLists() {
-    var st = S.st, yahoo = st.mode === 'yahoo' && S.ctx;
-    // ---- give side (my roster)
-    var mine = sortByValue(st.myRoster.map(function (id) { return S.byId[id]; }).filter(Boolean));
-    var html = '';
-    if (!mine.length && !yahoo) {
-      html = '<li class="nt-empty"><b>Add your roster</b>Search your players above, or import the team you marked as yours on the draft board.</li>';
-    } else {
-      html = mine.map(function (p) { return row(p, 'give', st.give.indexOf(p.id) >= 0, { remove: !yahoo && S.editing ? 'roster' : null }); }).join('');
-      if (yahoo) (myTeam() || { players: [] }).players.filter(function (y) { return !y.sleeperId; }).forEach(function (y) { html += unmatchedRow(y); });
+  /* --------------------------------------------------------- players */
+  function pos(p) { return (p.yahooPos && p.yahooPos.length ? p.yahooPos : p.pos || []).slice(0, 3); }
+  function metaHtml(p) {
+    return U.posPill(pos(p)) + (p.team ? '<span>' + esc(p.team) + '</span>' : '<span>FA</span>') +
+      (p.injury || p.outForSeason ? U.injuryBadge(p.injury, { outForSeason: p.outForSeason }) : '');
+  }
+  function playerBlock(p, size, extra) {
+    return '<div class="nu-player">' + U.avatar(p, { size: size || 'md', teamBadge: true, injuryDot: true }) +
+      '<div class="nu-player__text"><span class="nu-player__name">' + esc(p.name) + '</span>' +
+      '<div class="nu-player__meta">' + metaHtml(p) + '</div>' + (extra || '') + '</div></div>';
+  }
+  function tradeRow(p, side) {
+    var rp = resPlayer(p.id);
+    var fit = '<span>Ceil <b>' + f1(p.ceiling) + '</b></span>';
+    if (rp) {
+      fit += ' · <span>ROS <b>' + f1(rp.rosValue) + '</b></span>';
+      var impact = side === 'give' ? -(rp.forYou || 0) : (rp.forYou || 0);
+      fit += ' · <span>Lineup <b class="' + dir(impact) + '">' + L.signed(impact) + '</b></span>';
     }
-    $('nt-my-list').innerHTML = html;
-    $('nt-my-tools').hidden = !!yahoo || (!S.editing && mine.length > 0);
-    $('nt-edit-roster').hidden = !!yahoo || !mine.length;
-    $('nt-edit-roster').setAttribute('aria-pressed', S.editing ? 'true' : 'false');
-    $('nt-edit-roster').textContent = S.editing ? 'Done' : 'Edit roster';
-    $('nt-give-count').textContent = st.give.length ? st.give.length + ' selected' : (mine.length ? mine.length + ' on roster' : '');
+    var removable = true;
+    return '<li class="nt-prow">' + playerBlock(p, 'md', '<div class="nt-prow__fit">' + fit + '</div>') +
+      '<div class="nt-prow__nums"><b>' + f1(p.hsValue) + '</b><small>pts/wk</small></div>' +
+      (removable ? '<button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-remove="' + esc(p.id) + '" data-from="' + side + '" aria-label="Remove ' + esc(p.name) + '">' + U.icon.close + '</button>' : '') + '</li>';
+  }
 
-    // ---- get side
-    var partner = partnerTeam();
-    $('nt-partner-tools').hidden = !yahoo;
-    $('nt-get-tools').hidden = !!yahoo;
+  var lastHtml = {};
+  function renderSides() {
+    var st = S.st, yahoo = isYahoo();
+    ['give', 'get'].forEach(function (side) {
+      var list = st[side].map(function (id) { return S.byId[id]; }).filter(Boolean);
+      var el = $('nt-' + side + '-list');
+      var html = S.loading ? '<li>' + U.skeleton(1) + '</li>' : list.map(function (p) { return tradeRow(p, side); }).join('') ||
+        '<li class="nt-empty-row"><b>' + (side === 'give' ? 'Nobody yet' : 'Nobody yet') + '</b>' + (side === 'give' ? 'Search above for a player you would send.' : (isYahoo() ? 'Pick a partner, then search their roster.' : 'Search above for any player you want back.')) + '</li>';
+      if (lastHtml[side] !== html) { el.innerHTML = html; lastHtml[side] = html; }
+      var sum = list.reduce(function (s, p) { return s + (p.hsValue || 0); }, 0);
+      $('nt-' + side + '-sum').textContent = list.length ? list.length + ' · ' + f1(sum) + ' pts/wk' : '';
+    });
+
+    // partner picker (Yahoo)
+    var sel = $('nt-partner');
+    sel.hidden = !yahoo;
     if (yahoo) {
-      var sel = $('nt-partner');
       var opts = '<option value="">Pick a trade partner</option>' + S.ctx.teams.filter(function (t) { return t.team_key !== st.myTeamKey; })
         .map(function (t) { return '<option value="' + esc(t.team_key) + '"' + (t.team_key === st.partnerKey ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('');
       if (sel.innerHTML !== opts) sel.innerHTML = opts;
-      if (!partner) html = '<li class="nt-empty"><b>Pick a team</b>Their roster shows here; tap the players you want.</li>';
-      else {
-        var theirs = sortByValue(L.rosterIds(partner).map(function (id) { return S.byId[id]; }).filter(Boolean));
-        html = theirs.map(function (p) { return row(p, 'get', st.get.indexOf(p.id) >= 0); }).join('');
-        partner.players.filter(function (y) { return !y.sleeperId; }).forEach(function (y) { html += unmatchedRow(y); });
-      }
-    } else {
-      var gets = st.get.map(function (id) { return S.byId[id]; }).filter(Boolean);
-      html = gets.length ? gets.map(function (p) { return row(p, 'get', true, { remove: 'get' }); }).join('')
-        : '<li class="nt-empty"><b>Who are you getting?</b>Search any player. Without their team\'s roster, a typical mid-draft roster stands in for the other side.</li>';
     }
-    $('nt-get-list').innerHTML = html;
-    $('nt-get-count').textContent = st.get.length ? st.get.length + ' selected' : '';
+    var p = partnerTeam();
+    $('nt-get-q').placeholder = yahoo ? (p ? 'Search ' + p.name : 'Pick a partner first') : 'Search any player';
+    $('nt-get-q').disabled = yahoo && !p;
+    $('nt-get-add-sub').textContent = yahoo ? (p ? 'From ' + p.name : 'Pick a trade partner first') : 'Search any player';
+    $('nt-give-q').placeholder = yahoo ? 'Search your roster' : (st.myRoster.length ? 'Add from your roster' : 'Search a player you give');
   }
 
-  /* ------------------------------------------------------ verdict */
+  function renderMode() {
+    var yahoo = isYahoo();
+    $('nt-mode-tag').textContent = yahoo ? 'Yahoo league' : 'Manual';
+    var p = partnerTeam();
+    $('nt-mode-note').textContent = yahoo ? (p ? 'Real rosters on both sides' : 'Pick a partner for their real roster') : 'A typical team stands in for the other side';
+    $('nt-roster-count').textContent = String(S.st.myRoster.length);
+    $('nt-eyebrow').textContent = (S.profileName ? S.profileName + ' · ' : '') + 'Yahoo High Score';
+  }
+
+  /* --------------------------------------------------------- candidates */
+  function candidates(side, q) {
+    var st = S.st, yahoo = isYahoo(), groups = [];
+    var taken = st.give.concat(st.get);
+    var match = function (list) { return q ? L.search(list, q, 40) : list; };
+    if (side === 'give') {
+      var mine = match(rosterPlayers());
+      groups.push({ title: 'Your roster', items: mine.slice(0, 30), tag: '' });
+      if (!yahoo && q) {
+        var rest = L.search(S.players, q, 30).filter(function (p) { return st.myRoster.indexOf(String(p.id)) < 0; }).slice(0, 8);
+        groups.push({ title: 'Not on your roster yet (adds him)', items: rest });
+      }
+    } else if (yahoo) {
+      groups.push({ title: partnerTeam() ? partnerTeam().name : 'Pick a trade partner first', items: match(partnerPlayers()).slice(0, 30) });
+    } else {
+      var pool = S.players.filter(function (p) { return st.myRoster.indexOf(String(p.id)) < 0; });
+      groups.push({ title: q ? 'Players' : 'Top available values', items: (q ? L.search(pool, q, 12) : pool.slice(0, 10)) });
+    }
+    groups.forEach(function (g) { g.items = g.items.map(function (p) { return { p: p, on: taken.indexOf(String(p.id)) >= 0 && st[side].indexOf(String(p.id)) >= 0 }; }); });
+    return groups;
+  }
+  function optHtml(c, side, i) {
+    var p = c.p;
+    return '<button type="button" class="nt-opt" role="option" id="nt-opt-' + side + '-' + i + '" data-opt="' + esc(p.id) + '" data-side="' + side + '" aria-selected="' + (c.on ? 'true' : 'false') + '">' +
+      playerBlock(p, 'sm') + '<span class="nt-opt__num">' + f1(p.hsValue) + '</span>' +
+      (c.on ? '<span class="nt-opt__tag" style="color:var(--nu-accent)">' + U.icon.check.replace('<svg', '<svg width="16" height="16"') + '</span>' : '') + '</button>';
+  }
+  function groupsHtml(groups, side) {
+    var i = 0, h = '';
+    groups.forEach(function (g) {
+      h += '<div class="nt-opt-head">' + esc(g.title) + '</div>';
+      if (!g.items.length) h += '<div class="nt-opt-empty">' + (side === 'give' && !S.st.myRoster.length && g.title === 'Your roster' ? 'No roster yet. Type a name to add players.' : 'No matches.') + '</div>';
+      g.items.forEach(function (c) { h += optHtml(c, side, i++); });
+    });
+    return h;
+  }
+
+  /* --------------------------------------------------------- inline combobox */
+  function bindCombo(side) {
+    var input = $('nt-' + side + '-q'), box = $('nt-' + side + '-opts'), active = -1;
+    function opts() { return box.querySelectorAll('.nt-opt'); }
+    function open() {
+      box.innerHTML = groupsHtml(candidates(side, input.value), side);
+      box.hidden = false; input.setAttribute('aria-expanded', 'true'); active = -1; input.removeAttribute('aria-activedescendant');
+      U.hydrateImages && U.hydrateImages(box);
+    }
+    function close() { box.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); }
+    function move(d) {
+      var o = opts(); if (!o.length) return;
+      if (active >= 0 && o[active]) o[active].classList.remove('is-active');
+      active = (active + d + o.length) % o.length;
+      o[active].classList.add('is-active'); o[active].scrollIntoView({ block: 'nearest' });
+      input.setAttribute('aria-activedescendant', o[active].id);
+    }
+    input.addEventListener('focus', open);
+    input.addEventListener('input', open);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (box.hidden) open(); move(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+      else if (e.key === 'Enter') { var o = opts(); var t = o[active >= 0 ? active : 0]; if (t && !box.hidden) { e.preventDefault(); t.click(); } }
+      else if (e.key === 'Escape') { close(); }
+    });
+    box.addEventListener('mousedown', function (e) { e.preventDefault(); }); // keep focus in the input
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-opt]'); if (!b) return;
+      pick(side, b.getAttribute('data-opt'));
+      input.value = ''; open();
+    });
+    document.addEventListener('click', function (e) { if (!box.contains(e.target) && e.target !== input) close(); });
+    input.addEventListener('blur', function () { setTimeout(function () { if (document.activeElement !== input) close(); }, 120); });
+  }
+
+  // Add (or toggle) a player on a side. Giving a player who isn't on the manual roster adds him to it.
+  function pick(side, id) {
+    id = String(id);
+    change(function () {
+      if (side === 'give' && !isYahoo() && S.st.myRoster.indexOf(id) < 0 && S.st.myRoster.length < 25) S.st.myRoster.push(id);
+      S.st = L.toggle(S.st, side, id);
+    });
+  }
+
+  /* --------------------------------------------------------- pick sheet (phones) */
+  function renderPickSheet() {
+    var side = S.pickSide; if (!side) return;
+    $('nt-pick-t').textContent = side === 'give' ? 'Add a player you give' : 'Add a player you get';
+    $('nt-pick-q').placeholder = side === 'give' ? 'Search your roster' : (isYahoo() ? 'Search their roster' : 'Search any player');
+    $('nt-pick-list').innerHTML = groupsHtml(candidates(side, $('nt-pick-q').value), side);
+    var n = S.st[side].length;
+    $('nt-pick-done').textContent = n ? 'Done · ' + n + ' selected' : 'Done';
+    U.hydrateImages && U.hydrateImages($('nt-pick-list'));
+  }
+  function openPick(side) {
+    if (side === 'get' && isYahoo() && !partnerTeam()) { $('nt-partner').focus(); U.toast('Pick a trade partner first'); return; }
+    S.pickSide = side; $('nt-pick-q').value = '';
+    renderPickSheet();
+    U.sheet.open('nt-pick-sheet', { initialFocus: '#nt-pick-q', onClose: function () { S.pickSide = null; } });
+  }
+
+  /* --------------------------------------------------------- roster sheet */
+  function renderRosterSheet() {
+    var yahoo = isYahoo();
+    var mine = rosterPlayers();
+    $('nt-roster-tools').hidden = yahoo;
+    $('nt-import').hidden = yahoo;
+    $('nt-roster-clear').hidden = yahoo || !mine.length;
+    $('nt-roster-hint').textContent = yahoo ? 'Loaded from your Yahoo team.' : 'The calculator needs your whole team to know who would start. Add all 14 players, bench included.';
+    $('nt-roster-n').textContent = mine.length + ' player' + (mine.length === 1 ? '' : 's') + (yahoo ? '' : ' · ' + Math.max(0, 14 - mine.length) + ' to go');
+    if (!yahoo && mine.length >= 14) $('nt-roster-n').textContent = mine.length + ' players';
+    var html = mine.map(function (p) {
+      return '<div class="nu-row nu-row--compact">' + playerBlock(p, 'sm') + '<div class="nu-row__end"><span class="nu-row__num"><b>' + f1(p.hsValue) + '</b></span>' +
+        (yahoo ? '' : '<button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-remove="' + esc(p.id) + '" data-from="roster" aria-label="Remove ' + esc(p.name) + ' from your roster">' + U.icon.close + '</button>') + '</div></div>';
+    }).join('');
+    if (yahoo) (myTeam() || { players: [] }).players.filter(function (y) { return !y.sleeperId; }).forEach(function (y) {
+      html += '<div class="nu-row nu-row--compact" style="opacity:.55">' + U.playerCell({ name: y.name }, { size: 'sm', meta: '<span>Not matched to the model</span>' }) + '</div>';
+    });
+    $('nt-roster-list').innerHTML = html || U.emptyState({ title: 'No players yet', body: 'Search above, or import the team you marked as yours on the draft board.' });
+    var q = $('nt-roster-q').value;
+    var res = q ? L.search(S.players, q, 30).filter(function (p) { return S.st.myRoster.indexOf(String(p.id)) < 0; }).slice(0, 6) : [];
+    $('nt-roster-opts').innerHTML = res.map(function (p, i) { return optHtml({ p: p, on: false }, 'roster', i); }).join('');
+    U.hydrateImages && U.hydrateImages($('nt-roster-sheet'));
+  }
+
+  /* --------------------------------------------------------- verdict */
+  var VICON = {
+    good: U.icon.check,
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13l-3-3M20 15H7l3 3"/></svg>',
+    bad: U.icon.close
+  };
+
+  function emptyVerdict() {
+    var st = S.st, n = st.myRoster.length, yahoo = isYahoo();
+    var steps = [
+      { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Yahoo.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add players') + '</button>' },
+      { done: st.give.length > 0, html: '<b>Pick who you give.</b> Tap “Add” under You give.' },
+      { done: st.get.length > 0, html: yahoo ? '<b>Pick a partner and who you get.</b>' : '<b>Pick who you get.</b> Any player works.' }
+    ];
+    if (yahoo) steps[0].done = true;
+    var ex = !yahoo && !n && !st.give.length && !st.get.length && S.players.length ? '<button type="button" class="nu-btn nu-btn--block" data-act="example" style="margin-top:var(--nu-5)">Try an example trade</button>' : '';
+    return '<div class="nu-eyebrow">Verdict</div><h2 class="nu-title" style="margin-top:6px">Build a trade</h2>' +
+      '<p class="nu-body" style="margin-top:6px">You get Accept, Counter or Decline, with the points per week it adds or costs you.</p>' +
+      '<ol class="nt-steps">' + steps.map(function (s) { return '<li class="' + (s.done ? 'is-done' : '') + '"><span>' + s.html + '</span></li>'; }).join('') + '</ol>' + ex;
+  }
+
+  function rangesHtml(r) {
+    var ax = L.rangeAxis(r); if (!ax) return '';
+    var row = function (who, s) {
+      var t = s.perWeek > 0.05 ? 'up' : s.perWeek < -0.05 ? 'down' : 'flat';
+      var lo = ax.at(s.perWeekRange[0]), hi = ax.at(s.perWeekRange[1]);
+      return '<div class="nt-rrow" data-tone="' + t + '"><span class="nt-rrow__who">' + esc(who) + '</span>' +
+        '<div class="nt-rtrack" role="img" aria-label="' + esc(who + ': likely ' + L.range(s.perWeekRange) + ' points a week, best guess ' + L.signed(s.perWeek)) + '">' +
+        '<span class="nt-rtrack__zero" style="left:50%"></span><span class="nt-rtrack__band" style="left:' + lo + '%;width:' + Math.max(1, hi - lo) + '%"></span>' +
+        '<span class="nt-rtrack__mark" style="left:' + ax.at(s.perWeek) + '%"></span></div></div>';
+    };
+    return '<div class="nt-ranges">' + row('You', r.you) + row(r.them.estimated ? 'Typical' : 'Them', r.them) +
+      '<div class="nt-raxis"><span></span><div><span>−' + ax.max + '</span><span>0</span><span>+' + ax.max + '</span></div></div>' +
+      '<p class="nt-rcap">Likely range, points per week. You: ' + esc(L.range(r.you.perWeekRange)) + '.</p></div>';
+  }
+
+  function fairHtml(r) {
+    var f = L.fairness(r); if (!f) return '';
+    return '<div class="nt-fair"><div class="nt-fair__head"><span class="nu-label">Fairness</span><span class="nt-fair__label">' + esc(f.label) + '</span></div>' +
+      '<div class="nt-fair__track" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(f.pos * 100) + '" aria-label="Fairness: ' + esc(f.label) + '">' +
+      '<span class="nt-fair__even" aria-hidden="true"></span><span class="nt-fair__dot" style="left:' + (f.pos * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="nt-fair__ends"><span>Favors them</span><span>Even</span><span>Favors you</span></div></div>';
+  }
+
   function renderVerdict() {
     var box = $('nt-verdict'), r = S.result, st = S.st;
-    box.classList.toggle('busy', S.busy);
-    if (!L.canEvaluate(st) || !r || !r.verdict) {
-      box.className = 'nt-verdict' + (S.busy ? ' busy' : '');
-      box.innerHTML = S.error
-        ? '<div class="nt-v-empty"><b>Couldn\'t score this trade</b>' + esc(S.error) + '</div>'
-        : '<div class="nt-v-empty"><b>No trade yet</b>Tap players on your roster to give and pick players to get. The verdict updates as you go.</div>';
-      $('nt-lineup-card').hidden = true; $('nt-weeks-card').hidden = true;
-      renderVbar(); return;
+    box.setAttribute('aria-busy', S.busy ? 'true' : 'false');
+    var has = L.canEvaluate(st) && r && r.verdict;
+    if (!has) {
+      box.removeAttribute('data-tone');
+      if (S.error && L.canEvaluate(st)) box.innerHTML = '<div class="nu-eyebrow">Verdict</div>' + '<div style="margin-top:var(--nu-3)">' + U.callout('error', '<b>Couldn\'t score this trade.</b> ' + esc(S.error)) + '</div>';
+      else if (L.canEvaluate(st) && (S.busy || S.loading)) box.innerHTML = '<div class="nu-eyebrow">Verdict</div><span class="nu-skel" style="display:block;width:55%;height:34px;margin-top:14px"></span><span class="nu-skel" style="display:block;width:90%;margin-top:16px"></span><div class="nu-stats nu-stats--2" style="margin-top:16px">' + U.skeleton(2, { kind: 'tile' }) + '</div>';
+      else box.innerHTML = emptyVerdict();
+      $('nt-why-card').hidden = true; $('nt-lineup-card').hidden = true; $('nt-weeks-card').hidden = true;
+      renderRules(null); renderBar(); return;
     }
-    var t = L.verdictTone(r.verdict);
-    box.className = 'nt-verdict ' + t + (S.busy ? ' busy' : '');
-    var them = r.them;
-    var themWho = them.estimated ? 'Typical partner' : (partnerTeam() ? partnerTeam().name : 'Them');
-    var h = '<div class="nt-v-top"><span class="nt-badge">' + esc(r.verdict) + '</span><span class="nt-v-label">Rest of season · ' + esc(r.meta.weeks) + ' wks</span></div>' +
-      '<p class="nt-headline">' + esc(r.headline) + '</p>' +
-      '<div class="nt-sides">' +
-      stat('You', r.you) + stat(themWho, them) +
-      '</div>' +
-      '<p class="nt-likely">' + esc(L.likelyText(them.likely, them.estimated)) + '.' + (them.estimated ? ' Pick their team in a Yahoo league for their real roster.' : '') + '</p>';
-    if (r.why && r.why.length) h += '<ul class="nt-why">' + r.why.filter(function (w) { return w !== r.consolidation; }).map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>';
-    if (r.consolidation) h += '<div class="nt-note">' + esc(r.consolidation) + '</div>';
-    if (r.warnings && r.warnings.length) h += '<div class="nt-note">' + esc(r.warnings.join(' · ')) + '</div>';
-    var ru = r.meta && r.meta.rules;
-    if (ru && ru.notes && ru.notes.length) h += '<div class="nt-rules' + (ru.open ? '' : ' closed') + '"><b>League trade rules</b><ul>' + ru.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>';
-    var se = r.meta && r.meta.settings;
-    if (se) h += '<p class="nt-setline">' + esc((r.profile && r.profile.name ? r.profile.name + ' · ' : '') + se.teams + ' teams · ' + se.starters + ' starters (' + slotText(se.slotList) + ') · ' + se.rosterSize + ' active + ' + se.il + ' IL · bench depth ' + (se.benchShare || []).map(function (x) { return Math.round(x * 1000) / 10 + '%'; }).join('/')) + '</p>';
-    box.innerHTML = h;
-    renderLineup(r); renderWeeks(r); renderVbar();
-  }
-  function slotText(list) {
-    var c = {}, o = [];
-    (list || []).forEach(function (s) { if (!c[s]) o.push(s); c[s] = (c[s] || 0) + 1; });
-    return o.map(function (s) { return (c[s] > 1 ? c[s] + ' ' : '') + s; }).join(', ');
-  }
-  function stat(who, s) {
-    return '<div class="nt-stat"><div class="who">' + esc(who) + '</div>' +
-      '<div class="big ' + tone(s.perWeek) + '">' + L.signed(s.perWeek) + '<small>/wk</small></div>' +
-      '<div class="rng">range ' + L.range(s.perWeekRange) + '</div>' +
-      '<div class="ros">' + L.signed(s.ros, 0) + ' rest of season</div></div>';
+    var tone = L.verdictTone(r.verdict);
+    box.setAttribute('data-tone', tone);
+    var who = themName();
+    var tile = function (label, s, sub) {
+      return '<div class="nt-vstat"><div class="nt-vstat__who">' + esc(label) + '</div><div class="nt-vstat__num ' + dir(s.perWeek) + '">' + L.signed(s.perWeek) + '<small>/wk</small></div>' +
+        '<div class="nt-vstat__sub">' + esc(sub) + '</div></div>';
+    };
+    box.innerHTML =
+      '<div class="nt-vword"><span class="nt-vword__icon" aria-hidden="true">' + VICON[tone] + '</span><div class="nt-vword__txt"><span class="nt-vword__word">' + esc(r.verdict) + '</span>' +
+      '<span class="nt-vword__meta">Rest of season · ' + esc(r.meta.weeks) + ' weeks</span></div></div>' +
+      '<p class="nt-oneliner">' + esc(L.oneLiner(r, r.them.estimated ? 'a typical team' : (partnerTeam() ? partnerTeam().name : 'they'))) + '</p>' +
+      '<div class="nt-vstats">' + tile('You', r.you, L.signed(r.you.ros, 0) + ' season total') + tile(who, r.them, L.signed(r.them.ros, 0) + ' season total') + '</div>' +
+      rangesHtml(r) + fairHtml(r) +
+      '<div class="nt-likely" data-l="' + esc(r.them.likely) + '"><span class="nu-dot" aria-hidden="true"></span><span>' + esc(L.likelyText(r.them.likely, r.them.estimated)) + '.' + (r.them.estimated ? ' Connect Yahoo for their real roster.' : '') + '</span></div>' +
+      '<div class="nt-vactions"><button type="button" class="nu-btn" data-act="copy">Copy trade summary</button><button type="button" class="nu-btn nu-btn--ghost" data-act="clear">Clear trade</button></div>';
+    renderWhy(r); renderLineup(r); renderWeeks(r); renderRules(r.meta && r.meta.rules); renderBar();
   }
 
+  function renderWhy(r) {
+    var items = L.whyItems(r, S.byId);
+    var ic = { good: '+', bad: '−', warn: '!', flat: '·' };
+    $('nt-why').innerHTML = items.map(function (w) { return '<li data-tone="' + w.tone + '"><span class="nt-why__ic" aria-hidden="true">' + ic[w.tone] + '</span><span>' + esc(w.text) + '</span></li>'; }).join('');
+    var notes = L.rosterNotes(r).map(function (n) { return U.callout('info', esc(n)); });
+    (r.warnings || []).forEach(function (w) { notes.push(U.callout('warn', esc(L.cleanText(w)))); });
+    $('nt-notes').innerHTML = notes.join('');
+    $('nt-notes').hidden = !notes.length;
+    $('nt-why-card').hidden = !items.length && !notes.length;
+  }
+
+  function slotWho(x, size) {
+    if (!x || !x.id) return '<span class="nt-slot__repl">' + (x && x.replacement ? 'Waiver add' : 'Empty') + '</span>';
+    var p = S.byId[x.id] || { id: x.id, name: x.name };
+    return '<span class="nt-slot__who">' + U.avatar(p, { size: size || 'sm' }) + '<span class="nt-slot__name">' + esc(x.name) + '</span></span>';
+  }
   function renderLineup(r) {
-    var b = r.lineup.before.starters, a = r.lineup.after.starters;
-    var cell = function (x, cls) {
-      if (!x || !x.id) return '<td class="' + cls + ' repl">' + (x && x.replacement ? 'Waiver add' : 'Empty') + (x && x.value ? '<span class="v">' + fmt(x.value) + '</span>' : '') + '</td>';
-      return '<td class="' + cls + '">' + esc(x.name) + '<span class="v">' + fmt(x.value) + '</span></td>';
-    };
-    var html = '<thead><tr><th>Slot</th><th>Now</th><th>After</th></tr></thead><tbody>';
-    for (var i = 0; i < a.length; i++) {
-      var chg = r.lineup.changed.indexOf(a[i].slot) >= 0;
-      html += '<tr class="' + (chg ? 'chg' : '') + '"><td class="slot">' + esc(a[i].slot) + '</td>' + cell(b[i], 'before') + cell(a[i], 'after') + '</tr>';
-    }
-    $('nt-lu').innerHTML = html + '</tbody>';
-    var sumB = b.reduce(function (s, x) { return s + (x.value || 0); }, 0), sumA = a.reduce(function (s, x) { return s + (x.value || 0); }, 0);
-    $('nt-lu-delta').innerHTML = '<span class="' + tone(sumA - sumB) + '">' + L.signed(sumA - sumB) + '</span>';
-    var bench = r.lineup.after.bench;
-    $('nt-bench').textContent = bench.length ? 'Bench after: ' + bench.map(function (x) { return x.name + ' ' + fmt(x.value); }).join(', ') : '';
+    var rows = L.lineupRows(r);
+    if (!rows.length) { $('nt-lineup-card').hidden = true; return; }
+    $('nt-slots').innerHTML = rows.map(function (x) {
+      var who = x.changed
+        ? '<div class="nt-slot__stack">' + slotWho(x.after) + '<span class="nt-slot__was">was <span class="nt-slot__name">' + esc(x.before && x.before.id ? x.before.name : (x.before && x.before.replacement ? 'Waiver add' : 'Empty')) + '</span></span></div>'
+        : slotWho(x.after);
+      return '<li class="nt-slot' + (x.changed ? ' is-changed' : '') + '">' + '<span class="nu-slot">' + U.posPill(x.slot) + '</span>' + who +
+        '<span class="nt-slot__num">' + f1(x.after.value) + (x.changed ? U.delta(x.delta) : '') + '</span></li>';
+    }).join('');
+    var sumB = r.lineup.before.starters.reduce(function (s, x) { return s + (x.value || 0); }, 0);
+    var sumA = r.lineup.after.starters.reduce(function (s, x) { return s + (x.value || 0); }, 0);
+    $('nt-lu-delta').innerHTML = U.delta(Math.round((sumA - sumB) * 10) / 10);
+    var bench = r.lineup.after.bench || [];
+    $('nt-bench').innerHTML = bench.length ? '<span class="nu-label">Bench</span>' + bench.map(function (x) {
+      var p = S.byId[x.id] || { id: x.id, name: x.name };
+      return '<span class="nt-bench__p">' + U.avatar(p, { size: 'xs' }) + esc(x.name) + '</span>';
+    }).join('') : '';
+    $('nt-bench').hidden = !bench.length;
     $('nt-lineup-card').hidden = false;
+    U.hydrateImages && U.hydrateImages($('nt-lineup-card'));
   }
 
   function renderWeeks(r) {
@@ -181,30 +351,41 @@
     if (bars.length < 2) { $('nt-weeks-card').hidden = true; return; }
     $('nt-weeks').innerHTML = bars.map(function (b) {
       var pct = Math.round(Math.abs(b.h) * 48);
-      var title = 'Week ' + b.week + ': ' + L.signed(b.you) + (b.games ? ' · games ' + (b.games > 0 ? '+' : '') + b.games : '') + (b.playoff ? ' · playoffs' : '');
+      var title = 'Week ' + b.week + ': ' + L.signed(b.you) + '/wk' + (b.games ? ' · games ' + (b.games > 0 ? '+' : '−') + Math.abs(b.games) : '') + (b.playoff ? ' · playoffs' : '');
       return '<div class="nt-wk' + (b.playoff ? ' po' : '') + '" title="' + esc(title) + '"><i class="' + (b.h >= 0 ? 'up' : 'dn') + '" style="height:' + pct + '%"></i></div>';
     }).join('');
-    $('nt-weeks').setAttribute('aria-label', 'Change in your weekly score by week, from ' + L.signed(Math.min.apply(null, bars.map(function (b) { return b.you; }))) + ' to ' + L.signed(Math.max.apply(null, bars.map(function (b) { return b.you; }))));
+    var ys = bars.map(function (b) { return b.you; });
+    $('nt-weeks').setAttribute('aria-label', 'Change in your weekly score by week, from ' + L.signed(Math.min.apply(null, ys)) + ' to ' + L.signed(Math.max.apply(null, ys)));
     $('nt-wk-axis').innerHTML = '<span>Wk ' + bars[0].week + '</span><span>Wk ' + bars[bars.length - 1].week + '</span>';
-    $('nt-weeks-sum').innerHTML = '<span class="' + tone(r.you.ros) + '">' + L.signed(r.you.ros, 0) + '</span>';
+    $('nt-weeks-sum').innerHTML = '<span class="' + dir(r.you.ros) + '">' + L.signed(r.you.ros, 0) + ' season</span>';
     var hasPo = bars.some(function (b) { return b.playoff; });
-    $('nt-legend').innerHTML = 'Bars: your weekly gain (up) or loss (down). Taller in weeks where the players in and out have more or fewer games.' + (hasPo ? ' <span class="po"></span>Playoff weeks count ' + esc(r.meta.playoffWeight) + '×.' : '');
+    $('nt-legend').textContent = 'Up = you gain that week, down = you lose. Bars swing with how many games each side plays.' + (hasPo ? ' Orange marks playoff weeks (count ' + r.meta.playoffWeight + '×).' : '');
     $('nt-weeks-card').hidden = false;
   }
 
-  var verdictVisible = true;
-  function renderVbar() {
-    var bar = $('nt-vbar'), r = S.result;
-    var show = !!(r && r.verdict && L.canEvaluate(S.st) && !verdictVisible && !S.typing);
-    bar.classList.toggle('show', show);
-    bar.setAttribute('aria-hidden', show ? 'false' : 'true');
-    if (!r || !r.verdict) return;
-    bar.className = 'nt-vbar ' + L.verdictTone(r.verdict) + (show ? ' show' : '');
-    $('nt-vbar-badge').textContent = r.verdict;
-    $('nt-vbar-txt').innerHTML = '<b>' + L.signed(r.you.perWeek) + '/wk</b>Them ' + L.signed(r.them.perWeek) + '/wk · ' + esc(r.them.likely);
+  function renderRules(rules) {
+    var chips = L.ruleChips(rules), el = $('nt-rules');
+    el.hidden = !chips.length;
+    el.innerHTML = chips.length ? U.icon.info + '<span class="nu-sr">League trade rules:</span>' + chips.map(function (c) { return '<span class="nu-tag"' + (c.tone ? ' data-tone="' + c.tone + '"' : '') + '>' + esc(c.text) + '</span>'; }).join('') : '';
   }
 
-  function render() { renderLists(); renderVerdict(); }
+  var verdictVisible = true;
+  function renderBar() {
+    var bar = $('nt-actionbar'), r = S.result;
+    var show = !!(r && r.verdict && L.canEvaluate(S.st) && !verdictVisible);
+    bar.hidden = !show;
+    if (!r || !r.verdict) return;
+    bar.setAttribute('data-tone', L.verdictTone(r.verdict));
+    $('nt-ab-pill').textContent = r.verdict;
+    $('nt-ab-title').textContent = 'Give ' + S.st.give.length + ' · Get ' + S.st.get.length;
+    $('nt-ab-sub').textContent = 'You ' + L.signed(r.you.perWeek) + '/wk · ' + (r.them.estimated ? 'Typical' : 'Them') + ' ' + L.signed(r.them.perWeek) + '/wk';
+  }
+
+  function render() {
+    renderMode(); renderSides(); renderVerdict();
+    if (S.pickSide) renderPickSheet();
+    if (U.sheet.isOpen() && !$('nt-roster-sheet').hidden) renderRosterSheet();
+  }
 
   /* ------------------------------------------------------ evaluate */
   function schedule() {
@@ -224,41 +405,17 @@
       S.error = e.status === 429 ? 'Too many changes at once. Try again in a few seconds.' : e.status === 503 ? 'Player data is unavailable right now.' : (e.message || 'Network error');
     }).then(function () {
       if (seq !== S.seq) return;
-      S.busy = false; renderVerdict();
+      S.busy = false; renderSides(); renderVerdict();
     });
   }
 
   function change(fn) { fn(); save(); render(); schedule(); }
 
-  /* ------------------------------------------------------ search */
-  function bindSearch(inputId, resultsId, exclude, onPick) {
-    var input = $(inputId), box = $(resultsId);
-    function close() { box.hidden = true; box.innerHTML = ''; }
-    input.addEventListener('input', function () {
-      var ex = exclude();
-      var res = L.search(S.players, input.value, 20).filter(function (p) { return ex.indexOf(p.id) < 0; }).slice(0, 8);
-      if (!res.length) { close(); return; }
-      box.innerHTML = res.map(function (p) {
-        return '<button type="button" role="option" data-pick="' + esc(p.id) + '">' + pips(p) + '<span>' + esc(p.name) + '</span><span class="tm" style="color:var(--text-muted);font-family:var(--font-mono);font-size:.68rem">' + esc(p.team || '') + '</span><span class="v">' + fmt(p.hsValue) + '</span></button>';
-      }).join('');
-      box.hidden = false;
-    });
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { close(); input.blur(); }
-      if (e.key === 'Enter') { var b = box.querySelector('button'); if (b) { e.preventDefault(); b.click(); } }
-    });
-    box.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-pick]');
-      if (!b) return;
-      onPick(b.getAttribute('data-pick'));
-      input.value = ''; close(); input.focus();
-    });
-    document.addEventListener('click', function (e) { if (!box.contains(e.target) && e.target !== input) close(); });
-  }
-
   /* ------------------------------------------------------ yahoo */
   function initYahoo() {
-    return api('/api/nba/yahoo/status').then(function (s) {
+    // One shared status fetch with the nav chip (yahoo-chip.js) when it's loaded.
+    var status = window.PocketYahoo && window.PocketYahoo.status ? window.PocketYahoo.status() : api('/api/nba/yahoo/status');
+    return status.then(function (s) {
       S.connected = !!(s && s.connected); S.leagues = (s && s.leagues) || [];
     }).catch(function () { S.connected = false; S.leagues = []; }).then(function () {
       var sel = $('nt-league');
@@ -284,18 +441,16 @@
     }
     var same = S.st.mode === 'yahoo' && S.st.leagueKey === key;
     banner(null);
-    $('nt-my-list').innerHTML = '<li class="nt-empty">Loading your league…</li>';
     return api('/api/nba/trade/context?league_key=' + encodeURIComponent(key)).then(function (ctx) {
       S.ctx = ctx;
       var st = S.st;
       st.mode = 'yahoo'; st.leagueKey = key; st.myTeamKey = ctx.myTeamKey;
-      var mine = L.teamOf(ctx, ctx.myTeamKey);
-      st.myRoster = L.rosterIds(mine);
+      st.myRoster = L.rosterIds(L.teamOf(ctx, ctx.myTeamKey));
       if (!same || !L.teamOf(ctx, st.partnerKey) || st.partnerKey === st.myTeamKey) st.partnerKey = null;
       var theirs = st.partnerKey ? L.rosterIds(L.teamOf(ctx, st.partnerKey)) : [];
       st.give = st.give.filter(function (id) { return st.myRoster.indexOf(id) >= 0; });
       st.get = st.get.filter(function (id) { return theirs.indexOf(id) >= 0; });
-      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Yahoo player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and ' + (ctx.unmatched.length > 1 ? 'are' : 'is') + ' shown greyed out.');
+      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Yahoo player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and ' + (ctx.unmatched.length > 1 ? 'are' : 'is') + ' left out.');
       save(); render(); schedule();
     }).catch(function (e) {
       S.ctx = null; S.st.mode = 'manual'; S.st.leagueKey = '';
@@ -305,7 +460,7 @@
     });
   }
 
-  /* ------------------------------------------------------ clerk */
+  /* ------------------------------------------------------ clerk (keeps the session fresh for Yahoo calls) */
   function initClerk() {
     var key = window.__clerk_publishable_key;
     if (!key || key.indexOf('PLACEHOLDER') >= 0) return;
@@ -315,14 +470,27 @@
     s.onload = function () {
       try {
         var clerk = (window.Clerk && typeof window.Clerk.load === 'function') ? window.Clerk : new window.Clerk(key);
-        clerk.load({ telemetry: { disabled: true } }).then(function () {
-          var btn = $('rr-sign-in');
-          if (clerk.user) { clerk.mountUserButton($('user-btn-mount')); btn.hidden = true; }
-          else { btn.hidden = false; btn.onclick = function () { clerk.openSignIn({ redirectUrl: '/nba/trade' }); }; }
-        });
+        clerk.load({ telemetry: { disabled: true } }).catch(function () {});
       } catch (e) { console.warn('Clerk init failed', e); }
     };
     document.head.appendChild(s);
+  }
+
+  /* ------------------------------------------------------ clipboard */
+  function copySummary() {
+    var p = partnerTeam();
+    var text = L.summaryText(S.result, S.st, S.byId, p ? p.name : null);
+    var done = function () { U.toast('Trade summary copied', { tone: 'good' }); };
+    var fallback = function () {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      if (ok) done(); else U.toast('Copy failed. Select and copy manually.', { tone: 'bad' });
+    };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
   }
 
   /* ------------------------------------------------------ boot */
@@ -333,47 +501,79 @@
         var id = rm.getAttribute('data-remove'), from = rm.getAttribute('data-from');
         change(function () {
           if (from === 'roster') { S.st.myRoster = S.st.myRoster.filter(function (x) { return x !== id; }); S.st.give = S.st.give.filter(function (x) { return x !== id; }); }
-          else S.st.get = S.st.get.filter(function (x) { return x !== id; });
+          else S.st[from] = S.st[from].filter(function (x) { return x !== id; });
         });
         return;
       }
-      var b = e.target.closest('.nt-row-main[data-side]');
-      if (b) { var side = b.getAttribute('data-side'), pid = b.getAttribute('data-id'); change(function () { S.st = L.toggle(S.st, side, pid); }); }
+      var opt = e.target.closest('#nt-pick-list [data-opt]');
+      if (opt) { pick(S.pickSide, opt.getAttribute('data-opt')); return; }
+      var ro = e.target.closest('#nt-roster-opts [data-opt]');
+      if (ro) {
+        var rid = ro.getAttribute('data-opt');
+        change(function () { if (S.st.myRoster.length < 25 && S.st.myRoster.indexOf(rid) < 0) S.st.myRoster.push(rid); S.st.get = S.st.get.filter(function (x) { return x !== rid; }); });
+        $('nt-roster-q').value = ''; renderRosterSheet(); $('nt-roster-q').focus();
+        return;
+      }
+      var pk = e.target.closest('[data-pick]');
+      if (pk) { openPick(pk.getAttribute('data-pick')); return; }
+      var act = e.target.closest('[data-act]');
+      if (act) {
+        var a = act.getAttribute('data-act');
+        if (a === 'copy') copySummary();
+        if (a === 'clear') change(function () { S.st.give = []; S.st.get = []; });
+        if (a === 'roster') openRoster();
+        if (a === 'example') {
+          var ex = L.exampleTrade(S.players);
+          if (ex) change(function () { S.st.myRoster = ex.myRoster; S.st.give = ex.give; S.st.get = ex.get; });
+        }
+      }
     });
-    $('nt-edit-roster').addEventListener('click', function () { S.editing = !S.editing; renderLists(); if (S.editing) $('nt-my-search').focus(); });
+    bindCombo('give'); bindCombo('get');
+    $('nt-pick-q').addEventListener('input', renderPickSheet);
+    $('nt-roster-q').addEventListener('input', renderRosterSheet);
+    $('nt-roster-q').addEventListener('keydown', function (e) { if (e.key === 'Enter') { var b = $('nt-roster-opts').querySelector('[data-opt]'); if (b) { e.preventDefault(); b.click(); } } });
+    $('nt-roster-btn').addEventListener('click', openRoster);
+    $('nt-how').addEventListener('click', function () { U.sheet.open('nt-how-sheet'); });
     $('nt-import').addEventListener('click', function () {
       var raw = null; try { raw = localStorage.getItem(L.DRAFT_KEY); } catch (e) {}
       var ids = L.draftImport(raw).filter(function (id) { return S.byId[id]; });
-      if (!ids.length) { banner('No players marked as yours on the draft board yet. Search to add them instead.'); return; }
-      banner(null);
-      change(function () { S.st.myRoster = ids; S.st.give = []; S.st.get = S.st.get.filter(function (id) { return ids.indexOf(id) < 0; }); S.editing = false; });
+      if (!ids.length) { U.toast('No players marked as yours on the draft board yet.'); return; }
+      change(function () { S.st.myRoster = ids; S.st.give = []; S.st.get = S.st.get.filter(function (id) { return ids.indexOf(id) < 0; }); });
+      renderRosterSheet(); U.toast('Imported ' + ids.length + ' players', { tone: 'good' });
     });
-    bindSearch('nt-my-search', 'nt-my-results', function () { return S.st.myRoster; }, function (id) {
-      change(function () { if (S.st.myRoster.length < 25) S.st.myRoster.push(id); S.st.get = S.st.get.filter(function (x) { return x !== id; }); });
-    });
-    bindSearch('nt-get-search', 'nt-get-results', function () { return S.st.myRoster.concat(S.st.get); }, function (id) {
-      change(function () { S.st = L.toggle(S.st, 'get', id); });
+    $('nt-roster-clear').addEventListener('click', function () {
+      var prev = { r: S.st.myRoster.slice(), g: S.st.give.slice() };
+      change(function () { S.st.myRoster = []; S.st.give = []; });
+      renderRosterSheet();
+      U.toast('Roster cleared', { action: { label: 'Undo', onClick: function () { change(function () { S.st.myRoster = prev.r; S.st.give = prev.g; }); renderRosterSheet(); } } });
     });
     $('nt-league').addEventListener('change', function () { S.st.give = []; S.st.get = []; selectLeague(this.value || null); });
     $('nt-partner').addEventListener('change', function () { var v = this.value || null; change(function () { S.st.partnerKey = v; S.st.get = []; }); });
-    $('nt-vbar-btn').addEventListener('click', function () { $('nt-verdict').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
-    // Phones: the fixed verdict bar would sit over a focused search box / keyboard.
-    document.addEventListener('focusin', function (e) { if (e.target.matches && e.target.matches('input')) { S.typing = true; renderVbar(); } });
-    document.addEventListener('focusout', function (e) { if (e.target.matches && e.target.matches('input')) { S.typing = false; renderVbar(); } });
+    $('nt-ab-btn').addEventListener('click', function () {
+      var t = $('nt-why-card').hidden ? $('nt-verdict') : $('nt-verdict');
+      t.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+    });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) { verdictVisible = es[0].isIntersecting; renderVbar(); }, { threshold: 0.15 }).observe($('nt-verdict'));
+      new IntersectionObserver(function (es) { verdictVisible = es[0].isIntersecting; renderBar(); }, { threshold: 0.1 }).observe($('nt-verdict'));
     }
+  }
+  function openRoster() {
+    $('nt-roster-q').value = '';
+    renderRosterSheet();
+    U.sheet.open('nt-roster-sheet', { initialFocus: isYahoo() ? undefined : '#nt-roster-q' });
   }
 
   function boot() {
     load(); bind(); initClerk();
-    $('nt-my-list').innerHTML = '<li class="nt-empty">Loading players…</li>';
-    api('/api/nba/players').then(function (d) {
+    render();
+    api('/api/nba/players?profile=' + PROFILE).then(function (d) {
       S.players = (d.players || []).slice().sort(function (a, b) { return (a.rank || 1e9) - (b.rank || 1e9); });
       S.byId = {}; S.players.forEach(function (p) { S.byId[String(p.id)] = p; });
+      S.profileName = d.profile && d.profile.name || null;
     }).catch(function () {
       banner('Player data is unavailable right now. Try again in a minute.', 'error');
     }).then(function () {
+      S.loading = false;
       render();
       return initYahoo();
     }).then(function () { render(); schedule(); });
