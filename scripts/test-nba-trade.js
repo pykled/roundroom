@@ -342,6 +342,54 @@ t('trade-logic: toggle, request body, formatting, persistence', () => {
   ok(L.canEvaluate({ give: ['1'], get: [] }) && !L.canEvaluate({ give: [], get: [] }));
 });
 
+t('trade-logic (P4 view): fairness, one-liner, range axis, why, lineup rows, rules, summary, example', () => {
+  const r = {
+    verdict: 'Counter', headline: 'Close to even (-1.3/wk). Ask for a small add.',
+    you: { perWeek: -1.3, perWeekRange: [-10.7, 8.1], ros: -31 }, them: { perWeek: 2.5, perWeekRange: [-7.5, 12.4], ros: 58, estimated: true, likely: 'likely' },
+    meta: { fairBand: 3, currentWeek: 1, playoffStartWeek: 20, rules: { tradeEnd: '2027-03-04', daysLeft: 141, open: true, review: 'commissioner', protestDays: 2, draftPickTrades: false } },
+    weeks: [{ week: 1, you: -1.5, gamesIn: 3, gamesOut: 6 }],
+    why: ['A starts at PG: +27.3/wk.', 'Losing B costs 21.8/wk at PG.', '2-for-1: frees 1 roster spot.'], consolidation: '2-for-1: frees 1 roster spot.',
+    players: [{ side: 'give', id: 'b', name: 'B', playoffGames: 11 }, { side: 'get', id: 'i', name: 'Inj', playoffGames: 10 }],
+    lineup: { before: { starters: [{ slot: 'PG', id: 'b', name: 'B', value: 40 }, { slot: 'C', id: null, replacement: true, value: 20 }] },
+      after: { starters: [{ slot: 'PG', id: 'a', name: 'A', value: 50 }, { slot: 'C', id: 'c', name: 'C', value: 30 }] }, changed: ['PG', 'C'] },
+    roster: { you: { dropped: [] } },
+  };
+  eq(L.cleanText('Close (-1.3/wk) and -2'), 'Close (−1.3/wk) and −2');
+  const f = L.fairness(r);
+  ok(f.pos < 0.5 && f.pos > 0, 'leans to them'); eq(f.label, 'Leans their way');
+  eq(L.fairness({ ...r, you: { ...r.you, perWeek: 40 }, them: { ...r.them, perWeek: -40 } }).pos, 1);
+  eq(L.fairness({ ...r, you: { ...r.you, perWeek: 1 }, them: { ...r.them, perWeek: 0.5 } }).label, 'Even');
+  ok(/^Close\. It costs you 1\.3 points a week, and a typical team gains 2\.5\.$/.test(L.oneLiner(r, 'a typical team')), L.oneLiner(r, 'a typical team'));
+  const ax = L.rangeAxis(r); eq(ax.max, 20); eq(ax.at(0), 50); eq(ax.at(-20), 0); eq(ax.at(20), 100);
+  const why = L.whyItems(r, { i: { id: 'i', name: 'Inj', injury: 'Out', hsValue: 40, hsByWeek: { 1: 0, 2: 0, 3: 30, 4: 40 } } });
+  eq(why[0].tone, 'good'); eq(why[1].tone, 'bad');
+  ok(!why.some(w => /frees 1 roster spot/.test(w.text)), 'roster note is not a why bullet');
+  ok(why.some(w => /Fills your C hole/.test(w.text) && w.tone === 'good'), 'hole fill');
+  ok(why.some(w => /Costs you 3 games in week 1/.test(w.text)), 'short week');
+  ok(why.some(w => /Inj is out now.*week 3/.test(w.text) && w.tone === 'warn'), 'injury return');
+  eq(L.injuryReturn({ injury: null, hsValue: 40, hsByWeek: { 1: 0 } }, 1), null);
+  eq(L.rosterNotes(r), ['2-for-1: frees 1 roster spot.']);
+  const rows = L.lineupRows(r); eq(rows.length, 2); eq(rows[0].delta, 10); ok(rows[1].changed); eq(L.slotLabel('UTIL2'), 'UTIL');
+  eq(L.ruleChips(r.meta.rules).map(c => c.text), ['Deadline Mar 4, 2027 · 141d left', 'Commissioner review', '2-day protest window', 'No draft-pick trades']);
+  eq(L.ruleChips({ tradeEnd: '2027-03-04', open: false })[0].tone, 'bad');
+  const txt = L.summaryText(r, { give: ['b'], get: ['a'] }, { a: { name: 'Al', team: 'OKC' }, b: { name: 'Bo', team: 'CHI' } }, null);
+  ok(/I give: Bo \(CHI\)/.test(txt) && /I get: Al \(OKC\)/.test(txt) && /COUNTER/.test(txt) && /−1\.3 pts\/wk/.test(txt) && /pocketff\.com\/nba\/trade/.test(txt) && !/</.test(txt), txt);
+  const board = Array.from({ length: 220 }, (_, i) => ({ id: String(i + 1), name: 'P' + i, rank: i + 1 }));
+  const ex = L.exampleTrade(board);
+  eq(ex.myRoster.length, 14); eq(ex.give, [ex.myRoster[1]]); eq(ex.get.length, 1); ok(!ex.myRoster.includes(ex.get[0]));
+  eq(L.exampleTrade(board.slice(0, 50)), null);
+});
+
+t('trade page: built on nba-ui (shell, nav, focus verdict, sheets, action bar) and keeps the static nav links', () => {
+  const html = require('fs').readFileSync(path.join(ROOT, 'nba', 'pages', 'trade.html'), 'utf8');
+  for (const s of ['/nba/pages/nba-ui.css', '/nba/pages/nba-ui.js', 'NbaUI.mountNav', 'nu-card--focus', 'id="nt-pick-sheet"', 'id="nt-how-sheet"', 'nu-actionbar', 'class="sport-nba nba-ui"', 'href="/nba/waivers"'])
+    ok(html.includes(s), 'trade.html has ' + s);
+  ok((html.match(/nu-card--focus/g) || []).length === 1, 'exactly one focus card');
+  const js = require('fs').readFileSync(path.join(ROOT, 'nba', 'pages', 'trade.js'), 'utf8');
+  ok(/\/api\/nba\/players\?profile=/.test(js), 'real board for the league profile');
+  ok(/U\.avatar\(/.test(js), 'every player row has an avatar');
+});
+
 /* ------------------------------------------------------------ routes */
 function fakeYahoo(state) {
   // 4 teams × 10 players from the pool; team 1 is mine; one unmatched Yahoo player.
