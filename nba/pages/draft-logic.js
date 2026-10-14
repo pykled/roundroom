@@ -516,7 +516,12 @@
         // Prefer backups for thin slots: 4 C-eligibles already → a 5th C is worth less.
         sol.plan.types.forEach(function (t) { if (t !== 'UTIL' && canFill(p, t, settings)) { var nd = 1 / (1 + cover[t]); if (nd > need) { need = nd; needSlot = t; } } });
         score *= 0.3 + 0.7 * (needSlot ? need : 0.25);
-      } else score = gain + 0.6 * vona + 0.15 * pressure * gain + upside;
+      } else {
+        // Half-weight on raw gain, full VONA: with market-aware pGone a player the
+        // market leaves for my next pick shouldn't win on raw value alone
+        // (offline 96-draft sim vs market bots: +2.8 starter pts over gain + 0.6·vona).
+        score = 0.5 * gain + vona + 0.15 * pressure * gain + upside;
+      }
       score *= injuryFactor(p.injury);
       if (!isFinite(score)) score = 0;
       return { player: p, slot: slot, gain: gain, vona: vona, score: score, opens: info.opens, upgrade: info.upgrade, supply: supply, pressure: pressure,
