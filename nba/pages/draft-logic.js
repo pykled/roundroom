@@ -6,8 +6,12 @@
    Conventions
      pick     1-based overall pick number
      slot     1-based draft slot (team position in round 1)
-     settings { teams, mySlot, slots: { G, F, UTIL }, bench }
-     player   contract Player: { id, name, team, elig: ['G'|'F'|'UTIL'], hsValue,
+     settings { teams, mySlot, slots: { PG, SG, G, SF, PF, F, C, UTIL } | { G, F, UTIL }, bench, il }
+              Position-aware leagues (any of PG/SG/SF/PF/C/FC in slots, e.g. league
+              242808) use Yahoo slot eligibility; G/F/UTIL-only leagues (Yahoo
+              High Score default) keep the model's `elig` (C counts as F).
+     player   contract Player: { id, name, team, pos: ['PG'..'C'], elig: ['G'|'F'|'UTIL'],
+              yahooElig?: ['PG'..'UTIL'], eligConfidence?, hsValue, vorp?, vorpBySlot?,
               ceiling, floor, injury, tier, ... } */
 (function (root, factory) {
   var api = factory();
@@ -18,9 +22,27 @@
 
   var STORAGE_PREFIX = 'pocket-nba-draft:';
   var STATE_VERSION = 1;
-  var SLOT_ORDER = ['G', 'F', 'UTIL'];
+  // Every starter slot type the board understands, in display order.
+  var SLOT_TYPES = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'FC', 'C', 'UTIL'];
+  var LEGACY_TYPES = ['G', 'F', 'UTIL'];
+  var POS_SLOT = { PG: 1, SG: 1, SF: 1, PF: 1, FC: 1, C: 1 }; // any of these => position-aware league
+  // Narrow slots first: a PG who can start at PG, G or UTIL takes PG.
+  var SPECIFIC = { PG: 3, SG: 3, SF: 3, PF: 3, C: 3, G: 2, F: 2, FC: 2, UTIL: 1 };
+  /* Yahoo position token -> starter slots it can fill (Phase 3 addendum legend:
+     PG<-PG; SG<-SG,G,G/F; G<-PG,SG,G,G/F; SF<-SF,F,G/F; PF<-PF,F,F/C;
+     F<-SF,PF,F,G/F,F/C; C<-C,F/C; FC<-forwards+centers; UTIL<-anyone).
+     A C-only player is NOT F-eligible. */
+  var TOKEN_SLOTS = {
+    PG: ['PG', 'G'], SG: ['SG', 'G'], G: ['SG', 'G'], GF: ['SG', 'G', 'SF', 'F', 'FC'],
+    SF: ['SF', 'F', 'FC'], PF: ['PF', 'F', 'FC'], F: ['SF', 'PF', 'F', 'FC'], FC: ['PF', 'F', 'FC', 'C'], C: ['C', 'FC']
+  };
 
-  var DEFAULT_SETTINGS = { teams: 10, mySlot: 1, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4 };
+  // League 242808 "HALIMSANITY 26-27" (docs/nba-contracts.md Phase 3) — used only
+  // until GET /api/nba/league-profile answers (or if it can't).
+  var DEFAULT_SETTINGS = { teams: 12, mySlot: 1, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2 };
+  // Yahoo High Score default roster (G, G, F, F, F, UTIL + 4 bench) for other leagues.
+  var HIGH_SCORE_SETTINGS = { teams: 10, mySlot: 1, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4, il: 0 };
+  var DEFAULT_PICK_SECONDS_PROFILE = 90;
 
   function clampInt(v, lo, hi, dflt) {
     var n = parseInt(v, 10);
@@ -28,26 +50,52 @@
     return Math.max(lo, Math.min(hi, n));
   }
 
+  function hasPosSlots(slots) {
+    return !!slots && Object.keys(slots).some(function (k) { return POS_SLOT[k] && parseInt(slots[k], 10) > 0; });
+  }
+
+  /* No slots given → league 242808 profile. G/F/UTIL-only slots → High Score
+     shape (missing ones default to G2/F3/UTIL1). Any PG/SG/SF/PF/C/FC slot →
+     position-aware: missing types are 0. */
   function normalizeSettings(s) {
     s = s || {};
-    var slots = s.slots || {};
+    var given = s.slots && typeof s.slots === 'object' ? s.slots : null;
+    var known = given ? Object.keys(given).filter(function (k) { return SLOT_TYPES.indexOf(k) >= 0; }) : [];
+    var pos = hasPosSlots(given);
+    var base = !known.length ? DEFAULT_SETTINGS : pos ? null : HIGH_SCORE_SETTINGS;
+    var slots = {};
+    if (!known.length) Object.keys(DEFAULT_SETTINGS.slots).forEach(function (k) { slots[k] = DEFAULT_SETTINGS.slots[k]; });
+    else if (pos) SLOT_TYPES.forEach(function (k) { var c = clampInt(given[k], 0, 6, 0); if (c > 0) slots[k] = c; });
+    else LEGACY_TYPES.forEach(function (k) { slots[k] = clampInt(given[k], 0, 6, HIGH_SCORE_SETTINGS.slots[k]); });
     var out = {
-      teams: clampInt(s.teams, 2, 20, DEFAULT_SETTINGS.teams),
+      teams: clampInt(s.teams, 2, 20, (base || DEFAULT_SETTINGS).teams),
       mySlot: 1,
-      slots: {
-        G: clampInt(slots.G, 0, 6, DEFAULT_SETTINGS.slots.G),
-        F: clampInt(slots.F, 0, 6, DEFAULT_SETTINGS.slots.F),
-        UTIL: clampInt(slots.UTIL, 0, 6, DEFAULT_SETTINGS.slots.UTIL)
-      },
-      bench: clampInt(s.bench, 0, 15, DEFAULT_SETTINGS.bench)
+      slots: slots,
+      bench: clampInt(s.bench, 0, 15, (base || DEFAULT_SETTINGS).bench),
+      il: clampInt(s.il, 0, 5, base ? base.il : 0)
     };
-    out.mySlot = clampInt(s.mySlot, 1, out.teams, DEFAULT_SETTINGS.mySlot);
+    out.mySlot = clampInt(s.mySlot, 1, out.teams, 1);
     return out;
   }
 
-  function starterCount(settings) { return settings.slots.G + settings.slots.F + settings.slots.UTIL; }
-  function rosterSize(settings) { return starterCount(settings) + settings.bench; }
+  function isLegacy(settings) { return !hasPosSlots(settings && settings.slots); }
+  // Starter slot types present in this league, in display order.
+  function slotTypes(settings) { return SLOT_TYPES.filter(function (t) { return (settings.slots[t] || 0) > 0; }); }
+  function starterCount(settings) { var n = 0; Object.keys(settings.slots).forEach(function (k) { n += settings.slots[k] || 0; }); return n; }
+  function rosterSize(settings) { return starterCount(settings) + settings.bench + (settings.il || 0); }
   function totalPicks(settings) { return settings.teams * rosterSize(settings); }
+
+  /* League profile (GET /api/nba/league-profile) → settings. Keeps prev.mySlot. */
+  function settingsFromProfile(profile, prev) {
+    if (!profile || !profile.slots || typeof profile.slots !== 'object') return normalizeSettings(prev);
+    var sl = {};
+    SLOT_TYPES.forEach(function (t) { if (profile.slots[t] != null) sl[t] = profile.slots[t]; });
+    return normalizeSettings({ teams: profile.teams, mySlot: prev && prev.mySlot, slots: sl, bench: profile.slots.BN, il: profile.slots.IL });
+  }
+  function profilePickSeconds(profile) {
+    var n = profile && profile.draft && parseInt(profile.draft.pickSeconds, 10);
+    return n > 0 ? Math.min(600, n) : DEFAULT_PICK_SECONDS_PROFILE;
+  }
 
   /* ---------------------------------------------------------------- snake */
 
@@ -83,76 +131,213 @@
     return list.length ? list[0] : null;
   }
 
-  /* ------------------------------------------------------- slot assignment */
+  /* ------------------------------------------------------- eligibility */
 
+  // Legacy G/F/UTIL eligibility from the model's `elig` (C counts as F there).
   function eligFor(p) {
     var e = (p && p.elig) || [];
+    if (!e.length && p && p.pos) {
+      // no elig from the model: PG/SG → G, everything else → F (B's mapping)
+      e = [];
+      posTokens(p.pos).forEach(function (t) { e.push(t === 'PG' || t === 'SG' || t === 'G' ? 'G' : 'F'); });
+    }
     return { G: e.indexOf('G') >= 0, F: e.indexOf('F') >= 0, UTIL: e.indexOf('UTIL') >= 0 || e.indexOf('G') >= 0 || e.indexOf('F') >= 0 };
   }
 
-  function val(p) { return (p && typeof p.hsValue === 'number' && isFinite(p.hsValue)) ? p.hsValue : 0; }
+  // 'PG,SG' | ['PG','SG'] | 'G/F' | 'F-C' → ['PG','SG'] / ['GF'] / ['FC']
+  function posTokens(pos) {
+    var list = Array.isArray(pos) ? pos : typeof pos === 'string' ? pos.split(/[,\s]+/) : [];
+    var out = [];
+    list.forEach(function (x) {
+      var k = String(x || '').toUpperCase().replace(/[^A-Z/\-]/g, '');
+      if (k === 'G/F' || k === 'G-F' || k === 'GF') k = 'GF';
+      else if (k === 'F/C' || k === 'F-C' || k === 'C/F' || k === 'FC' || k === 'CF') k = 'FC';
+      if (TOKEN_SLOTS[k] && out.indexOf(k) < 0) out.push(k);
+    });
+    return out;
+  }
 
-  /* Assign roster players to starter slots to maximise starter hsValue.
-     Greedy by value with one-step augmenting swaps: a dual G/F player sitting in
-     G moves to an open F (or UTIL) so a pure G can start. Exact for the slot
-     shapes Yahoo High Score uses (G/F/UTIL, dual eligibility).
-     Returns { starters: [{slot, player|null}], bench: [player], open: {G,F,UTIL}, total } */
+  var eligCache = typeof WeakMap === 'function' ? new WeakMap() : null;
+  /* Slots p can fill in a position-aware league:
+     { slots: {PG:true,..,UTIL:true}, source: 'yahoo'|'derived'|'none', low: bool }.
+     Yahoo's yahooElig wins; otherwise derive from Sleeper pos[] via the contract
+     legend (flagged low confidence); last resort the model's G/F elig. */
+  function slotElig(p) {
+    if (p && typeof p === 'object' && eligCache) { var hit = eligCache.get(p); if (hit) return hit; }
+    var slots = { UTIL: true }, source = 'none', low = true;
+    var ye = p && Array.isArray(p.yahooElig) ? p.yahooElig : null;
+    if (ye && ye.length) {
+      ye.forEach(function (s) {
+        var k = String(s || '').toUpperCase();
+        if (k === 'UTIL' || k === 'UTILITY') return;
+        if (k === 'F/C') k = 'FC';
+        if (SLOT_TYPES.indexOf(k) >= 0) slots[k] = true;
+      });
+      source = 'yahoo';
+      var c = p.eligConfidence;
+      low = c === 'low' || (typeof c === 'number' && c < 0.7);
+    } else {
+      var toks = posTokens(p && p.pos);
+      if (toks.length) {
+        toks.forEach(function (t) { TOKEN_SLOTS[t].forEach(function (s) { slots[s] = true; }); });
+        source = 'derived';
+      } else if (p && Array.isArray(p.elig)) {
+        if (p.elig.indexOf('G') >= 0) slots.G = true;
+        if (p.elig.indexOf('F') >= 0) slots.F = true;
+      }
+    }
+    var r = { slots: slots, source: source, low: low };
+    if (p && typeof p === 'object' && eligCache) eligCache.set(p, r);
+    return r;
+  }
+
+  // Can p start in slot `type` under these settings?
+  function canFill(p, type, settings) {
+    if (type === 'UTIL') return true;
+    if (settings && isLegacy(settings)) return !!eligFor(p)[type];
+    return !!slotElig(p).slots[type];
+  }
+
+  // Display positions for a player: Yahoo-style base positions (PG, SG, SF, PF, C).
+  function displayPositions(p) {
+    var e = slotElig(p).slots, out = [];
+    ['PG', 'SG', 'SF', 'PF', 'C'].forEach(function (k) { if (e[k]) out.push(k); });
+    if (!out.length) { if (e.G) out.push('G'); if (e.F) out.push('F'); }
+    return out;
+  }
+
+  /* ------------------------------------------------------- slot assignment */
+
+  function val(p) { return (p && typeof p.hsValue === 'number' && isFinite(p.hsValue)) ? p.hsValue : 0; }
+  function byValThenId(a, b) { return val(b) - val(a) || (String(a && a.id) < String(b && b.id) ? -1 : String(a && a.id) > String(b && b.id) ? 1 : 0); }
+  // Assignment weight: value, +1e-6 so a 0-value player still fills an open
+  // slot, + a hair for narrow slots so flexible ones (G, F, UTIL) stay open.
+  function weight(p, t) { return val(p) + 1e-6 + SPECIFIC[t] * 1e-8; }
+
+  var MAX_STATES = 20000;
+  function slotPlan(settings) {
+    var types = slotTypes(settings), caps = [], mult = [], n = 1;
+    types.forEach(function (t, i) { caps[i] = settings.slots[t]; mult[i] = n; n *= caps[i] + 1; });
+    return { types: types, caps: caps, mult: mult, states: n };
+  }
+  function usedAt(plan, s, i) { return Math.floor(s / plan.mult[i]) % (plan.caps[i] + 1); }
+
+  /* Exact max-weight assignment of roster players to starter slots: DP over
+     "how many slots of each type are used" (242808: 2^7·3 = 384 states).
+     Returns { plan, players, dp (best weight per used-state, any subset),
+     baseState, base, placed: [typeIndex|-1 per player] }. */
+  function solveSlots(roster, settings) {
+    var plan = slotPlan(settings);
+    var players = (roster || []).filter(Boolean).slice().sort(byValThenId);
+    if (plan.states > MAX_STATES) return greedySolve(players, settings, plan);
+    var S = plan.states, k = plan.types.length;
+    var dp = new Float64Array(S); for (var z = 1; z < S; z++) dp[z] = -Infinity; dp[0] = 0;
+    var layers = [];
+    players.forEach(function (p) {
+      var el = [];
+      for (var i = 0; i < k; i++) if (canFill(p, plan.types[i], settings)) el.push(i);
+      var next = new Float64Array(S), ch = new Int8Array(S);
+      for (var s0 = 0; s0 < S; s0++) { next[s0] = -Infinity; ch[s0] = -2; }
+      for (var s = 0; s < S; s++) {
+        var v0 = dp[s];
+        if (v0 === -Infinity) continue;
+        if (v0 > next[s]) { next[s] = v0; ch[s] = -1; }
+        for (var j = 0; j < el.length; j++) {
+          var ti = el[j];
+          if (usedAt(plan, s, ti) >= plan.caps[ti]) continue;
+          var s2 = s + plan.mult[ti], v = v0 + weight(p, plan.types[ti]);
+          if (v > next[s2]) { next[s2] = v; ch[s2] = ti; }
+        }
+      }
+      layers.push(ch); dp = next;
+    });
+    var best = 0;
+    for (var b = 1; b < S; b++) if (dp[b] > dp[best]) best = b;
+    var placed = new Array(players.length), cur = best;
+    for (var q = players.length - 1; q >= 0; q--) {
+      var c = layers[q][cur];
+      placed[q] = c >= 0 ? c : -1;
+      if (c >= 0) cur -= plan.mult[c];
+    }
+    return { plan: plan, players: players, dp: dp, baseState: best, base: dp[best], placed: placed };
+  }
+  // Absurd custom slot counts only (state space too big): narrowest-slot greedy.
+  function greedySolve(players, settings, plan) {
+    var used = plan.types.map(function () { return 0; }), placed = [], base = 0;
+    players.forEach(function (p) {
+      var bestI = -1;
+      plan.types.forEach(function (t, i) {
+        if (used[i] < plan.caps[i] && canFill(p, t, settings) && (bestI < 0 || SPECIFIC[t] > SPECIFIC[plan.types[bestI]])) bestI = i;
+      });
+      placed.push(bestI);
+      if (bestI >= 0) { used[bestI]++; base += weight(p, plan.types[bestI]); }
+    });
+    return { plan: plan, players: players, dp: null, baseState: null, base: base, placed: placed, greedyUsed: used };
+  }
+
+  function isOut(p) { var s = injuryShort(p && p.injury); return s === 'OUT' || s === 'SUS'; }
+
+  /* Assign roster players to starter slots to maximise starter hsValue
+     (exact; dual-eligible players land wherever they help most).
+     Returns { starters: [{slot, player|null}], bench: [player], il: [player],
+               open: {type: n}, total, ilHealthy } */
   function assignSlots(roster, settings) {
     settings = normalizeSettings(settings);
-    var slots = [];
-    SLOT_ORDER.forEach(function (s) { for (var i = 0; i < settings.slots[s]; i++) slots.push({ slot: s, player: null }); });
-    var sorted = (roster || []).slice().sort(function (a, b) { return val(b) - val(a); });
-    var bench = [];
-
-    function freeIdx(type) {
-      for (var i = 0; i < slots.length; i++) if (slots[i].slot === type && !slots[i].player) return i;
-      return -1;
-    }
-
-    sorted.forEach(function (p) {
-      var e = eligFor(p);
-      var i = -1;
-      // Positional slot first (G before F only when not dual — dual players take the scarcer open one).
-      if (e.G && e.F) {
-        var g = freeIdx('G'), f = freeIdx('F');
-        i = f >= 0 ? f : g; // F is the 3-slot position; leaves G open for pure guards
-      } else if (e.G) i = freeIdx('G');
-      else if (e.F) i = freeIdx('F');
-      if (i < 0 && e.UTIL) i = freeIdx('UTIL');
-      if (i < 0) {
-        // Augment: move a dual starter from a slot p can use into another open slot.
-        for (var k = 0; k < slots.length && i < 0; k++) {
-          var s = slots[k];
-          if (!s.player || s.slot === 'UTIL' || !e[s.slot]) continue;
-          var se = eligFor(s.player);
-          var alt = -1;
-          ['G', 'F', 'UTIL'].forEach(function (t) { if (alt < 0 && t !== s.slot && se[t]) alt = freeIdx(t); });
-          if (alt >= 0) { slots[alt].player = s.player; s.player = null; i = k; }
-        }
-      }
-      if (i >= 0) slots[i].player = p; else bench.push(p);
+    var sol = solveSlots(roster, settings), plan = sol.plan;
+    var byType = plan.types.map(function () { return []; }), rest = [], total = 0;
+    sol.players.forEach(function (p, i) {
+      var ti = sol.placed[i];
+      if (ti >= 0) { byType[ti].push(p); total += val(p); } else rest.push(p);
     });
-
-    // Swap pass: a bench player beats a weaker starter if eligible for that slot.
-    var changed = true, guard = 0;
-    while (changed && guard++ < 20) {
-      changed = false;
-      for (var b = 0; b < bench.length; b++) {
-        var bp = bench[b], be = eligFor(bp);
-        for (var j = 0; j < slots.length; j++) {
-          var sp = slots[j].player;
-          if (sp && be[slots[j].slot] && val(bp) > val(sp)) { slots[j].player = bp; bench[b] = sp; changed = true; break; }
-        }
-      }
-    }
-
-    var open = { G: 0, F: 0, UTIL: 0 }, total = 0;
-    slots.forEach(function (s) { if (!s.player) open[s.slot]++; else total += val(s.player); });
-    bench.sort(function (a, b) { return val(b) - val(a); });
-    return { starters: slots, bench: bench, open: open, total: total };
+    var starters = [], open = {};
+    if (isLegacy(settings)) LEGACY_TYPES.forEach(function (t) { open[t] = 0; }); // G/F leagues keep the {G,F,UTIL} shape
+    plan.types.forEach(function (t, i) {
+      for (var j = 0; j < plan.caps[i]; j++) starters.push({ slot: t, player: byType[i][j] || null });
+      open[t] = plan.caps[i] - byType[i].length;
+    });
+    // Non-starters: OUT players go to IL first, then bench fills, overflow → IL.
+    var ilCap = settings.il || 0, il = [], bench = [];
+    rest.forEach(function (p) { if (il.length < ilCap && isOut(p)) il.push(p); else bench.push(p); });
+    while (bench.length > settings.bench && il.length < ilCap) il.push(bench.pop());
+    var ilHealthy = il.filter(function (p) { return !isOut(p); }).length;
+    return { starters: starters, bench: bench, il: il, open: open, total: total, ilHealthy: ilHealthy };
   }
 
   function starterTotal(roster, settings) { return assignSlots(roster, settings).total; }
+
+  /* What adding p to the roster does: { gain (starter value added), slot (type p
+     starts at, or 'BENCH'), opens: true when it fills a slot that was open,
+     upgrade: true when it pushes a starter to the bench }. O(states·types). */
+  function addInfo(sol, p, settings) {
+    var plan = sol.plan;
+    if (!sol.dp) { // greedy fallback
+      var bi = -1;
+      plan.types.forEach(function (t, i) { if (sol.greedyUsed[i] < plan.caps[i] && canFill(p, t, settings) && (bi < 0 || SPECIFIC[t] > SPECIFIC[plan.types[bi]])) bi = i; });
+      return bi < 0 ? { gain: 0, slot: 'BENCH', opens: false, upgrade: false } : { gain: val(p), slot: plan.types[bi], opens: true, upgrade: false };
+    }
+    var el = [];
+    for (var i = 0; i < plan.types.length; i++) if (canFill(p, plan.types[i], settings)) el.push(i);
+    var best = sol.base, bestS = -1, bestT = -1, dp = sol.dp;
+    for (var s = 0; s < dp.length; s++) {
+      var v0 = dp[s];
+      if (v0 === -Infinity) continue;
+      for (var j = 0; j < el.length; j++) {
+        var ti = el[j];
+        if (usedAt(plan, s, ti) >= plan.caps[ti]) continue;
+        var v = v0 + weight(p, plan.types[ti]);
+        if (v > best + 1e-9) { best = v; bestS = s; bestT = ti; }
+      }
+    }
+    if (bestT < 0) return { gain: 0, slot: 'BENCH', opens: false, upgrade: false };
+    var ns = bestS + plan.mult[bestT], filled = null;
+    for (var q = 0; q < plan.types.length; q++) {
+      if (usedAt(plan, ns, q) > usedAt(plan, sol.baseState, q)) { if (q === bestT || filled == null) filled = q; }
+    }
+    var gain = Math.round(Math.max(0, best - sol.base) * 1e4) / 1e4; // drop the tie-break epsilons
+    return filled != null
+      ? { gain: gain, slot: plan.types[filled], opens: true, upgrade: false, placedAt: plan.types[bestT] }
+      : { gain: gain, slot: plan.types[bestT], opens: false, upgrade: true, placedAt: plan.types[bestT] };
+  }
 
   /* -------------------------------------------------- best available (VONA) */
 
@@ -177,78 +362,120 @@
     return k.slice(0, 3);
   }
 
-  // Which slot type p would occupy if added to roster ('G'|'F'|'UTIL'|'BENCH').
+  // Which slot type p would occupy if added to roster (a slot type or 'BENCH').
   function filledSlot(roster, p, settings) {
-    var a = assignSlots(roster.concat([p]), settings);
-    for (var i = 0; i < a.starters.length; i++) if (a.starters[i].player === p) return a.starters[i].slot;
-    return 'BENCH';
+    settings = normalizeSettings(settings);
+    return addInfo(solveSlots(roster, settings), p, settings).slot;
   }
 
   function ordinal(n) { return ['zeroth', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth'][n] || (n + 'th'); }
   function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
 
+  /* Supply per slot type: how many of the top-N available players (board order
+     as given) can fill each type. Returns { topN, left: {type: n} }. */
+  function slotSupply(available, settings, topN) {
+    settings = normalizeSettings(settings);
+    var n = topN || 40, top = (available || []).slice(0, n), left = {};
+    slotTypes(settings).forEach(function (t) {
+      left[t] = t === 'UTIL' ? top.length : top.filter(function (p) { return canFill(p, t, settings); }).length;
+    });
+    return { topN: n, left: left };
+  }
+
+  /* Position pulse for the filter chips / run indicator.
+     available: board order; recent: players taken in the last ~teams picks;
+     all: every player (baseline share). Returns [{ slot, left, recent, run, scarce }]
+     for each non-UTIL starter type. Run = that slot is going much faster than
+     its share of the pool; scarce = well under its usual share of the top N. */
+  function slotPulse(available, recent, all, settings, topN) {
+    settings = normalizeSettings(settings);
+    var n = topN || 40, sup = slotSupply(available, settings, n);
+    var base = (all || available || []).slice(0, 150), rec = recent || [];
+    return slotTypes(settings).filter(function (t) { return t !== 'UTIL'; }).map(function (t) {
+      var share = base.length ? base.filter(function (p) { return canFill(p, t, settings); }).length / base.length : 0;
+      var r = rec.filter(function (p) { return p && canFill(p, t, settings); }).length;
+      var expected = Math.min(n, (available || []).length) * share;
+      return {
+        slot: t, left: sup.left[t], recent: r,
+        run: rec.length >= 4 && r >= 3 && r >= 1.6 * rec.length * share,
+        scarce: expected >= 1 && sup.left[t] <= Math.max(1, Math.floor(expected * 0.55))
+      };
+    });
+  }
+
   /* Rank available players for my next pick.
-     score = starter gain now + 0.6 x (gain now − gain from the best same-slot
-     player still expected at my following pick) + ceiling bias, x injury factor.
-     opts: { picksUntilNext: number of other picks before my following turn,
-             nextPick: overall number of that pick (for the reason text),
-             ceilingBias: 0..1 (default 0.35), limit } */
+     score = starter gain now (fills an open slot = full value; upgrade = the
+     difference) + 0.6 x (gain now − gain from the best player for the same slot
+     still expected at my following pick) + scarcity bonus when the slot is open
+     and its top-N supply is under the picks before my turn + ceiling bias,
+     all x injury factor. Deterministic: ties break by value then id.
+     opts: { picksUntilNext, nextPick, ceilingBias (0..1, default 0.35), limit, topN } */
   function bestAvailable(available, myRoster, settings, opts) {
     settings = normalizeSettings(settings);
     opts = opts || {};
     var bias = opts.ceilingBias == null ? 0.35 : opts.ceilingBias;
     var k = Math.max(0, opts.picksUntilNext == null ? settings.teams - 1 : opts.picksUntilNext);
-    var roster = myRoster || [];
+    var roster = (myRoster || []).filter(Boolean);
     if (roster.length >= rosterSize(settings)) return [];
-    var base = starterTotal(roster, settings);
-    var pool = (available || []).slice().sort(function (a, b) { return val(b) - val(a); });
-    // Candidates: the top of the board is enough (and keeps this O(60·roster)).
+    var sol = solveSlots(roster, settings);
+    var pool = (available || []).filter(Boolean).slice().sort(byValThenId);
+    var topN = opts.topN || 40;
+    var sup = slotSupply(pool, settings, topN);
     var cands = pool.slice(0, Math.max(60, (opts.limit || 3) * 4));
     var later = pool.slice(k); // assume others take the top-k by value before we pick again
 
     var bestLater = {}; // slot type -> top-2 [{gain, player}] (2nd is used when the candidate is the 1st)
     later.slice(0, 80).forEach(function (q) {
-      var s = filledSlot(roster, q, settings);
-      var g = starterTotal(roster.concat([q]), settings) - base;
-      var top = bestLater[s] || (bestLater[s] = []);
-      top.push({ gain: g, player: q });
-      top.sort(function (x, y) { return y.gain - x.gain; });
+      var info = addInfo(sol, q, settings);
+      var top = bestLater[info.slot] || (bestLater[info.slot] = []);
+      top.push({ gain: info.gain, player: q });
+      top.sort(function (x, y) { return y.gain - x.gain || byValThenId(x.player, y.player); });
       if (top.length > 2) top.length = 2;
     });
 
     var benchLine = later.length ? val(later[0]) : 0;
     var out = cands.map(function (p) {
-      var slot = filledSlot(roster, p, settings);
-      var gain = starterTotal(roster.concat([p]), settings) - base;
+      var info = addInfo(sol, p, settings), slot = info.slot, gain = info.gain;
       var top = bestLater[slot] || [];
       var ref = top[0] && top[0].player === p ? top[1] : top[0];
-      var refGain = ref ? ref.gain : 0;
-      var vona = gain - refGain;
-      var ceil = typeof p.ceiling === 'number' ? p.ceiling : val(p);
+      var vona = gain - (ref ? ref.gain : 0);
+      var ceil = typeof p.ceiling === 'number' && isFinite(p.ceiling) ? p.ceiling : val(p);
       var upside = Math.max(0, ceil - val(p)) * 0.1 * bias;
+      var supply = sup.left[slot] != null ? sup.left[slot] : null;
+      var pressure = info.opens && slot !== 'UTIL' && supply != null ? Math.max(0, Math.min(1, (k + 1 - supply) / (k + 1))) : 0;
       var score;
-      if (slot === 'BENCH') score = 0.35 * Math.max(0, val(p) - benchLine * 0.9) + upside + val(p) * 0.01;
-      else score = gain + 0.6 * vona + upside;
+      if (slot === 'BENCH') {
+        var bv = typeof p.vorp === 'number' && isFinite(p.vorp) ? Math.max(0, p.vorp) * 0.05 : 0;
+        score = 0.35 * Math.max(0, val(p) - benchLine * 0.9) + upside + val(p) * 0.01 + bv;
+      } else score = gain + 0.6 * vona + 0.15 * pressure * gain + upside;
       score *= injuryFactor(p.injury);
-      return { player: p, slot: slot, gain: gain, vona: vona, score: score };
+      if (!isFinite(score)) score = 0;
+      return { player: p, slot: slot, gain: gain, vona: vona, score: score, opens: info.opens, upgrade: info.upgrade, supply: supply, pressure: pressure };
     });
-    out.sort(function (a, b) { return b.score - a.score || val(b.player) - val(a.player); });
+    out.sort(function (a, b) { return b.score - a.score || byValThenId(a.player, b.player); });
     out = out.slice(0, opts.limit || 3);
-    out.forEach(function (r) { r.reason = reasonFor(r, roster, settings, opts); });
+    var a0 = assignSlots(roster, settings);
+    out.forEach(function (r) { r.reason = reasonFor(r, a0, settings, opts, topN); });
     return out;
   }
 
-  function reasonFor(r, roster, settings, opts) {
+  function reasonFor(r, a, settings, opts, topN) {
     var p = r.player;
-    var ceil = typeof p.ceiling === 'number' ? Math.round(p.ceiling) : null;
+    var ceil = typeof p.ceiling === 'number' && isFinite(p.ceiling) ? Math.round(p.ceiling) : null;
     var inj = injuryShort(p.injury);
     var parts;
     if (r.slot === 'BENCH') {
       parts = ['Starters set — best bench upside' + (ceil != null ? ' (ceiling ' + ceil + ')' : '')];
     } else {
       var filled = 0;
-      assignSlots(roster, settings).starters.forEach(function (s) { if (s.slot === r.slot && s.player) filled++; });
-      var head = r.slot === 'UTIL' ? 'Fills UTIL' : 'Your ' + ordinal(filled + 1) + ' ' + r.slot;
+      a.starters.forEach(function (s) { if (s.slot === r.slot && s.player) filled++; });
+      var head;
+      if (r.upgrade) head = 'Upgrades your ' + r.slot + ' (+' + fmt1(r.gain) + ')';
+      else if (r.slot === 'UTIL') head = 'Fills open UTIL slot';
+      else {
+        head = 'Fills open ' + r.slot + ' slot' + ((settings.slots[r.slot] || 0) > 1 ? ' (your ' + ordinal(filled + 1) + ' ' + r.slot + ')' : '');
+        if (r.supply != null) head += '; ' + r.supply + ' ' + r.slot + '-eligible' + (r.supply === 1 ? '' : 's') + ' left in top ' + topN;
+      }
       var tail = r.vona > 0.05
         ? '+' + fmt1(r.vona) + ' over the best ' + r.slot + ' likely left at ' + (opts.nextPick ? '#' + opts.nextPick : 'your next pick')
         : 'value holds — ' + r.slot + ' depth is deep';
@@ -261,16 +488,16 @@
 
   /* ------------------------------------------------------ balance warnings */
 
-  /* players: full player list (drafted + available) for starter-grade lines.
-     ctx: { available, picksUntilNext }
+  /* ctx: { available, players (all, for starter-grade lines), picksUntilNext }
      Returns [{ level: 'danger'|'warn'|'info', text }] most severe first. */
   function balanceWarnings(myRoster, settings, ctx) {
     settings = normalizeSettings(settings);
     ctx = ctx || {};
-    var roster = myRoster || [];
+    var roster = (myRoster || []).filter(Boolean);
     var a = assignSlots(roster, settings);
     var picksLeft = rosterSize(settings) - roster.length;
-    var openTotal = a.open.G + a.open.F + a.open.UTIL;
+    var types = slotTypes(settings);
+    var openTotal = 0; types.forEach(function (t) { openTotal += a.open[t] || 0; });
     var out = [];
     if (picksLeft <= 0) return out;
 
@@ -278,40 +505,90 @@
       out.push({ level: 'danger', text: picksLeft + ' pick' + (picksLeft === 1 ? '' : 's') + ' left for ' + openTotal + ' open starter slots' });
     }
 
-    ['F', 'G'].forEach(function (pos) {
+    // Catch-up: open starter slots with the draft running out.
+    var urgent = picksLeft - openTotal <= 2 || roster.length >= Math.ceil(rosterSize(settings) / 2);
+    types.filter(function (t) { return t !== 'UTIL'; }).sort(function (x, y) { return (a.open[y] || 0) - (a.open[x] || 0); }).forEach(function (pos) {
       var open = a.open[pos];
-      if (!open) return;
+      if (!open || !urgent) return;
       var filled = settings.slots[pos] - open;
-      var urgent = picksLeft - openTotal <= 1 || roster.length >= Math.ceil(rosterSize(settings) / 2);
-      if (urgent) out.push({ level: 'warn', text: 'Needs a ' + ordinal(filled + 1) + ' ' + pos + (open > 1 ? ' (' + open + ' ' + pos + ' slots open)' : '') });
+      var text = settings.slots[pos] > 1
+        ? 'Needs a ' + ordinal(filled + 1) + ' ' + pos + (open > 1 ? ' (' + open + ' ' + pos + ' slots open)' : '')
+        : 'Catch-up: no ' + pos + ' yet';
+      out.push({ level: picksLeft - openTotal <= 0 ? 'danger' : 'warn', text: text + ' · ' + picksLeft + ' pick' + (picksLeft === 1 ? '' : 's') + ' left' });
     });
 
     // Positional scarcity: starter-grade = top (teams x starter slots for pos) eligible by value.
     var avail = ctx.available || [];
     var all = ctx.players || avail;
     var k = ctx.picksUntilNext == null ? settings.teams - 1 : ctx.picksUntilNext;
-    ['F', 'G'].forEach(function (pos) {
+    types.filter(function (t) { return t !== 'UTIL'; }).forEach(function (pos) {
       if (!a.open[pos]) return;
-      var eligAll = all.filter(function (p) { return eligFor(p)[pos]; }).sort(function (x, y) { return val(y) - val(x); });
+      var eligAll = all.filter(function (p) { return canFill(p, pos, settings); }).sort(byValThenId);
       var line = eligAll[Math.min(eligAll.length - 1, settings.teams * settings.slots[pos] - 1)];
       if (!line) return;
-      var grade = avail.filter(function (p) { return eligFor(p)[pos] && val(p) >= val(line); }).length;
+      var grade = avail.filter(function (p) { return canFill(p, pos, settings) && val(p) >= val(line); }).length;
       if (grade <= k + a.open[pos]) {
         out.push({ level: grade <= k ? 'warn' : 'info', text: pos + ' is drying up: ' + grade + ' starter-grade ' + pos + ' left, ' + k + ' picks before your turn' });
       }
     });
 
-    // One-position-heavy bench: more single-position players than they can start.
-    ['G', 'F'].forEach(function (pos) {
+    // One-position-heavy bench (G/F leagues): more single-position players than they can start.
+    if (isLegacy(settings)) ['G', 'F'].forEach(function (pos) {
       var other = pos === 'G' ? 'F' : 'G';
       var only = roster.filter(function (p) { var e = eligFor(p); return e[pos] && !e[other]; }).length;
-      var cap = settings.slots[pos] + settings.slots.UTIL;
+      var cap = (settings.slots[pos] || 0) + (settings.slots.UTIL || 0);
       if (only > cap + 1) out.push({ level: 'info', text: (pos === 'G' ? 'Guard' : 'Forward') + '-heavy: ' + only + ' ' + pos + '-only players for ' + cap + ' startable ' + pos + '/UTIL slots' });
     });
+
+    if (a.ilHealthy) out.push({ level: 'info', text: a.ilHealthy + ' healthy player' + (a.ilHealthy > 1 ? 's' : '') + ' past the bench — IL spots only hold injured players' });
 
     var rank = { danger: 0, warn: 1, info: 2 };
     out.sort(function (x, y) { return rank[x.level] - rank[y.level]; });
     return out;
+  }
+
+  /* ---------------------------------------------------------- cheat sheet */
+
+  /* Rounds 1..N targets + by-slot tiers.
+     ctx: { available (board order), settings, cur (pick on the clock),
+            myPicks: [{ pick, round }] my remaining picks (Yahoo order or snake),
+            made: [{ pick, round, player }] my picks so far, roster: [player], perRound }
+     Returns { rounds: [{ round, pick, done, player?, targets: [{ player, need }] }],
+               bySlot: [{ slot, tiers: [{ tier, players }] }] } */
+  function cheatSheet(ctx) {
+    var settings = normalizeSettings(ctx.settings);
+    var avail = (ctx.available || []).filter(Boolean);
+    var cur = ctx.cur || 1, per = ctx.perRound || 5;
+    var a = assignSlots(ctx.roster || [], settings);
+    var openTypes = slotTypes(settings).filter(function (t) { return t !== 'UTIL' && a.open[t] > 0; });
+    var rounds = [];
+    (ctx.made || []).forEach(function (m) { rounds.push({ round: m.round, pick: m.pick, done: true, player: m.player || null, name: m.name, targets: [] }); });
+    (ctx.myPicks || []).forEach(function (m) {
+      var idx = Math.max(0, m.pick - cur);
+      // Players expected around this pick: others take ~ (pick − cur) first.
+      var win = avail.slice(Math.max(0, idx - Math.floor(per / 2)), Math.max(0, idx - Math.floor(per / 2)) + per);
+      rounds.push({ round: m.round, pick: m.pick, done: false, targets: win.map(function (p) {
+        return { player: p, need: openTypes.filter(function (t) { return canFill(p, t, settings); }) };
+      }) });
+    });
+    rounds.sort(function (x, y) { return x.pick - y.pick; });
+    var bySlot = slotTypes(settings).filter(function (t) { return t !== 'UTIL'; }).map(function (t) {
+      var list = avail.filter(function (p) { return canFill(p, t, settings); }).slice(0, ctx.perSlot || 10);
+      var tiers = [];
+      list.forEach(function (p) {
+        var last = tiers[tiers.length - 1];
+        if (!last || last.tier !== p.tier) tiers.push(last = { tier: p.tier, players: [] });
+        last.players.push(p);
+      });
+      return { slot: t, open: a.open[t] || 0, tiers: tiers };
+    });
+    return { rounds: rounds, bySlot: bySlot };
+  }
+
+  // My remaining picks on the snake from `fromPick`: [{pick, round}].
+  function myPicksSnake(settings, fromPick) {
+    settings = normalizeSettings(settings);
+    return picksForSlot(settings.mySlot, settings.teams, rosterSize(settings), fromPick || 1).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
   }
 
   /* ------------------------------------------------------ Yahoo pick merge */
@@ -483,7 +760,8 @@
   /* ----------------------------------------------------- yahoo league map */
 
   // Yahoo roster_positions → settings.slots/bench. Accepts [{position,count}],
-  // ['G','G',...] or {G:2,...}. Unknown starter positions (C, PG...) count as UTIL.
+  // ['G','G',...] or {G:2,...}. PG/SG/SF/PF/C/F-C make it a position-aware
+  // league; unknown starter positions count as UTIL.
   function settingsFromYahoo(league, myTeamKey, teams, prev) {
     var s = normalizeSettings(prev);
     if (!league) return s;
@@ -499,14 +777,28 @@
         if (pos) counts[pos] = (counts[pos] || 0) + c;
       });
       else Object.keys(rp).forEach(function (k) { counts[k] = parseInt(rp[k], 10) || 0; });
-      var g = counts.G || 0, f = counts.F || 0, u = 0, bench = 0;
-      Object.keys(counts).forEach(function (k) {
-        if (k === 'G' || k === 'F') return;
-        if (k === 'BN' || k === 'IL' || k === 'IL+' || k === 'IR') { if (k === 'BN') bench += counts[k]; return; }
-        u += counts[k];
+      // Yahoo names → slot types: Util → UTIL, F/C → FC, IL/IL+/IR → il, BN → bench.
+      var slots = {}, bench = 0, il = 0, unknown = 0;
+      Object.keys(counts).forEach(function (k0) {
+        var k = String(k0).toUpperCase().replace(/\s+/g, '');
+        var n = counts[k0] || 0;
+        if (k === 'BN') { bench += n; return; }
+        if (k === 'IL' || k === 'IL+' || k === 'IR' || k === 'NA') { if (k !== 'NA') il += n; return; }
+        if (k === 'UTIL' || k === 'UTILITY') k = 'UTIL';
+        else if (k === 'F/C' || k === 'C/F') k = 'FC';
+        if (SLOT_TYPES.indexOf(k) < 0) { unknown += n; return; }
+        slots[k] = (slots[k] || 0) + n;
       });
-      if (g + f + u > 0) s.slots = { G: Math.min(6, g), F: Math.min(6, f), UTIL: Math.min(6, u) };
+      if (unknown) slots.UTIL = (slots.UTIL || 0) + unknown; // unknown starter slots: anyone can fill
+      var total = 0; Object.keys(slots).forEach(function (k) { total += slots[k]; });
+      if (total > 0) {
+        if (hasPosSlots(slots)) {
+          var ps = {}; SLOT_TYPES.forEach(function (t) { if (slots[t]) ps[t] = Math.min(6, slots[t]); });
+          s.slots = ps;
+        } else s.slots = { G: Math.min(6, slots.G || 0), F: Math.min(6, slots.F || 0), UTIL: Math.min(6, slots.UTIL || 0) };
+      }
       s.bench = Math.min(15, bench);
+      s.il = Math.min(5, il);
     }
     if (myTeamKey && Array.isArray(teams)) {
       var mine = teams.filter(function (t) { return t.team_key === myTeamKey; })[0];
@@ -521,7 +813,7 @@
   function storageKey(leagueKey) { return STORAGE_PREFIX + (leagueKey || 'manual'); }
 
   function emptyState(leagueKey, settings) {
-    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), manual: [], overrides: {}, yahoo: null, updatedAt: 0 };
+    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), settingsSource: null, manual: [], overrides: {}, yahoo: null, updatedAt: 0 };
   }
 
   function serializeState(st) {
@@ -529,6 +821,7 @@
       v: STATE_VERSION,
       leagueKey: st.leagueKey || null,
       settings: normalizeSettings(st.settings),
+      settingsSource: st.settingsSource || null,
       manual: (st.manual || []).filter(function (m) { return m && m.playerId != null; })
         .map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name || undefined }; }),
       overrides: st.overrides || {},
@@ -549,6 +842,8 @@
       v: STATE_VERSION,
       leagueKey: leagueKey || null,
       settings: normalizeSettings(o.settings || defaults),
+      // 'user' = edited in the League dialog (kept); anything else follows the league profile / Yahoo.
+      settingsSource: o.settingsSource === 'user' ? 'user' : null,
       manual: Array.isArray(o.manual) ? o.manual.filter(function (m) { return m && m.playerId != null; }).map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name }; }) : [],
       overrides: o.overrides && typeof o.overrides === 'object' ? o.overrides : {},
       yahoo: o.yahoo && Array.isArray(o.yahoo.picks) ? o.yahoo : null,
@@ -599,18 +894,31 @@
   }
 
   // Board filter: 'ALL' | 'G' | 'F' | 'UTIL' (UTIL = everyone eligible for UTIL, i.e. all).
-  function matchesPos(p, pos) {
-    if (!pos || pos === 'ALL') return true;
-    return !!eligFor(p)[pos];
+  // Board filter: 'ALL' or a slot type (UTIL = everyone). With settings, uses
+  // that league's eligibility; without, G/F/UTIL use the model's elig.
+  function matchesPos(p, pos, settings) {
+    if (!pos || pos === 'ALL' || pos === 'UTIL') return true;
+    if (settings) return canFill(p, pos, normalizeSettingsCached(settings));
+    if (LEGACY_TYPES.indexOf(pos) >= 0) return !!eligFor(p)[pos];
+    return !!slotElig(p).slots[pos];
+  }
+  var nsCache = { src: null, out: null };
+  function normalizeSettingsCached(s) {
+    if (nsCache.src !== s) { nsCache.src = s; nsCache.out = normalizeSettings(s); }
+    return nsCache.out;
   }
 
   return {
     DEFAULT_SETTINGS: DEFAULT_SETTINGS, STORAGE_PREFIX: STORAGE_PREFIX, POLL_MS: POLL_MS,
+    HIGH_SCORE_SETTINGS: HIGH_SCORE_SETTINGS, SLOT_TYPES: SLOT_TYPES,
     normalizeSettings: normalizeSettings, starterCount: starterCount, rosterSize: rosterSize, totalPicks: totalPicks,
+    isLegacy: isLegacy, slotTypes: slotTypes, settingsFromProfile: settingsFromProfile, profilePickSeconds: profilePickSeconds,
     roundOf: roundOf, slotForPick: slotForPick, snakeOrder: snakeOrder, picksForSlot: picksForSlot, nextPickFor: nextPickFor,
-    eligFor: eligFor, assignSlots: assignSlots, starterTotal: starterTotal,
+    eligFor: eligFor, posTokens: posTokens, slotElig: slotElig, canFill: canFill, displayPositions: displayPositions,
+    assignSlots: assignSlots, starterTotal: starterTotal, filledSlot: filledSlot,
     injuryFactor: injuryFactor, injuryShort: injuryShort,
-    bestAvailable: bestAvailable, balanceWarnings: balanceWarnings,
+    bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,
+    cheatSheet: cheatSheet, myPicksSnake: myPicksSnake,
     mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
