@@ -51,11 +51,60 @@ if (base) {
   const o = order(home);
   ok(o.every((v, i) => v > 0 && (i === 0 || v > o[i - 1])), 'NFL section order kept');
   ok(home.indexOf('id="nba"') > o[1] && home.indexOf('id="nba"') < o[2], '#nba sits between #tools and #method');
-  // Only additions: removed lines are limited to nothing (pure insert diff).
-  const baseLines = base.split('\n'), homeSet = new Set(home.split('\n'));
-  const removed = baseLines.filter(l => l.trim() && !homeSet.has(l));
-  ok(removed.length === 0, `no baseline lines removed or edited (got ${removed.length}: ${removed.slice(0, 3).join(' | ')})`);
+  // Outside the NBA blocks (their CSS, banner, section) and the stylesheet
+  // cache-buster, every baseline line survives verbatim.
+  const nbaRegions = s => [
+    [s.indexOf('/* ---- NBA entry'), s.indexOf('/* ---- Footer:')],
+    [s.indexOf('<aside id="nba-banner"'), s.indexOf('</aside>', s.indexOf('<aside id="nba-banner"'))],
+    [s.indexOf('<section id="nba"'), s.indexOf('</section>', s.indexOf('<section id="nba"'))],
+  ].filter(([a, b]) => a >= 0 && b > a);
+  const outside = s => { let t = s; for (const [a, b] of nbaRegions(s).sort((x, y) => y[0] - x[0])) t = t.slice(0, a) + t.slice(b); return t; };
+  const homeSet = new Set(home.split('\n'));
+  const removed = outside(base).split('\n').filter(l => l.trim() && !homeSet.has(l) && !/href="\/shared\/styles\.css"/.test(l));
+  ok(removed.length === 0, `no non-NBA baseline lines removed or edited (got ${removed.length}: ${removed.slice(0, 3).join(' | ')})`);
 }
+
+// ---------- 1b. NBA CTA renders without .sport-nba or a fresh shared CSS ----------
+// Live bug (2026-10-13): a browser holding a cached pre-NBA /shared/styles.css
+// rendered the banner CTA as a bare underlined "OpenNBA board→" link.
+const bannerHtml = (home.match(/<aside id="nba-banner"[\s\S]*?<\/aside>/) || [''])[0];
+const ctaHtml = (bannerHtml.match(/<a [^>]*id="nba-banner-cta"[\s\S]*?<\/a>/) || [''])[0];
+const ctaText = ctaHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+ok(/(^|\s)Open NBA board(\s|$)/.test(ctaText), `banner CTA label is "Open NBA board" (got "${ctaText}")`);
+ok(/>Open NBA board\s/.test(ctaHtml), 'banner CTA text node keeps the spaces (not split across spans)');
+ok(/class="nba-arrow"[^>]*aria-hidden="true"/.test(ctaHtml), 'banner CTA arrow is decorative (aria-hidden)');
+ok(/<a [^>]*id="nba-cta"[^>]*>Open the NBA draft board\s/.test(home), 'section CTA label intact');
+ok(/<link rel="stylesheet" href="\/shared\/styles\.css\?v=[\w.-]+">/.test(home), 'home.html cache-busts /shared/styles.css');
+
+const homeStyle = (home.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1].replace(/\/\*[\s\S]*?\*\//g, '');
+// All top-level rules (media blocks flattened) as [selectorList, body].
+const rules = src => [...src.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => [m[1].trim().replace(/^@media[^{]*\{/, '').trim(), m[2]]);
+const homeRules = rules(homeStyle);
+const sels = r => r[0].split(',').map(s => s.trim().replace(/\s+/g, ' '));
+const ruleFor = (sel, prop) => homeRules.find(r => sels(r).includes(sel) && (!prop || new RegExp(`(^|;|\\s)${prop}\\s*:`).test(r[1])));
+const tokRule = homeRules.find(r => sels(r).includes('#nba-banner') && /--nba-ink\s*:/.test(r[1]));
+ok(tokRule && ['--nba-300', '--nba-400', '--nba-500', '--nba-600', '--nba-ink'].every(t => new RegExp(t + '\\s*:\\s*#').test(tokRule[1])),
+  'home.html defines the NBA tokens on #nba-banner itself (no .sport-nba dependency)');
+ok(tokRule && sels(tokRule).every(s => !/sport-nba|body|:root|^html/.test(s)), 'token rule is scoped to the NBA blocks only (no orange leak onto NFL elements)');
+const btn = ruleFor('#nba-banner .nba-btn', 'background');
+ok(btn, 'banner .nba-btn rule exists with an unscoped selector (#nba-banner .nba-btn, no .sport-nba)');
+if (btn) {
+  ok(/display:\s*inline-flex/.test(btn[1]) && /align-items:\s*center/.test(btn[1]), 'banner CTA is an inline-flex, vertically centred button');
+  ok(/min-height:\s*44px/.test(btn[1]), 'banner CTA tap target >= 44px');
+  ok(/text-decoration:\s*none/.test(btn[1]), 'banner CTA has no underline');
+  ok(/color:\s*var\(--nba-ink\)/.test(btn[1]) && /linear-gradient\([^;]*var\(--nba-400\)/.test(btn[1]), 'banner CTA: ink label on an orange fill');
+  ok(/border-radius:\s*999px/.test(btn[1]), 'banner CTA is a pill');
+  ok(sels(btn).includes('#nba .nba-btn'), 'section CTA shares the same button rule');
+}
+ok(ruleFor('#nba-banner .nba-btn:focus-visible', 'outline'), 'banner CTA has a visible :focus-visible ring');
+ok(ruleFor('#nba-banner .nba-btn:hover', 'background'), 'banner CTA has a hover state');
+ok(ruleFor('#nba-banner .nba-btn:active', 'transform'), 'banner CTA has an active (pressed) state');
+ok(ruleFor('#nba-banner .nba-btn:hover .nba-arrow', 'transform'), 'arrow nudges on hover');
+const rm = (homeStyle.match(/@media \(prefers-reduced-motion: reduce\) \{\s*#nba-banner[\s\S]*?\}\s*\}/) || [''])[0];
+ok(/#nba-banner \.nba-btn:hover \.nba-arrow[\s\S]*transform:\s*none/.test(rm), 'reduced motion: arrow nudge and press scale disabled');
+// shared/styles.css still carries an unscoped .nba-btn (for /nba pages and other callers).
+ok(/(^|\})\s*(?:[^{}]*,\s*)?\.nba-btn\s*[,{]/m.test(css0()) , 'shared/styles.css has a .nba-btn selector not scoped under .sport-nba');
+function css0() { return fs.readFileSync(path.join(ROOT, 'shared', 'styles.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''); }
 
 // ---------- 2. external resources ----------
 const origins = s => new Set([...s.matchAll(/(?:src|href)="(https?:\/\/[^/"]+)/g)].map(m => m[1]));
