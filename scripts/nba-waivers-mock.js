@@ -26,16 +26,18 @@ const TK = LK + '.t.3';
 const ROSTER_RANKS = [3, 14, 22, 31, 47, 58, 66, 130, 170, 210];
 const INJURED_RANK = 14;
 
-let boardP = null;
-function board() {
-  if (!boardP) boardP = Model.getPlayers({}).then(b => {
+const boardP = {};
+// L1: routes pass the league profile id (null → legacy High Score board).
+function board(profile) {
+  const k = profile || '-';
+  if (!boardP[k]) boardP[k] = Model.getPlayers({ profile: profile || undefined }).then(b => {
     const players = b.players.map(p => ({ ...p }));
     const star = players[INJURED_RANK];
     star.injury = 'Out';
     star.hsByWeek = { ...star.hsByWeek, 1: 0, 2: 0 };
     return { ...b, players };
   });
-  return boardP;
+  return boardP[k];
 }
 const yahooShape = (p, i) => ({
   player_key: '466.p.' + (5000 + i), player_id: String(5000 + i), name: { full: p.name },
@@ -87,7 +89,7 @@ app.use('/shared', express.static(path.join(ROOT, 'shared')));
 app.use('/nba/pages', express.static(path.join(ROOT, 'nba/pages')));
 app.get('/favicon.png', (req, res) => res.status(204).end());
 app.post('/__mock/mode', (req, res) => { if (req.query.yahoo) mode = String(req.query.yahoo); res.json({ mode }); });
-app.get('/api/nba/players', async (req, res) => res.json(await board()));
+app.get('/api/nba/players', async (req, res) => res.json(await board('242808')));
 app.get('/api/nba/yahoo/status', (req, res) => res.json(mode === 'on'
   ? { connected: true, leagues: [{ league_key: LK, name: 'Pocket High Score', num_teams: 10, draft_status: 'postdraft' }] }
   : { connected: false }));
@@ -101,7 +103,7 @@ app.use(waiversRoutes({
   getAuth: () => ({ userId: 'mock-user' }),
   apiCached: async (k, t, fn) => fn(),
   loadModel: () => Model,
-  modelPlayers: () => board(),
+  modelPlayers: (week, profile) => board(profile),
   clientFor: () => {
     const p = fakeClient();
     return new Proxy({}, { get: (_, k) => async (...a) => (await p)[k](...a) });

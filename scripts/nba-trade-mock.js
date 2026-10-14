@@ -56,7 +56,8 @@ const fakeClient = () => ({
 const app = express();
 const cache = new Map();
 const apiCached = async (k, ttl, fn) => { const h = cache.get(k); if (h && Date.now() - h.t < ttl) return h.v; const v = await fn(); cache.set(k, { v, t: Date.now() }); return v; };
-const modelPlayers = () => apiCached('players', 10 * 60 * 1000, () => model.getPlayers({}));
+// L1: routes pass the league profile id (null → legacy High Score board).
+const modelPlayers = (week, profile) => apiCached('players:' + (profile || '-'), 10 * 60 * 1000, () => model.getPlayers({ profile: profile || undefined }));
 
 app.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.get('/nba/auth/login', (req, res) => { mode = 'on'; res.redirect('/nba/trade'); });

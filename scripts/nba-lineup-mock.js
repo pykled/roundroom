@@ -32,7 +32,8 @@ const RIVAL_ROSTER = [
   ['Donovan Mitchell', 'Util'], ['Karl-Anthony Towns', 'BN'], ['Jamal Murray', 'BN'], ['Deni Avdija', 'BN'], ['Bam Adebayo', 'BN'],
 ];
 let boardCache = null;
-async function board() { return boardCache || (boardCache = (await model.getPlayers({})).players); }
+// Mock Yahoo players are matched against the default-profile (242808) board.
+async function board() { return boardCache || (boardCache = (await model.getPlayers({ profile: '242808' })).players); }
 function yahooPlayer(name, sel, i, players) {
   const p = players.find(x => x.name === name);
   return {
@@ -61,7 +62,8 @@ app.use('/shared', express.static(path.join(ROOT, 'shared')));
 app.get('/favicon.png', (req, res) => res.sendFile(path.join(ROOT, 'favicon.png')));
 app.get('/nba/auth/login', (req, res) => { mode = 'on'; res.redirect('/nba/lineup'); });
 
-const modelPlayers = week => model.getPlayers({ week: week || undefined });
+// L1: routes pass the league profile id (null → legacy High Score board).
+const modelPlayers = (week, profile) => model.getPlayers({ week: week || undefined, profile: profile || undefined });
 app.get('/api/nba/players', async (req, res) => res.json(await modelPlayers(Number(req.query.week) || null)));
 app.get('/api/nba/yahoo/status', (req, res) => res.json(mode === 'on'
   ? { connected: true, leagues: [{ league_key: LEAGUE, name: 'High Score Homies', num_teams: 10, draft_status: 'postdraft' }] }
