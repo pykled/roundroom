@@ -188,7 +188,7 @@
     }
     h += '<div class="ln-tools"><button type="button" class="btn-secondary" id="ln-paste-btn">' + (S.showPaste ? 'Hide paste' : 'Paste roster') + '</button>' + (ros.length ? '<button type="button" class="btn-secondary" id="ln-clear">Clear</button>' : '') + '</div>';
     if (S.showPaste) {
-      h += '<div class="ln-paste" style="margin-top:.6rem"><textarea id="ln-paste" placeholder="One player per line (or commas). E.g.&#10;Nikola Jokic&#10;Luka Doncic&#10;Cooper Flagg"></textarea><div class="ln-tools"><button type="button" class="btn-primary" id="ln-paste-go">Add players</button></div></div>';
+      h += '<div class="ln-paste" style="margin-top:.6rem"><textarea id="ln-paste" aria-label="Paste roster, one player per line" placeholder="One player per line (or commas). E.g.&#10;Nikola Jokic&#10;Luka Doncic&#10;Cooper Flagg"></textarea><div class="ln-tools"><button type="button" class="btn-primary" id="ln-paste-go">Add players</button></div></div>';
     }
     if (S.unknown.length) h += '<div class="ln-unknown">Not found: ' + S.unknown.map(esc).join(', ') + '</div>';
     var opp = S.manual.opponent;
@@ -219,7 +219,7 @@
     }
     var h = '';
     if (S.error) h += '<div class="ln-banner error"><div>' + esc(S.error.message) + ' Showing the last result.</div></div>';
-    if (r.unmatched && r.unmatched.length) h += '<div class="ln-banner"><div><b>' + r.unmatched.length + ' player' + (r.unmatched.length > 1 ? 's' : '') + ' not matched</b> to our model and left out: ' + r.unmatched.map(function (u) { return esc(u.name || u.id); }).join(', ') + '.</div></div>';
+    if (r.unmatched && r.unmatched.length) h += '<div class="ln-banner"><div><b>' + r.unmatched.length + ' player' + (r.unmatched.length > 1 ? 's' : '') + ' not matched</b> to our model, so not projected (starters stay in their slot, bench players are left out): ' + r.unmatched.map(function (u) { return esc(u.name || u.id); }).join(', ') + '.</div></div>';
     if (r.matchupError) h += '<div class="ln-banner info"><div>' + esc(r.matchupError) + '; win probability skipped.</div></div>';
 
     // summary
@@ -251,24 +251,24 @@
         h += '<section class="ln-diff ok"><h3>Your current lineup is already optimal <span style="color:var(--text-muted)">±0.0</span></h3></section>';
       }
     }
-    var others = (r.warnings || []).filter(function (w) { return w.type !== 'forfeit'; });
+    var others = (r.warnings || []).filter(function (w) { return w.type !== 'forfeit' && w.type !== 'forfeit-unknown'; });
     others.forEach(function (w) { h += '<div class="ln-banner"><div>' + esc(w.message) + '</div></div>'; });
 
     // slots
     h += '<div class="ln-sec"><h2>Starters</h2><small>expected best game from today</small></div><div class="ln-slots">';
     r.slots.forEach(function (s) {
       var isNew = r.current && s.currentSlot !== 'G' && s.currentSlot !== 'F' && s.currentSlot !== 'UTIL';
-      var pips = L.gamePips(s.gamesLeft, s.gamesWeek).map(function (c) { return '<i class="pip ' + c + '"></i>'; }).join('');
+      var pips = s.unmatched ? '' : L.gamePips(s.gamesLeft, s.gamesWeek).map(function (c) { return '<i class="pip ' + c + '"></i>'; }).join('');
       h += '<article class="ln-slot' + (isNew ? ' new' : '') + (s.locked ? ' locked' : '') + '">' +
         '<div class="ln-slot-top"><span class="sp ' + s.slot + '">' + s.slot + '</span><div class="ln-who"><div class="ln-name">' + esc(s.player.name) + '</div><div class="ln-meta"><span class="tm">' + esc(s.player.team || '') + '</span>' + posPills(s.player.elig) + injBadge(s.player.injury) + (isNew ? '<span class="ln-tag new">Start</span>' : '') + (s.locked ? '<span class="ln-tag lock">Locked</span>' : '') + '</div></div>' +
         '<div class="ln-xv"><b>' + n1(s.expected) + '</b><span>exp</span></div></div>' +
-        '<div class="ln-chips"><span class="chip' + (s.gamesLeft ? '' : ' zero') + '" title="' + s.gamesLeft + ' of ' + s.gamesWeek + ' games left"><span class="pips">' + pips + '</span>' + s.gamesLeft + ' left</span>' +
+        '<div class="ln-chips">' + (s.unmatched ? '<span class="chip zero">Not in our data</span>' : '<span class="chip' + (s.gamesLeft ? '' : ' zero') + '" title="' + s.gamesLeft + ' of ' + s.gamesWeek + ' games left"><span class="pips">' + pips + '</span>' + s.gamesLeft + ' left</span>') +
         (s.banked != null ? '<span class="chip bank" title="Best game so far while started">Banked ' + n1(s.banked) + (s.pBeat != null ? ' · ' + Math.round(s.pBeat * 100) + '% to beat' : '') + '</span>' : '') +
         (s.b2b ? '<span class="chip b2b">B2B ×' + s.b2b + '</span>' : '') + '</div>' +
         '<div class="ln-why">' + esc(s.rationale) + '</div>' +
         '<div class="ln-stream' + (/^Streamable/.test(s.streamNote) ? ' go' : '') + '">' + esc(s.streamNote) + '</div>' +
         (s.alternatives.length ? '<div class="ln-alts">Next best: ' + s.alternatives.map(function (a) { return '<span class="a">' + esc(a.name) + ' <span class="d">' + n1(a.expected) + '</span></span>'; }).join('') + '</div>' : '') +
-        (S.day > 0 && !isNew ? '<label class="ln-bank-edit">Best game so far <input type="number" inputmode="decimal" min="0" max="300" step="0.5" data-bank="' + esc(s.player.id) + '" value="' + (s.banked != null ? s.banked : '') + '" placeholder="—"></label>' : '') +
+        (S.day > 0 && !isNew && !s.unmatched ? '<label class="ln-bank-edit">Best game so far <input type="number" inputmode="decimal" min="0" max="300" step="0.5" data-bank="' + esc(s.player.id) + '" value="' + (s.banked != null ? s.banked : '') + '" placeholder="—"></label>' : '') +
         '</article>';
     });
     h += '</div>';

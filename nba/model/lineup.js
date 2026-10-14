@@ -110,7 +110,8 @@ function evalPlayer(entry, p, ctx) {
   const slot = slotOf(entry.slot);
   const starter = STARTING.has(slot);
   const banked = starter && Number(entry.banked) > 0 ? Number(entry.banked) : 0;
-  const base = { id: String(entry.id), slot, starter, banked, locked: !!entry.locked };
+  const bankedKnown = entry.banked != null && entry.banked !== '' && Number.isFinite(Number(entry.banked));
+  const base = { id: String(entry.id), slot, starter, banked, bankedKnown, locked: !!entry.locked };
   if (!p) return { ...base, name: entry.name || String(entry.id), unmatched: true, elig: [], keep: banked, insert: 0, gamesLeft: 0, gamesWeek: 0, probs: [], mu: 0, sd: 0 };
   const a = availability({ injury: p.injury, outForSeason: p.outForSeason }, p.availability ?? 0.85, ctx.week - ctx.currentWeek);
   const { mu, sd, N } = calibratedMean(p, ctx.week, a);
@@ -323,6 +324,10 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
     if (o.banked > 0) {
       d.warning = `Benching ${o.name} forfeits his banked ${r1(o.banked)}. If you reinsert him later only games from then on count.`;
       warnings.push({ type: 'forfeit', id: o.id, banked: r1(o.banked), message: d.warning });
+    }
+    else if (ctx.day > 0 && !o.bankedKnown) {
+      d.warning = `Check ${o.name}'s best game so far before benching him: we don't know it, and benching forfeits it.`;
+      warnings.push({ type: 'forfeit-unknown', id: o.id, message: d.warning });
     }
     if (o.locked) d.warning = (d.warning ? d.warning + ' ' : '') + 'He is locked today; make this move before his game.';
     diff.push(d);

@@ -217,11 +217,14 @@ function createLineupRoutes({
     catch (err) { log.error('[nba] lineup model:', err.message); return res.status(503).json({ error: 'NBA player data unavailable' }); }
     const c = clock(week, { day: body.day, weekLength: body.weekLength });
     const known = new Set(b.players.map(p => String(p.id)));
-    const out = recommend({
-      roster, players: b.players, week, currentWeek: b.currentWeek, ...c,
-      opponent: opp.length ? { roster: opp.map(id => ({ id })) } : null,
-      options: { replacement: replacementFrom(b.players) },
-    });
+    let out;
+    try {
+      out = recommend({
+        roster, players: b.players, week, currentWeek: b.currentWeek, ...c,
+        opponent: opp.length ? { roster: opp.map(id => ({ id })) } : null,
+        options: { replacement: replacementFrom(b.players) },
+      });
+    } catch (err) { log.error('[nba] lineup manual:', err.message); return res.status(500).json({ error: 'Could not build the lineup' }); }
     res.json({ source: 'manual', dates: c.dates, currentWeek: b.currentWeek, ...out, unmatched: roster.filter(r => !known.has(r.id)).map(r => ({ id: r.id })) });
   });
 

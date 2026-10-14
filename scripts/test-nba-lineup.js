@@ -192,6 +192,20 @@ async function call(server, method, path, body, headers = {}) {
     assert.strictEqual(new Set(opp).size, opp.length);
   });
 
+  await test('checker regression: mid-week benching a starter with an unknown banked score warns', () => {
+    const P = [mk(1, ['G'], 30), mk(2, ['G'], 48), mk(3, ['F'], 47), mk(4, ['F'], 46), mk(5, ['F'], 45), mk(6, ['G', 'F'], 44), mk(7, ['G'], 55)];
+    const ros = [{ id: '1', slot: 'G' }, { id: '2', slot: 'G' }, { id: '3', slot: 'F' }, { id: '4', slot: 'F' }, { id: '5', slot: 'F' }, { id: '6', slot: 'UTIL' }, { id: '7' }];
+    let out = L.recommend({ ...base, day: 3, players: P, roster: ros });
+    const row = out.diff.find(d => d.out && d.out.id === '1');
+    assert(row && /best game so far/.test(row.warning), 'diff row warns');
+    assert(out.warnings.some(w => w.type === 'forfeit-unknown' && w.id === '1'));
+    // known banked 0 → no unknown warning; day 0 → nothing to forfeit yet
+    out = L.recommend({ ...base, day: 3, players: P, roster: ros.map(r => (r.id === '1' ? { ...r, banked: 0 } : r)) });
+    assert(!out.warnings.some(w => w.type === 'forfeit-unknown'));
+    out = L.recommend({ ...base, day: 0, players: P, roster: ros });
+    assert(!out.warnings.some(w => w.type === 'forfeit-unknown'));
+  });
+
   console.log('banked scores / forfeiture / locks');
   await test('banked 80 starter: value ≈ 80 + small upside; keep him over a 60-expected bench player', () => {
     const P = [mk(1, ['F'], 40, { sd: 10 }), mk(2, ['F'], 52, { sd: 10, games: 3 }), mk(3, ['G'], 30), mk(4, ['G'], 30), mk(5, ['F'], 30), mk(6, ['F'], 30), mk(7, ['G'], 30)];
@@ -391,6 +405,18 @@ async function call(server, method, path, body, headers = {}) {
       assert.strictEqual((await call(server, 'POST', '/api/nba/lineup/manual', '{bad json')).status, 400);
       const big = await call(server, 'POST', '/api/nba/lineup/manual', JSON.stringify({ week: 1, roster: [{ id: '100' }], pad: 'x'.repeat(10000) }));
       assert.strictEqual(big.status, 413);
+    });
+    await test('checker regression: manual route returns JSON 500 (no hang) if the optimiser throws', async () => {
+      const app3 = express();
+      const boom = [{ id: '1', get mean() { throw new Error('boom'); } }];
+      app3.use(createLineupRoutes({ auth: fakeAuth, getAuth: fakeGetAuth, apiCached, loadModel: () => model, modelPlayers: async () => ({ players: boom, currentWeek: 1 }), clientFor: fakeClient, sendYahooError: () => {}, log: { error() {} } }));
+      const s3 = await listen(app3);
+      try {
+        const r = await call(s3, 'POST', '/api/nba/lineup/manual', { week: 1, ids: ['1'] });
+        assert.strictEqual(r.status, 500);
+        assert.deepStrictEqual(Object.keys(r.json), ['error']);
+        assert(!/boom|at /.test(r.json.error), 'no stack/message leak');
+      } finally { s3.close(); }
     });
     await test('deny list: /nba/routes/lineup.js is not served', async () => {
       assert.strictEqual((await call(server, 'GET', '/nba/routes/lineup.js')).status, 404);
