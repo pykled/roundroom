@@ -155,7 +155,7 @@ t('duplicate pick numbers / players from a flaky poll are ignored', () => {
 t('settingsFromYahoo maps roster_positions + draft position', () => {
   const s = L.settingsFromYahoo({ num_teams: 12, roster_positions: [{ position: 'G', count: 2 }, { position: 'F', count: 3 }, { position: 'Util', count: 1 }, { position: 'BN', count: 4 }, { position: 'IL', count: 2 }] },
     't.7', [{ team_key: 't.7', draft_position: 7 }]);
-  eq(s, { teams: 12, mySlot: 7, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4, il: 2 });
+  eq(s, { teams: 12, mySlot: 7, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4, il: 2, rounds: 10 });
 });
 
 console.log('persistence');
@@ -195,14 +195,14 @@ const PROFILE = {
 };
 
 console.log('league profile (242808)');
-t('defaults are the 242808 profile: 12 teams, 9 starters, 16 spots, 192 picks', () => {
-  eq(LP.teams, 12); eq(L.starterCount(LP), 9); eq(L.rosterSize(LP), 16); eq(L.totalPicks(LP), 192);
+t('defaults are the 242808 profile: 12 teams, 9 starters, 16 spots, 14 rounds (IL not drafted), 168 picks', () => {
+  eq(LP.teams, 12); eq(L.starterCount(LP), 9); eq(L.rosterSize(LP), 16); eq(L.draftRounds(LP), 14); eq(L.totalPicks(LP), 168);
   eq(L.slotTypes(LP), ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL']);
   eq(L.isLegacy(LP), false); eq(L.isLegacy(DEF), true);
 });
 t('settingsFromProfile maps slots/BN/IL/teams and keeps my slot', () => {
   const s = L.settingsFromProfile(PROFILE, { mySlot: 7 });
-  eq(s, { teams: 12, mySlot: 7, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2 });
+  eq(s, { teams: 12, mySlot: 7, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2, rounds: 14 });
   eq(L.profilePickSeconds(PROFILE), 90); eq(L.profilePickSeconds(null), 90); eq(L.profilePickSeconds({ draft: { pickSeconds: 'x' } }), 90);
   eq(L.settingsFromProfile(null, { mySlot: 3 }).mySlot, 3, 'no profile → defaults, slot kept');
   const hs = L.settingsFromProfile({ teams: 10, slots: { G: 2, F: 3, UTIL: 1, BN: 4 } }, null);
@@ -212,7 +212,7 @@ t('settingsFromYahoo: 242808 roster_positions → position-aware slots', () => {
   const rp = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C'].map(p => ({ position: p, count: 1 }))
     .concat([{ position: 'Util', count: 2 }, { position: 'BN', count: 5 }, { position: 'IL', count: 2 }]);
   const s = L.settingsFromYahoo({ num_teams: 12, roster_positions: rp }, 't.3', [{ team_key: 't.3', draft_position: 3 }], LP);
-  eq(s, { teams: 12, mySlot: 3, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2 });
+  eq(s, { teams: 12, mySlot: 3, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2, rounds: 14 });
   const fc = L.settingsFromYahoo({ num_teams: 10, roster_positions: [{ position: 'G', count: 2 }, { position: 'F/C', count: 3 }, { position: 'Util', count: 1 }] }, null, null, LP);
   eq(fc.slots, { G: 2, FC: 3, UTIL: 1 });
 });
@@ -235,9 +235,11 @@ t('12 teams: turn picks are back-to-back at the ends', () => {
   eq(L.picksForSlot(5, 12, 16).length, 16);
   eq(L.picksForSlot(5, 12, 3), [5, 20, 29]);
 });
-t('myPicksSnake: 16 rounds for slot 5, numbered and rounded', () => {
+t('myPicksSnake: 14 rounds for slot 5 (16 when rounds=16), numbered and rounded', () => {
   const m = L.myPicksSnake(Object.assign({}, LP, { mySlot: 5 }), 1);
-  eq(m.length, 16); eq(m[0], { pick: 5, round: 1 }); eq(m[1], { pick: 20, round: 2 }); eq(m[15], { pick: 188, round: 16 });
+  eq(m.length, 14); eq(m[0], { pick: 5, round: 1 }); eq(m[1], { pick: 20, round: 2 }); eq(m[13], { pick: 164, round: 14 });
+  const m16 = L.myPicksSnake(L.normalizeSettings(Object.assign({}, LP, { mySlot: 5, rounds: 16 })), 1);
+  eq(m16.length, 16); eq(m16[15], { pick: 188, round: 16 });
   eq(L.myPicksSnake(Object.assign({}, LP, { mySlot: 5 }), 21)[0], { pick: 29, round: 3 });
   eq(L.nextPickFor(5, 193, Object.assign({}, LP, { mySlot: 5 })), null);
 });
@@ -374,12 +376,12 @@ t('recommendation is deterministic regardless of input order', () => {
   const tie = L.bestAvailable([Q('b', 'PG', 50), Q('a', 'PG', 50)], [], LP, { picksUntilNext: 0 });
   eq(tie[0].player.id, 'a');
 });
-t('catch-up warning: no C with 4 picks left', () => {
+t('catch-up warning: no C with 2 picks left (14 rounds)', () => {
   const roster = []; ['PG', 'SG', 'PG,SG', 'SF', 'PF', 'SF,PF', 'PG', 'SG', 'SF', 'PF', 'PG', 'SG'].forEach((p, i) => roster.push(Q('c' + i, p, 50 - i)));
   const w = L.balanceWarnings(roster, LP, { available: [] });
-  ok(w.some(x => x.level === 'warn' && /^Catch-up: no C yet · 4 picks left$/.test(x.text)), JSON.stringify(w));
-  // 1 pick left, still 1 open starter slot... and 2 open → danger
-  const r2 = roster.concat([Q('x1', 'PG', 1), Q('x2', 'PG', 1), Q('x3', 'PG', 1)]);
+  ok(w.some(x => x.level === 'warn' && /^Catch-up: no C yet · 2 picks left$/.test(x.text)), JSON.stringify(w));
+  // 1 pick left, still 1 open starter slot → danger
+  const r2 = roster.concat([Q('x1', 'PG', 1)]);
   const w2 = L.balanceWarnings(r2, LP, { available: [] });
   ok(w2.some(x => x.level === 'danger' && /no C yet · 1 pick left/.test(x.text)), JSON.stringify(w2));
 });
@@ -401,11 +403,11 @@ t('G scarcity counts PG/SG demand: plenty of guards left → no "G is drying up"
 });
 
 console.log('cheat sheet');
-t('rounds 1-16 for slot 5 at pick 1, with targets near each pick + by-slot tiers', () => {
+t('rounds 1-14 for slot 5 at pick 1, with targets near each pick + by-slot tiers', () => {
   const av = boardFixture();
   const st = Object.assign({}, LP, { mySlot: 5 });
   const cs = L.cheatSheet({ available: av, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [], perRound: 5 });
-  eq(cs.rounds.length, 16); eq(cs.rounds[0].pick, 5); eq(cs.rounds[1].pick, 20);
+  eq(cs.rounds.length, 14); eq(cs.rounds[0].pick, 5); eq(cs.rounds[1].pick, 20);
   eq(cs.rounds[0].targets.map(x => x.player.id), ['2', '3', '4', '5', '6']);
   ok(cs.rounds[0].targets.every(x => x.need.length > 0), 'empty roster: everyone fills a need');
   eq(cs.bySlot.map(s => s.slot), ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C']);
@@ -415,7 +417,7 @@ t('rounds 1-16 for slot 5 at pick 1, with targets near each pick + by-slot tiers
 t('cheat sheet mixes made picks (done) with remaining ones in pick order', () => {
   const av = boardFixture(), st = Object.assign({}, LP, { mySlot: 1 });
   const cs = L.cheatSheet({ available: av.slice(30), settings: st, cur: 26, myPicks: L.myPicksSnake(st, 26), made: [{ pick: 1, round: 1, player: av[0] }, { pick: 24, round: 2, player: av[1] }, { pick: 25, round: 3, player: av[2] }], roster: av.slice(0, 3) });
-  eq(cs.rounds.length, 16); eq(cs.rounds.slice(0, 4).map(r => [r.pick, r.done]), [[1, true], [24, true], [25, true], [48, false]]);
+  eq(cs.rounds.length, 14); eq(cs.rounds.slice(0, 4).map(r => [r.pick, r.done]), [[1, true], [24, true], [25, true], [48, false]]);
 });
 
 console.log('fuzz');
@@ -442,7 +444,7 @@ t('no NaN / no throw on junk players, rosters and settings', () => {
     L.slotPulse(avail, roster.slice(0, 12), players, st, 40).forEach(x => ok(isFinite(x.left) && isFinite(x.recent), JSON.stringify(x)));
     const ns = L.normalizeSettings(st);
     const cs = L.cheatSheet({ available: avail, settings: st, cur: 1 + Math.floor(r() * 50), myPicks: L.myPicksSnake(ns, 1), roster });
-    ok(cs.rounds.length === L.rosterSize(ns), 'rounds ' + cs.rounds.length);
+    ok(cs.rounds.length === L.draftRounds(ns), 'rounds ' + cs.rounds.length);
   }
 });
 t('settingsSource survives a round trip; anything else resets to null', () => {
@@ -527,6 +529,44 @@ t('real snapshot: every Yahoo position string maps to legal slots (C-only never 
     eq(L.yahooPosString(p), y.pos, y.name);
     if (y.pos === 'C') ok(!L.canFill(p, 'F', st) && L.canFill(p, 'C', st), y.name + ' C-only');
   });
+});
+
+console.log('integration (market-aware VONA, bench depth, rounds)');
+t('market-aware VONA: a player the market ranks far below my next pick is not urgent', () => {
+  // 30 fillers the market takes first; 'mlove' is model #1 but market #80.
+  const av = [Q('mlove', 'C', 60, { marketRank: 80 })];
+  for (let i = 0; i < 30; i++) av.push(Q('f' + i, 'PG', 50 - i * 0.5, { marketRank: i + 1 }));
+  for (let i = 0; i < 6; i++) av.push(Q('c' + i, 'C', 45 - i, { marketRank: 40 + i }));
+  const withMkt = L.bestAvailable(av, [], LP, { picksUntilNext: 14, limit: 40 });
+  const noMkt = L.bestAvailable(av.map(p => Object.assign({}, p, { marketRank: undefined })), [], LP, { picksUntilNext: 14, limit: 40 });
+  const a = withMkt.find(r => r.player.id === 'mlove'), b = noMkt.find(r => r.player.id === 'mlove');
+  ok(a.pGone < 0.05, 'pGone ' + a.pGone);
+  ok(a.vona < b.vona * 0.1, a.vona + ' vs ' + b.vona);
+  ok(/likely still there next pick/.test(a.reason), a.reason);
+  ok(L.probGone(0, 11, 5) > 0.95 && L.probGone(30, 11, 40) < 0.05, 'probGone shape');
+});
+t('bench depth: with 4 C-eligibles already, the bench pick is a guard, not a 5th C', () => {
+  const roster = [Q('pg', 'PG', 50), Q('sg', 'SG', 49), Q('g', 'PG,SG', 48), Q('sf', 'SF', 47), Q('pf', 'PF', 46), Q('f', 'SF,PF', 45),
+    Q('c1', 'C', 44), Q('c2', 'C', 43), Q('c3', 'PF,C', 42)];
+  const av = [Q('c4', 'C', 36), Q('c5', 'PF,C', 35.5), Q('gx', 'PG,SG', 34.5), Q('fx', 'SF', 34)];
+  for (let i = 0; i < 20; i++) av.push(Q('z' + i, 'SF', 20 - i * 0.1));
+  const r = L.bestAvailable(av, roster, LP, { picksUntilNext: 10, limit: 3 });
+  eq(r[0].slot, 'BENCH');
+  ok(r[0].player.id === 'gx', r.map(x => x.player.id + ':' + x.score.toFixed(2)).join(' '));
+  ok(/adds (PG|SG|G) depth/.test(r[0].reason), r[0].reason);
+});
+t('rounds: profile draft.rounds wins; League dialog value persists; Yahoo roster re-derives', () => {
+  eq(L.settingsFromProfile({ teams: 12, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2, BN: 5, IL: 2 }, draft: { rounds: 16 } }).rounds, 16);
+  eq(L.settingsFromProfile({ teams: 12, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2, BN: 5, IL: 2 } }).rounds, 14);
+  const st = L.normalizeSettings(Object.assign({}, LP, { rounds: 16 }));
+  eq(L.totalPicks(st), 192);
+  eq(L.deserializeState(L.serializeState(Object.assign(L.emptyState(null, st), { settings: st })), null, st).settings.rounds, 16);
+  const y = L.settingsFromYahoo({ num_teams: 10, roster_positions: [{ position: 'PG', count: 1 }, { position: 'C', count: 1 }, { position: 'BN', count: 3 }, { position: 'IL', count: 1 }] }, null, null, st);
+  eq(y.rounds, 5);
+  // a full 14-round roster gets no recommendation and no negative picks-left warnings
+  const full = []; for (let i = 0; i < 14; i++) full.push(Q('r' + i, ['PG', 'SG', 'SF', 'PF', 'C'][i % 5], 40 - i));
+  eq(L.bestAvailable([Q('x', 'PG', 30)], full, LP, {}).length, 0);
+  eq(L.balanceWarnings(full, LP, { available: [] }).length, 0);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

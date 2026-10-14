@@ -150,7 +150,8 @@
     var st = S.state.settings;
     var yc = liveYahoo() ? L.yahooClock(S.state.yahoo, S.myTeamKey, pendingCount()) : null;
     if (yc) {
-      return { cur: yc.cur, total: Math.max(yc.total, L.totalPicks(st)), done: yc.done, round: yc.round || (yc.done ? L.rosterSize(st) : L.roundOf(yc.cur, st.teams)),
+      // Yahoo's own pick list is the truth for the draft length (14 vs 16 rounds).
+      return { cur: yc.cur, total: yc.total > 0 ? yc.total : L.totalPicks(st), done: yc.done, round: yc.round || (yc.done ? L.draftRounds(st) : L.roundOf(yc.cur, st.teams)),
         slot: null, teamKey: yc.teamKey, onMe: yc.onMe, myNext: yc.myNext, myAfter: yc.myAfter,
         myNextRound: yc.myNextRound || (yc.myNext ? L.roundOf(yc.myNext, st.teams) : null),
         awayN: yc.awayN, gapNow: yc.gapNow, gapNext: yc.gapNext, fromYahoo: true };
@@ -160,7 +161,7 @@
     var slot = done ? null : L.slotForPick(cur, st.teams);
     var mine = L.nextPickFor(st.mySlot, cur, st);
     var after = mine ? L.nextPickFor(st.mySlot, mine + 1, st) : null;
-    return { cur: cur, total: total, done: done, round: done ? L.rosterSize(st) : L.roundOf(cur, st.teams), slot: slot, teamKey: null, onMe: slot === st.mySlot, myNext: mine, myAfter: after,
+    return { cur: cur, total: total, done: done, round: done ? L.draftRounds(st) : L.roundOf(cur, st.teams), slot: slot, teamKey: null, onMe: slot === st.mySlot, myNext: mine, myAfter: after,
       myNextRound: mine ? L.roundOf(mine, st.teams) : null,
       awayN: mine ? mine - cur : null, gapNow: after ? after - cur - 1 : 0, gapNext: mine && after ? after - mine - 1 : 0, fromYahoo: false };
   }
@@ -225,7 +226,7 @@
     var secs = timerSeconds();
     $('nd-eyebrow').textContent = 'NBA · ' + leagueName();
     $('nd-sub').textContent = st.teams + ' teams · ' + parts.join(', ') + ' + ' + st.bench + ' BN' + (st.il ? ' + ' + st.il + ' IL' : '') +
-      ' · ' + L.rosterSize(st) + ' rounds' + (secs ? ' · ' + secs + 's picks' : '') + '. Ranked by expected best game of the week under your league’s scoring.';
+      ' · ' + L.draftRounds(st) + ' rounds' + (secs ? ' · ' + secs + 's picks' : '') + '. Ranked by expected best game of the week under your league’s scoring.';
   }
 
   // Top-40 supply per slot + "run" detection from the last round of picks.
@@ -303,6 +304,17 @@
     el.hidden = false;
   }
 
+  // Market (Yahoo-first consensus) rank + reach/value badge; empty cell when absent.
+  function mktCell(p) {
+    if (!S.hasMarket) return '';
+    if (p.marketRank == null) return '<span class="nd-mkt" aria-hidden="true"></span>';
+    var lab = p.label === 'value' || p.label === 'reach' ? p.label : '';
+    var d = typeof p.adpDelta === 'number' ? Math.abs(p.adpDelta) : null;
+    var tip = 'Market #' + p.marketRank + (lab ? ' · ' + lab + (d != null ? ' by ' + d : '') : '') + (p.contested ? ' · sources disagree' : '');
+    return '<span class="nd-mkt' + (p.marketConfidence != null && p.marketConfidence < 0.4 ? ' low' : '') + '" title="' + esc(tip) + '"><span class="mr">M' + esc(p.marketRank) + '</span>' +
+      (lab ? '<span class="mb ' + lab + (p.strong ? ' strong' : '') + '">' + (lab === 'value' ? '▲' : '▼') + (d != null ? d : '') + '</span>' : '') + '</span>';
+  }
+
   function renderBoard() {
     var list = $('nd-list');
     if (!S.players.length) return;
@@ -330,7 +342,9 @@
             '<span class="nd-rk">' + esc(p.rank) + (p.yahooPreRank != null ? '<small title="Yahoo pre-season rank">Y' + esc(p.yahooPreRank) + '</small>' : '') + '</span>' +
             '<span class="nd-who"><span class="nd-name">' + esc(p.name) + '</span>' +
               '<span class="nd-meta">' + posPills(p) + '<span class="tm">' + esc(p.team || 'FA') + '</span>' + gamesChip(p) + injBadge(p) +
+              (p.noLogData ? '<span class="nd-flag nolog" title="No game-log data: value estimated from Yahoo projection">NO LOGS</span>' : '') +
               (t ? '<span>· ' + esc(t.mine ? 'You' : teamNameForKey(t.team_key, t.slot)) + ' #' + t.pick + '</span>' : '') + '</span></span>' +
+            mktCell(p) +
             '<span class="nd-val"><b>' + n1(p.hsValue) + '</b><small>' + n0(p.ceiling) + '/' + n0(p.floor) + '</small></span>' +
           '</button>' +
           '<button type="button" class="nd-draft" data-act="' + (S.matching ? 'match' : t ? (t.source === 'manual' ? 'remove' : 'noop') : 'draft') + '" data-id="' + esc(p.id) + '" aria-label="' + esc(btnLbl) + '"' + (t && t.source !== 'manual' && !S.matching ? ' disabled' : '') + '>' + btnTxt + '</button>' +
@@ -396,7 +410,7 @@
     }
     $('nd-roster').innerHTML = html;
     var openN = 0; Object.keys(a.open).forEach(function (t) { openN += a.open[t]; });
-    $('nd-roster-total').textContent = roster.length + '/' + L.rosterSize(st) + ' · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters ' + n1(a.total));
+    $('nd-roster-total').textContent = roster.length + '/' + L.draftRounds(st) + ' · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters ' + n1(a.total));
     $('nd-warns').innerHTML = warns.map(function (w) { return '<div class="nd-warn ' + w.level + '">' + esc(w.text) + '</div>'; }).join('');
     // Which positions are thin / running right now (top-40 supply).
     var hot = S.pulse.filter(function (x) { return x.run || x.scarce; });
@@ -498,7 +512,7 @@
     } else {
       act.hidden = true; act.innerHTML = '';
       $('nd-mb-txt').hidden = false;
-      $('nd-mb-txt').innerHTML = '<b>' + esc(head) + '</b>' + (w ? '<span class="w ' + w.level + '">' + esc(w.text) + '</span>' : '<span>' + roster.length + '/' + L.rosterSize(st) + ' rostered · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters set') + '</span>');
+      $('nd-mb-txt').innerHTML = '<b>' + esc(head) + '</b>' + (w ? '<span class="w ' + w.level + '">' + esc(w.text) + '</span>' : '<span>' + roster.length + '/' + L.draftRounds(st) + ' drafted · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters set') + '</span>');
     }
   }
 
@@ -667,7 +681,9 @@
           '<span class="band" style="left:' + pct(p.floor) + ';right:calc(100% - ' + pct(p.ceiling) + ')"></span><span class="mk" style="left:' + pct(p.hsValue) + '"></span></div>' +
         '<div class="nd-range-lbl"><span>floor ' + n0(p.floor) + '</span><span>value ' + n1(p.hsValue) + '</span><span>ceiling ' + n0(p.ceiling) + '</span></div></div>' +
       (reco ? '<p class="nd-p-note"><b>Why now:</b> ' + esc(reco.reason) + '</p>' : '') +
-      (p.source && p.source !== 'logs' ? '<p class="nd-p-note">' + (p.source === 'rookie' ? 'Rookie: value is projection-only (no NBA game logs yet), so the range is wider than it looks.' : 'Projection-only: not enough recent game logs for a measured spread.') + '</p>' : '') +
+      (p.marketRank != null ? '<p class="nd-p-note">Market (Yahoo-first) #' + esc(p.marketRank) + (p.label ? ' · ' + esc(p.label) + (typeof p.adpDelta === 'number' && p.adpDelta ? ' (' + (p.adpDelta > 0 ? '+' : '') + esc(p.adpDelta) + ' vs our rank)' : '') : '') + (p.contested ? ' · sources disagree' : '') + '. A sanity check only; the board never sorts by it.</p>' : '') +
+      (p.source === 'yahoo-only' ? '<p class="nd-p-note">No game-log data: this player is in Yahoo’s pool but not in Sleeper, so the value is a conservative estimate from Yahoo’s projected fantasy points per game.</p>'
+        : p.source && p.source !== 'logs' ? '<p class="nd-p-note">' + (p.source === 'rookie' ? 'Rookie: value is projection-only (no NBA game logs yet), so the range is wider than it looks.' : 'Projection-only: not enough recent game logs for a measured spread.') + '</p>' : '') +
       (t ? '<p class="nd-p-note">Drafted #' + t.pick + ' by ' + esc(t.mine ? 'you' : teamNameForKey(t.team_key, t.slot)) + (t.source === 'manual' && !t.confirmed ? ' (pending Yahoo)' : '') + '.</p>' : '');
     var acts = $('nd-sheet-actions');
     if (S.matching) acts.innerHTML = '<button type="button" class="btn-primary" data-act="match" data-id="' + esc(p.id) + '">This is ' + esc(S.matching.name) + '</button>';
@@ -698,7 +714,8 @@
       return '<label>' + slotLabel(t) + '<input name="slot_' + t + '" type="number" inputmode="numeric" min="0" max="6" value="' + (st.slots[t] || 0) + '"' + (live ? ' disabled' : '') + '></label>';
     }).join('') +
       '<label>BN<input name="bench" type="number" inputmode="numeric" min="0" max="15" value="' + st.bench + '"' + (live ? ' disabled' : '') + '></label>' +
-      '<label>IL<input name="il" type="number" inputmode="numeric" min="0" max="5" value="' + (st.il || 0) + '"' + (live ? ' disabled' : '') + '></label>';
+      '<label>IL<input name="il" type="number" inputmode="numeric" min="0" max="5" value="' + (st.il || 0) + '"' + (live ? ' disabled' : '') + '></label>' +
+      '<label>Rounds<input name="rounds" type="number" inputmode="numeric" min="1" max="30" value="' + L.draftRounds(st) + '"' + (live ? ' disabled' : '') + '></label>';
     f.teams.value = st.teams; f.mySlot.value = st.mySlot;
     f.timer.value = timerSeconds();
     f.teams.disabled = !!live;
@@ -706,7 +723,7 @@
     $('nd-profile-reset').hidden = !!live || S.state.settingsSource !== 'user';
     $('nd-settings-hint').textContent = live
       ? 'Loaded from Yahoo league “' + ((S.league && S.league.name) || S.leagueKey) + '”. Reset clears only picks marked on this device.'
-      : 'Manual draft tracking. Defaults come from ' + leagueName() + ' (' + st.teams + ' teams, ' + L.starterCount(st) + ' starters, ' + L.rosterSize(st) + ' roster spots). If Yahoo’s draft skips IL spots, set IL to 0.';
+      : 'Manual draft tracking. Defaults come from ' + leagueName() + ' (' + st.teams + ' teams, ' + L.starterCount(st) + ' starters, ' + L.rosterSize(st) + ' roster spots, ' + L.draftRounds(st) + ' draft rounds: Yahoo doesn’t draft IL spots). Check the round count in Yahoo’s draft room; with Yahoo connected its pick order wins.';
     var dlg = $('nd-settings');
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
   }
@@ -717,7 +734,7 @@
     if (!live) {
       var slots = {};
       Array.prototype.forEach.call(f.querySelectorAll('input[name^="slot_"]'), function (i) { slots[i.name.slice(5)] = i.value; });
-      S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value });
+      S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value, rounds: f.rounds.value });
       S.state.settingsSource = 'user';
     } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value }));
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
@@ -942,8 +959,9 @@
       // Yahoo player_keys), else the Sleeper id. Sleeper ids stay as aliases so
       // picks/overrides saved before the switch still resolve.
       S.byYahooPid = {}; S.alias = {};
+      S.hasMarket = list.some(function (p) { return p.marketRank != null; });
       list.forEach(function (p) {
-        p.sleeperId = p.id != null && p.id !== '' ? String(p.id) : null;
+        p.sleeperId = p.source !== 'yahoo-only' && p.id != null && p.id !== '' ? String(p.id) : null;
         p.id = L.playerKey(p);
         if (p.yahooPid != null && p.yahooPid !== '') S.byYahooPid[String(p.yahooPid)] = p.id;
         if (p.sleeperId && p.sleeperId !== p.id && !S.alias[p.sleeperId]) S.alias[p.sleeperId] = p.id;
