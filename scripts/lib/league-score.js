@@ -62,18 +62,20 @@ function eligibility(pos) {
   return out;
 }
 
-// Gap-based tiers over the top `pool` (same idea as the model: top-15% gaps, min 0.5 points).
+// Tiers over the top `pool`: break at a big drop (top-15% gap, min 0.8 points) or after MAX_TIER players
+// (a round's worth), so the board has a visible break roughly every round in the flat tail.
+const MAX_TIER = 12;
 function assignTiers(players, pool = 200) {
   const top = players.slice(0, pool);
   const gaps = [];
   for (let i = 0; i < top.length - 1; i++) gaps.push(top[i].value - top[i + 1].value);
   const sorted = [...gaps].sort((a, b) => a - b);
-  const thresh = Math.max(0.5, sorted[Math.floor(sorted.length * 0.85)] || 0);
-  let tier = 1;
+  const thresh = Math.max(0.8, sorted[Math.floor(sorted.length * 0.85)] || 0);
+  let tier = 1, size = 0;
   players.forEach((p, i) => {
-    if (i > 0 && i < top.length && gaps[i - 1] >= thresh) tier++;
-    if (i === top.length) tier++;
-    p.tier = tier;
+    if (i > 0 && i < top.length && (gaps[i - 1] >= thresh || size >= MAX_TIER)) { tier++; size = 0; }
+    if (i === top.length) { tier++; size = 0; }
+    p.tier = tier; size++;
   });
 }
 

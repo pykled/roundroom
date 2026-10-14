@@ -192,7 +192,7 @@ main{display:block;max-width:1280px;margin:0 auto;padding:8px 10px 60px}
 .chips button[aria-pressed=true]{background:var(--acc);color:#04130d;border-color:var(--acc)}
 .opt{display:flex;gap:10px;align-items:center;color:var(--mut);font-size:12px}
 .opt label{display:flex;gap:6px;align-items:center;min-height:32px}
-.hdr,.row{display:grid;grid-template-columns:26px minmax(0,1fr) 40px 34px 34px 26px;gap:4px;align-items:center;padding:0 6px}
+.hdr,.row{display:grid;grid-template-columns:24px minmax(0,1fr) 38px 30px 30px 28px 38px;gap:3px;align-items:center;padding:0 5px}
 .hdr{position:sticky;top:var(--hh,120px);z-index:10;background:var(--bg);font-size:11px;color:var(--mut);border-bottom:1px solid var(--line);min-height:30px}
 .hdr button{background:none;border:0;min-height:28px;padding:0;color:var(--mut);text-align:right;font-size:11px;font-weight:600}
 .hdr button:first-child,.hdr button.l{text-align:left}
@@ -203,7 +203,7 @@ main{display:block;max-width:1280px;margin:0 auto;padding:8px 10px 60px}
 .row.d .nm{text-decoration:line-through}
 .row.mine{border-left:3px solid var(--me);opacity:.8}
 .row .rk{color:var(--mut);font-size:12px;text-align:left}
-.row .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .sub{color:var(--mut);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .num{text-align:right;font-variant-numeric:tabular-nums}
 .row .val{font-weight:700}
@@ -251,7 +251,7 @@ footer{color:var(--mut);font-size:11px;padding:12px 10px 30px;max-width:1280px;m
 footer b{color:var(--tx)}
 select{min-height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);padding:0 6px}
 @media (min-width:600px){
-  .hdr,.row{grid-template-columns:30px minmax(0,1fr) 46px 42px 42px 42px 30px}
+  .hdr,.row{grid-template-columns:30px minmax(0,1fr) 46px 42px 42px 42px 40px}
   .mean,.hdr .mean{display:block}
 }
 @media (min-width:900px){
@@ -259,8 +259,11 @@ select{min-height:36px;border-radius:8px;border:1px solid var(--line);background
   .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
   #mine{position:sticky;top:var(--hh,120px);max-height:calc(100vh - var(--hh,120px) - 10px);overflow:auto}
   nav.tabs button[data-tab=mine]{display:none}
+  .layout.full{grid-template-columns:minmax(0,1fr)}
+  .layout.full #mine{display:none}
+  .row .nm{font-size:14px}
   .row .st{display:block;text-align:right;font-size:11px;color:var(--mut)}
-  .hdr,.row{grid-template-columns:34px minmax(0,1fr) 54px 48px 48px 48px 34px 90px}
+  .hdr,.row{grid-template-columns:34px minmax(0,1fr) 54px 48px 48px 48px 40px 60px}
   .hdr .st{display:block}
   .controls{flex-direction:row;align-items:center;flex-wrap:wrap}
   .controls input[type=search]{width:260px}
@@ -303,7 +306,7 @@ select{min-height:36px;border-radius:8px;border:1px solid var(--line);background
           <button data-s="floor" type="button">Floor</button>
           <button data-s="ceil" type="button">Ceil</button>
           <button data-s="games" type="button" title="Games per week">G/wk</button>
-          <span></span>
+          <span></span><span class="st"></span>
         </div>
         <div id="board"></div>
       </section>
@@ -535,8 +538,10 @@ function setTab(t){
     el.hidden = k === "mine" ? !(wide || t === "mine") : k !== t && !(wide && k === "board" && t === "mine");
   });
   if (wide && t === "mine") { $("p-board").hidden = false; }
+  document.querySelector(".layout").classList.toggle("full", wide && (t === "rounds" || t === "slots"));
   syncHeaderHeight();
 }
+function goTab(t){ setTab(t); window.scrollTo(0, 0); }
 
 /* ---------- wiring ---------- */
 (function init(){
@@ -573,7 +578,7 @@ function setTab(t){
   $("slotlists").addEventListener("click", function(e){ if (e.target.closest("summary")) return; onPick(e); });
   $("slotlists").addEventListener("toggle", function(e){ var d = e.target; if (d.dataset && d.dataset.slot) S.openSlots[d.dataset.slot] = d.open; }, true);
   $("mine").addEventListener("click", function(e){ var me = e.target.closest("[data-me]"); if (me) mark(me.dataset.me, "me"); });
-  document.querySelector("nav.tabs").addEventListener("click", function(e){ var b = e.target.closest("button"); if (b) setTab(b.dataset.tab); });
+  document.querySelector("nav.tabs").addEventListener("click", function(e){ var b = e.target.closest("button"); if (b) goTab(b.dataset.tab); });
   window.addEventListener("resize", function(){ setTab(S.tab); });
   window.addEventListener("storage", function(e){
     if (e.key !== KEY) return;
