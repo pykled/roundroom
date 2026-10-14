@@ -77,15 +77,32 @@ def trade(b):
 
 
 def waivers(b):
+    import urllib.request
     mine = [i for i, s in ROSTER]
-    st = {'pocket-nba-waivers:manual': json.dumps({'v': 1, 'roster': mine, 'exclude': [], 'priority': 3, 'addsUsed': 4, 'updatedAt': 1})}
+    board = json.load(urllib.request.urlopen(BASE + '/api/nba/players'))['players']
+    # A 12-team, 14-round draft takes ~168 players: hide the top 170 others own.
+    taken = [p['id'] for p in board[:185] if p['id'] not in mine][:170]
+    free = [p for p in board[185:] if not p.get('injury')]
+    w_ids = [free[0]['id'], free[3]['id']]  # two real free agents marked as on waivers (W)
+    st = {'pocket-nba-waivers:manual': json.dumps({'v': 1, 'roster': mine, 'exclude': taken, 'priority': 2, 'addsUsed': 4, 'waivers': w_ids})}
+    # Variant: three bench spots are late-round players (board ranks ~165-175).
+    late = [p['id'] for p in board[164:180] if not p.get('injury')][:3]
+    mine2 = mine[:11] + late + [mine[-1]]
+    taken2 = [i for i in taken if i not in late] + [i for i in mine if i not in mine2]  # swapped-out players are rostered elsewhere
+    w2 = [p['id'] for p in board[185:260] if not p.get('injury')][:6:2]
+    st2 = {'pocket-nba-waivers:manual': json.dumps({'v': 1, 'roster': mine2, 'exclude': taken2, 'priority': 1, 'addsUsed': 7, 'waivers': w2})}
     for w, h in SIZES:
-        ctx, pg = page_for(b, w, h, st)
-        pg.goto(BASE + '/nba/waivers')
-        pg.wait_for_selector('.nw-row, .nw-best', timeout=20000)
-        pg.wait_for_timeout(400)
-        shot(pg, f'l1-waivers-{w}.png')
-        ctx.close()
+        for name, state in (('', st), ('-late', st2)):
+            ctx, pg = page_for(b, w, h, state)
+            pg.goto(BASE + '/nba/waivers')
+            pg.wait_for_selector('.nw-row, .nw-best', timeout=20000)
+            pg.wait_for_timeout(400)
+            shot(pg, f'l1-waivers{name}-{w}.png')
+            if w < 500 and name:
+                pg.screenshot(path=os.path.join(OUT, 'l1-waivers-late-375-top.png'), full_page=False)
+                pg.locator('#nw-list').scroll_into_view_if_needed()
+                pg.screenshot(path=os.path.join(OUT, 'l1-waivers-late-375-list.png'), full_page=False)
+            ctx.close()
 
 
 if __name__ == '__main__':

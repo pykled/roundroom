@@ -54,7 +54,30 @@
   }
 
   /* --------------------------------------------------------------- render */
-  function pills(el) { return (el || []).filter(function (e) { return e !== 'UTIL'; }).map(function (e) { return '<span class="pp ' + e + '">' + e + '</span>'; }).join(''); }
+  // Yahoo positions (PG, SG, SF, PF, C) coloured by guard / forward / center.
+  var GROUP = { PG: 'G', SG: 'G', G: 'G', SF: 'F', PF: 'F', F: 'F', FC: 'F', C: 'C' };
+  function pills(el) { return (el || []).filter(function (e) { return e !== 'UTIL'; }).map(function (e) { return '<span class="pp ' + (GROUP[e] || '') + '">' + esc(e) + '</span>'; }).join(''); }
+  // Board players carry Yahoo positions in yahooPos (pos = Sleeper's); engine rows put them in pos.
+  function posOf(x) { return x ? (x.yahooPos && x.yahooPos.length ? x.yahooPos : x.pos && x.pos.length ? x.pos : x.elig) : []; }
+
+  // Weekly add budget + waiver priority + league waiver rules (L1).
+  function renderBudget(r) {
+    var el = $('nw-budget');
+    if (!el) return;
+    if (!r || !r.adds) { el.hidden = true; return; }
+    el.hidden = false;
+    var a = r.adds, pr = r.priority || {}, manual = S.source === 'manual';
+    var pips = L.addPips(a).map(function (p) { return '<i class="' + (p.used ? 'u' : '') + '"></i>'; }).join('');
+    var left = a.max == null ? 'No weekly add limit' : (a.known || a.source ? a.left + ' of ' + a.max + ' adds left this week' : a.max + ' adds per week (enter how many you\'ve used)');
+    var html = '<div class="nw-bud-row"><div class="nw-bud"><div class="lbl">Weekly add budget' + (a.seasonMax == null ? ' · no season cap' : '') + '</div><div class="big">' + esc(left) + '</div>' + (pips ? '<div class="nw-pips" aria-hidden="true">' + pips + '</div>' : '') +
+      (manual ? '<label>Adds used <input type="number" id="nw-adds-used" inputmode="numeric" min="0" max="' + (a.max || 99) + '" value="' + (S.manual.addsUsed != null ? S.manual.addsUsed : '') + '" placeholder="0"></label>' : (a.source === 'yahoo' ? '<small>from Yahoo</small>' : '')) + '</div>' +
+      '<div class="nw-bud"><div class="lbl">Waiver priority</div><div class="big">' + (pr.position ? '#' + pr.position + ' <small>of ' + pr.teams + '</small>' : 'Unknown') + '</div>' +
+      '<p class="nw-bud-note">' + esc(pr.note || '') + '</p>' +
+      (manual ? '<label>My priority <input type="number" id="nw-priority" inputmode="numeric" min="1" max="' + (pr.teams || 20) + '" value="' + (S.manual.priority != null ? S.manual.priority : '') + '" placeholder="—"></label>' : (pr.source === 'yahoo' ? '<small>from Yahoo</small>' : '')) + '</div></div>';
+    var notes = (r.waiverRules && r.waiverRules.notes) || [];
+    if (notes.length) html += '<ul class="nw-rules">' + notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>';
+    el.innerHTML = html;
+  }
   function gmChips(games, weeks) {
     return '<span class="gms">' + (games || []).map(function (n, i) {
       var tone = L.gamesTone(n);
@@ -80,7 +103,7 @@
     var p = pairs[0];
     var html = '<div class="lbl">Best move · ' + esc(wk.title) + (wk.span ? ' · ' + esc(wk.span) : '') + '</div>' +
       '<div class="nw-move"><div class="nw-move-who">' +
-      '<div class="nw-move-add"><span class="verb">ADD</span>' + esc(p.add.name) + '</div>' +
+      '<div class="nw-move-add"><span class="verb">' + (p.add.status === 'W' ? 'CLAIM' : 'ADD') + '</span>' + esc(p.add.name) + (p.add.status === 'W' ? ' <span class="badge w">W</span>' : ' <span class="badge fa">FA</span>') + '</div>' +
       '<div class="nw-move-drop">' + (p.drop ? '<span class="verb">DROP</span>' + esc(p.drop.name) + ' · ' + p.drop.games + ' games' + bankedNote(p.drop) : 'Open roster spot, no drop needed') +
       ' · ' + gmChips([p.add.games]) + ' for ' + esc(p.add.team || '') + '</div></div>' +
       '<div class="nw-move-val"><b>' + L.fmtGain(p.netGain) + '</b><span>' + (r.midWeek ? 'pts, games left this week' : 'pts this week') + '</span></div></div>';
@@ -100,7 +123,7 @@
       var wk = L.weekLabel(c.week, r.weekDates);
       return '<div class="nw-wk"><div class="nw-wk-h"><b>' + esc(wk.title) + '</b><span>' + esc(wk.span) + '</span></div>' +
         (c.fourGame.length ? '<ol>' + c.fourGame.slice(0, 5).map(function (p) {
-          return '<li>' + pills(p.elig) + '<span class="nm">' + esc(p.name) + '</span><span class="gm hi">' + p.games + '</span><span class="v">' + L.fmt1(p.value) + '</span></li>';
+          return '<li>' + pills(posOf(p)) + '<span class="nm">' + esc(p.name) + '</span><span class="gm hi">' + p.games + '</span><span class="v">' + L.fmt1(p.value) + '</span></li>';
         }).join('') + '</ol>' : '<p class="none">No free agent plays 4+ games.</p>') + '</div>';
     }).join('');
   }
@@ -131,16 +154,18 @@
           ' · add to an open spot ' + L.fmtGain(t.addGain) +
           (t.role ? '<br>Minutes: last 5 ' + L.fmt1(t.role.recentMin) + ' vs ' + L.fmt1(t.role.seasonMin) + ' before' + (t.role.stale ? ' (last season)' : '') : '') +
           (t.reasons && t.reasons.length ? '<br>' + t.reasons.map(esc).join(' · ') : '') +
-          (S.source === 'manual' ? '<div class="acts"><button type="button" class="btn-secondary" data-act="taken" data-id="' + esc(t.id) + '">Rostered elsewhere, hide</button><button type="button" class="btn-secondary" data-act="add" data-id="' + esc(t.id) + '">I added him</button></div>' : '') +
+          (t.onWaivers ? '<br>On waivers: a claim clears after the waiver period and costs your priority (' + L.fmt1(t.priorityCost) + ' option value), so it nets ' + L.fmtGain(t.claimNet) + '.' : '') +
+          (S.source === 'manual' ? '<div class="acts"><button type="button" class="btn-secondary" data-act="taken" data-id="' + esc(t.id) + '">Rostered elsewhere, hide</button><button type="button" class="btn-secondary" data-act="waiver" data-id="' + esc(t.id) + '">' + (t.onWaivers ? 'He\'s a free agent' : 'He\'s on waivers (W)') + '</button><button type="button" class="btn-secondary" data-act="add" data-id="' + esc(t.id) + '">I added him</button></div>' : '') +
           '</div>';
       }
       return '<li class="nw-row"><button type="button" class="nw-row-main" data-id="' + esc(t.id) + '" aria-expanded="' + open + '"' + (open ? ' aria-controls="nw-d-' + esc(t.id) + '"' : '') + '>' +
         '<span class="nw-rk">' + (i + 1) + '</span>' +
         '<span class="nw-who"><span class="nw-name"><span class="n">' + esc(t.name) + '</span>' +
         (t.roleUp ? '<span class="badge up" title="Minutes up over his last 5 games">ROLE ↑</span>' : '') +
-        (t.onWaivers ? '<span class="badge w" title="On waivers: needs a claim">W</span>' : '') + injTag(t.injury) + '</span>' +
-        '<span class="nw-meta"><span class="tm">' + esc(t.team || 'FA') + '</span>' + pills(t.elig) + gmChips(t.gamesByWeek, r.weeks) + '</span></span>' +
-        '<span class="nw-val"><b class="' + (gain > 0 ? 'pos' : 'zero') + '">' + L.fmtGain(gain) + '</b><small>' + (t.drop ? 'drop ' + esc(t.drop.name) + (t.drop.bankedGames > 0 ? ' ⚠' : '') : r.openSpots ? 'open spot' : 'no gain') + '</small></span>' +
+        (t.onWaivers ? '<span class="badge w" title="On waivers: needs a claim">W</span>' : '<span class="badge fa" title="Free agent: added immediately">FA</span>') +
+        (t.advice === 'save-priority' ? '<span class="badge save" title="Gain is below the value of keeping your waiver priority">SAVE PRIORITY</span>' : t.advice === 'no-adds-left' ? '<span class="badge save">NO ADDS LEFT</span>' : '') + injTag(t.injury) + '</span>' +
+        '<span class="nw-meta"><span class="tm">' + esc(t.team || 'FA') + '</span>' + pills(posOf(t)) + gmChips(t.gamesByWeek, r.weeks) + '</span></span>' +
+        '<span class="nw-val"><b class="' + (gain > 0 ? 'pos' : 'zero') + '">' + L.fmtGain(gain) + '</b><small>' + (t.onWaivers && t.priorityCost > 0 ? 'priority −' + L.fmt1(t.priorityCost) + ' · ' : '') + (gain <= 0.05 ? 'no gain' : t.drop ? 'drop ' + esc(t.drop.name) + (t.drop.bankedGames > 0 ? ' ⚠' : '') : r.openSpots ? 'open spot' : 'no gain') + '</small></span>' +
         '</button>' + detail + '</li>';
     }).join('');
     $('nw-more').hidden = all.length <= S.shown;
@@ -153,7 +178,7 @@
       return '<div class="nw-inj-item"><div class="who">' + esc(x.injured.name) + injTag(x.injured.injury || 'Out') + '</div>' +
         '<div class="sub">about ' + L.fmt1(x.lostValue) + ' pts lost over the horizon</div>' +
         (x.replacements.length ? '<ol class="nw-mini">' + x.replacements.map(function (p) {
-          return '<li>' + pills(p.elig) + '<span class="nm">' + esc(p.name) + '</span>' + gmChips(p.gamesByWeek.slice(0, 1)) + '<span class="v">' + L.fmtGain(p.netGain) + '</span></li>';
+          return '<li>' + pills(posOf(p)) + '<span class="nm">' + esc(p.name) + '</span>' + gmChips(p.gamesByWeek.slice(0, 1)) + '<span class="v">' + L.fmtGain(p.netGain) + '</span></li>';
         }).join('') + '</ol>' : '<p class="nw-empty">Your bench covers it.</p>') + '</div>';
     }).join('');
 
@@ -162,14 +187,15 @@
     // Keepers (worth more rest-of-season than any free agent) go last and are labelled.
     drops = drops.filter(function (d) { return !d.keeper && !d.ilSlot; }).concat(drops.filter(function (d) { return d.keeper || d.ilSlot; }));
     $('nw-drops-body').innerHTML = drops.slice(0, 4).map(function (d) {
-      return '<li>' + pills(d.elig) + '<span class="nm">' + esc(d.name) + '</span>' + injTag(d.injury) + (d.keeper ? '<span class="badge w" title="Worth more rest-of-season than any free agent">KEEP</span>' : '') + (d.ilSlot ? '<span class="badge w" title="In an IL slot: dropping him does not open a roster spot">IL</span>' : '') + gmChips(d.gamesByWeek.slice(0, 1)) + '<span class="v">' + (d.dropCost > 0 ? '−' + L.fmt1(d.dropCost) : '0.0') + '</span></li>';
+      return '<li>' + pills(posOf(d)) + '<span class="nm">' + esc(d.name) + '</span>' + injTag(d.injury) + (d.keeper ? '<span class="badge w" title="Worth more rest-of-season than any free agent">KEEP</span>' : '') + (d.ilSlot ? '<span class="badge w" title="In an IL slot: dropping him does not open a roster spot">IL</span>' : '') + gmChips(d.gamesByWeek.slice(0, 1)) + '<span class="v">' + (d.dropCost > 0 ? '−' + L.fmt1(d.dropCost) : '0.0') + '</span></li>';
     }).join('');
 
     var lu = r && r.lineup;
     $('nw-lineup').hidden = !(lu && lu.starters.length);
     if (lu) {
       $('nw-lineup-wk').textContent = 'wk ' + lu.week + ' · ' + L.fmt1(lu.total);
-      var order = { G: 0, F: 1, UTIL: 2 };
+      var order = {};
+      (lu.slots || r.slots || ['G', 'F', 'UTIL']).forEach(function (s, i) { if (order[s] == null) order[s] = i; });
       $('nw-lineup-body').innerHTML = lu.starters.slice().sort(function (a, b) { return order[a.slot] - order[b.slot] || b.value - a.value; }).map(function (s) {
         return '<li><span class="slot">' + s.slot + '</span><span class="nm">' + esc(s.name) + '</span>' + injTag(s.injury) + '<span class="v">' + L.fmt1(s.value) + '</span></li>';
       }).join('');
@@ -188,7 +214,7 @@
     $('nw-roster-count').textContent = S.manual.roster.length + ' / ' + L.MAX_ROSTER + (S.manual.exclude.length ? ' · ' + S.manual.exclude.length + ' hidden' : '');
     $('nw-chips').innerHTML = S.manual.roster.map(function (id) {
       var p = S.byId[id];
-      return '<span class="nw-chip">' + (p ? pills(p.elig) : '') + esc(p ? p.name : id) + '<button type="button" data-rm="' + esc(id) + '" aria-label="Remove ' + esc(p ? p.name : id) + '">✕</button></span>';
+      return '<span class="nw-chip">' + (p ? pills(posOf(p)) : '') + esc(p ? p.name : id) + '<button type="button" data-rm="' + esc(id) + '" aria-label="Remove ' + esc(p ? p.name : id) + '">✕</button></span>';
     }).join('') || '<span class="nw-empty">Add the players on your team. Your roster stays on this device.</span>';
     var hasDraft = !!L.importFromDraft(store.get(L.DRAFT_MANUAL_KEY));
     $('nw-import').hidden = !hasDraft;
@@ -205,6 +231,7 @@
     renderControls();
     renderManual();
     var r = S.result;
+    renderBudget(r);
     renderBest(r);
     renderCalendar(r);
     renderList(r);
@@ -312,7 +339,7 @@
       var act = e.target.closest('button[data-act]');
       if (act) {
         var id = act.dataset.id;
-        S.manual = act.dataset.act === 'add' ? L.addToRoster(S.manual, id) : L.toggleExclude(S.manual, id);
+        S.manual = act.dataset.act === 'add' ? L.addToRoster(S.manual, id) : act.dataset.act === 'waiver' ? L.toggleWaiver(S.manual, id) : L.toggleExclude(S.manual, id);
         delete S.open[id]; saveManual(); renderManual(); load();
         return;
       }
@@ -320,6 +347,13 @@
       var rid = row.dataset.id;
       if (S.open[rid]) delete S.open[rid]; else S.open[rid] = 1;
       renderList(S.result);
+    });
+    var budget = $('nw-budget');
+    if (budget) budget.addEventListener('change', function (e) {
+      var id = e.target.id;
+      if (id !== 'nw-adds-used' && id !== 'nw-priority') return;
+      S.manual = L.setNumber(S.manual, id === 'nw-priority' ? 'priority' : 'addsUsed', e.target.value);
+      saveManual(); load();
     });
     $('nw-chips').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-rm]'); if (!b) return;
@@ -330,7 +364,7 @@
     search.addEventListener('input', function () {
       var hits = L.searchPlayers(S.players || [], search.value, S.manual.roster, 8);
       if (!hits.length) return hideResults();
-      results.innerHTML = hits.map(function (p) { return '<li><button type="button" role="option" data-pick="' + esc(p.id) + '">' + pills(p.elig) + esc(p.name) + '<span class="tm">' + esc(p.team || 'FA') + '</span></button></li>'; }).join('');
+      results.innerHTML = hits.map(function (p) { return '<li><button type="button" role="option" data-pick="' + esc(p.id) + '">' + pills(posOf(p)) + esc(p.name) + '<span class="tm">' + esc(p.team || 'FA') + '</span></button></li>'; }).join('');
       results.hidden = false;
     });
     search.addEventListener('keydown', function (e) {

@@ -40,9 +40,12 @@
     var q = stripAccents(f.q || '').trim();
     return (targets || []).filter(function (t) {
       if (!t) return false;
+      // elig = the league's slots he can fill (242808: PG/SG/G, SF/PF/F, C; High Score: G, FC).
       var el = t.elig || [];
-      if (f.pos === 'G' && el.indexOf('G') < 0) return false;
-      if (f.pos === 'F' && el.indexOf('F') < 0) return false;
+      var has = function (xs) { return xs.some(function (x) { return el.indexOf(x) >= 0; }); };
+      if (f.pos === 'G' && !has(['PG', 'SG', 'G'])) return false;
+      if (f.pos === 'F' && !has(['SF', 'PF', 'F', 'FC'])) return false;
+      if (f.pos === 'C' && !has(['C'])) return false;
       if (f.roleUp && !t.roleUp) return false;
       if (f.hideInjured && t.injury) return false;
       if (q && stripAccents(t.name).indexOf(q) < 0 && stripAccents(t.team).indexOf(q) < 0) return false;
@@ -95,7 +98,36 @@
     try { o = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return emptyManual(); }
     if (!o || typeof o !== 'object' || o.v !== 1) return emptyManual();
     var roster = cleanIds(o.roster, MAX_ROSTER);
-    return { v: 1, roster: roster, exclude: cleanIds(o.exclude, MAX_EXCLUDE).filter(function (id) { return roster.indexOf(id) < 0; }) };
+    var st = { v: 1, roster: roster, exclude: cleanIds(o.exclude, MAX_EXCLUDE).filter(function (id) { return roster.indexOf(id) < 0; }) };
+    // Optional (L1): waiver priority, adds used this week, players known to be on waivers.
+    var pr = Number(o.priority), au = Number(o.addsUsed);
+    if (o.priority != null && Number.isInteger(pr) && pr >= 1 && pr <= 20) st.priority = pr;
+    if (o.addsUsed != null && Number.isInteger(au) && au >= 0 && au <= 99) st.addsUsed = au;
+    var w = cleanIds(o.waivers, MAX_EXCLUDE).filter(function (id) { return roster.indexOf(id) < 0; });
+    if (w.length) st.waivers = w;
+    return st;
+  }
+  function setNumber(st, key, v) {
+    st = loadManual(st);
+    if (v === '' || v == null) delete st[key]; else st[key] = Number(v);
+    return loadManual(st);
+  }
+  function toggleWaiver(st, id) {
+    st = loadManual(st); id = String(id);
+    var w = (st.waivers || []).slice(), i = w.indexOf(id);
+    if (i >= 0) w.splice(i, 1); else w.push(id);
+    st.waivers = w;
+    return loadManual(st);
+  }
+  // "Adds this week" budget pips: [{ used: bool }] for max adds (null → none).
+  function addPips(adds) {
+    if (!adds || adds.max == null) return [];
+    var used = adds.used == null ? 0 : adds.used, out = [];
+    for (var i = 0; i < adds.max; i++) out.push({ used: i < used });
+    return out;
+  }
+  function adviceText(t) {
+    return t.advice === 'claim' ? 'Claim' : t.advice === 'save-priority' ? 'Save priority' : t.advice === 'no-adds-left' ? 'No adds left' : t.advice === 'add' ? 'Add (FA)' : '';
   }
   function saveManual(st) { return JSON.stringify(loadManual(st)); }
   function addToRoster(st, id) {
@@ -129,6 +161,9 @@
     var body = { roster: st.roster, weeks: normalizeHorizon(horizon) };
     if (st.exclude.length) body.exclude = st.exclude;
     if (week) body.week = Number(week);
+    if (st.priority != null) body.priority = st.priority;
+    if (st.addsUsed != null) body.addsUsed = st.addsUsed;
+    if (st.waivers && st.waivers.length) body.waivers = st.waivers;
     return body;
   }
 
@@ -150,7 +185,7 @@
     var o; try { o = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { o = null; }
     o = o && typeof o === 'object' ? o : {};
     return {
-      horizon: normalizeHorizon(o.horizon), pos: o.pos === 'G' || o.pos === 'F' ? o.pos : 'ALL',
+      horizon: normalizeHorizon(o.horizon), pos: o.pos === 'G' || o.pos === 'F' || o.pos === 'C' ? o.pos : 'ALL',
       roleUp: !!o.roleUp, sort: o.sort === 'ceiling' || o.sort === 'games' ? o.sort : 'gain',
       source: typeof o.source === 'string' ? o.source : null,
     };
@@ -162,6 +197,7 @@
     filterTargets: filterTargets, sortTargets: sortTargets, weekLabel: weekLabel, shortDate: shortDate, injuryTag: injuryTag,
     emptyManual: emptyManual, loadManual: loadManual, saveManual: saveManual, addToRoster: addToRoster,
     removeFromRoster: removeFromRoster, toggleExclude: toggleExclude, importFromDraft: importFromDraft,
-    manualRequest: manualRequest, searchPlayers: searchPlayers, prefs: prefs
+    manualRequest: manualRequest, searchPlayers: searchPlayers, prefs: prefs,
+    setNumber: setNumber, toggleWaiver: toggleWaiver, addPips: addPips, adviceText: adviceText
   };
 }));

@@ -126,6 +126,23 @@
 .pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
 .pp.G { background: var(--g-bg); color: var(--g); }
 .pp.F { background: var(--f-bg); color: var(--f); }
+.pp.C { background: rgba(167,139,250,.14); color: #a78bfa; }
+.badge.fa { background: rgba(52,211,153,.10); color: #6ee7b7; }
+.badge.save { background: rgba(250,204,21,.12); color: #fde68a; }
+.nw-budget { margin: 0 0 var(--space-4); }
+.nw-bud-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+@media (max-width: 640px) { .nw-bud-row { grid-template-columns: 1fr; } }
+.nw-bud { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.nw-bud .lbl { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.nw-bud .big { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
+.nw-bud .big small, .nw-bud > small { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+.nw-bud label { font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+.nw-bud input { width: 4.5rem; min-height: 36px; font-size: 16px; padding: 0 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); }
+.nw-bud-note { margin: 0; font-size: 0.72rem; line-height: 1.4; color: var(--text-secondary); }
+.nw-pips { display: flex; gap: 3px; }
+.nw-pips i { flex: 1; height: 6px; border-radius: 3px; background: rgba(52,211,153,.55); }
+.nw-pips i.u { background: rgba(255,255,255,.12); }
+.nw-rules { margin: 0.6rem 0 0; padding-left: 1.1rem; font-size: 0.72rem; line-height: 1.5; color: var(--text-muted); }
 .gm { font-family: var(--font-mono); font-size: 0.62rem; min-width: 22px; height: 18px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; border-radius: 4px; border: 1px solid var(--border-bright); color: var(--text-secondary); }
 .gm.hi { border-color: rgba(16,185,129,.5); color: #6ee7b7; background: rgba(16,185,129,.08); }
 .gm.lo { border-color: rgba(239,68,68,.35); color: #fca5a5; }
@@ -184,7 +201,7 @@
 @media (prefers-reduced-motion: reduce) { .nw-skel { animation: none; } }
 </style>
 </head>
-<body>
+<body class="sport-nba">
 
 <nav id="rr-nav">
   <a href="/nba" class="rr-logo">Pocket</a>
@@ -192,8 +209,9 @@
     <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
   </div>
   <div class="rr-links">
-    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba" class="rr-link">Draft board</a>
     <a href="/nba/lineup" class="rr-link">Lineup</a>
+    <a href="/nba/trade" class="rr-link">Trade</a>
     <a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a>
   </div>
   <div class="rr-auth">
@@ -206,9 +224,9 @@
 <div id="app">
   <header class="page-head">
     <div class="page-head-text">
-      <p class="nw-eyebrow">NBA · Yahoo High Score</p>
+      <p class="nw-eyebrow">NBA · HALIMSANITY 26-27 · High Score</p>
       <h1 class="page-title">Waiver targets</h1>
-      <p class="page-sub">Free agents ranked by how much they lift your best G, G, F, F, F, UTIL lineup. A 4-game week is the biggest edge in a best-game format.</p>
+      <p class="page-sub">Free agents ranked by how much they lift your best nine-man lineup (PG, SG, G, SF, PF, F, C, 2 UTIL) under your league's scoring. A 4-game week is the biggest edge in a best-game format.</p>
     </div>
     <div class="nw-ctl">
       <a id="nw-connect" class="nw-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
@@ -233,6 +251,8 @@
     </div>
   </section>
 
+  <section id="nw-budget" class="nw-budget" hidden aria-label="Weekly add budget and waiver priority"></section>
+
   <section id="nw-best" class="nw-best" hidden aria-label="Best move this week"></section>
 
   <section class="nw-cal" id="nw-cal" hidden aria-labelledby="nw-cal-h">
@@ -247,6 +267,7 @@
           <button type="button" data-pos="ALL" aria-pressed="true">All</button>
           <button type="button" data-pos="G" aria-pressed="false">G</button>
           <button type="button" data-pos="F" aria-pressed="false">F</button>
+          <button type="button" data-pos="C" aria-pressed="false">C</button>
         </div>
         <button type="button" class="nw-toggle" id="nw-roleup" aria-pressed="false">Role ↑</button>
         <select id="nw-sort" aria-label="Sort">
@@ -267,7 +288,7 @@
     </aside>
   </div>
 
-  <p class="nw-foot">Gain = change in your expected High Score points (sum of each starter's expected best game) over the chosen weeks, later weeks discounted 15% each, plus a small credit for bench depth. Games per week come from the NBA schedule. Yahoo waiver and FAB rules still apply to each claim.</p>
+  <p class="nw-foot">Gain = change in your expected points (sum of each starter's expected best game under your league's scoring) over the chosen matchup weeks, later weeks discounted 15% each, plus a small credit for bench depth. Games per week come from the NBA schedule (14-day weeks included). Waiver (W) claims are charged the value of the priority they use: with a rolling list a claim sends you to the back, so a marginal streamer is often worth less than keeping priority #1 for the next breakout.</p>
 </div>
 
 <footer class="rr-footer">

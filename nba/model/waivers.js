@@ -30,7 +30,10 @@ const MAX_CANDIDATES = 80;          // free agents scored exactly (pool pre-cut 
 // Bench depth: only starters score, but the best bench players cover a starter
 // who sits mid-week (lineups are daily). They earn a small share of their value
 // so a 4-game bench streamer beats a 2-game one and ties don't collapse to 0.
-const DEPTH_WEIGHTS = [0.12, 0.06]; // High Score (6 starters); scaled by starters/6 per profile (R.benchShares)
+// L1: the waiver engine now uses the shared bench curve (R.benchShares: 12/7/4/2/1%
+// for 6 starters, scaled by starters/6, one share per bench spot), same as the
+// trade evaluator. DEPTH_WEIGHTS is kept as the old two-spot export.
+const DEPTH_WEIGHTS = [0.12, 0.06];
 // Waiver-priority cost (continual rolling list: a successful claim sends you to
 // the bottom). Holding priority p is worth the chance it lands the next
 // breakout before anyone else does:
@@ -115,7 +118,7 @@ function ctxFor(profile) {
   const prof = R.resolveProfile(profile);
   const elig = new WeakMap();
   return {
-    profile: prof, slots: R.slotList(prof), depth: R.benchShares(prof, DEPTH_WEIGHTS),
+    profile: prof, slots: R.slotList(prof), depth: R.benchShares(prof),
     elig: p => { let e = elig.get(p); if (!e) { e = R.eligFor(p, prof); elig.set(p, e); } return e; },
   };
 }
