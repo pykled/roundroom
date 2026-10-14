@@ -13,7 +13,9 @@ const express = require('express');
 const R = require('../model/research');
 const { DEFAULT_LEAGUE_ID } = require('../league-profile');
 
-const RATE = { windowMs: 60 * 1000, max: 240 };
+// Per-IP requests per minute across the research endpoints (autocomplete is chatty).
+// NBA_RESEARCH_RATE_MAX overrides it (tests).
+const RATE = { windowMs: 60 * 1000, max: Number(process.env.NBA_RESEARCH_RATE_MAX) > 0 ? Number(process.env.NBA_RESEARCH_RATE_MAX) : 240 };
 const Q_MAX = 64;
 const ID_RE = /^y?\d{1,12}$/i;
 const SOURCE_RE = /^[a-z-]{1,20}$/;

@@ -21,12 +21,14 @@ const Sc = require('./score');
 const St = require('./stats');
 const S = require('./sleeper');
 const Slots = require('./slots');
+const { availability: weekAvailability } = require('./board');
 const { normalizeName } = require('./names');
 const { getProfile, DEFAULT_LEAGUE_ID } = require('../league-profile');
 
 const CACHE_DIR = path.join(__dirname, '..', '..', 'data', 'nba', 'cache');
 const ESPN_FILE = path.join(__dirname, '..', '..', 'data', 'nba', 'espn-check.json');
 const PROJ_SEASON = 2026;
+const BIO_FORMAT = 2; // bump when the slim bio shape changes (stale disk caches are ignored)
 const HOUR = 3600 * 1000;
 const TTL = { bio: 12 * HOUR, schedule: 12 * HOUR, gameCtx: 6 * HOUR, news: 15 * 60 * 1000, trending: 10 * 60 * 1000, failure: 5 * 60 * 1000 };
 const POSITIONS = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C'];
@@ -228,7 +230,7 @@ function createResearch({
   const disk = name => readCache(cacheDir, name);
   {
     const b = disk('research-bio.json');
-    if (b && b.players) { ctx.bio.data = b; ctx.bio.at = Date.parse(b.fetchedAt) || 0; }
+    if (b && b.players && b.format === BIO_FORMAT) { ctx.bio.data = b; ctx.bio.at = Date.parse(b.fetchedAt) || 0; }
     const s = disk(`research-schedule-${PROJ_SEASON}.json`);
     if (s && s.games) { ctx.schedule.data = s; ctx.schedule.at = Date.parse(s.fetchedAt) || 0; }
   }
@@ -247,17 +249,19 @@ function createResearch({
     const raw = await fetchJson(URLS.bio(), { timeoutMs: 30000 });
     const players = {};
     for (const [id, p] of Object.entries(raw || {})) {
-      if (!p || !p.team || !p.active) continue;
+      if (!p) continue;
+      // Inactive / teamless: name only (trending lists name off-board players).
+      if (!p.team || !p.active) { if (p.first_name || p.last_name) players[id] = { fn: p.first_name || null, ln: p.last_name || null, t: p.team || null, off: true }; continue; }
       players[id] = {
         a: fin(p.age) ? p.age : null, bd: p.birth_date || null, h: p.height || null, w: p.weight || null,
         c: p.college || null, x: fin(p.years_exp) ? p.years_exp : null, j: p.number ?? null,
         dc: p.depth_chart_position || null, dco: p.depth_chart_order ?? null,
         sr: p.sportradar_id || null, rw: p.rotowire_id ?? null, sw: p.swish_id ?? null,
         es: p.espn_id ?? null, yh: p.yahoo_id ?? null, nu: p.news_updated ?? null, isd: p.injury_start_date || null,
-        fn: p.first_name || null, ln: p.last_name || null,
+        fn: p.first_name || null, ln: p.last_name || null, t: p.team || null,
       };
     }
-    const doc = { fetchedAt: new Date().toISOString(), source: URLS.bio(), players };
+    const doc = { format: BIO_FORMAT, fetchedAt: new Date().toISOString(), source: URLS.bio(), players };
     writeCache(cacheDir, 'research-bio.json', doc);
     return doc;
   }
@@ -339,7 +343,7 @@ function createResearch({
       const lg = sid ? playerLogs(data, sid) : null;
       const st = lg ? logStats(lg.rows, profile) : null;
       if (st) stats.set(String(p.id), { ...st, season: lg.season, file: lg.file });
-      const b = sid && bio ? bio[sid] : null;
+      const b = sid && bio && bio[sid] && !bio[sid].off ? bio[sid] : null;
       const posList = p.yahooPos && p.yahooPos.length ? p.yahooPos : (p.pos || []);
       const injury = p.injury || null;
       const row = {
@@ -377,7 +381,7 @@ function createResearch({
         floor: yahooOnly ? null : (fin(p.floor) ? p.floor : null),
         availability: fin(p.availability) ? p.availability : null,
         statSeason: st ? Number(lg.season) : null,
-        gp: st ? st.gp : 0,
+        gp: st ? st.gp : (yahooOnly ? null : 0),
         mpg: st ? st.mpg : null,
         pts: st ? st.line.pts : null, reb: st ? st.line.reb : null, ast: st ? st.line.ast : null,
         stl: st ? st.line.stl : null, blk: st ? st.line.blk : null, to: st ? st.line.to : null, pf: st ? st.line.pf : null,
@@ -563,8 +567,17 @@ function createResearch({
         const [adds, drops] = await Promise.all(['add', 'drop'].map(k => fetchJson(URLS.trending(k, hours, limit), { timeoutMs: 4000 })));
         if (!Array.isArray(adds) || !Array.isArray(drops)) throw new Error('trending: unexpected response');
         const join = list => list.map(x => {
-          const r = ix.byId.get(String(x.player_id));
-          return { id: String(x.player_id), count: fin(x.count) ? x.count : null, player: r ? brief(r) : null };
+          const id = String(x.player_id);
+          const r = ix.byId.get(id);
+          const b = !r && ctx.bio.data ? ctx.bio.data.players[id] : null;
+          const e = { id, count: fin(x.count) ? x.count : null, player: r ? brief(r) : null };
+          if (b) {
+            e.name = [b.fn, b.ln].filter(Boolean).join(' ') || null; e.team = b.t || null;
+            // Sleeper lists him but the board has him as a Yahoo-only row (e.g. Westbrook).
+            const y = e.name ? ix.rows.find(q => q.source === 'yahoo-only' && q._norm === normalizeName(e.name)) : null;
+            if (y) e.player = brief(y);
+          }
+          return e;
         });
         value = { source: 'sleeper-trending', derived: false, lookbackHours: hours, adds: join(adds), drops: join(drops) };
       } catch (err) {
@@ -624,7 +637,7 @@ function createResearch({
       const shared = r.posList.filter(p => tPos.has(p));
       const parts = [`shares ${shared.join('/')}`, `HS value ${r.hsValue} vs ${target.hsValue}`];
       if (fin(v.mean) && fin(tv.mean)) parts.push(`${v.mean} vs ${tv.mean} pts/game`);
-      if (fin(v.ddPct) && fin(tv.ddPct) && Math.abs(v.ddPct - tv.ddPct) < 0.1) parts.push(`similar DD rate (${Math.round(v.ddPct * 100)}% vs ${Math.round(tv.ddPct * 100)}%)`);
+      if (fin(v.ddPct) && fin(tv.ddPct) && Math.max(v.ddPct, tv.ddPct) >= 0.1 && Math.abs(v.ddPct - tv.ddPct) <= 0.2 * Math.max(v.ddPct, tv.ddPct)) parts.push(`similar DD rate (${Math.round(v.ddPct * 100)}% vs ${Math.round(tv.ddPct * 100)}%)`);
       if (fin(v.cv) && fin(tv.cv)) parts.push(Math.abs(v.cv - tv.cv) < 0.05 ? 'same consistency' : v.cv < tv.cv ? 'steadier' : 'more volatile');
       return { ...brief(r), similarity: r3(1 / (1 + d)), reason: parts.join(' · ') };
     });
@@ -662,7 +675,8 @@ function createResearch({
     const unavailable = {};
     const sid = row.sleeperId;
     const sp = sid ? ix.data.players[sid] || null : null;
-    const bio = sid && ctx.bio.data ? ctx.bio.data.players[sid] || null : null;
+    const bio0 = sid && ctx.bio.data ? ctx.bio.data.players[sid] || null : null;
+    const bio = bio0 && !bio0.off ? bio0 : null;
     const st = ix.stats.get(row.id) || null;
     const nowD = now();
     const cw = ix.board.currentWeek || 1;
@@ -791,10 +805,12 @@ function createResearch({
     const nextWeek = profile.weeks.find(w => w.week === cw) || null;
     if (nextWeek && gbw && fin(gbw[cw]) && row.source !== 'yahoo-only') {
       const n = gbw[cw];
+      // The model's availability for this week (injury-aware: OUT → ~0), not the season base rate.
+      const a = fin(row.availability) ? weekAvailability({ injury: row.injury, injuryNotes: sp ? sp.in : null, outForSeason: row.outForSeason }, row.availability, 0) : null;
       out.nextWeek = {
-        week: cw, start: nextWeek.start, end: nextWeek.end, days: nextWeek.days, games: n, availability: row.availability,
+        week: cw, start: nextWeek.start, end: nextWeek.end, days: nextWeek.days, games: n, availability: r2(a), baseAvailability: row.availability,
         expectedBest: p.hsByWeek ? p.hsByWeek[cw] ?? null : null,
-        pBestAtLeast: weekProbabilities({ scores: st ? st.scores : null, logMean: st ? st.mean : null, modelMean: row.mean, modelSd: row.sd, n, a: row.availability }),
+        pBestAtLeast: weekProbabilities({ scores: st ? st.scores : null, logMean: st ? st.mean : null, modelMean: row.mean, modelSd: row.sd, n, a }),
         method: st && st.gp >= 10 ? 'own game-score shape rescaled to model mean, kernel-smoothed; P = 1-(1-a·q)^games' : 'normal(model mean, sd); P = 1-(1-a·q)^games',
       };
     } else {
@@ -816,7 +832,7 @@ function createResearch({
         week: w.week, start: w.start, end: w.end, days: w.days, playoffs: !!w.playoffs,
         modelGames: gbw && fin(gbw[w.week]) ? gbw[w.week] : null,
         hsValue: p.hsByWeek && fin(p.hsByWeek[w.week]) ? p.hsByWeek[w.week] : null,
-        games, gameCount: games ? games.length : null, b2bCount: games ? games.filter(g => g.b2b).length / 1 : null,
+        games, gameCount: games ? games.length : null, b2bCount: games ? games.filter(g => g.b2b).length : null,
       };
     });
     if (!byTeam) unavailable.scheduleOpponents = offline ? 'offline: 2026 schedule not fetched (modelGames still present)' : (ctx.schedule.error ? `Sleeper schedule: ${ctx.schedule.error}` : 'Sleeper schedule not loaded yet (modelGames still present)');
