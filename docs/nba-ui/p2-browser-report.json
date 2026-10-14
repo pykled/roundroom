@@ -1,0 +1,441 @@
+{
+ "states": [
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 63,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "list",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-list-1280.png"
+  },
+  {
+   "total": 8,
+   "loaded": 8,
+   "initials": 0,
+   "counters": {
+    "load": 72,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "search-jokic",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-search-jokic-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "filter-c-ceiling",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-filter-c-ceiling-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-jokic-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-hs",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-jokic-hs-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-gm",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-jokic-gm-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-nw",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-jokic-nw-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-flagg",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-flagg-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-flagg-hs",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-flagg-hs-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 10,
+   "initials": 0,
+   "counters": {
+    "load": 65,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-injured",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-injured-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 9,
+   "initials": 1,
+   "counters": {
+    "load": 58,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-westbrook-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 9,
+   "initials": 1,
+   "counters": {
+    "load": 58,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-hs",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-westbrook-hs-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 9,
+   "initials": 1,
+   "counters": {
+    "load": 58,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-gm",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-westbrook-gm-1280.png"
+  },
+  {
+   "total": 10,
+   "loaded": 9,
+   "initials": 1,
+   "counters": {
+    "load": 58,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-nw",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-detail-westbrook-nw-1280.png"
+  },
+  {
+   "state": "click-open",
+   "vp": "1280",
+   "url": "http://localhost:7982/nba/research?player=1583"
+  },
+  {
+   "total": 13,
+   "loaded": 13,
+   "initials": 0,
+   "counters": {
+    "load": 66,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "list-page2-scrolled",
+   "vp": "1280",
+   "png": "docs/nba-ui/p2-list-page2-scrolled-1280.png"
+  },
+  {
+   "total": 4,
+   "loaded": 4,
+   "initials": 0,
+   "counters": {
+    "load": 34,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "list",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-list-375.png"
+  },
+  {
+   "total": 4,
+   "loaded": 4,
+   "initials": 0,
+   "counters": {
+    "load": 36,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "search-jokic",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-search-jokic-375.png"
+  },
+  {
+   "total": 3,
+   "loaded": 3,
+   "initials": 0,
+   "counters": {
+    "load": 35,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "filter-c-ceiling",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-filter-c-ceiling-375.png"
+  },
+  {
+   "total": 0,
+   "loaded": 0,
+   "initials": 0,
+   "counters": {
+    "load": 35,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "filters-sheet",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-filters-sheet-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 48,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-jokic-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 48,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-hs",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-jokic-hs-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 48,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-gm",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-jokic-gm-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 48,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-jokic-nw",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-jokic-nw-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 49,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-flagg",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-flagg-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 49,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-flagg-hs",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-flagg-hs-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 1,
+   "initials": 0,
+   "counters": {
+    "load": 49,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-injured",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-injured-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 0,
+   "initials": 1,
+   "counters": {
+    "load": 42,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-westbrook-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 0,
+   "initials": 1,
+   "counters": {
+    "load": 42,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-hs",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-westbrook-hs-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 0,
+   "initials": 1,
+   "counters": {
+    "load": 42,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-gm",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-westbrook-gm-375.png"
+  },
+  {
+   "total": 1,
+   "loaded": 0,
+   "initials": 1,
+   "counters": {
+    "load": 42,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "detail-westbrook-nw",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-detail-westbrook-nw-375.png"
+  },
+  {
+   "state": "click-open",
+   "vp": "375",
+   "url": "http://localhost:7982/nba/research?player=2621"
+  },
+  {
+   "state": "back-closes",
+   "vp": "375",
+   "url": "http://localhost:7982/nba/research",
+   "sheetOpen": false
+  },
+  {
+   "total": 4,
+   "loaded": 4,
+   "initials": 0,
+   "counters": {
+    "load": 42,
+    "error": 0
+   },
+   "hscroll": false,
+   "state": "list-page2-scrolled",
+   "vp": "375",
+   "png": "docs/nba-ui/p2-list-page2-scrolled-375.png"
+  }
+ ],
+ "errors": [
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[1280] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status",
+  "[375] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:7982/api/nba/yahoo/status"
+ ]
+}

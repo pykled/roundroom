@@ -257,6 +257,7 @@ function createNbaRouter({
   }
   router.get(['/nba', '/nba/draft'], page('draft.html', 'Draft'));
   router.get('/nba/lineup', page('lineup.html', 'Lineup'));
+  router.get('/nba/research', page('research.html', 'Research'));
 
   // ---- Yahoo OAuth -----------------------------------------------------------
   router.get('/nba/auth/login', async (req, res) => {

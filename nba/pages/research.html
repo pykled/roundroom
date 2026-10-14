@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA Player Research | Pocket</title>
+<meta name="description" content="NBA fantasy basketball player research for Yahoo High Score leagues: headshots, best-game value, ceiling and floor, game logs, matchup-week schedules, market vs model and news.">
+<link rel="canonical" href="https://pocketff.com/nba/research">
+<meta name="theme-color" content="#1a110b">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sleepercdn.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/nba/pages/nba-ui.css">
+<link rel="stylesheet" href="/nba/pages/research.css">
+<script src="/nba/pages/nba-ui.js"></script>
+<script defer src="/shared/nav.js"></script>
+</head>
+<body class="sport-nba nba-ui rs-page">
+<div data-nu-nav></div>
+<script>NbaUI.mountNav({ active: 'research' });</script>
+<noscript><nav><a href="/nba">Board</a> <a href="/nba/lineup">Lineup</a> <a href="/nba/trade">Trade</a> <a href="/nba/waivers">Waivers</a></nav></noscript>
+
+<main class="nu-shell rs-shell" id="app">
+  <header class="nu-page-head nu-page-head--court rs-head">
+    <div class="nu-page-head__text">
+      <div class="nu-eyebrow" id="rs-eyebrow">Yahoo High Score · player research</div>
+      <h1 class="nu-page-head__title">Player research</h1>
+      <p class="nu-page-head__sub" id="rs-sub">Every player valued by the one game that counts: his best game of each matchup week.</p>
+    </div>
+    <div class="nu-page-head__actions">
+      <span class="nu-tag rs-fresh" id="rs-fresh" hidden></span>
+      <button class="nu-btn nu-btn--ghost nu-btn--sm" type="button" id="rs-about-btn">How it works</button>
+    </div>
+  </header>
+
+  <div class="rs-layout" id="rs-layout">
+    <section class="rs-main" aria-label="Players">
+      <div class="rs-bar" id="rs-bar">
+        <div class="rs-search" id="rs-search-wrap">
+          <label class="nu-search">
+            <span class="nu-sr">Search players</span>
+            <span aria-hidden="true" class="rs-search-ico"></span>
+            <input class="nu-input" id="rs-q" type="search" placeholder="Search players, teams or positions" autocomplete="off" spellcheck="false" maxlength="64"
+              role="combobox" aria-expanded="false" aria-controls="rs-ac" aria-autocomplete="list">
+          </label>
+          <ul class="rs-ac" id="rs-ac" role="listbox" aria-label="Matching players" hidden></ul>
+        </div>
+        <button class="nu-btn rs-filter-btn" type="button" id="rs-filter-btn" aria-haspopup="dialog">
+          <span class="rs-filter-ico" aria-hidden="true"></span><span>Filters</span><span class="nu-count" id="rs-filter-n" hidden>0</span>
+        </button>
+      </div>
+
+      <div class="nu-chip-row nu-chip-row--scroll rs-pos" id="rs-pos" role="group" aria-label="Filter by Yahoo position slot"></div>
+
+      <div class="rs-tools" id="rs-tools"></div>
+
+      <section class="rs-trend" id="rs-trend" aria-labelledby="rs-trend-t">
+        <div class="rs-trend__head">
+          <h2 class="nu-section__title" id="rs-trend-t">Trending</h2>
+          <div class="nu-seg rs-trend__seg" role="group" aria-label="Trending list" id="rs-trend-seg">
+            <button type="button" data-value="adds" aria-pressed="true">Adds</button>
+            <button type="button" data-value="drops" aria-pressed="false">Drops</button>
+          </div>
+          <span class="nu-hint rs-trend__src" id="rs-trend-src"></span>
+        </div>
+        <div class="rs-trend__list" id="rs-trend-list" role="list"></div>
+      </section>
+
+      <div class="rs-count" id="rs-count" aria-live="polite"></div>
+      <div id="rs-results" class="rs-results"></div>
+      <nav class="rs-pager" id="rs-pager" aria-label="Pages" hidden></nav>
+    </section>
+
+    <aside class="rs-pane" id="rs-pane" aria-label="Player detail" aria-live="off"></aside>
+  </div>
+</main>
+
+<footer class="rr-footer">
+  <div class="rr-footer-inner">
+    <span class="rr-footer-brand">© 2026 Pocket</span>
+    <nav class="rr-footer-links" aria-label="Footer">
+      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- player detail: full-screen sheet on phones, wide modal on tablets -->
+<div class="nu-sheet nu-sheet--wide rs-sheet-full" id="rs-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="rs-detail-t" hidden>
+  <div class="nu-sheet__head rs-detail-bar">
+    <button class="nu-btn nu-btn--ghost nu-btn--sm rs-back" type="button" data-nu-close><span class="rs-back-ico" aria-hidden="true"></span>Back</button>
+    <h2 class="nu-sheet__title rs-detail-bar__t" id="rs-detail-t" tabindex="-1">Player</h2>
+  </div>
+  <div class="nu-sheet__body rs-detail-body" id="rs-detail-body"></div>
+</div>
+
+<!-- filters (bottom sheet, thumb zone) -->
+<div class="nu-sheet" id="rs-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="rs-filter-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head">
+    <h2 class="nu-sheet__title" id="rs-filter-t">Filter and sort</h2>
+    <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" type="button" data-nu-close aria-label="Close" id="rs-filter-x"></button>
+  </div>
+  <div class="nu-sheet__body" id="rs-filter-body"></div>
+  <div class="nu-sheet__foot">
+    <button class="nu-btn" type="button" id="rs-filter-reset">Reset</button>
+    <button class="nu-btn nu-btn--primary" type="button" data-nu-close id="rs-filter-done">Show players</button>
+  </div>
+</div>
+
+<!-- how it works -->
+<div class="nu-sheet" id="rs-about" role="dialog" aria-modal="true" aria-labelledby="rs-about-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head">
+    <h2 class="nu-sheet__title" id="rs-about-t">How to read this page</h2>
+    <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" type="button" data-nu-close aria-label="Close" id="rs-about-x"></button>
+  </div>
+  <div class="nu-sheet__body rs-about">
+    <p><b>High Score scoring.</b> In this league each starter’s <b>single best game of the matchup week</b> is the one that counts. So a player who sometimes erupts can be worth more than one who is steady but never spikes.</p>
+    <dl class="rs-gloss">
+      <dt>Best-game value</dt><dd>Our estimate of a player’s best game in a typical matchup week, in league points. This is the main number we rank by.</dd>
+      <dt>Per-game score</dt><dd>His average league points in a single game.</dd>
+      <dt>Ceiling / Floor</dt><dd>A great night (1 game in 10 beats it) and a poor night (1 game in 10 is worse).</dd>
+      <dt>Form (last 5)</dt><dd>His last five games compared with his season average. ▲ means he finished hot, ▼ cold.</dd>
+      <dt>Boom rate</dt><dd>Share of games at least 30% above his own average.</dd>
+      <dt>DD / TD rate</dt><dd>How often he posts a double-double (10+ in two of points, rebounds, assists, steals, blocks) or a triple-double. This league adds +5 for a DD and +3 more for a TD.</dd>
+      <dt>Market</dt><dd>Where drafters are taking him. <b>Value</b> = the model ranks him higher than the market; <b>Reach</b> = lower.</dd>
+      <dt>Back-to-back (B2B)</dt><dd>Games on consecutive nights. Stars sometimes rest on one of them.</dd>
+      <dt>Matchup weeks</dt><dd>Most are one week long; weeks 7 and 17 last 14 days, so players get more chances at a big game.</dd>
+    </dl>
+    <p class="nu-hint">Scoring: points 1, rebounds 1.2, assists 1.5, steals 3, blocks 3, turnovers −1, fouls −1, technicals −1, double-double +5, triple-double +3. Last season’s numbers come from real box scores; this season’s are model estimates, not betting odds. Headshots from Sleeper.</p>
+  </div>
+</div>
+
+<script src="/nba/pages/research-logic.js"></script>
+<script src="/nba/pages/research.js"></script>
+<script defer src="/nba/pages/yahoo-chip.js"></script>
+</body>
+</html>
