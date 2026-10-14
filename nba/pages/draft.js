@@ -14,6 +14,8 @@
 
   var S = {
     players: [], byId: {}, asOf: null,
+    // league profile (GET /api/nba/league-profile); null until loaded / if unavailable
+    profile: null, profileErr: false,
     state: L.emptyState(null),
     // yahoo
     connected: false, leagues: [], leagueKey: null, league: null, teams: [], myTeamKey: null,
@@ -23,7 +25,7 @@
     // pick timer: restarts whenever the pick on the clock changes
     timer: { pick: null, startedAt: 0, beeped: false },
     // ui
-    pos: 'ALL', q: '', showTaken: false, sheetId: null, matching: null, lastFocus: null,
+    pos: 'ALL', q: '', showTaken: false, tierMax: 0, hideOut: false, view: 'board', sheetId: null, matching: null, lastFocus: null, pulse: [],
     merged: { picks: [], unmatched: [], confirmedManual: [] }, lastYahooCount: -1
   };
 
@@ -31,11 +33,23 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function n1(v) { return typeof v === 'number' && isFinite(v) ? v.toFixed(1) : '—'; }
   function n0(v) { return typeof v === 'number' && isFinite(v) ? String(Math.round(v)) : '—'; }
+  // Colour family for a slot / position: guards, forwards, centers, UTIL.
+  function fam(t) { return /^(PG|SG|G)$/.test(t) ? 'G' : /^(SF|PF|F|FC)$/.test(t) ? 'F' : t === 'C' ? 'C' : 'UTIL'; }
+  function slotLabel(t) { return t === 'UTIL' ? 'UTIL' : t === 'FC' ? 'F/C' : t; }
   function posPills(p) {
-    var e = (p.elig || []).filter(function (x) { return x !== 'UTIL'; });
-    if (!e.length) e = ['UTIL'];
-    return e.map(function (x) { return '<span class="pp ' + x + '">' + x + '</span>'; }).join('');
+    if (L.isLegacy(S.state.settings)) {
+      var e = (p.elig || []).filter(function (x) { return x !== 'UTIL'; });
+      if (!e.length) e = ['UTIL'];
+      return e.map(function (x) { return '<span class="pp ' + x + '">' + x + '</span>'; }).join('');
+    }
+    // Yahoo-style positions; dashed when eligibility isn't confirmed by Yahoo.
+    var el = L.slotElig(p), list = L.displayPositions(p), low = el.source !== 'yahoo' || el.low;
+    if (!list.length) list = ['UTIL'];
+    return list.map(function (x) {
+      return '<span class="pp ' + fam(x) + (low ? ' low' : '') + '"' + (low ? ' title="Eligibility from Sleeper positions, not confirmed by Yahoo"' : '') + '>' + x + '</span>';
+    }).join('');
   }
+  function vorpTxt(p) { return typeof p.vorp === 'number' && isFinite(p.vorp) ? (p.vorp >= 0 ? '+' : '') + p.vorp.toFixed(1) : null; }
   function injBadge(p) {
     var s = L.injuryShort(p.injury);
     return s ? '<span class="inj ' + s + '" title="' + esc(p.injury) + '">' + s + '</span>' : '';
@@ -74,6 +88,19 @@
     var raw = null;
     try { raw = localStorage.getItem(L.storageKey(leagueKey)); } catch (e) {}
     S.state = L.deserializeState(raw, leagueKey, defaults);
+  }
+  // Manual board follows the league profile (12 teams, 9 starters…) unless the
+  // user edited settings in the League dialog. Older saved boards (10-team
+  // G/F/UTIL) migrate here, keeping picks and draft slot.
+  function applyProfile() {
+    if (S.state.settingsSource === 'user' || (S.connected && S.leagueKey)) return;
+    var prev = S.state.settings;
+    var next = S.profile ? L.settingsFromProfile(S.profile, prev) : L.normalizeSettings({ mySlot: prev && prev.mySlot });
+    if (JSON.stringify(next) !== JSON.stringify(prev)) { S.state.settings = next; save(); }
+  }
+  function leagueName() {
+    if (S.connected && S.leagueKey && S.league && S.league.name) return S.league.name;
+    return (S.profile && S.profile.name) || 'League 242808';
   }
 
   function recompute() {
@@ -179,8 +206,25 @@
 
   /* ------------------------------------------------------------ render */
   function render() {
-    renderFirstRun(); renderClock(); renderReco(); renderBoard(); renderRoster(); renderPicks(); renderReview(); renderSync(); renderMinibar();
+    renderHead(); renderFirstRun(); renderClock(); renderPulse(); renderReco(); renderFilters(); renderBoard(); renderRoster(); renderPicks(); renderReview(); renderSync(); renderMinibar();
+    if (S.view === 'cheat') renderCheat();
     if (S.sheetId) renderSheet();
+  }
+
+  function renderHead() {
+    var st = S.state.settings, types = L.slotTypes(st), parts = [];
+    types.forEach(function (t) { var c = st.slots[t]; parts.push(slotLabel(t) + (c > 1 ? '×' + c : '')); });
+    var secs = timerSeconds();
+    $('nd-eyebrow').textContent = 'NBA · ' + leagueName();
+    $('nd-sub').textContent = st.teams + ' teams · ' + parts.join(', ') + ' + ' + st.bench + ' BN' + (st.il ? ' + ' + st.il + ' IL' : '') +
+      ' · ' + L.rosterSize(st) + ' rounds' + (secs ? ' · ' + secs + 's picks' : '') + '. Ranked by expected best game of the week under your league’s scoring.';
+  }
+
+  // Top-40 supply per slot + "run" detection from the last round of picks.
+  function renderPulse() {
+    var st = S.state.settings, recent = [];
+    S.merged.picks.slice(-st.teams).forEach(function (p) { if (p.playerId && S.byId[p.playerId]) recent.push(S.byId[p.playerId]); });
+    S.pulse = S.players.length ? L.slotPulse(available(), recent, S.players, st, 40) : [];
   }
 
   function renderClock() {
@@ -196,7 +240,7 @@
     else {
       who.textContent = clockTeamName(ci) + ' on the clock';
       var away = ci.awayN;
-      sub.textContent = ci.myNext ? 'You pick in ' + away + ' · #' + ci.myNext + (ci.myNextRound ? ' (R' + ci.myNextRound + ')' : '') : 'Your picks are done';
+      sub.textContent = ci.myNext ? 'You pick in ' + away + ' · #' + ci.myNext + (ci.myNextRound ? ' (R' + ci.myNextRound + ')' : '') + (ci.myAfter ? ', then #' + ci.myAfter : '') : 'Your picks are done';
     }
     renderTimer(ci);
     var undoBtn = $('nd-undo');
@@ -234,17 +278,18 @@
     if (!list.length) { el.hidden = true; return; }
     var top = list[0], p = top.player;
     var label = ci.onMe ? 'Your pick now' : 'Best for your pick #' + ci.myNext;
+    var tag = top.slot === 'BENCH' ? 'Bench' : (top.upgrade ? 'Upgrade ' : 'Fills ') + slotLabel(top.slot);
     el.innerHTML =
-      '<div class="lbl"><span class="section-label">' + esc(label) + '</span><span class="section-label">Value / ceiling</span></div>' +
+      '<div class="lbl"><span class="section-label">' + esc(label) + ' <span class="nd-fill ' + fam(top.slot) + '">' + esc(tag) + '</span></span><span class="section-label">Value / ceiling</span></div>' +
       '<div class="nd-reco-main">' +
         '<button type="button" class="nd-reco-name" data-act="sheet" data-id="' + esc(p.id) + '" aria-label="Details for ' + esc(p.name) + '">' + esc(p.name) + '<small>' + posPills(p) + ' ' + esc(p.team || '') + ' ' + gamesChip(p) + ' ' + injBadge(p) + '</small></button>' +
-        '<div class="nd-reco-val"><b>' + n1(p.hsValue) + '</b><span>ceil ' + n0(p.ceiling) + '</span></div>' +
+        '<div class="nd-reco-val"><b>' + n1(p.hsValue) + '</b><span>ceil ' + n0(p.ceiling) + (vorpTxt(p) ? ' · vorp ' + vorpTxt(p) : '') + '</span></div>' +
       '</div>' +
       '<p class="nd-reco-why">' + esc(top.reason) + '</p>' +
       '<div class="nd-reco-alts">' +
         (ci.onMe ? '<button type="button" class="btn-primary" data-act="mine" data-id="' + esc(p.id) + '">Draft ' + esc(p.name.split(' ').slice(-1)[0]) + '</button>' : '') +
         list.slice(1).map(function (r) {
-          return '<button type="button" class="nd-alt" data-act="sheet" data-id="' + esc(r.player.id) + '" title="' + esc(r.reason) + '">' + esc(r.player.name) + ' <span class="v">' + n1(r.player.hsValue) + '</span></button>';
+          return '<button type="button" class="nd-alt" data-act="sheet" data-id="' + esc(r.player.id) + '" title="' + esc(r.reason) + '">' + esc(r.player.name) + ' <span class="v">' + (r.slot === 'BENCH' ? 'BN' : slotLabel(r.slot)) + ' ' + n1(r.player.hsValue) + '</span></button>';
         }).join('') +
       '</div>';
     el.hidden = false;
@@ -260,7 +305,9 @@
       var t = taken[p.id];
       if (!t) availN++;
       if (t && !S.showTaken) return;
-      if (!L.matchesPos(p, S.pos) || !L.matchesQuery(p, S.q)) return;
+      if (!L.matchesPos(p, S.pos, S.state.settings) || !L.matchesQuery(p, S.q)) return;
+      if (S.tierMax && !(p.tier <= S.tierMax)) return;
+      if (S.hideOut && !t && /OUT|SUS/.test(L.injuryShort(p.injury))) return;
       shown++;
       if (shown > 400) return;
       if (p.tier !== lastTier && !S.q) { rows.push('<div class="rsch-tier-divider" role="presentation">Tier ' + esc(p.tier) + '</div>'); lastTier = p.tier; }
@@ -281,37 +328,75 @@
           '<button type="button" class="nd-draft" data-act="' + (S.matching ? 'match' : t ? (t.source === 'manual' ? 'remove' : 'noop') : 'draft') + '" data-id="' + esc(p.id) + '" aria-label="' + esc(btnLbl) + '"' + (t && t.source !== 'manual' && !S.matching ? ' disabled' : '') + '>' + btnTxt + '</button>' +
         '</div>');
     });
-    if (!shown) rows.push('<div class="empty-hint" style="margin-top:1rem"><span>No players match</span><span class="eh-sub">Try another name, or switch the position filter to All.</span></div>');
+    if (!shown) rows.push('<div class="empty-hint" style="margin-top:1rem"><span>No players match</span><span class="eh-sub">Try another name, or clear the position / tier filters.</span></div>');
     list.innerHTML = rows.join('');
     $('nd-count').textContent = availN + ' available · ' + (S.players.length - availN) + ' drafted' + (shown > 400 ? ' · showing top 400' : '');
+  }
+
+  function renderFilters() {
+    var st = S.state.settings, types = L.slotTypes(st);
+    if (S.pos !== 'ALL' && types.indexOf(S.pos) < 0) S.pos = 'ALL';
+    var pulse = {}; S.pulse.forEach(function (x) { pulse[x.slot] = x; });
+    var seg = $('nd-seg');
+    seg.style.setProperty('--n', types.length + 1);
+    seg.innerHTML = ['ALL'].concat(types).map(function (t) {
+      var x = pulse[t], cls = x ? (x.run ? ' run' : x.scarce ? ' scarce' : '') : '';
+      var title = t === 'ALL' ? 'All players' : x ? slotLabel(t) + '-eligible: ' + x.left + ' left in the top 40' + (x.recent ? ', ' + x.recent + ' taken in the last ' + st.teams + ' picks' : '') + (x.run ? ' — position run' : x.scarce ? ' — thin' : '') : (t === 'UTIL' ? 'Everyone (UTIL)' : slotLabel(t));
+      return '<button type="button" class="' + fam(t === 'ALL' ? 'UTIL' : t) + cls + '" data-act="pos" data-pos="' + t + '" aria-pressed="' + (S.pos === t) + '" title="' + esc(title) + '" aria-label="' + esc(title) + '">' +
+        '<span>' + (t === 'ALL' ? 'All' : t === 'UTIL' ? 'U' : slotLabel(t)) + '</span>' + (x ? '<small>' + x.left + '</small>' : '') + '</button>';
+    }).join('');
+    var tiers = {}; S.players.forEach(function (p) { if (p.tier != null) tiers[p.tier] = 1; });
+    var tsel = $('nd-tier'), keys = Object.keys(tiers).map(Number).filter(isFinite).sort(function (x, y) { return x - y; });
+    var want = '<option value="0">All tiers</option>' + keys.map(function (k) { return '<option value="' + k + '">Tier ≤ ' + k + '</option>'; }).join('');
+    if (tsel.getAttribute('data-sig') !== String(keys.length)) { tsel.innerHTML = want; tsel.setAttribute('data-sig', String(keys.length)); }
+    tsel.value = String(S.tierMax || 0);
+    var derived = S.players.length && S.players.filter(function (p) { return L.slotElig(p).source !== 'yahoo'; }).length > S.players.length / 2;
+    $('nd-elig-note').hidden = !(derived && !L.isLegacy(st));
   }
 
   function renderRoster() {
     var st = S.state.settings, roster = myRoster();
     var a = L.assignSlots(roster.filter(function (p) { return !p.unmatched; }), st);
+    var ci = clockInfo();
+    // Picks other teams make before I choose again (on the clock: until my following pick).
+    var k = ci.onMe ? ci.gapNow : ci.myNext ? ci.awayN : st.teams - 1;
+    var warns = L.balanceWarnings(roster.filter(function (p) { return !p.unmatched; }), st, { available: available(), players: S.players, picksUntilNext: k });
+    S.warns = warns;
+    var need = {}; warns.forEach(function (w) { var m = /no (\w+) yet|Needs a \w+ (\w+)/.exec(w.text); if (m) need[m[1] || m[2]] = 1; });
     var html = '';
     a.starters.forEach(function (s) {
-      html += '<div class="nd-slot"><span class="sl ' + s.slot + '">' + s.slot + '</span>' +
+      html += '<div class="nd-slot' + (!s.player && need[s.slot] ? ' need' : '') + '"><span class="sl ' + fam(s.slot) + '">' + slotLabel(s.slot) + '</span>' +
         (s.player ? '<span class="nm">' + esc(s.player.name) + '</span>' + injBadge(s.player) + '<span class="v">' + n1(s.player.hsValue) + '</span>'
                   : '<span class="nm open">Open</span>') + '</div>';
     });
     var bench = a.bench.concat(roster.filter(function (p) { return p.unmatched; }));
-    var benchOpen = Math.max(0, L.rosterSize(st) - roster.length - (a.open.G + a.open.F + a.open.UTIL));
-    if (st.bench) {
+    if (st.bench || bench.length) {
       html += '<div class="nd-bench-hdr">Bench</div>';
       bench.forEach(function (p) {
         html += '<div class="nd-slot"><span class="sl BN">BN</span><span class="nm">' + esc(p.name) + '</span>' +
           (p.unmatched ? '<span class="nd-flag um">REVIEW</span>' : posPills(p) + '<span class="v">' + n1(p.hsValue) + '</span>') + '</div>';
       });
-      for (var i = 0; i < Math.min(benchOpen, st.bench - bench.length); i++) html += '<div class="nd-slot"><span class="sl BN">BN</span><span class="nm open">Open</span></div>';
+      for (var i = bench.length; i < st.bench; i++) html += '<div class="nd-slot"><span class="sl BN">BN</span><span class="nm open">Open</span></div>';
+    }
+    if (st.il) {
+      html += '<div class="nd-bench-hdr">IL <span class="nd-hdr-note">injured players only</span></div>';
+      a.il.forEach(function (p) {
+        var hurt = /OUT|SUS/.test(L.injuryShort(p.injury));
+        html += '<div class="nd-slot"><span class="sl BN">IL</span><span class="nm">' + esc(p.name) + '</span>' + (hurt ? injBadge(p) : '<span class="nd-flag" title="Healthy players can’t sit on IL in Yahoo">NOT IL</span>') + '<span class="v">' + n1(p.hsValue) + '</span></div>';
+      });
+      for (var j = a.il.length; j < st.il; j++) html += '<div class="nd-slot"><span class="sl BN">IL</span><span class="nm open">Open</span></div>';
     }
     $('nd-roster').innerHTML = html;
-    $('nd-roster-total').textContent = roster.length + '/' + L.rosterSize(st) + ' · starters ' + n1(a.total);
-    var ci = clockInfo();
-    var k = ci.myNext ? ci.awayN : st.teams - 1;
-    var warns = L.balanceWarnings(roster.filter(function (p) { return !p.unmatched; }), st, { available: available(), players: S.players, picksUntilNext: k });
-    S.warns = warns;
+    var openN = 0; Object.keys(a.open).forEach(function (t) { openN += a.open[t]; });
+    $('nd-roster-total').textContent = roster.length + '/' + L.rosterSize(st) + ' · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters ' + n1(a.total));
     $('nd-warns').innerHTML = warns.map(function (w) { return '<div class="nd-warn ' + w.level + '">' + esc(w.text) + '</div>'; }).join('');
+    // Which positions are thin / running right now (top-40 supply).
+    var hot = S.pulse.filter(function (x) { return x.run || x.scarce; });
+    $('nd-scarce').innerHTML = S.pulse.length
+      ? '<span class="section-label">Top 40 left</span>' + S.pulse.map(function (x) {
+          return '<span class="nd-sc ' + fam(x.slot) + (x.run ? ' run' : x.scarce ? ' scarce' : '') + (a.open[x.slot] ? ' open' : '') + '" title="' + esc(slotLabel(x.slot) + (x.run ? ': run — ' + x.recent + ' of the last ' + st.teams + ' picks' : x.scarce ? ': thin' : '') + (a.open[x.slot] ? ' · you have it open' : '')) + '">' + slotLabel(x.slot) + ' <b>' + x.left + '</b>' + (x.run ? ' ▲' : '') + '</span>';
+        }).join('') + (hot.length ? '' : '')
+      : '';
   }
 
   function renderPicks() {
@@ -387,22 +472,78 @@
   function renderMinibar() {
     var st = S.state.settings, roster = myRoster(), ci = clockInfo();
     var a = L.assignSlots(roster.filter(function (p) { return !p.unmatched; }), st);
+    var need = {}; (S.warns || []).forEach(function (w) { var m = /no (\w+) yet|Needs a \w+ (\w+)/.exec(w.text); if (m) need[m[1] || m[2]] = 1; });
+    $('nd-mb-slots').style.setProperty('--n', a.starters.length);
     $('nd-mb-slots').innerHTML = a.starters.map(function (s) {
-      return '<span class="nd-mb-slot ' + s.slot + (s.player ? ' on' : '') + '">' + (s.slot === 'UTIL' ? 'U' : s.slot) + '</span>';
+      return '<span class="nd-mb-slot ' + fam(s.slot) + (s.player ? ' on' : need[s.slot] ? ' need' : '') + '" title="' + esc(slotLabel(s.slot) + ': ' + (s.player ? s.player.name : 'open')) + '">' + (s.slot === 'UTIL' ? 'U' : slotLabel(s.slot)) + '</span>';
     }).join('');
-    var head = S.auction ? 'Auction · manual' : ci.done ? 'Draft complete' : ci.onMe ? 'On the clock' : ci.myNext ? 'You pick in ' + ci.awayN : 'Your picks are done';
+    var openN = 0; Object.keys(a.open).forEach(function (t) { openN += a.open[t]; });
+    var head = S.auction ? 'Auction · manual' : ci.done ? 'Draft complete' : ci.onMe ? 'You’re on the clock' : ci.myNext ? 'You pick in ' + ci.awayN + ' · #' + ci.myNext : 'Your picks are done';
     var w = (S.warns || [])[0];
-    $('nd-mb-txt').innerHTML = '<b>' + esc(head) + '</b>' + (w ? '<span class="w">' + esc(w.text) + '</span>' : roster.length + '/' + L.rosterSize(st) + ' rostered · bench ' + a.bench.length + '/' + st.bench);
+    var reco = recoCache[0];
+    var act = $('nd-mb-act');
+    if (ci.onMe && !ci.done && reco && !S.auction) {
+      var last = reco.player.name.split(' ').slice(-1)[0];
+      act.innerHTML = '<button type="button" class="btn-primary nd-mb-draft" data-act="mine" data-id="' + esc(reco.player.id) + '">Draft ' + esc(last) + ' <small>' + esc(reco.slot === 'BENCH' ? 'bench' : (reco.upgrade ? 'upgrade ' : '→ ') + slotLabel(reco.slot)) + '</small></button>';
+      act.hidden = false;
+      $('nd-mb-txt').hidden = true;
+    } else {
+      act.hidden = true; act.innerHTML = '';
+      $('nd-mb-txt').hidden = false;
+      $('nd-mb-txt').innerHTML = '<b>' + esc(head) + '</b>' + (w ? '<span class="w ' + w.level + '">' + esc(w.text) + '</span>' : '<span>' + roster.length + '/' + L.rosterSize(st) + ' rostered · ' + (openN ? openN + ' starter slot' + (openN > 1 ? 's' : '') + ' open' : 'starters set') + '</span>');
+    }
+  }
+
+  /* ------------------------------------------------------ cheat sheet */
+  function myRemainingPicks(ci) {
+    var st = S.state.settings;
+    if (ci.fromYahoo) {
+      return L.openSlots(S.state.yahoo).slice(pendingCount()).filter(function (o) { return o.team_key && o.team_key === S.myTeamKey; })
+        .map(function (o) { return { pick: o.pick, round: o.round || L.roundOf(o.pick, st.teams) }; });
+    }
+    return ci.done ? [] : L.myPicksSnake(st, ci.cur);
+  }
+  function renderCheat() {
+    var el = $('nd-cheat'), st = S.state.settings, ci = clockInfo();
+    if (!S.players.length) { el.innerHTML = ''; return; }
+    var made = S.merged.picks.filter(function (p) { return p.mine; }).map(function (p) { return { pick: p.pick, round: p.round, player: p.playerId ? S.byId[p.playerId] : null, name: p.name }; });
+    var cs = L.cheatSheet({ available: available(), settings: st, cur: ci.cur, myPicks: myRemainingPicks(ci), made: made,
+      roster: myRoster().filter(function (p) { return !p.unmatched; }), perRound: 5, perSlot: 10 });
+    var roundsLeft = cs.rounds.filter(function (r) { return !r.done; }).length;
+    var html = '<div class="nd-cheat-head"><div><h2>Cheat sheet</h2><p>' + esc(leagueName()) + ' · slot ' + st.mySlot + ' of ' + st.teams + ' · ' + roundsLeft + ' pick' + (roundsLeft === 1 ? '' : 's') + ' left. Targets are the players the board expects near each of your picks; ★ = fills a starter slot you still need.</p></div>' +
+      '<button type="button" class="btn-secondary" data-act="print">Print</button></div>';
+    html += '<div class="nd-cs-warns">' + (S.warns || []).filter(function (w) { return w.level !== 'info'; }).map(function (w) { return '<div class="nd-warn ' + w.level + '">' + esc(w.text) + '</div>'; }).join('') + '</div>';
+    html += '<ol class="nd-cs-rounds">' + cs.rounds.map(function (r) {
+      var head = '<span class="r">R' + r.round + '</span><span class="pk">#' + r.pick + '</span>';
+      if (r.done) return '<li class="done">' + head + '<span class="got">' + esc(r.player ? r.player.name : r.name || '—') + (r.player ? ' ' + posPills(r.player) : '') + '</span></li>';
+      return '<li' + (r.pick === ci.cur && ci.onMe ? ' class="now"' : '') + '>' + head + '<span class="tg">' + r.targets.map(function (x) {
+        return '<button type="button" class="nd-cs-p' + (x.need.length ? ' need' : '') + '" data-act="sheet" data-id="' + esc(x.player.id) + '" title="' + esc(x.need.length ? 'Fills open ' + x.need.map(slotLabel).join('/') : 'Depth') + '">' + (x.need.length ? '★ ' : '') + esc(x.player.name) + ' <i>' + esc(L.displayPositions(x.player).join('/') || 'U') + ' · T' + esc(x.player.tier) + '</i></button>';
+      }).join('') + '</span></li>';
+    }).join('') + '</ol>';
+    html += '<h3 class="nd-cs-h3">By slot · best available, tiered</h3><div class="nd-cs-slots">' + cs.bySlot.map(function (b) {
+      return '<section class="nd-cs-slot"><h4><span class="sl ' + fam(b.slot) + '">' + slotLabel(b.slot) + '</span>' + (b.open ? '<span class="nd-flag">' + b.open + ' open</span>' : '<span class="ok">set</span>') + '</h4>' +
+        b.tiers.map(function (t) {
+          return '<div class="nd-cs-tier"><span class="t">T' + esc(t.tier) + '</span><span class="ps">' + t.players.map(function (p) { return '<button type="button" data-act="sheet" data-id="' + esc(p.id) + '">' + esc(p.name) + (L.injuryShort(p.injury) ? ' <em>' + esc(L.injuryShort(p.injury)) + '</em>' : '') + '</button>'; }).join('') + '</span></div>';
+        }).join('') + '</section>';
+    }).join('') + '</div>';
+    el.innerHTML = html;
+  }
+  function setView(v) {
+    S.view = v === 'cheat' ? 'cheat' : 'board';
+    $('nd-cheat').hidden = S.view !== 'cheat';
+    $('nd-boardview').hidden = S.view === 'cheat';
+    Array.prototype.forEach.call(document.querySelectorAll('#nd-views button'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === S.view)); });
+    if (S.view === 'cheat') renderCheat();
   }
 
   /* ------------------------------------------------------ pick timer */
   // Seconds per pick: the user's setting, else the Yahoo league's
-  // draft_pick_time, else 60. 0 = off.
+  // draft_pick_time, else the league profile's draft.pickSeconds (90). 0 = off.
   function timerSeconds() {
     var v = null; try { v = localStorage.getItem(TIMER_PREF); } catch (e) {}
     if (v != null && v !== '') return L.normalizeTimerSeconds(v);
     if (S.league && S.league.draft_pick_time > 0) return L.normalizeTimerSeconds(S.league.draft_pick_time);
-    return L.DEFAULT_PICK_SECONDS;
+    return L.profilePickSeconds(S.profile);
   }
   function renderTimer(ci) {
     var el = $('nd-timer'); if (!el) return;
@@ -540,23 +681,37 @@
   }
 
   /* ------------------------------------------------------ settings */
+  var SETTING_SLOTS = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL'];
   function openSettings() {
     var f = $('nd-settings-form'), st = S.state.settings, live = S.connected && S.leagueKey;
-    f.teams.value = st.teams; f.mySlot.value = st.mySlot; f.G.value = st.slots.G; f.F.value = st.slots.F; f.UTIL.value = st.slots.UTIL; f.bench.value = st.bench;
+    var types = SETTING_SLOTS.slice();
+    L.slotTypes(st).forEach(function (t) { if (types.indexOf(t) < 0) types.splice(types.length - 1, 0, t); }); // e.g. FC
+    $('nd-slot-fields').innerHTML = types.map(function (t) {
+      return '<label>' + slotLabel(t) + '<input name="slot_' + t + '" type="number" inputmode="numeric" min="0" max="6" value="' + (st.slots[t] || 0) + '"' + (live ? ' disabled' : '') + '></label>';
+    }).join('') +
+      '<label>BN<input name="bench" type="number" inputmode="numeric" min="0" max="15" value="' + st.bench + '"' + (live ? ' disabled' : '') + '></label>' +
+      '<label>IL<input name="il" type="number" inputmode="numeric" min="0" max="5" value="' + (st.il || 0) + '"' + (live ? ' disabled' : '') + '></label>';
+    f.teams.value = st.teams; f.mySlot.value = st.mySlot;
     f.timer.value = timerSeconds();
-    ['teams', 'G', 'F', 'UTIL', 'bench'].forEach(function (k) { f[k].disabled = !!live; });
+    f.teams.disabled = !!live;
     f.mySlot.disabled = !!(live && S.myTeamKey && S.merged.picks.some(function (p) { return p.source === 'yahoo' && p.mine; }));
+    $('nd-profile-reset').hidden = !!live || S.state.settingsSource !== 'user';
     $('nd-settings-hint').textContent = live
       ? 'Loaded from Yahoo league “' + ((S.league && S.league.name) || S.leagueKey) + '”. Reset clears only picks marked on this device.'
-      : 'Manual draft tracking. Defaults match Yahoo High Score: 10 teams, 6 starters (G, G, F, F, F, UTIL), 4 bench.';
+      : 'Manual draft tracking. Defaults come from ' + leagueName() + ' (' + st.teams + ' teams, ' + L.starterCount(st) + ' starters, ' + L.rosterSize(st) + ' roster spots). If Yahoo’s draft skips IL spots, set IL to 0.';
     var dlg = $('nd-settings');
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
   }
   function onSettingsClose() {
     var dlg = $('nd-settings');
     if (dlg.returnValue !== 'save') return;
-    var f = $('nd-settings-form');
-    S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: { G: f.G.value, F: f.F.value, UTIL: f.UTIL.value }, bench: f.bench.value });
+    var f = $('nd-settings-form'), live = S.connected && S.leagueKey;
+    if (!live) {
+      var slots = {};
+      Array.prototype.forEach.call(f.querySelectorAll('input[name^="slot_"]'), function (i) { slots[i.name.slice(5)] = i.value; });
+      S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value });
+      S.state.settingsSource = 'user';
+    } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value }));
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
     S.timer.startedAt = S.timer.startedAt ? Date.now() : 0; S.timer.beeped = false; saveTimerRun();
     save(); recompute(); render(); toast('League settings saved');
@@ -607,11 +762,13 @@
     try { if (S.connected) localStorage.setItem(LEAGUE_PREF, key || ''); } catch (e) {}
     if (S.connected) window.dispatchEvent(new CustomEvent('pocket-nba:league', { detail: { leagueKey: key || null, source: 'page' } }));
     load(key, L.DEFAULT_SETTINGS);
-    if (!key) { S.sync = 'off'; recompute(); render(); return Promise.resolve(); }
+    if (!key) { S.sync = 'off'; applyProfile(); recompute(); render(); return Promise.resolve(); }
     S.sync = 'connecting'; recompute(); render();
     return api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(key)).then(function (d) {
       S.league = d.league || null; S.teams = d.teams || []; S.myTeamKey = d.myTeamKey || null;
-      S.state.settings = L.settingsFromYahoo(S.league, S.myTeamKey, S.teams, S.state.settings);
+      // Yahoo's roster_positions win; the profile fills anything Yahoo leaves out.
+      var base = S.profile ? L.settingsFromProfile(S.profile, S.state.settings) : S.state.settings;
+      S.state.settings = L.settingsFromYahoo(S.league, S.myTeamKey, S.teams, base);
       S.auction = L.isAuction(S.league, null);
       save();
     }).catch(function (e) {
@@ -678,16 +835,18 @@
       else if (act === 'mine-toggle') { toggleMine(id); }
       else if (act === 'match') { completeMatch(id); closeSheet(); }
       else if (act === 'start-match') { startMatch(b.getAttribute('data-key'), b.getAttribute('data-name')); }
+      else if (act === 'pos') { S.pos = b.getAttribute('data-pos'); renderFilters(); renderBoard(); }
+      else if (act === 'print') { window.print(); }
     });
     $('nd-undo').onclick = undo;
     $('nd-search').addEventListener('input', function (e) { S.q = e.target.value; renderBoard(); });
-    Array.prototype.forEach.call(document.querySelectorAll('.nd-seg button'), function (b) {
-      b.onclick = function () {
-        S.pos = b.getAttribute('data-pos');
-        Array.prototype.forEach.call(document.querySelectorAll('.nd-seg button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        renderBoard();
-      };
-    });
+    $('nd-tier').onchange = function () { S.tierMax = parseInt(this.value, 10) || 0; renderBoard(); };
+    $('nd-hide-out').onclick = function () { S.hideOut = !S.hideOut; this.setAttribute('aria-pressed', String(S.hideOut)); renderBoard(); };
+    Array.prototype.forEach.call(document.querySelectorAll('#nd-views button'), function (b) { b.onclick = function () { setView(b.getAttribute('data-view')); window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); }; });
+    $('nd-profile-reset').onclick = function () {
+      S.state.settingsSource = null; applyProfile(); save(); recompute(); render();
+      $('nd-settings').close('cancel'); toast('Using the ' + leagueName() + ' profile');
+    };
     $('nd-show-taken').onclick = function () { S.showTaken = !S.showTaken; this.setAttribute('aria-pressed', String(S.showTaken)); renderBoard(); };
     $('nd-sheet-close').onclick = closeSheet;
     $('nd-scrim').onclick = function () { closeSheet(); closeSide(); };
@@ -717,6 +876,7 @@
     };
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') { if (S.matching) endMatch(); closeSheet(); closeSide(); }
+      if (e.key === 'c' && !e.metaKey && !e.ctrlKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') setView(S.view === 'cheat' ? 'board' : 'cheat');
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); undo(); }
       if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('nd-search').focus(); }
     });
@@ -731,7 +891,7 @@
     });
     // Sticky offsets follow the real nav / clock heights.
     var setOffsets = function () {
-      var nav = $('rr-nav'), clock = $('nd-clock'), filt = document.querySelector('.nd-filters');
+      var nav = $('rr-nav'), clock = $('nd-clock'), filt = document.querySelector('.nd-filters-wrap');
       var r = document.documentElement.style;
       r.setProperty('--nav-h', nav.offsetHeight + 'px');
       r.setProperty('--clock-h', clock.offsetHeight + 'px');
@@ -768,7 +928,7 @@
 
   /* ------------------------------------------------------------ boot */
   function loadPlayers() {
-    return api('/api/nba/players').then(function (d) {
+    return api('/api/nba/players?profile=' + encodeURIComponent((S.profile && S.profile.leagueId) || '242808')).then(function (d) {
       var list = (d && d.players) || [];
       list.forEach(function (p) { p.id = String(p.id); });
       list.sort(function (a, b) { return (a.rank || 1e9) - (b.rank || 1e9) || (b.hsValue || 0) - (a.hsValue || 0); });
@@ -780,10 +940,20 @@
     });
   }
 
+  // League profile (12 teams / 9 starters / 90s for 242808). If it can't load,
+  // the logic's built-in 242808 defaults apply and a toast says so.
+  function loadProfile() {
+    return api('/api/nba/league-profile').then(function (p) {
+      if (p && p.slots && p.teams) { S.profile = p; S.profileErr = false; } else throw new Error('bad profile');
+    }).catch(function () { S.profile = null; S.profileErr = true; setTimeout(function () { toast('League profile unavailable — using built-in league 242808 settings'); }, 400); })
+      .then(function () { applyProfile(); recompute(); render(); });
+  }
+
   bind();
   handleYahooParam();
   initClerk();
   load(null, L.DEFAULT_SETTINGS);
   recompute(); render();
-  Promise.all([loadPlayers(), initYahoo()]).then(function () { recompute(); render(); });
+  var profileP = loadProfile();
+  Promise.all([loadPlayers(), profileP.then(initYahoo)]).then(function () { recompute(); render(); });
 })();

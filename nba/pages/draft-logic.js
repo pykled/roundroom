@@ -27,6 +27,7 @@
   var LEGACY_TYPES = ['G', 'F', 'UTIL'];
   var POS_SLOT = { PG: 1, SG: 1, SF: 1, PF: 1, FC: 1, C: 1 }; // any of these => position-aware league
   // Narrow slots first: a PG who can start at PG, G or UTIL takes PG.
+  var SUBSLOTS = { G: ['PG', 'SG'], F: ['SF', 'PF'], FC: ['SF', 'PF', 'F', 'C'] };
   var SPECIFIC = { PG: 3, SG: 3, SF: 3, PF: 3, C: 3, G: 2, F: 2, FC: 2, UTIL: 1 };
   /* Yahoo position token -> starter slots it can fill (Phase 3 addendum legend:
      PG<-PG; SG<-SG,G,G/F; G<-PG,SG,G,G/F; SF<-SF,F,G/F; PF<-PF,F,F/C;
@@ -524,11 +525,16 @@
     types.filter(function (t) { return t !== 'UTIL'; }).forEach(function (pos) {
       if (!a.open[pos]) return;
       var eligAll = all.filter(function (p) { return canFill(p, pos, settings); }).sort(byValThenId);
-      var line = eligAll[Math.min(eligAll.length - 1, settings.teams * settings.slots[pos] - 1)];
+      // League-wide demand for this pool: the slot itself plus the narrower slots
+      // it overlaps (G competes with PG/SG starters, F with SF/PF, F/C with SF/PF/F/C).
+      var demand = 0;
+      types.forEach(function (t) { if (t === pos || (SUBSLOTS[pos] || []).indexOf(t) >= 0) demand += settings.slots[t]; });
+      var line = eligAll[Math.min(eligAll.length - 1, settings.teams * demand - 1)];
       if (!line) return;
       var grade = avail.filter(function (p) { return canFill(p, pos, settings) && val(p) >= val(line); }).length;
-      if (grade <= k + a.open[pos]) {
-        out.push({ level: grade <= k ? 'warn' : 'info', text: pos + ' is drying up: ' + grade + ' starter-grade ' + pos + ' left, ' + k + ' picks before your turn' });
+      if (grade === 0 && urgent) return; // already a catch-up line for this slot
+      if (grade <= k) {
+        out.push({ level: grade <= a.open[pos] + Math.floor(k / 3) ? 'warn' : 'info', text: pos + ' is drying up: ' + grade + ' starter-grade ' + pos + ' left, ' + k + ' picks before your turn' });
       }
     });
 

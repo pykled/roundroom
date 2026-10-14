@@ -392,6 +392,14 @@ t('performance: 200-player board, 15-man roster, recommendation < 250ms', () => 
   ok(Date.now() - t0 < 250, 'took ' + (Date.now() - t0) + 'ms');
 });
 
+t('G scarcity counts PG/SG demand: plenty of guards left → no "G is drying up"', () => {
+  const all = []; for (let i = 0; i < 120; i++) all.push(Q(i, i % 2 ? 'PG' : 'SG', 100 - i));
+  const avail = all.slice(10); // 110 guards still out there, 26 of them starter-grade
+  const roster = [Q('a', 'PG', 99), Q('b', 'SG', 98)]; // PG + SG filled, G open
+  const w = L.balanceWarnings(roster, LP, { available: avail, players: all, picksUntilNext: 11 });
+  ok(!w.some(x => /G is drying up/.test(x.text)), JSON.stringify(w));
+});
+
 console.log('cheat sheet');
 t('rounds 1-16 for slot 5 at pick 1, with targets near each pick + by-slot tiers', () => {
   const av = boardFixture();

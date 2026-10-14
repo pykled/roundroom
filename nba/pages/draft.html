@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Draft Board | Pocket</title>
-<meta name="description" content="Live draft board for Yahoo High Score fantasy basketball. Players ranked by expected best game of the week, with G/F slot balance, best-available picks and live Yahoo draft sync.">
+<meta name="description" content="Live draft board for Yahoo High Score fantasy basketball. Players ranked by expected best game of the week, with slot-aware best-available picks, a 90-second pick clock and live Yahoo draft sync.">
 <link rel="canonical" href="https://pocketff.com/nba">
 <meta name="theme-color" content="#000000">
 <meta property="og:site_name" content="Pocket">
@@ -28,8 +28,10 @@
   --util: rgba(255,255,255,0.55);
   --g-bg: rgba(251,146,60,.14);
   --f-bg: rgba(56,189,248,.14);
+  --c: #c4b5fd;           /* centers */
+  --c-bg: rgba(167,139,250,.16);
   --clock: #fb923c;
-  --minibar-h: 64px;
+  --minibar-h: 104px;
   --sheet-ease: cubic-bezier(.32,.72,0,1);
 }
 #app { max-width: 1180px; width: 100%; padding-top: var(--space-5); }
@@ -128,12 +130,27 @@
 .nd-alt .v { font-family: var(--font-mono); font-weight: 400; color: var(--text-muted); }
 .nd-reco .btn-primary { min-height: 40px; padding: 0 1rem; }
 
+/* ── View switch (Board | Cheat sheet) ────────────────────────────────── */
+.nd-views { display: inline-flex; padding: 3px; margin-bottom: var(--space-3); border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); }
+.nd-views button { min-height: 38px; padding: 0 1rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.nd-views button[aria-pressed="true"] { background: var(--text-primary); color: var(--bg-primary); }
+
 /* ── Filters ──────────────────────────────────────────────────────────── */
-.nd-filters { position: sticky; top: calc(var(--nav-h, 56px) + var(--clock-h, 96px) + 6px); z-index: 10; display: flex; gap: var(--space-2); align-items: center; padding: 0.5rem 0; margin-bottom: 0.25rem; background: var(--bg-primary); }
-.nd-filters .board-search { min-height: 40px; min-width: 0; }
-.nd-seg { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); flex-shrink: 0; }
-.nd-seg button { min-width: 44px; min-height: 34px; padding: 0 0.6rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; cursor: pointer; }
-.nd-seg button[aria-pressed="true"] { background: var(--text-primary); color: var(--bg-primary); }
+.nd-filters-wrap { position: sticky; top: calc(var(--nav-h, 56px) + var(--clock-h, 96px) + 6px); z-index: 10; padding: 0.5rem 0 0.35rem; margin-bottom: 0.25rem; background: var(--bg-primary); }
+.nd-filters { display: flex; gap: var(--space-2); align-items: center; margin-bottom: 0.45rem; }
+.nd-filters .board-search { min-height: 40px; min-width: 0; flex: 1 1 auto; }
+.nd-tier { flex: 0 0 auto; min-height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.78rem; padding: 0 0.5rem; }
+/* slot chips double as the "run on a position" meter: small number = eligible players left in the top 40 */
+.nd-seg { display: grid; grid-template-columns: repeat(var(--n, 9), minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: var(--radius-md); background: rgba(255,255,255,.04); border: 1px solid var(--border); }
+.nd-seg button { position: relative; min-width: 0; min-height: 44px; padding: 0 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; cursor: pointer; touch-action: manipulation; }
+.nd-seg button small { font-size: 0.58rem; color: var(--text-muted); line-height: 1; }
+.nd-seg button.G span { color: var(--g); } .nd-seg button.F span { color: var(--f); } .nd-seg button.C span { color: var(--c); }
+.nd-seg button.scarce small { color: var(--amber); font-weight: 700; }
+.nd-seg button.run small { color: #f87171; font-weight: 700; }
+.nd-seg button.run::after { content: ''; position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: #f87171; }
+.nd-seg button[aria-pressed="true"] { background: var(--text-primary); }
+.nd-seg button[aria-pressed="true"] span, .nd-seg button[aria-pressed="true"] small { color: var(--bg-primary); }
+.nd-elig-note { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; margin: 0 0 0.4rem; }
 .nd-chip-toggle { min-height: 40px; padding: 0 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .nd-chip-toggle[aria-pressed="true"] { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-glow); }
 .nd-count-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0 0 0.3rem; }
@@ -154,6 +171,10 @@
 .pp.G { background: var(--g-bg); color: var(--g); }
 .pp.F { background: var(--f-bg); color: var(--f); }
 .pp.UTIL { background: rgba(255,255,255,.07); color: var(--util); }
+.pp.C { background: var(--c-bg); color: var(--c); }
+.pp.low { box-shadow: inset 0 0 0 1px currentColor; background: none; opacity: .85; }
+.nd-fill { display: inline-block; margin-left: 0.35rem; padding: 0.05rem 0.4rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: .02em; text-transform: none; background: rgba(255,255,255,.08); color: var(--text-primary); }
+.nd-fill.G { background: var(--g-bg); color: var(--g); } .nd-fill.F { background: var(--f-bg); color: var(--f); } .nd-fill.C { background: var(--c-bg); color: var(--c); }
 .nd-gm { font-family: var(--font-mono); font-size: 0.6rem; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; border: 1px solid var(--border-bright); color: var(--text-secondary); }
 .nd-gm.hi { border-color: rgba(16,185,129,.45); color: #6ee7b7; }
 .nd-gm.lo { border-color: rgba(239,68,68,.35); color: #fca5a5; }
@@ -180,7 +201,18 @@
 .nd-slot { display: flex; align-items: center; gap: 0.55rem; min-height: 40px; padding: 0.25rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
 .nd-slot:last-child { border-bottom: none; }
 .nd-slot .sl { width: 38px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500; letter-spacing: .04em; }
-.nd-slot .sl.G { color: var(--g); } .nd-slot .sl.F { color: var(--f); } .nd-slot .sl.UTIL, .nd-slot .sl.BN { color: var(--text-muted); }
+.nd-slot .sl.G, .sl.G { color: var(--g); } .nd-slot .sl.F, .sl.F { color: var(--f); } .nd-slot .sl.C, .sl.C { color: var(--c); } .nd-slot .sl.UTIL, .nd-slot .sl.BN { color: var(--text-muted); }
+.nd-slot.need .nm.open { color: var(--amber); font-style: normal; font-weight: 600; }
+.nd-slot.need .nm.open::after { content: ' · catch up'; font-weight: 400; }
+.nd-hdr-note { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 0.3rem; }
+.nd-scarce { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin: 0 0 0.45rem; }
+.nd-scarce:empty { display: none; }
+.nd-scarce .section-label { margin-right: 0.15rem; }
+.nd-sc { font-family: var(--font-mono); font-size: 0.64rem; padding: 0.15rem 0.4rem; border-radius: 5px; border: 1px solid var(--border); color: var(--text-secondary); }
+.nd-sc b { font-weight: 500; color: var(--text-primary); }
+.nd-sc.open { border-color: var(--border-bright); }
+.nd-sc.scarce { border-color: rgba(245,158,11,.5); color: #fcd34d; }
+.nd-sc.run { border-color: rgba(239,68,68,.5); color: #fca5a5; }
 .nd-slot .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 .nd-slot .nm.open { color: var(--text-muted); font-weight: 400; font-style: italic; }
 .nd-slot .v { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); }
@@ -253,6 +285,39 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 .nd-dialog-actions .btn-primary, .nd-dialog-actions .btn-secondary { min-height: 44px; }
 .nd-danger { background: none; border: none; color: var(--danger); font-size: 0.76rem; font-weight: 600; cursor: pointer; margin-right: auto; min-height: 44px; padding: 0 0.25rem; }
 
+/* ── Cheat sheet ──────────────────────────────────────────────────────── */
+.nd-cheat-head { display: flex; align-items: flex-start; gap: var(--space-3); margin-bottom: var(--space-3); }
+.nd-cheat-head h2 { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; }
+.nd-cheat-head p { font-size: 0.74rem; color: var(--text-secondary); line-height: 1.45; margin-top: 0.2rem; }
+.nd-cheat-head .btn-secondary { margin-left: auto; flex-shrink: 0; min-height: 40px; }
+.nd-cs-warns .nd-warn { margin-bottom: 0.35rem; }
+.nd-cs-rounds { list-style: none; margin: 0 0 var(--space-4); padding: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.nd-cs-rounds li { display: grid; grid-template-columns: 34px 42px minmax(0, 1fr); align-items: start; gap: 0.4rem; padding: 0.5rem 0.65rem; border-bottom: 1px solid var(--border); }
+.nd-cs-rounds li:last-child { border-bottom: none; }
+.nd-cs-rounds li.done { opacity: .6; }
+.nd-cs-rounds li.now { background: rgba(251,146,60,.08); }
+.nd-cs-rounds .r { font-family: var(--font-mono); font-size: 0.72rem; color: var(--clock); padding-top: 0.45rem; }
+.nd-cs-rounds .pk { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); padding-top: 0.48rem; }
+.nd-cs-rounds .got { font-size: 0.8rem; font-weight: 600; padding-top: 0.35rem; display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
+.nd-cs-rounds .tg { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.nd-cs-p { min-height: 34px; padding: 0 0.55rem; border-radius: var(--radius-pill); border: 1px solid var(--border); background: rgba(255,255,255,.02); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-cs-p i { font-style: normal; font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); font-weight: 400; }
+.nd-cs-p.need { color: var(--text-primary); border-color: rgba(251,146,60,.45); }
+.nd-cs-h3 { font-size: 0.66rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin: 0 0 0.5rem; }
+.nd-cs-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.6rem; }
+.nd-cs-slot { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.55rem 0.7rem; background: var(--bg-card); }
+.nd-cs-slot h4 { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 0.8rem; margin-bottom: 0.3rem; }
+.nd-cs-slot h4 .ok { font-family: var(--font-sans); font-size: 0.62rem; color: var(--text-muted); }
+.nd-cs-tier { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 0.3rem; padding: 0.2rem 0; border-top: 1px solid var(--border); }
+.nd-cs-tier .t { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); padding-top: 0.3rem; }
+.nd-cs-tier .ps { display: flex; flex-wrap: wrap; gap: 0 0.15rem; }
+.nd-cs-tier button { background: none; border: none; color: var(--text-body); font-size: 0.74rem; padding: 0.25rem 0.3rem; min-height: 30px; cursor: pointer; }
+.nd-cs-tier button em { font-style: normal; font-size: 0.56rem; color: #f87171; font-weight: 800; }
+.nd-fields-h { font-size: 0.64rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin: 0.9rem 0 0.4rem; }
+.nd-slot-fields { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.45rem; }
+.nd-slot-fields input { padding: 0 0.4rem; text-align: center; }
+.nd-link { background: none; border: none; color: #c4b5fd; font-size: 0.74rem; font-weight: 600; cursor: pointer; padding: 0.5rem 0; min-height: 40px; }
+
 /* toast */
 .nd-toast { position: fixed; left: 50%; top: calc(var(--nav-h, 56px) + 10px); transform: translate(-50%, -12px); opacity: 0; z-index: var(--z-toast); max-width: min(92vw, 420px); padding: 0.6rem 0.95rem; border-radius: var(--radius-pill); background: rgba(24,24,24,.94); border: 1px solid var(--border-bright); font-size: 0.78rem; box-shadow: var(--shadow-card); transition: opacity .2s, transform .25s var(--sheet-ease); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nd-toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -293,7 +358,12 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-timer.me .t { font-size: 1.1rem; }
   .nd-fr-cols { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
   .nd-filters .board-search { flex: 1 1 auto; width: 0; }
-  .nd-seg button { min-width: 38px; min-height: 36px; padding: 0 0.4rem; }
+  .nd-filters-wrap { position: static; padding-top: 0.25rem; }
+  .nd-list .rsch-tier-divider { top: calc(var(--nav-h, 56px) + var(--clock-h, 96px) + 4px); }
+  .nd-views { display: flex; margin-bottom: var(--space-3); }
+  .nd-views button { flex: 1; min-height: 40px; }
+  .nd-cheat-head p { font-size: 0.7rem; }
+  .nd-cs-rounds li { grid-template-columns: 30px 38px minmax(0, 1fr); padding: 0.45rem 0.5rem; }
 
   /* side panels become the roster bottom sheet */
   .nd-side { position: fixed; z-index: calc(var(--z-overlay) + 1); left: 0; right: 0; bottom: 0; top: auto; max-height: 86vh; overflow-y: auto; gap: var(--space-3); padding: 0.5rem var(--space-3) calc(1rem + env(safe-area-inset-bottom)); background: var(--bg-secondary); border-top: 1px solid var(--border-bright); border-radius: 20px 20px 0 0; box-shadow: 0 -20px 60px rgba(0,0,0,.6); transform: translateY(104%); visibility: hidden; transition: transform .38s var(--sheet-ease), visibility 0s .38s; overscroll-behavior: contain; }
@@ -301,16 +371,24 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-side-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: -0.5rem; z-index: 2; margin: -0.5rem calc(-1 * var(--space-3)) 0; padding: 0.5rem var(--space-3) 0.25rem; background: var(--bg-secondary); }
   .nd-side-head .grab { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.2); }
 
-  .nd-minibar { display: flex; align-items: center; gap: 0.6rem; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; min-height: var(--minibar-h); padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom)); background: rgba(10,10,10,.86); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border-top: 1px solid var(--border-bright); }
-  .nd-mb-slots { display: flex; gap: 3px; flex-shrink: 0; }
-  .nd-mb-slot { width: 22px; height: 26px; border-radius: 5px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.56rem; border: 1px dashed rgba(255,255,255,.22); color: var(--text-muted); }
+  /* bottom bar (thumb zone): my 9 starter slots, then status or a one-tap Draft */
+  .nd-minibar { display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; min-height: var(--minibar-h); padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom)); background: rgba(10,10,10,.88); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border-top: 1px solid var(--border-bright); }
+  .nd-mb-slots { display: grid; grid-template-columns: repeat(var(--n, 9), minmax(0, 1fr)); gap: 3px; }
+  .nd-mb-slot { height: 24px; border-radius: 5px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.6rem; border: 1px dashed rgba(255,255,255,.25); color: var(--text-muted); }
+  .nd-mb-slot.need { border: 1px solid var(--amber); color: var(--amber); }
   .nd-mb-slot.G.on { background: var(--g); color: #1a0d03; border: none; font-weight: 500; }
   .nd-mb-slot.F.on { background: var(--f); color: #02141d; border: none; font-weight: 500; }
+  .nd-mb-slot.C.on { background: var(--c); color: #1b0f3a; border: none; font-weight: 500; }
   .nd-mb-slot.UTIL.on { background: rgba(255,255,255,.75); color: #000; border: none; }
+  .nd-mb-row { display: flex; align-items: center; gap: 0.6rem; min-height: 48px; }
   .nd-mb-txt { flex: 1; min-width: 0; font-size: 0.72rem; line-height: 1.3; color: var(--text-secondary); }
-  .nd-mb-txt b { display: block; color: var(--text-primary); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .nd-mb-txt .w { color: var(--amber); }
-  .nd-mb-btn { min-height: 44px; padding: 0 0.9rem; border-radius: 12px; }
+  .nd-mb-txt b { display: block; color: var(--text-primary); font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nd-mb-txt span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nd-mb-txt .w { color: var(--amber); } .nd-mb-txt .w.danger { color: #f87171; }
+  .nd-mb-act { flex: 1; min-width: 0; }
+  .nd-mb-draft { width: 100%; min-height: 48px; border-radius: 12px; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; touch-action: manipulation; }
+  .nd-mb-draft small { font-family: var(--font-mono); font-size: 0.68rem; opacity: .7; }
+  .nd-mb-btn { min-height: 48px; padding: 0 0.9rem; border-radius: 12px; flex-shrink: 0; }
 }
 @media (min-width: 901px) {
   .nd-side-head { display: none; }
@@ -321,6 +399,9 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-sheet-actions { padding-bottom: 0.9rem; }
 }
 @media (max-width: 420px) {
+  .nd-otc .who { font-size: 0.84rem; white-space: normal; line-height: 1.2; }
+  .nd-otc .sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+  .nd-clock { gap: var(--space-2); }
   .nd-rk { width: 20px; }
   .nd-row-main { gap: 0.45rem; padding-left: 0.1rem; }
   .nd-val { min-width: 44px; }
@@ -338,6 +419,15 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-draft:active { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) and (min-width: 901px) { .nd-side { opacity: 1; } .nd-sheet, .nd-sheet.open { transform: translate(-50%, -50%); } }
+@media print {
+  #rr-nav, .page-head, .nd-banner, .nd-firstrun, .nd-clock, .nd-views, #nd-boardview, .nd-side, .nd-minibar, .tool-about, .rr-footer, .nd-toast, .nd-cheat-head .btn-secondary { display: none !important; }
+  body, #app { background: #fff !important; color: #000 !important; padding: 0 !important; }
+  .nd-grid { display: block; }
+  .nd-cheat { display: block !important; color: #000; }
+  .nd-cheat *, .nd-cs-p, .nd-cs-tier button { color: #000 !important; background: none !important; border-color: #bbb !important; }
+  .nd-cs-slots { grid-template-columns: repeat(3, 1fr); }
+  .nd-cs-rounds li, .nd-cs-slot { break-inside: avoid; }
+}
 @media (prefers-reduced-transparency: reduce) {
   .nd-clock, .nd-minibar { background: var(--bg-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
@@ -364,9 +454,9 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 <div id="app">
   <header class="page-head">
     <div class="page-head-text">
-      <p class="nd-eyebrow">NBA · Yahoo High Score</p>
+      <p class="nd-eyebrow" id="nd-eyebrow">NBA · Yahoo High Score</p>
       <h1 class="page-title">Draft board</h1>
-      <p class="page-sub">Ranked by each player's expected best game of the week, the only game High Score counts. Built for G, G, F, F, F, UTIL.</p>
+      <p class="page-sub" id="nd-sub">Ranked by each player's expected best game of the week, the only game High Score counts.</p>
     </div>
     <div class="nd-head-ctl">
       <span id="nd-sync" class="nd-sync" role="status" aria-live="polite" hidden></span>
@@ -418,22 +508,29 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
     <div class="nd-ticker" id="nd-ticker" aria-hidden="true"></div>
   </section>
 
+  <div class="nd-views" id="nd-views" role="group" aria-label="View">
+    <button type="button" data-view="board" aria-pressed="true">Board</button>
+    <button type="button" data-view="cheat" aria-pressed="false">Cheat sheet</button>
+  </div>
+
   <div class="nd-grid">
     <main class="nd-board">
+      <section id="nd-cheat" class="nd-cheat" aria-label="Cheat sheet" hidden></section>
+      <div id="nd-boardview">
       <section id="nd-reco" class="nd-reco" aria-label="Best available" hidden></section>
 
-      <div class="nd-filters" role="search">
-        <input id="nd-search" class="board-search" type="search" placeholder="Search players" aria-label="Search players" autocomplete="off">
-        <div class="nd-seg" role="group" aria-label="Position filter">
-          <button type="button" data-pos="ALL" aria-pressed="true">All</button>
-          <button type="button" data-pos="G" aria-pressed="false">G</button>
-          <button type="button" data-pos="F" aria-pressed="false">F</button>
-          <button type="button" data-pos="UTIL" aria-pressed="false">UTIL</button>
+      <div class="nd-filters-wrap">
+        <div class="nd-filters" role="search">
+          <input id="nd-search" class="board-search" type="search" placeholder="Search players" aria-label="Search players" autocomplete="off">
+          <select id="nd-tier" class="nd-tier" aria-label="Tier filter"><option value="0">All tiers</option></select>
         </div>
+        <div class="nd-seg" id="nd-seg" role="group" aria-label="Slot filter (number = eligible players left in the top 40)"></div>
       </div>
-      <div class="nd-count-row"><span class="nd-count" id="nd-count" aria-live="polite"></span><button id="nd-show-taken" class="nd-chip-toggle" type="button" aria-pressed="false">Show drafted</button></div>
+      <div class="nd-count-row"><span class="nd-count" id="nd-count" aria-live="polite"></span><button id="nd-hide-out" class="nd-chip-toggle" type="button" aria-pressed="false">Hide OUT</button><button id="nd-show-taken" class="nd-chip-toggle" type="button" aria-pressed="false">Show drafted</button></div>
+      <p class="nd-elig-note" id="nd-elig-note" hidden>Positions come from Sleeper until Yahoo eligibility loads (dashed tags). Check a player’s Yahoo positions before relying on a slot.</p>
       <div id="nd-list" class="nd-list" role="list" aria-label="Players">
         <div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div>
+      </div>
       </div>
     </main>
 
@@ -442,6 +539,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
       <section class="nd-panel" aria-labelledby="nd-roster-h">
         <div class="col-hdr"><span id="nd-roster-h">Roster</span><span class="total" id="nd-roster-total"></span></div>
         <div id="nd-warns" class="nd-warns" aria-live="polite"></div>
+        <div id="nd-scarce" class="nd-scarce"></div>
         <div id="nd-roster"></div>
       </section>
       <details id="nd-review" class="nd-review" hidden>
@@ -458,14 +556,17 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 
   <section class="tool-about">
     <h2>How the High Score draft board ranks players</h2>
-    <p>In Yahoo High Score leagues only each starter's single best game of the week counts, scored as points + rebounds + 2×assists + 3×steals + 3×blocks. The board ranks players by the expected value of that best game over a typical week, so volatile players with big ceilings and teams with four-game weeks rise. The best-available pick weighs what each player adds to your open G, F and UTIL slots against what will still be there at your next turn.</p>
+    <p>In Yahoo High Score leagues only each starter's single best game of the week counts, scored with your league's own stat values. The board ranks players by the expected value of that best game over a typical week, so volatile players with big ceilings and teams with four-game weeks rise. The best-available pick weighs what each player adds to your open starter slots (PG, SG, G, SF, PF, F, C, UTIL, using Yahoo's position eligibility) against what will still be there at your next turn, and flags positions that are running dry.</p>
   </section>
 </div>
 
 <div id="nd-minibar" class="nd-minibar" aria-label="My roster summary">
-  <div class="nd-mb-slots" id="nd-mb-slots" aria-hidden="true"></div>
-  <div class="nd-mb-txt" id="nd-mb-txt"></div>
-  <button id="nd-mb-btn" class="btn-secondary nd-mb-btn" type="button" aria-controls="nd-side" aria-expanded="false">My team</button>
+  <div class="nd-mb-slots" id="nd-mb-slots"></div>
+  <div class="nd-mb-row">
+    <div class="nd-mb-txt" id="nd-mb-txt"></div>
+    <div class="nd-mb-act" id="nd-mb-act" hidden></div>
+    <button id="nd-mb-btn" class="btn-secondary nd-mb-btn" type="button" aria-controls="nd-side" aria-expanded="false">My team</button>
+  </div>
 </div>
 
 <div id="nd-scrim" class="nd-scrim" aria-hidden="true"></div>
@@ -479,16 +580,15 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 <dialog id="nd-settings" class="nd-dialog" aria-labelledby="nd-settings-h">
   <form method="dialog" id="nd-settings-form">
     <h2 id="nd-settings-h">League settings</h2>
-    <p class="hint" id="nd-settings-hint">Manual draft tracking. Defaults match Yahoo High Score: 10 teams, 6 starters, 10-man rosters.</p>
+    <p class="hint" id="nd-settings-hint">Manual draft tracking.</p>
     <div class="nd-fields">
       <label>Teams<input name="teams" type="number" inputmode="numeric" min="2" max="20" required></label>
       <label>My draft slot<input name="mySlot" type="number" inputmode="numeric" min="1" max="20" required></label>
-      <label>G slots<input name="G" type="number" inputmode="numeric" min="0" max="6"></label>
-      <label>F slots<input name="F" type="number" inputmode="numeric" min="0" max="6"></label>
-      <label>UTIL slots<input name="UTIL" type="number" inputmode="numeric" min="0" max="6"></label>
-      <label>Bench<input name="bench" type="number" inputmode="numeric" min="0" max="15"></label>
       <label>Pick timer (sec, 0 = off)<input name="timer" type="number" inputmode="numeric" min="0" max="600"></label>
     </div>
+    <div class="nd-fields-h">Roster slots</div>
+    <div class="nd-fields nd-slot-fields" id="nd-slot-fields"></div>
+    <button type="button" class="nd-link" id="nd-profile-reset" hidden>Use the league profile again</button>
     <div class="nd-dialog-actions">
       <button type="button" class="nd-danger" id="nd-reset">Reset draft</button>
       <button type="submit" value="cancel" class="btn-secondary">Cancel</button>
