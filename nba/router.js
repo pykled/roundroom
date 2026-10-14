@@ -503,6 +503,7 @@ function createNbaRouter({
     res.type('application/json').send(JSON.stringify(report, null, 2));
   });
 
+  router.use(require('./routes/lineup')({ auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError, log }));
   return router;
 }
 
