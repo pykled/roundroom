@@ -15,6 +15,15 @@ const HS_MODIFIERS = { PTS: 1, REB: 1, AST: 2, ST: 3, BLK: 3 };
 const HS_ROSTER = { G: 2, F: 3, UTIL: 1 };
 const MAX_LEAGUES = 8;
 
+// Unmodelled settings are shown verbatim minus anything link/identity-like
+// (chat channel URLs, invite links, ids tied to a person).
+const REDACT_KEY = /url|sendbird|token|secret|guid|email|password|invite/i;
+function redactExtra(extra) {
+  const out = {};
+  for (const [k, v] of Object.entries(extra || {})) if (!REDACT_KEY.test(k)) out[k] = v;
+  return out;
+}
+
 function errInfo(e) {
   return { message: String((e && e.message) || e).slice(0, 240), status: (e && e.status) || null, code: (e && e.code) || null };
 }
@@ -103,7 +112,7 @@ async function runDiagnose({ client, warnings = [], now = () => Date.now(), maxL
         stat_categories: (league.stat_categories || []).filter(c => c.enabled).map(c => `${c.stat_id}:${c.display_name || c.name}`),
         stat_modifiers: league.stat_modifiers,
         weeks: { count: league.weeks.length, first: league.weeks[0] || null, last: league.weeks[league.weeks.length - 1] || null },
-        extra: s.extra || {},
+        extra: redactExtra(s.extra),
       };
       out.highScore = highScoreCheck(league);
     }

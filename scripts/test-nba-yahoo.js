@@ -471,5 +471,288 @@ async function freePort() {
     } finally { child.kill('SIGKILL'); }
   });
 
+  // ===== stream G additions: Yahoo reality hardening ========================
+  const Q = name => { const raw = fs.readFileSync(path.join(FIX, 'quirks', name), 'utf8'); return /\.json$/.test(name) ? JSON.parse(raw) : raw; };
+  const textResp = (status, text, headers = {}) => ({ status, ok: status >= 200 && status < 300, headers: { get: k => headers[k.toLowerCase()] ?? null }, text: async () => text });
+  const oauthG = require('../nba/yahoo/oauth');
+  const { createNonceStore } = require('../nba/yahoo/nonces');
+  const { runDiagnose, highScoreCheck, formatReport } = require('../nba/yahoo/diagnose');
+
+  console.log('parse quirks (scripts/fixtures/nba/quirks)');
+  await test('single-object collection (no "0" key, no count) still lists the team + manager', () => {
+    const w = [];
+    const teams = P.capture(() => P.parseTeams(Q('teams-single-object.json')), m => w.push(m));
+    assert.deepStrictEqual(teams.map(t => [t.team_key, t.name, t.is_owned_by_current_login]), [['466.l.12345.t.1', 'Solo', true]]);
+    assert.strictEqual(teams[0].managers[0].nickname, 'Dillon');
+    assert.deepStrictEqual(w, []);
+  });
+  await test('count mismatch + string numbers: entries parsed, warning recorded', () => {
+    const w = [];
+    const d = P.capture(() => P.parseDraftResults(Q('draftresults-count-mismatch.json')), m => w.push(m));
+    assert.deepStrictEqual(d.picks, [{ pick: 1, round: 1, team_key: '466.l.12345.t.2', player_key: '466.p.5352' }, { pick: 2, round: 1, team_key: '466.l.12345.t.1', player_key: null }]);
+    assert.ok(w.some(x => /count=3 but 2/.test(x)), w.join('|'));
+  });
+  await test('empty collections ("", [], {count:0}) yield [] without throwing', () => {
+    assert.deepStrictEqual(P.parseUserLeagues(Q('user-leagues-empty.json')).leagues, []);
+    assert.deepStrictEqual(P.parsePlayers(Q('players-empty-count0.json')), []);
+    assert.deepStrictEqual(P.list('', 'x'), []); assert.deepStrictEqual(P.list(null, 'x'), []); assert.deepStrictEqual(P.list({ count: '0' }, 'x'), []);
+  });
+  await test('player fragments: single/numeric-keyed/mixed eligible_positions, missing name, [] placeholders', () => {
+    const w = [];
+    const ps = P.capture(() => P.parsePlayers(Q('players-fragments.json')), m => w.push(m));
+    assert.deepStrictEqual(ps.map(p => p.eligible_positions), [['C'], ['PG', 'G'], ['SF', 'F']]);
+    assert.strictEqual(ps[0].editorial_team_abbr, 'BOS');
+    assert.strictEqual(ps[1].name.full, 'Only Parts');
+    assert.strictEqual(ps[1].player_id, '2');
+    assert.strictEqual(ps[1].selected_position, 'UTIL');
+    assert.strictEqual(ps[2].name.full, null);
+    assert.ok(w.some(x => /466\.p\.3 has no name/.test(x)));
+  });
+  await test('sparse settings: missing roster_positions warns; single-object stat_modifiers parsed', () => {
+    const w = [];
+    const l = P.capture(() => P.parseLeague(Q('league-settings-sparse.json')), m => w.push(m));
+    assert.deepStrictEqual(l.settings.roster_positions, []);
+    assert.deepStrictEqual(l.settings.stat_modifiers, [{ stat_id: 12, value: 1 }]);
+    assert.ok(w.some(x => /no roster_positions/.test(x)));
+  });
+  await test('auction settings + draft cost are exposed; url-ish extra settings are kept in parse', () => {
+    const l = P.parseLeague(Q('league-settings-auction.json'));
+    assert.strictEqual(l.settings.is_auction_draft, true);
+    assert.strictEqual(l.settings.draft_pick_time, 90);
+    assert.deepStrictEqual(P.parseDraftResults(Q('draftresults-auction.json')).picks.map(p => p.cost), [54, 3]);
+  });
+  await test('no fantasy_content / XML / JSON error bodies → typed parse errors, not TypeErrors', () => {
+    assert.throws(() => P.parseGame(Q('no-fantasy-content.json')), e => e.name === 'YahooParseError');
+    assert.throws(() => P.parseGame(Q('error-xml.xml')), e => e.code === 'xml_response' && /does not exist/.test(e.message));
+    assert.throws(() => P.parseLeague(Q('error-json.json')), e => e.code === 'yahoo_error' && /does not exist/.test(e.message));
+  });
+
+  console.log('client: error bodies');
+  const tkG = () => memTokens({ access_token: 'A', refresh_token: 'R', expires_at: Date.now() + 3600e3 });
+  await test('XML 400 error body → YahooError with the <description>', async () => {
+    const c = createClient({ ...tkG(), limiter: noWait, fetchImpl: async () => textResp(400, Q('error-xml.xml')) });
+    await assert.rejects(c.getLeague('466.l.99999'), e => e.name === 'YahooError' && e.status === 400 && /466\.l\.99999 does not exist/.test(e.message));
+  });
+  await test('JSON error body (object form) → description in message', async () => {
+    const c = createClient({ ...tkG(), limiter: noWait, fetchImpl: async () => textResp(404, JSON.stringify(Q('error-json.json'))) });
+    await assert.rejects(c.getTeams('466.l.99999'), e => e.status === 404 && /does not exist/.test(e.message));
+  });
+  await test('999 HTML throttle page retried, then surfaces as 429 (not a JSON crash)', async () => {
+    let n = 0;
+    const c = createClient({ ...tkG(), limiter: noWait, sleep: fastSleep, maxRetries: 2, fetchImpl: async () => { n++; return textResp(999, Q('error-999.html')); } });
+    await assert.rejects(c.getGameKey('nba'), e => e.status === 429);
+    assert.strictEqual(n, 3);
+  });
+  await test('200 with XML body (format ignored) → 502 bad_format; 200 garbage JSON → 502 bad_response', async () => {
+    const c = createClient({ ...tkG(), limiter: noWait, fetchImpl: async () => textResp(200, '<?xml version="1.0"?><fantasy_content/>') });
+    await assert.rejects(c.getGameKey('nba'), e => e.status === 502 && e.code === 'bad_format');
+    const c2 = createClient({ ...tkG(), limiter: noWait, fetchImpl: async () => textResp(200, JSON.stringify(Q('no-fantasy-content.json'))) });
+    await assert.rejects(c2.getTeams('466.l.1'), e => e.status === 502 && e.code === 'bad_response');
+  });
+  await test('client onWarning receives parse warnings', async () => {
+    const w = [];
+    const c = createClient({ ...tkG(), limiter: noWait, onWarning: m => w.push(m), fetchImpl: async () => textResp(200, JSON.stringify(Q('draftresults-count-mismatch.json'))) });
+    assert.strictEqual((await c.getDraftResults('466.l.12345')).picks.length, 2);
+    assert.strictEqual(w.length, 1);
+  });
+
+  console.log('oauth: error classification');
+  await test('token endpoint codes: string, object form, bare 401; classifyError buckets', async () => {
+    const fail = (status, body) => oauthG.refreshTokens('RT', { env: ENV, fetchImpl: async () => resp(status, body) }).catch(e => e);
+    assert.strictEqual((await fail(400, { error: 'invalid_grant' })).code, 'invalid_grant');
+    assert.strictEqual((await fail(401, Q('token-error-object.json'))).code, 'invalid_client');
+    assert.strictEqual((await fail(401, 'not json at all')).code, 'invalid_client', 'bare 401 = client credential rejected');
+    assert.strictEqual((await fail(500, {})).code, null);
+    assert.strictEqual((await fail(400, { error: 'Your token RT was revoked, see ' })).code, null, 'free text is never treated as a code');
+    assert.strictEqual(oauthG.classifyError({ code: 'invalid_grant' }), 'revoked');
+    for (const c of ['invalid_client', 'unauthorized_client']) assert.strictEqual(oauthG.classifyError({ code: c }), 'misconfigured');
+    assert.strictEqual(oauthG.classifyError({ code: 'not_connected' }), 'not_connected');
+    assert.strictEqual(oauthG.classifyError({ status: 503 }), 'transient');
+  });
+
+  console.log('nonces: persisted, single-use, multi-instance');
+  // Minimal Postgres stand-in for nba_oauth_nonces.
+  function fakeNonceDb() {
+    const rows = new Map(); const sql = [];
+    return { rows, sql, query: async (q, p = []) => {
+      sql.push(q.replace(/\s+/g, ' ').trim());
+      if (/^CREATE TABLE/.test(q)) return { rows: [] };
+      if (/^INSERT INTO nba_oauth_nonces/.test(q)) { rows.set(p[0], { clerk_user_id: p[1], expires_at: p[2] }); return { rows: [] }; }
+      if (/^DELETE FROM nba_oauth_nonces WHERE nonce/.test(q)) { const r = rows.get(p[0]); rows.delete(p[0]); return { rows: r ? [r] : [] }; }
+      if (/^DELETE FROM nba_oauth_nonces WHERE expires_at/.test(q)) { for (const [k, v] of rows) if (v.expires_at < p[0]) rows.delete(k); return { rows: [] }; }
+      throw new Error('unexpected SQL ' + q);
+    } };
+  }
+  await test('db nonce store: issue on instance 1, consume on instance 2 (restart), replay + wrong user + expiry rejected', async () => {
+    const db = fakeNonceDb();
+    const a = createNonceStore({ db }), b = createNonceStore({ db });
+    assert.strictEqual(a.persistent, true);
+    const n = await a.issue('user_A');
+    assert.strictEqual(await b.consume(n, 'user_A'), true, 'second instance accepts');
+    assert.strictEqual(await a.consume(n, 'user_A'), false, 'replay rejected everywhere');
+    const n2 = await a.issue('user_A');
+    assert.strictEqual(await b.consume(n2, 'user_B'), false, 'wrong user');
+    assert.strictEqual(await a.consume(n2, 'user_A'), false, 'burned by the wrong-user attempt');
+    const n3 = await a.issue('user_A', Date.now() - 11 * 60 * 1000);
+    assert.strictEqual(await b.consume(n3, 'user_A'), false, 'expired');
+    assert.ok(db.sql.some(q => /^CREATE TABLE IF NOT EXISTS nba_oauth_nonces/.test(q)));
+    assert.strictEqual(await b.consume('', 'user_A'), false);
+  });
+  await test('db nonce store sweeps expired rows on issue (TTL cleanup)', async () => {
+    const db = fakeNonceDb();
+    const s1 = createNonceStore({ db });
+    await s1.issue('u', Date.now() - 20 * 60 * 1000); // old row, expired 10 min ago
+    assert.strictEqual(db.rows.size, 1);
+    const s2 = createNonceStore({ db }); // fresh instance sweeps on first issue
+    await s2.issue('u');
+    assert.strictEqual(db.rows.size, 1, 'expired row deleted, new one kept');
+  });
+  await test('memory fallback without db; migration declares nba_oauth_nonces', async () => {
+    const m = createNonceStore({});
+    assert.strictEqual(m.persistent, false);
+    const n = await m.issue('u');
+    assert.strictEqual(await m.consume(n, 'u'), true);
+    assert.strictEqual(await m.consume(n, 'u'), false);
+    assert.ok(/CREATE TABLE IF NOT EXISTS nba_oauth_nonces/.test(fs.readFileSync(path.join(ROOT, 'db', 'migrate.js'), 'utf8')));
+  });
+
+  console.log('diagnose');
+  await test('runDiagnose over fixtures: game key, leagues, settings, High Score signals, picks, roster; sanitized', async () => {
+    const warnings = [];
+    const c = createClient({ ...tkG(), limiter: noWait, onWarning: m => warnings.push(m), fetchImpl: async url => resp(200, yahooFixtureFor(url.replace('466.l.67890', '466.l.12345'))) });
+    const r = await runDiagnose({ client: c, warnings });
+    assert.strictEqual(r.ok, true, JSON.stringify(r.steps.filter(s => !s.ok)));
+    assert.strictEqual(r.gameKey, '466');
+    assert.strictEqual(r.leagues.length, 2);
+    const l = r.leagues[0];
+    assert.strictEqual(l.settings.scoring_type, 'headpoint');
+    assert.strictEqual(l.highScore.verdict, 'likely');
+    assert.deepStrictEqual(l.highScore.signals.map(s => s.field), ['scoring_type', 'settings.stat_modifiers', 'settings.roster_positions', 'name', 'settings.extra']);
+    assert.deepStrictEqual(l.draft.firstPicks.map(p => p.name), ['Nikola Jokic', 'Shai Gilgeous-Alexander']);
+    assert.strictEqual(l.draft.openSlots, 2);
+    assert.strictEqual(l.draft.teamKeyOnEveryPick, true);
+    assert.strictEqual(l.teams.myTeam.team_key, '466.l.12345.t.1');
+    assert.strictEqual(l.roster.sample[0].selected_position, 'F');
+    const txt = JSON.stringify(r) + formatReport(r);
+    assert.ok(!/FAKEGUID|access_token|refresh_token|Bearer/.test(txt), 'no guid / tokens in the report');
+  });
+  await test('highScoreCheck: categories league is unlikely; url-like extra settings redacted from report', async () => {
+    const cat = P.parseLeague(Q('league-settings-categories.json'));
+    const v = highScoreCheck({ ...cat, ...cat.settings });
+    assert.strictEqual(v.verdict, 'unlikely');
+    const c = createClient({ ...tkG(), limiter: noWait, fetchImpl: async url => {
+      const p = decodeURIComponent(new URL(url).pathname);
+      return /settings$/.test(p) ? resp(200, Q('league-settings-auction.json')) : resp(200, yahooFixtureFor(url));
+    } });
+    const r = await runDiagnose({ client: c, maxLeagues: 1 });
+    assert.strictEqual(r.leagues[0].settings.is_auction_draft, true);
+    assert.ok(!('sendbird_channel_url' in r.leagues[0].settings.extra));
+    assert.strictEqual(r.leaguesTruncated, 1);
+  });
+  await test('a failing step is recorded with its error; later leagues still run', async () => {
+    const c = createClient({ ...tkG(), limiter: noWait, sleep: fastSleep, maxRetries: 0, fetchImpl: async url => (/12345\/teams/.test(url) ? textResp(500, Q('error-xml.xml')) : resp(200, yahooFixtureFor(url.replace('466.l.67890', '466.l.12345')))) });
+    const r = await runDiagnose({ client: c });
+    assert.strictEqual(r.ok, false);
+    const bad = r.steps.filter(s => !s.ok);
+    assert.ok(bad.length >= 1 && bad.every(s => /teams/.test(s.step)));
+    assert.match(bad[0].error.message, /does not exist/);
+    assert.ok(r.leagues[1].draft, 'second league still diagnosed');
+  });
+
+  console.log('router: error classification, diagnose, draft order (stream G)');
+  {
+    const gStore = createTokenStore({ env: ENV });
+    let mode = 'ok';
+    const logs = [];
+    const gLog = { error: (...a) => logs.push(a.join(' ')), warn: (...a) => logs.push(a.join(' ')) };
+    const gCache = new Map();
+    const gApiCached = async (key, ttl, fn) => { const e = gCache.get(key); if (e && e.exp > Date.now()) return e.v; const v = await fn(); gCache.set(key, { v, exp: Date.now() + ttl }); return v; };
+    const gApp = express();
+    gApp.use('/', createNbaRouter({
+      auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: gApiCached, env: ENV, store: gStore,
+      loadModel: () => fakeModel, log: gLog, diagnoseCooldownMs: 0,
+      makeClient: opts => createClient({ ...opts, limiter: noWait, sleep: fastSleep,
+        refresh: async () => { const e = new Error('Yahoo token endpoint 401 (' + mode + ')'); e.status = mode === 'invalid_grant' ? 400 : 401; e.code = mode; throw e; },
+        fetchImpl: async url => {
+          if (mode === 'keepers' && /draftresults/.test(url)) return resp(200, Q('draftresults-keepers-traded.json'));
+          if (mode === 'auction' && /draftresults/.test(url)) return resp(200, Q('draftresults-auction.json'));
+          return mode === 'ok' || mode === 'keepers' || mode === 'auction' ? resp(200, yahooFixtureFor(url)) : resp(401, {});
+        } }),
+    }));
+    const gSrv = await new Promise(r => { const s2 = gApp.listen(0, '127.0.0.1', () => r(s2)); });
+    const gBase = `http://127.0.0.1:${gSrv.address().port}`;
+    const gGet = (p, user) => fetch(gBase + p, { headers: user ? { 'x-test-user': user } : {} });
+    const seed = u => gStore.save(u, { access_token: 'ACC_SECRET_' + u, refresh_token: 'REF_SECRET_' + u, expires_at: Date.now() + 3600e3, xoauth_yahoo_guid: 'G' });
+    try {
+      await test('invalid_client on refresh: 503 yahoo_misconfigured, tokens KEPT, logged without secrets', async () => {
+        await seed('user_M'); gCache.clear(); mode = 'invalid_client';
+        const r = await gGet('/api/nba/yahoo/league?league_key=466.l.12345', 'user_M');
+        assert.strictEqual(r.status, 503);
+        assert.deepStrictEqual(await r.json(), { error: 'Yahoo app misconfigured — try again later', code: 'yahoo_misconfigured' });
+        assert.ok(await gStore.get('user_M'), 'user tokens survive a server credential problem');
+        const st = await gGet('/api/nba/yahoo/status', 'user_M');
+        assert.strictEqual(st.status, 503);
+        assert.ok(await gStore.get('user_M'), 'status does not drop them either');
+        assert.ok(logs.some(l => /rejected the app credentials \(invalid_client\)/.test(l)));
+        assert.ok(logs.every(l => !/ACC_SECRET_|REF_SECRET_|test-client-secret/.test(l)), logs.join('\n'));
+      });
+      await test('unauthorized_client / bare 401 from token endpoint also keep tokens', async () => {
+        for (const m of ['unauthorized_client']) {
+          gCache.clear(); mode = m;
+          assert.strictEqual((await gGet('/api/nba/yahoo/draft?league_key=466.l.12345', 'user_M')).status, 503);
+          assert.ok(await gStore.get('user_M'));
+        }
+      });
+      await test('invalid_grant for one user: that user revoked (409 reauth), other users untouched', async () => {
+        await seed('user_R'); gCache.clear(); mode = 'invalid_grant';
+        const r = await gGet('/api/nba/yahoo/league?league_key=466.l.12345', 'user_R');
+        assert.strictEqual(r.status, 409);
+        assert.strictEqual((await r.json()).code, 'yahoo_reauth');
+        await new Promise(r2 => setTimeout(r2, 5));
+        assert.strictEqual(await gStore.get('user_R'), null);
+        assert.ok(await gStore.get('user_M'), 'other users keep their tokens');
+      });
+      await test('diagnose endpoint: auth required, 409 when not connected, JSON + text report', async () => {
+        mode = 'ok'; gCache.clear();
+        assert.strictEqual((await gGet('/api/nba/yahoo/diagnose')).status, 401);
+        assert.strictEqual((await gGet('/api/nba/yahoo/diagnose', 'user_nobody')).status, 409);
+        await seed('user_D');
+        const j = await (await gGet('/api/nba/yahoo/diagnose', 'user_D')).json();
+        assert.strictEqual(j.gameKey, '466');
+        assert.strictEqual(j.leagues[0].highScore.verdict, 'likely');
+        const t = await (await gGet('/api/nba/yahoo/diagnose?format=text', 'user_D')).text();
+        assert.match(t, /High Score\? LIKELY/);
+        assert.ok(!/ACC_SECRET|REF_SECRET|FAKEGUID/.test(JSON.stringify(j) + t));
+      });
+      await test('diagnose with a server credential problem flags appMisconfigured and keeps tokens', async () => {
+        await gStore.save('user_D', { access_token: 'x', refresh_token: 'y', expires_at: Date.now() - 1 });
+        mode = 'invalid_client';
+        const j = await (await gGet('/api/nba/yahoo/diagnose', 'user_D')).json();
+        assert.strictEqual(j.ok, false); assert.strictEqual(j.appMisconfigured, true);
+        assert.ok(await gStore.get('user_D'));
+      });
+      await test('draft: keepers + traded picks → order[] and onClock come from Yahoo team_keys', async () => {
+        await seed('user_K'); gCache.clear(); mode = 'keepers';
+        const j = await (await gGet('/api/nba/yahoo/draft?league_key=466.l.12345', 'user_K')).json();
+        assert.deepStrictEqual(j.picks.map(p => p.pick), [1, 2, 3, 7]);
+        assert.deepStrictEqual(j.onClock, { pick: 4, round: 1, team_key: '466.l.12345.t.1' });
+        assert.deepStrictEqual(j.order.slice(0, 3).map(o => [o.pick, o.team_key]), [[4, '466.l.12345.t.1'], [5, '466.l.12345.t.1'], [6, '466.l.12345.t.3']]);
+        assert.strictEqual(j.auction, false);
+      });
+      await test('draft: auction results flagged (cost carried through)', async () => {
+        await seed('user_X'); gCache.clear(); mode = 'auction';
+        const j = await (await gGet('/api/nba/yahoo/draft?league_key=466.l.12345', 'user_X')).json();
+        assert.strictEqual(j.auction, true);
+        assert.deepStrictEqual(j.picks.map(p => p.cost), [54, 3]);
+      });
+      await test('league endpoint exposes is_auction_draft / draft_pick_time', async () => {
+        await seed('user_L'); gCache.clear(); mode = 'ok';
+        const j = await (await gGet('/api/nba/yahoo/league?league_key=466.l.12345', 'user_L')).json();
+        assert.strictEqual(j.league.is_auction_draft, false);
+        assert.ok('draft_pick_time' in j.league);
+      });
+    } finally { gSrv.close(); }
+  }
+
   console.log(`\n${passed} passed${process.exitCode ? ', SOME FAILED' : ''}`);
 })().catch(e => { console.error(e); process.exit(1); });
