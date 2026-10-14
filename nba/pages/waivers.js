@@ -62,6 +62,8 @@
       return '<span class="gm ' + tone + '" title="' + n + ' games in week ' + (weeks ? weeks[i] : '') + '">' + n + (lbl ? '<small>' + lbl + '</small>' : '') + '</span>';
     }).join('') + '</span>';
   }
+  // Mid-week: dropping someone whose team already played this week may forfeit those games.
+  function bankedNote(d) { return d && d.bankedGames > 0 ? ' · <span class="inj GTD" title="His team already played ' + d.bankedGames + ' game' + (d.bankedGames > 1 ? 's' : '') + ' this week; dropping him can lose that score">played ' + d.bankedGames + '</span>' : ''; }
   function injTag(s) { var t = L.injuryTag(s); return t ? '<span class="inj ' + t + '" title="' + esc(s) + '">' + t + '</span>' : ''; }
 
   function renderBest(r) {
@@ -79,9 +81,9 @@
     var html = '<div class="lbl">Best move · ' + esc(wk.title) + (wk.span ? ' · ' + esc(wk.span) : '') + '</div>' +
       '<div class="nw-move"><div class="nw-move-who">' +
       '<div class="nw-move-add"><span class="verb">ADD</span>' + esc(p.add.name) + '</div>' +
-      '<div class="nw-move-drop">' + (p.drop ? '<span class="verb">DROP</span>' + esc(p.drop.name) + ' · ' + p.drop.games + ' games' : 'Open roster spot, no drop needed') +
+      '<div class="nw-move-drop">' + (p.drop ? '<span class="verb">DROP</span>' + esc(p.drop.name) + ' · ' + p.drop.games + ' games' + bankedNote(p.drop) : 'Open roster spot, no drop needed') +
       ' · ' + gmChips([p.add.games]) + ' for ' + esc(p.add.team || '') + '</div></div>' +
-      '<div class="nw-move-val"><b>' + L.fmtGain(p.netGain) + '</b><span>pts this week</span></div></div>';
+      '<div class="nw-move-val"><b>' + L.fmtGain(p.netGain) + '</b><span>' + (r.midWeek ? 'pts, games left this week' : 'pts this week') + '</span></div></div>';
     if (pairs.length > 1) {
       html += '<ol class="nw-alts">' + pairs.slice(1).map(function (q) {
         return '<li><span class="nm">' + esc(q.add.name) + '</span>' + gmChips([q.add.games]) + '<span class="arrow">for</span><span class="nm">' + (q.drop ? esc(q.drop.name) : 'open spot') + '</span><span class="g">' + L.fmtGain(q.netGain) + '</span></li>';
@@ -109,7 +111,8 @@
     var f = { pos: S.prefs.pos, roleUp: S.prefs.roleUp };
     var all = L.sortTargets(L.filterTargets(r.targets, f), S.prefs.sort);
     var shown = all.slice(0, S.shown);
-    $('nw-count').textContent = all.length + ' of ' + r.targets.length + ' free agents · ' + (r.weeks.length > 1 ? 'weeks ' + r.weeks[0] + '–' + r.weeks[r.weeks.length - 1] : 'week ' + r.weeks[0]);
+    $('nw-count').textContent = all.length + ' of ' + r.targets.length + ' free agents · ' + (r.weeks.length > 1 ? 'weeks ' + r.weeks[0] + '–' + r.weeks[r.weeks.length - 1] : 'week ' + r.weeks[0]) +
+      (r.midWeek ? ' · week ' + r.midWeek.week + ' counts only games left' : '');
     if (!all.length) {
       list.innerHTML = '<li class="nw-empty" style="padding:1rem .4rem">' + (r.targets.length ? 'No free agents match these filters.' : 'No free agents found.') + '</li>';
       $('nw-more').hidden = true;
@@ -137,7 +140,7 @@
         (t.roleUp ? '<span class="badge up" title="Minutes up over his last 5 games">ROLE ↑</span>' : '') +
         (t.onWaivers ? '<span class="badge w" title="On waivers: needs a claim">W</span>' : '') + injTag(t.injury) + '</span>' +
         '<span class="nw-meta"><span class="tm">' + esc(t.team || 'FA') + '</span>' + pills(t.elig) + gmChips(t.gamesByWeek, r.weeks) + '</span></span>' +
-        '<span class="nw-val"><b class="' + (gain > 0 ? 'pos' : 'zero') + '">' + L.fmtGain(gain) + '</b><small>' + (t.drop ? 'drop ' + esc(t.drop.name) : r.openSpots ? 'open spot' : 'no gain') + '</small></span>' +
+        '<span class="nw-val"><b class="' + (gain > 0 ? 'pos' : 'zero') + '">' + L.fmtGain(gain) + '</b><small>' + (t.drop ? 'drop ' + esc(t.drop.name) + (t.drop.bankedGames > 0 ? ' ⚠' : '') : r.openSpots ? 'open spot' : 'no gain') + '</small></span>' +
         '</button>' + detail + '</li>';
     }).join('');
     $('nw-more').hidden = all.length <= S.shown;
@@ -157,9 +160,9 @@
     var drops = (r && r.dropCandidates) || [];
     $('nw-drops').hidden = !drops.length;
     // Keepers (worth more rest-of-season than any free agent) go last and are labelled.
-    drops = drops.filter(function (d) { return !d.keeper; }).concat(drops.filter(function (d) { return d.keeper; }));
+    drops = drops.filter(function (d) { return !d.keeper && !d.ilSlot; }).concat(drops.filter(function (d) { return d.keeper || d.ilSlot; }));
     $('nw-drops-body').innerHTML = drops.slice(0, 4).map(function (d) {
-      return '<li>' + pills(d.elig) + '<span class="nm">' + esc(d.name) + '</span>' + injTag(d.injury) + (d.keeper ? '<span class="badge w" title="Worth more rest-of-season than any free agent">KEEP</span>' : '') + gmChips(d.gamesByWeek.slice(0, 1)) + '<span class="v">' + (d.dropCost > 0 ? '−' + L.fmt1(d.dropCost) : '0.0') + '</span></li>';
+      return '<li>' + pills(d.elig) + '<span class="nm">' + esc(d.name) + '</span>' + injTag(d.injury) + (d.keeper ? '<span class="badge w" title="Worth more rest-of-season than any free agent">KEEP</span>' : '') + (d.ilSlot ? '<span class="badge w" title="In an IL slot: dropping him does not open a roster spot">IL</span>' : '') + gmChips(d.gamesByWeek.slice(0, 1)) + '<span class="v">' + (d.dropCost > 0 ? '−' + L.fmt1(d.dropCost) : '0.0') + '</span></li>';
     }).join('');
 
     var lu = r && r.lineup;

@@ -319,10 +319,15 @@ function routePlayers() {
   const fa = [mk(600, ['F'], 38, 4, { name: 'Four Game' }), mk(601, ['F'], 38, 2, { name: 'Two Game' }), mk(602, ['G'], 34, 4, { name: 'Waiver Guard' })];
   return { roster: r, fa, all: r.concat(fa) };
 }
-function fakeClient(calls, { fail } = {}) {
+function fakeClient(calls, { fail, il } = {}) {
   const { roster } = routePlayers();
   return {
-    async getRoster(tk) { calls.push(['roster', tk]); if (fail) throw fail; return { players: roster.map((p, i) => yp('466.p.' + (i + 1), p.name, 'DEN', 'PG')).concat([yp('466.p.999', 'Nobody Known', 'BOS', 'SF')]) }; },
+    async getRoster(tk) {
+      calls.push(['roster', tk]); if (fail) throw fail;
+      // il: the 10th roster player (weakest) sits in an IL slot and one bench spot is empty.
+      const ps = roster.map((p, i) => Object.assign(yp('466.p.' + (i + 1), p.name, 'DEN', 'PG'), { selected_position: il && i === 9 ? 'IL' : 'BN' }));
+      return { players: ps.concat([yp('466.p.999', 'Nobody Known', 'BOS', 'SF')]) };
+    },
     async getPlayers(lk, o) {
       calls.push(['players', lk, o.status, o.start]);
       if (o.status === 'FA' && o.start === 0) return [yp('466.p.600', 'Four Game', 'DEN', 'PF'), yp('466.p.601', 'Two Game', 'DEN', 'PF'), yp('466.p.700', 'Mystery Man', 'NYK', 'C')];
@@ -437,6 +442,83 @@ test('POST /api/nba/waivers/manual: pool, default pool, unknown ids, validation,
     res = await post({ roster: ['1'] });
     assert.strictEqual(res.status, 429, '9th request in the window is limited');
     assert.ok(Number(res.headers.get('retry-after')) > 0);
+  } finally { await s.close(); }
+});
+
+// ---------------------------------------------------------------- checker regressions (2026-10-13)
+test('mid-week: an add only counts the games his team has left', () => {
+  const roster = baseRoster();
+  // Equal talent. A's team has 4 games but already played 3; B's team has 3, none played.
+  const A = mk(120, ['F'], 40, 4, { team: 'AAA' }), B = mk(121, ['F'], 40, 3, { team: 'BBB' });
+  const full = W.analyzeWaivers({ roster, pool: [A, B], startWeek: 1, horizon: 1 });
+  assert.strictEqual(full.targets[0].id, '120', 'no mid-week info: 4-game week wins');
+  const mid = W.analyzeWaivers({ roster, pool: [A, B], startWeek: 1, horizon: 1, midWeek: { week: 1, played: { AAA: 3, BBB: 0, [roster[9].team]: 1 } } });
+  assert.strictEqual(mid.targets[0].id, '121', '3 games left beats 1 game left');
+  const a = mid.targets.find(t => t.id === '120');
+  assert.strictEqual(a.gamesLeft, 1); assert.strictEqual(a.gamesFull, 4);
+  assert.deepStrictEqual(a.gamesByWeek, [1]);
+  assert.ok(a.valueByWeek[0] < A.hsByWeek[1] - 5, 'one game left is worth much less than four');
+  assert.ok(Math.abs(W.remainingWeekValue(A, 1, 4) - A.hsByWeek[1]) < 1e-9 && W.remainingWeekValue(A, 1, 0) === 0);
+  assert.strictEqual(mid.midWeek.week, 1);
+  const d = mid.dropCandidates.find(x => x.id === roster[9].id);
+  assert.strictEqual(d.bankedGames, 1, 'drop warns about games already played this week');
+  // midWeek for another week is ignored; later horizon weeks are untouched.
+  const other = W.analyzeWaivers({ roster, pool: [A, B], startWeek: 2, horizon: 2, midWeek: { week: 1, played: { AAA: 3 } } });
+  assert.strictEqual(other.midWeek, null);
+  const two = W.analyzeWaivers({ roster, pool: [A, B], startWeek: 1, horizon: 2, midWeek: { week: 1, played: { AAA: 3 } } });
+  assert.strictEqual(two.targets.find(t => t.id === '120').gamesByWeek[1], 4, 'week 2 keeps all games');
+  allNumbersFinite(mid);
+});
+
+test('midWeekFrom: logs through yesterday, else share of days gone; null outside a week', () => {
+  const day = s => Math.floor(Date.parse(s + 'T00:00:00Z') / 86400000);
+  const proj = { season: '2026', weeks: { 1: ['2026-10-20', '2026-10-25'], 2: ['2026-10-26', '2026-11-01'] }, teamGames: { AAA: { 1: 4, 2: 3 }, BBB: { 1: 2, 2: 4 } } };
+  const R = waiversRoutes.midWeekFrom;
+  assert.strictEqual(R({ proj, logs: [] }, new Date('2026-10-20T18:00:00Z')), null, 'first day of week: nothing played yet');
+  assert.strictEqual(R({ proj, logs: [] }, new Date('2026-10-01T18:00:00Z')), null);
+  const est = R({ proj, logs: [] }, new Date('2026-10-23T18:00:00Z')); // 3 of 6 days gone
+  assert.deepStrictEqual(est, { week: 1, played: { AAA: 2, BBB: 1 }, source: 'estimate' });
+  const logs = [{ season: 2026, players: { x: { t: 'AAA', g: [[day('2026-10-20'), 1, 30, 30], [day('2026-10-22'), 1, 30, 30]] }, y: { t: 'BBB', g: [[day('2026-10-21'), 1, 20, 20]] }, z: { t: 'AAA', g: [[day('2026-10-22'), 1, 10, 20]] } } }];
+  assert.deepStrictEqual(R({ proj, logs }, new Date('2026-10-23T18:00:00Z')), { week: 1, played: { AAA: 2, BBB: 1 }, source: 'logs' });
+  assert.deepStrictEqual(R({ proj, logs }, new Date('2026-10-25T18:00:00Z')).played, { AAA: 3, BBB: 2 }, 'stale logs: estimate is the floor');
+});
+
+test('IL slot: frees a roster spot and is never the drop half of a swap', () => {
+  const roster = baseRoster();
+  const fa = mk(130, ['F'], 40, 4);
+  // 9 active + 1 in IL, roster size 10 → one open spot, no drop.
+  const r1 = W.analyzeWaivers({ roster, pool: [fa], startWeek: 1, ilIds: [roster[9].id], rosterSize: 10 });
+  assert.strictEqual(r1.openSpots, 1);
+  assert.strictEqual(r1.targets[0].drop, null);
+  // Full active roster + IL player: the IL player is not offered as the drop.
+  const il = mk(131, ['G'], 10, 0, { injury: 'INJ' });
+  const r2 = W.analyzeWaivers({ roster: [...roster, il], pool: [fa], startWeek: 1, ilIds: ['131'], rosterSize: 10 });
+  assert.strictEqual(r2.openSpots, 0);
+  assert.ok(r2.targets[0].drop && r2.targets[0].drop.id !== '131');
+  assert.ok(r2.pairs.every(p => !p.drop || p.drop.id !== '131'));
+  assert.notStrictEqual(r2.dropCandidate.id, '131');
+  assert.strictEqual(r2.dropCandidates.find(d => d.id === '131').ilSlot, true);
+  // An injured starter in an IL slot still gets replacement suggestions.
+  const star = mk(132, ['F'], 50, 3, { injury: 'OUT', hsByWeek: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+  const r3 = W.analyzeWaivers({ roster: [...roster.slice(0, 9), star], pool: [fa], startWeek: 1, ilIds: ['132'], rosterSize: 10 });
+  assert.ok(r3.injuryReplacements.some(x => x.injured.id === '132'));
+});
+
+test('engine dedupes duplicate pool rows', () => {
+  const fa = mk(140, ['F'], 40, 4);
+  const r = W.analyzeWaivers({ roster: baseRoster(), pool: [fa, fa, { ...fa }], startWeek: 1 });
+  assert.strictEqual(r.targets.length, 1);
+  assert.strictEqual(r.calendar[0].fourGame.length, 1);
+});
+
+test('GET /api/nba/waivers: IL-slot player opens a spot (route reads selected_position)', async () => {
+  const { r } = mkRouter({ il: true });
+  const s = await serve(r);
+  try {
+    const j = await (await fetch(s.base + '/api/nba/waivers?league_key=466.l.1&team_key=466.l.1.t.3', { headers: { 'x-user': 'u1' } })).json();
+    assert.strictEqual(j.openSpots, 1);
+    assert.ok(j.targets.every(t => t.drop == null));
+    assert.strictEqual(j.dropCandidates.find(d => d.name === 'Roster 10').ilSlot, true);
   } finally { await s.close(); }
 });
 

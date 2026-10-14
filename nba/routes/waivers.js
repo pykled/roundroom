@@ -80,6 +80,45 @@ function weekDates(data, league) {
   return out;
 }
 
+const dayOf = iso => Math.floor(Date.parse(String(iso).slice(0, 10) + 'T00:00:00Z') / 86400000);
+
+// Games each team has already played in the model week that contains `today`
+// (Sleeper week numbering, same as hsByWeek). From this season's game logs when
+// they run through yesterday; otherwise each team's week games × share of the
+// week's days already gone (logs, if any, as a floor). Today's games still count
+// as addable. null when today isn't strictly inside a week.
+function midWeekFrom(data, nowDate = new Date()) {
+  const proj = data && data.proj;
+  if (!proj || !proj.weeks) return null;
+  const today = Math.floor(nowDate.getTime() / 86400000);
+  let week = null, s = 0, e = 0;
+  for (const [w, d] of Object.entries(proj.weeks)) {
+    if (!Array.isArray(d)) continue;
+    const a = dayOf(d[0]), b = dayOf(d[1]);
+    if (today > a && today <= b) { week = Number(w); s = a; e = b; break; }
+  }
+  if (week == null) return null;
+  const fromLogs = {};
+  let lastDay = -Infinity;
+  const cur = (data.logs || []).find(f => f && String(f.season) === String(proj.season));
+  if (cur && cur.players) {
+    const days = {};
+    for (const p of Object.values(cur.players)) {
+      if (!p || !p.t || !Array.isArray(p.g)) continue;
+      for (const g of p.g) if (g[0] >= s && g[0] < today) { (days[p.t] ||= new Set()).add(g[0]); if (g[0] > lastDay) lastDay = g[0]; }
+    }
+    for (const [t, set] of Object.entries(days)) fromLogs[t] = set.size;
+  }
+  const fresh = lastDay >= today - 1;
+  const played = {};
+  for (const [t, byW] of Object.entries(proj.teamGames || {})) {
+    const n = Number(byW && byW[week]) || 0;
+    const est = Math.round(n * (today - s) / (e - s + 1));
+    played[t] = Math.min(n, fresh ? (fromLogs[t] || 0) : Math.max(fromLogs[t] || 0, est));
+  }
+  return { week, played, source: fresh ? 'logs' : 'estimate' };
+}
+
 module.exports = function waiversRoutes({
   auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers,
   loadData = defaultLoadData, log = console, rate = RATE, now, env = process.env,
@@ -104,11 +143,14 @@ module.exports = function waiversRoutes({
     return { model, b };
   }
 
-  function analyze({ roster, pool, b, horizon, week, rosterSize, data }) {
+  function analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds }) {
     const ids = [...roster, ...pool].map(p => String(p.id));
     const roles = W.roleSignalsFromData(data, ids);
     const startWeek = week || b.currentWeek || b.week || undefined;
-    return W.analyzeWaivers({ roster, pool, horizon, startWeek, roles, rosterSize });
+    const midWeek = midWeekFrom(data, now ? new Date(now()) : new Date());
+    const out = W.analyzeWaivers({ roster, pool, horizon, startWeek, roles, rosterSize, ilIds, midWeek });
+    if (out.midWeek && midWeek) out.midWeek.source = midWeek.source;
+    return out;
   }
 
   router.get('/api/nba/waivers', auth, wrap(async (req, res) => {
@@ -152,6 +194,7 @@ module.exports = function waiversRoutes({
     };
     const unmatched = { roster: [], freeAgents: [] };
     const roster = [];
+    const ilIds = [];
     const seen = new Set();
     for (const yp of y.roster) {
       const m = match(yp);
@@ -159,6 +202,7 @@ module.exports = function waiversRoutes({
       if (seen.has(m.player.id)) continue;
       seen.add(m.player.id);
       roster.push(m.player);
+      if (/^IL/i.test(String(yp.selected_position || ''))) ilIds.push(String(m.player.id));
     }
     const pool = [];
     const waiverIds = [];
@@ -171,8 +215,8 @@ module.exports = function waiversRoutes({
       if (yp.waiver) waiverIds.push(String(m.player.id));
     }
     const data = loadData();
-    const rosterSize = rosterSizeFrom(y.league) || Math.max(10, roster.length);
-    const out = analyze({ roster, pool, b, horizon, week, rosterSize, data });
+    const rosterSize = rosterSizeFrom(y.league) || Math.max(10, roster.length - ilIds.length);
+    const out = analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds });
     const onWaivers = new Set(waiverIds);
     for (const t of out.targets) t.onWaivers = onWaivers.has(t.id);
     res.json({
@@ -245,3 +289,4 @@ module.exports = function waiversRoutes({
 module.exports.createRateLimiter = createRateLimiter;
 module.exports.rosterSizeFrom = rosterSizeFrom;
 module.exports.waiverRules = waiverRules;
+module.exports.midWeekFrom = midWeekFrom;
