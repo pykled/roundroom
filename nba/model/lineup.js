@@ -1,11 +1,15 @@
-// Weekly lineup picker for Yahoo High Score (stream D). Rules + method:
-// docs/nba-lineup.md. Pure and deterministic: same inputs (incl. seed) → same output.
+// Weekly lineup picker for Yahoo High Score aggregation (stream D; made
+// league-profile-driven by L1). Rules + method: docs/nba-lineup.md. Pure and
+// deterministic: same inputs (incl. seed) → same output.
 //
-//   recommend({ roster, players, week, currentWeek, weekLength, day, opponent, options })
+//   recommend({ roster, players, week, currentWeek, weekLength, day, opponent, options, profile })
 //
-// roster entries: { id, name?, slot?: 'G'|'F'|'UTIL'|'BN'|'IL', banked?, locked?,
+// profile: league profile object or id (nba/league-profile.js); default 242808.
+//   Starting slots, bench and IL counts all come from it (242808: PG,SG,G,SF,PF,
+//   F,C,UTIL,UTIL + 5 BN + 2 IL; High Score defaults: G,G,FC,FC,FC,UTIL).
+// roster entries: { id, name?, slot?: any profile slot | 'BN' | 'IL', banked?, locked?,
 //                   gamesLeft?, gamesPlayed?, gameDays?: number[] }
-//   slot     current Yahoo slot (G/F/UTIL = starting; BN/IL = not). Missing = BN.
+//   slot     current Yahoo slot (a starting slot, BN or IL). Missing = BN.
 //   banked   best game so far this week *while continuously started* (only
 //            counts for a current starter; benching him wipes it).
 //   locked   the player's game today has started → he can't be moved.
@@ -15,10 +19,12 @@
 'use strict';
 const St = require('./stats');
 const { availability } = require('./board');
+const R = require('./roster-slots');
 
-const SLOTS = ['G', 'G', 'F', 'F', 'F', 'UTIL'];
-const CAP = { G: 2, F: 3, UTIL: 1 };
-const STARTING = new Set(['G', 'F', 'UTIL']);
+// High Score default slot list, kept as an export for older callers; the picker
+// itself always reads the slots from the profile.
+const SLOTS = R.slotList(require('../league-profile').highScoreDefaultProfile());
+const isStarting = s => s !== 'BN' && s !== 'IL';
 // Back-to-back second legs: chance the player sits for rest on top of normal
 // availability. Heuristic (no rest-day data in the model; see docs).
 const REST = { base: 0.04, star: 0.06, starMean: 50, fragile: 0.05, fragileA0: 0.75 };
@@ -71,14 +77,7 @@ function pBeat(mu, sd, k, B) {
   return 1 - Math.pow(St.normCdf((B - mu) / sd), k);
 }
 
-function slotOf(s) {
-  const u = String(s || '').toUpperCase();
-  if (u === 'G' || u === 'PG' || u === 'SG') return 'G';
-  if (u === 'F' || u === 'SF' || u === 'PF' || u === 'C' || u === 'FC') return 'F';
-  if (u === 'UTIL' || u === 'UT' || u === 'FLEX') return 'UTIL';
-  if (u.startsWith('IL')) return 'IL';
-  return 'BN';
-}
+const slotOf = (s, profile) => R.slotOf(s, profile);
 
 // Count back-to-back second legs among sorted day indices.
 function b2bLegs(days) {
@@ -107,12 +106,12 @@ function calibratedMean(p, week, a) {
 }
 
 function evalPlayer(entry, p, ctx) {
-  const slot = slotOf(entry.slot);
-  const starter = STARTING.has(slot);
+  const slot = slotOf(entry.slot, ctx.profile);
+  const starter = isStarting(slot);
   const banked = starter && Number(entry.banked) > 0 ? Number(entry.banked) : 0;
   const bankedKnown = entry.banked != null && entry.banked !== '' && Number.isFinite(Number(entry.banked));
   const base = { id: String(entry.id), slot, starter, banked, bankedKnown, locked: !!entry.locked };
-  if (!p) return { ...base, name: entry.name || String(entry.id), unmatched: true, elig: [], keep: banked, insert: 0, gamesLeft: 0, gamesWeek: 0, probs: [], mu: 0, sd: 0 };
+  if (!p) return { ...base, name: entry.name || String(entry.id), unmatched: true, elig: [], can: new Set(), keep: banked, insert: 0, gamesLeft: 0, gamesWeek: 0, probs: [], mu: 0, sd: 0, ilOk: false };
   const a = availability({ injury: p.injury, outForSeason: p.outForSeason }, p.availability ?? 0.85, ctx.week - ctx.currentWeek);
   const { mu, sd, N } = calibratedMean(p, ctx.week, a);
   const daysLeft = Math.max(0, ctx.weekLength - ctx.day);
@@ -121,7 +120,7 @@ function evalPlayer(entry, p, ctx) {
     days = entry.gameDays.map(Number).filter(d => Number.isInteger(d) && d >= ctx.day && d < ctx.weekLength);
     gamesLeft = new Set(days).size;
   } else if (entry.gamesLeft != null && Number.isFinite(Number(entry.gamesLeft))) {
-    gamesLeft = Math.max(0, Math.min(N || 7, Math.round(Number(entry.gamesLeft))));
+    gamesLeft = Math.max(0, Math.min(N || ctx.weekLength, Math.round(Number(entry.gamesLeft))));
   } else if (entry.gamesPlayed != null && Number.isFinite(Number(entry.gamesPlayed))) {
     gamesLeft = Math.max(0, N - Math.round(Number(entry.gamesPlayed)));
   } else {
@@ -144,9 +143,10 @@ function evalPlayer(entry, p, ctx) {
   }
   let beat = 0;
   if (banked > 0) for (let k = 1; k < K.length; k++) beat += K[k] * pBeat(mu, sd, k, banked);
+  const can = R.eligFor(p, ctx.profile);
   return {
-    ...base, name: p.name, team: p.team, pos: p.pos, elig: (p.elig || []).filter(e => e !== 'UTIL'),
-    injury: p.injury || null, availability: Math.round(a * 100) / 100,
+    ...base, name: p.name, team: p.team, pos: p.yahooPos || p.pos, elig: [...can].filter(e => e !== 'UTIL'), can,
+    injury: p.injury || null, availability: Math.round(a * 100) / 100, ilOk: R.ilEligible(p),
     gamesWeek: N, gamesLeft, b2b: legs, restRisk: legs ? Math.round(rest * 100) / 100 : 0,
     mu, sd, probs, keep, insert, pBeat: banked > 0 ? beat : null,
   };
@@ -155,8 +155,8 @@ function evalPlayer(entry, p, ctx) {
 // Value of starting this player from now (current starter keeps his banked).
 const startValue = e => (e.starter ? e.keep : e.insert);
 
-// Exact optimal assignment: DP over players with state (G used, F used, UTIL used).
-// Each player → bench | G | F | UTIL (if eligible). 3·4·2 = 24 states.
+// Exact optimal assignment over the profile's slot units (roster-slots.js:
+// matroid greedy + augmenting paths, checked against brute force in tests).
 // Pinned starters (locked, or not in our data so we can't judge them) stay in
 // their current Yahoo slot whatever the model's eligibility says: Yahoo already
 // allowed him there. If the pins alone overfill a slot (bad manual input) the
@@ -167,40 +167,28 @@ function optimise(evals, opts = {}) {
   return optimiseOnce(evals, { ...opts, relaxPins: true }) || { v: 0, picks: [], relaxed: true };
 }
 const isPinned = (e, relaxPins) => !relaxPins && e.starter && (e.locked || e.unmatched);
-function optimiseOnce(evals, { forbidForfeit = false, relaxPins = false } = {}) {
-  const key = (g, f, u) => (g * 4 + f) * 2 + u;
-  let dp = new Map([[key(0, 0, 0), { v: 0, picks: [] }]]);
-  for (let i = 0; i < evals.length; i++) {
-    const e = evals[i];
-    const next = new Map();
-    const put = (k, v, picks) => {
-      const cur = next.get(k);
-      if (!cur || v > cur.v + 1e-9) next.set(k, { v, picks });
-    };
-    const val = startValue(e);
+// Tiny preference for leaving a current starter in (no churn on ties).
+const STAY = 1e-6;
+function optimiseOnce(evals, { forbidForfeit = false, relaxPins = false, slots = SLOTS } = {}) {
+  const items = [];
+  evals.forEach((e, i) => {
     const pinned = isPinned(e, relaxPins);
-    const mustStart = pinned || (e.starter && forbidForfeit && e.banked > 0 && !e.unmatched);
     const mustBench = !e.starter && e.locked && !relaxPins;
     const canStart = (pinned || !e.unmatched) && e.slot !== 'IL';
-    for (const [k, s] of dp) {
-      const u = k % 2, f = (k >> 1) % 4, g = k >> 3;
-      if (!mustStart) put(k, s.v, s.picks);
-      if (mustBench || !canStart) continue;
-      // Tiny preference for leaving a current starter where he is (no churn on ties).
-      const stay = t => (e.starter && e.slot === t ? 1e-6 : 0);
-      const opts = [];
-      const ok = t => (pinned ? t === e.slot : t === 'UTIL' || e.elig.includes(t)); // pinned: can't even change slot
-      if (ok('G') && g < CAP.G) opts.push(['G', key(g + 1, f, u)]);
-      if (ok('F') && f < CAP.F) opts.push(['F', key(g, f + 1, u)]);
-      if (ok('UTIL') && u < CAP.UTIL) opts.push(['UTIL', key(g, f, 1)]);
-      for (const [t, nk] of opts) put(nk, s.v + val + stay(t), [...s.picks, [i, t]]);
-    }
-    dp = next;
-  }
-  let best = null;
-  for (const s of dp.values()) if (!best || s.v > best.v + 1e-9) best = s;
-  return best ? { ...best, relaxed: relaxPins } : null;
+    if (mustBench || !canStart) return;
+    const must = !pinned && e.starter && forbidForfeit && e.banked > 0 && !e.unmatched;
+    items.push({
+      id: i, v: startValue(e) + (e.starter ? STAY : 0), elig: e.can || new Set(),
+      pin: pinned ? e.slot : null, must, prefer: e.starter ? e.slot : null,
+    });
+  });
+  const a = R.bestAssignment(items, slots);
+  if (!a) return null;
+  const picks = a.starters.map(s => [s.id, s.slot]).sort((x, y) => x[0] - y[0]);
+  const v = picks.reduce((t, [i]) => t + startValue(evals[i]) + (evals[i].starter && evals[i].slot === slotOfPick(picks, i) ? STAY : 0), 0);
+  return { v, picks, relaxed: relaxPins };
 }
+const slotOfPick = (picks, i) => (picks.find(p => p[0] === i) || [])[1];
 
 // Normal draw via Box–Muller from the seeded generator.
 function gauss(rng) {
@@ -236,16 +224,18 @@ const dedupe = roster => {
 };
 function buildSide(roster, index, ctx, options) {
   const evals = dedupe(roster).map(r => evalPlayer(r, index.get(String(r.id)), ctx));
-  const best = optimise(evals, options);
+  const best = optimise(evals, { ...options, slots: ctx.slots });
   const chosen = new Map(best.picks.map(([i, t]) => [i, t]));
   const starters = [...chosen.entries()].map(([i, t]) => ({ ...evals[i], to: t, value: startValue(evals[i]), useBanked: evals[i].starter }));
   return { evals, chosen, starters, relaxed: !!best.relaxed, total: best.v - starters.reduce((s, e) => s + (e.starter && e.slot === e.to ? 1e-6 : 0), 0) };
 }
 
-function recommend({ roster = [], players, week, currentWeek, weekLength = 7, day = 0, opponent = null, options = {} } = {}) {
+function recommend({ roster = [], players, week, currentWeek, weekLength = 7, day = 0, opponent = null, options = {}, profile } = {}) {
   const wk = Number(week);
   if (!Number.isInteger(wk) || wk < 1) throw new Error('lineup: bad week');
+  const prof = R.resolveProfile(profile);
   const ctx = {
+    profile: prof, slots: R.slotList(prof),
     week: wk,
     currentWeek: Number.isInteger(Number(currentWeek)) ? Number(currentWeek) : wk,
     weekLength: Math.max(1, Math.min(14, Number(weekLength) || 7)),
@@ -268,10 +258,10 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
   const bench = evals.map((e, i) => ({ e, i })).filter(({ i }) => !chosen.has(i));
 
   // Per-slot cards in canonical slot order.
-  const order = { G: 0, F: 1, UTIL: 2 };
+  const order = Object.fromEntries([...new Set(ctx.slots)].map((s, i) => [s, i]));
   starters.sort((a, b) => order[a.to] - order[b.to] || b.value - a.value || a.id.localeCompare(b.id));
   const slots = starters.map(e => {
-    const alts = bench.filter(({ e: b }) => !b.unmatched && b.slot !== 'IL' && (e.to === 'UTIL' || b.elig.includes(e.to)))
+    const alts = bench.filter(({ e: b }) => !b.unmatched && b.slot !== 'IL' && !(b.locked && !b.starter) && b.can.has(e.to))
       .map(({ e: b }) => ({ id: b.id, name: b.name, expected: r1(startValue(b)), delta: r1(startValue(b) - e.value), gamesLeft: b.gamesLeft }))
       .sort((x, y) => y.expected - x.expected || x.id.localeCompare(y.id)).slice(0, 3);
     const why = [];
@@ -343,8 +333,26 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
     if (starters.some(s => s.id === e.id) && e.gamesLeft === 0 && !e.banked) warnings.push({ type: 'no-games', id: e.id, message: `${e.name} has no games left this week.` });
     if (e.injury && /out|ir|sus/i.test(e.injury) && starters.some(s => s.id === e.id)) warnings.push({ type: 'injury', id: e.id, message: `${e.name} is ${e.injury}; started only because nobody better is eligible.` });
   }
-  const openSlots = SLOTS.length - starters.length;
+  const openSlots = ctx.slots.length - starters.length;
   if (openSlots > 0) warnings.push({ type: 'open-slots', message: `${openSlots} starting slot${openSlots > 1 ? 's' : ''} can't be filled from this roster.` });
+
+  // Roster spots (profile): IL players don't use an active spot, so an Out
+  // player sitting on the bench should move to a free IL slot (frees a spot for
+  // an add); a healthy player left in IL makes Yahoo block adds and drops.
+  const ilCap = R.ilSlots(prof), activeCap = R.activeSpots(prof);
+  const onIl = evals.filter(e => e.slot === 'IL');
+  const active = evals.length - onIl.length;
+  let ilFree = Math.max(0, ilCap - onIl.length);
+  const ilMoves = [];
+  for (const { e } of bench.filter(({ e }) => e.slot === 'BN' && e.ilOk && !e.locked).sort((x, y) => startValue(x.e) - startValue(y.e) || x.e.id.localeCompare(y.e.id))) {
+    if (!ilFree) break;
+    ilFree--;
+    ilMoves.push({ id: e.id, name: e.name, injury: e.injury, from: 'BN', to: 'IL', message: `Move ${e.name} (${e.injury || 'out'}) to IL: frees a bench spot for an add.` });
+  }
+  for (const e of onIl) {
+    if (!e.unmatched && !e.ilOk) warnings.push({ type: 'il-healthy', id: e.id, message: `${e.name} is in an IL slot but isn't listed Out${e.injury ? ` (${e.injury})` : ''}. Yahoo blocks adds and drops until you activate him.` });
+  }
+  if (active > activeCap) warnings.push({ type: 'roster-over', message: `${active} players on active spots; the league has ${activeCap} (${ctx.slots.length} starters + ${activeCap - ctx.slots.length} BN). Move an Out player to IL or drop someone.` });
 
   // Monte Carlo band (+ head-to-head when an opponent roster is given).
   const n = Math.max(200, Math.min(20000, Number(options.n) || MC_N));
@@ -363,6 +371,7 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
     gain: curStarters.length ? r1(expected - currentTotal) : null,
     diff, moved, warnings,
     replacement: { expected: r1(repValue), games: repGames },
+    spots: { starters: ctx.slots.length, slots: ctx.slots, active, activeCap, benchOpen: Math.max(0, activeCap - active), il: onIl.length, ilCap, ilMoves },
     unmatched: evals.filter(e => e.unmatched).map(e => ({ id: e.id, name: e.name })),
     mc: { n, seed },
   };

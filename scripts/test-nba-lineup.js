@@ -14,6 +14,12 @@ const St = require('../nba/model/stats');
 const createNbaRouter = require('../nba/router');
 const createLineupRoutes = require('../nba/routes/lineup');
 const { YahooError } = require('../nba/yahoo/client');
+const LP = require('../nba/league-profile');
+const R = require('../nba/model/roster-slots');
+// These synthetic checks encode Yahoo's High Score defaults (G,G,FC,FC,FC,UTIL);
+// the 242808 profile (9 starters, IL 2, 14-day weeks) has its own section below.
+const HS = LP.highScoreDefaultProfile();
+const HL = LP.defaultProfile();
 
 let passed = 0;
 async function test(name, fn) {
@@ -36,28 +42,30 @@ function mk(id, elig, mean, { sd = 10, games = 3, injury = null, a = 0.9, name, 
     games, gamesByWeek: { [week]: games }, hsValue: hsFor(mean, sd, games, a), hsByWeek: { [week]: hsFor(mean, sd, games, a) },
   };
 }
-const base = { week: 1, currentWeek: 0, weekLength: 7 }; // currentWeek < week → injury-free availability = max(a0, 0.55)
+const base = { week: 1, currentWeek: 0, weekLength: 7, profile: HS }; // currentWeek < week → injury-free availability = max(a0, 0.55)
 
-// Exhaustive search with the same rules as the optimiser.
+// Exhaustive search with the same rules as the optimiser, over any slot list.
 // Pinned = locked or unmatched current starter: stays in his Yahoo slot even if
 // the model's eligibility disagrees. Infeasible pins → pins relaxed (as optimise).
-function brute(evals, { forbidForfeit = false } = {}, relax = false) {
+function brute(evals, { forbidForfeit = false, slots = R.slotList(HS) } = {}, relax = false) {
   const val = e => (e.starter ? e.keep : e.insert);
+  const cap = {};
+  for (const s of slots) cap[s] = (cap[s] || 0) + 1;
   let best = -Infinity;
-  (function go(i, g, f, u, v) {
+  (function go(i, v) {
     if (i === evals.length) { if (v > best) best = v; return; }
     const e = evals[i];
     const pinned = !relax && e.starter && (e.locked || e.unmatched);
     const mustStart = pinned || (e.starter && forbidForfeit && e.banked > 0 && !e.unmatched);
     const mustBench = !relax && !e.starter && e.locked;
-    if (!mustStart) go(i + 1, g, f, u, v);
+    if (!mustStart) go(i + 1, v);
     if (mustBench || (e.unmatched && !pinned) || e.slot === 'IL') return;
-    const ok = t => (pinned ? t === e.slot : t === 'UTIL' || e.elig.includes(t));
-    if (ok('G') && g < 2) go(i + 1, g + 1, f, u, v + val(e));
-    if (ok('F') && f < 3) go(i + 1, g, f + 1, u, v + val(e));
-    if (ok('UTIL') && u < 1) go(i + 1, g, f, u + 1, v + val(e));
-  })(0, 0, 0, 0, 0);
-  return best === -Infinity && !relax ? brute(evals, { forbidForfeit }, true) : best;
+    for (const t of Object.keys(cap)) {
+      if (!cap[t] || (pinned ? t !== e.slot : !e.can.has(t))) continue;
+      cap[t]--; go(i + 1, v + val(e)); cap[t]++;
+    }
+  })(0, 0);
+  return best === -Infinity && !relax ? brute(evals, { forbidForfeit, slots }, true) : best;
 }
 
 function listen(app) {
@@ -113,7 +121,7 @@ async function call(server, method, path, body, headers = {}) {
     const out = L.recommend({ ...base, roster: P.map(p => ({ id: p.id })), players: P, day: 0 });
     const by = Object.fromEntries(out.slots.map(s => [s.player.id, s.slot]));
     assert.strictEqual(by['3'], 'UTIL');
-    assert.strictEqual(by['4'], 'F');
+    assert.strictEqual(by['4'], 'FC');
     assert(!by['7'], 'weak pure F benched');
     assert.deepStrictEqual(out.slots.map(s => s.slot), L.SLOTS);
   });
@@ -150,18 +158,18 @@ async function call(server, method, path, body, headers = {}) {
       const ctx = { ...base, day: 3 };
       const evals = roster.map(r => L.evalPlayer(r, idx.get(r.id), ctx));
       for (const forbidForfeit of [false, true]) {
-        const opt = L.optimise(evals, { forbidForfeit });
+        const opt = L.optimise(evals, { forbidForfeit, slots: R.slotList(HS) });
         const val = e => (e.starter ? e.keep : e.insert);
         const got = opt.picks.reduce((s, [i]) => s + val(evals[i]), 0);
         const want = brute(evals, { forbidForfeit });
         assert(Math.abs(got - want) < 1e-6, `roster ${t} forbid=${forbidForfeit}: dp ${got} vs brute ${want}`);
-        const c = { G: 0, F: 0, UTIL: 0 };
+        const c = { G: 0, FC: 0, UTIL: 0 };
         for (const [i, s] of opt.picks) {
           c[s]++;
           if (s !== 'UTIL') assert(evals[i].elig.includes(s) || (evals[i].locked && evals[i].slot === s), 'eligibility respected (or locked in his Yahoo slot)');
           assert(evals[i].slot !== 'IL');
         }
-        assert(c.G <= 2 && c.F <= 3 && c.UTIL <= 1);
+        assert(c.G <= 2 && c.FC <= 3 && c.UTIL <= 1);
       }
     }
   });
@@ -325,6 +333,134 @@ async function call(server, method, path, body, headers = {}) {
     assert(Math.abs(out.gain - (out.total.expected - out.current.expected)) < 0.11);
   });
 
+  console.log('league 242808 profile (9 starters, IL 2, matchup-week windows)');
+  // Yahoo-eligibility player for the 242808 profile.
+  const yk = (id, pos, mean, o = {}) => {
+    const p = mk(id, [], mean, { ...o, week: o.week || 1 });
+    p.pos = pos; p.yahooPos = pos;
+    p.yahooElig = [...R.eligFor({ pos }, HL)];
+    delete p.elig;
+    return p;
+  };
+  const hl = { week: 1, currentWeek: 0, weekLength: 6, profile: HL };
+  await test('9-slot assignment: exact vs brute force on 300 random 14-man rosters (Yahoo eligibility)', () => {
+    const rng = L.mulberry32(2026);
+    const POS = [['PG'], ['SG'], ['PG', 'SG'], ['SG', 'SF'], ['SF'], ['SF', 'PF'], ['PF'], ['PF', 'C'], ['C']];
+    const slotsIn = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'BN', 'BN', 'BN', 'IL'];
+    for (let t = 0; t < 300; t++) {
+      const P = [], roster = [];
+      for (let i = 0; i < 14; i++) {
+        const p = yk(i + 1, POS[Math.floor(rng() * POS.length)], 20 + rng() * 45, { sd: 5 + rng() * 12, games: 1 + Math.floor(rng() * 4) });
+        P.push(p);
+        roster.push({ id: p.id, slot: slotsIn[Math.floor(rng() * slotsIn.length)], banked: rng() < 0.3 ? Math.round(rng() * 80) : undefined, locked: rng() < 0.08, gamesLeft: Math.floor(rng() * 4) });
+      }
+      const idx = new Map(P.map(p => [p.id, p]));
+      const ctx = { ...hl, day: 2, profile: HL, slots: R.slotList(HL) };
+      const evals = roster.map(r => L.evalPlayer(r, idx.get(r.id), ctx));
+      for (const forbidForfeit of [false, true]) {
+        const opt = L.optimise(evals, { forbidForfeit, slots: R.slotList(HL) });
+        const got = opt.picks.reduce((s2, [i]) => s2 + (evals[i].starter ? evals[i].keep : evals[i].insert), 0);
+        const want = brute(evals, { forbidForfeit, slots: R.slotList(HL) });
+        assert(Math.abs(got - want) < 1e-6, `roster ${t} forbid=${forbidForfeit}: ${got} vs brute ${want}`);
+        const count = {};
+        for (const [i, sl] of opt.picks) {
+          count[sl] = (count[sl] || 0) + 1;
+          assert(evals[i].can.has(sl) || (evals[i].locked && evals[i].slot === sl), 'eligible or locked in place');
+        }
+        for (const [sl, n] of Object.entries(count)) assert(n <= (sl === 'UTIL' ? 2 : 1), `${sl} overfilled`);
+      }
+    }
+  });
+  await test('9-slot lineup: C-only is not F-eligible; G/F wing fills SG/SF/G/F; two UTIL', () => {
+    const P = [yk(1, ['PG'], 50), yk(2, ['SG', 'SF'], 49), yk(3, ['SF'], 47), yk(4, ['PF'], 46), yk(5, ['C'], 60), yk(6, ['C'], 58),
+      yk(7, ['C'], 57), yk(8, ['PG', 'SG'], 45), yk(9, ['PF', 'C'], 44), yk(10, ['SG'], 30), yk(11, ['C'], 20)];
+    const out = L.recommend({ ...hl, roster: P.map(p => ({ id: p.id })), players: P, day: 0 });
+    const by = Object.fromEntries(out.slots.map(x => [x.player.id, x.slot]));
+    assert.strictEqual(out.slots.length, 9);
+    assert.deepStrictEqual(out.slots.map(x => x.slot), ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL']);
+    assert.strictEqual(by['5'], 'C', 'best C takes C');
+    assert(['UTIL'].includes(by['6']) && ['UTIL'].includes(by['7']), 'other pure Cs only fit UTIL');
+    assert.strictEqual(by['9'], 'F', 'F/C fills F, not a pure C');
+    assert(!by['11']);
+    assert.deepStrictEqual([...R.eligFor({ pos: ['C'] }, HL)].sort(), ['C', 'UTIL']);
+    assert.deepStrictEqual([...R.eligFor({ pos: ['SG', 'SF'] }, HL)].sort(), ['F', 'G', 'SF', 'SG', 'UTIL']);
+    assert.strictEqual(out.spots.activeCap, 14);
+    assert.strictEqual(out.spots.ilCap, 2);
+  });
+  await test('IL: Out players in IL don\'t use a bench spot; Out bench players are moved to free IL slots; healthy IL warns', () => {
+    const P = Array.from({ length: 14 }, (_, i) => yk(i + 1, [['PG'], ['SG'], ['SF'], ['PF'], ['C']][i % 5], 60 - i * 2));
+    P.push(yk(15, ['PF'], 55, { injury: 'Out', a: 0.1 }), yk(16, ['SG'], 50, { injury: 'Out', a: 0.1 }));
+    P[13].injury = 'Out';
+    const roster = P.map((p, i) => ({ id: p.id, slot: i < 9 ? R.slotList(HL)[i] : i < 14 ? 'BN' : 'IL' }));
+    // Fix eligibility of the 9 starters' slots: the generated positions may not fit, so start everyone from BN.
+    roster.forEach(r => { if (r.slot !== 'IL') r.slot = 'BN'; });
+    let out = L.recommend({ ...hl, roster, players: P, day: 0 });
+    assert.strictEqual(out.spots.active, 14);
+    assert.strictEqual(out.spots.il, 2);
+    assert(!out.warnings.some(w => w.type === 'roster-over'), '14 active + 2 IL is legal');
+    assert(!out.slots.some(x => ['15', '16'].includes(x.player.id)), 'IL players never start');
+    assert.strictEqual(out.spots.ilMoves.length, 0, 'IL full: no move suggested');
+    // Free one IL slot (player 16 dropped) → the Out bench player 14 should go to IL.
+    out = L.recommend({ ...hl, roster: roster.filter(r => r.id !== '16'), players: P, day: 0 });
+    assert.deepStrictEqual(out.spots.ilMoves.map(m => m.id), ['14']);
+    assert.strictEqual(out.spots.benchOpen, 0);
+    // A healthy player in IL → warning; 15 active → roster-over.
+    const healthy = roster.map(r => (r.id === '15' ? { ...r } : r));
+    P[14] = { ...P[14], injury: null };
+    out = L.recommend({ ...hl, roster: healthy.concat([{ id: '99' }]), players: P.concat([yk(99, ['PG'], 10)]), day: 0 });
+    assert(out.warnings.some(w => w.type === 'il-healthy' && w.id === '15'));
+    assert(out.warnings.some(w => w.type === 'roster-over'));
+  });
+  await test('matchup windows: week 7 is 14 days; games left come from the real schedule inside it', async () => {
+    const w7 = R.weekWindow(HL, 7);
+    assert.deepStrictEqual([w7.start, w7.end, w7.days], ['2026-11-30', '2026-12-13', 14]);
+    assert.strictEqual(R.weekWindow(HL, 17).days, 14);
+    assert.strictEqual(R.weekWindow(HL, 1).days, 6);
+    assert.strictEqual(R.weekForDate(HL, '2026-12-10'), 7);
+    assert.strictEqual(R.weekForDate(HL, '2026-10-01'), 1);
+    // A 5-game 14-day week: gameDays spread across both halves; from day 8 only the later games count.
+    const p = yk(1, ['PG'], 45, { games: 5, week: 7 });
+    const ctx = { week: 7, currentWeek: 0, weekLength: 14, profile: HL, slots: R.slotList(HL) };
+    const all = L.evalPlayer({ id: '1', gameDays: [0, 3, 6, 9, 12] }, p, { ...ctx, day: 0 });
+    const late = L.evalPlayer({ id: '1', gameDays: [0, 3, 6, 9, 12] }, p, { ...ctx, day: 8 });
+    assert.strictEqual(all.gamesLeft, 5);
+    assert.strictEqual(late.gamesLeft, 2);
+    assert(late.insert < all.insert);
+    // gamesLeft above 7 is legal in a long week.
+    assert.strictEqual(L.evalPlayer({ id: '1', gamesLeft: 9 }, { ...p, gamesByWeek: { 7: 9 } }, { ...ctx, day: 0 }).gamesLeft, 9);
+    // Real schedule: games inside the window match the board's gamesByWeek for week 7 (imputed Cup games included).
+    const td = require('../nba/routes/league-context').teamDates();
+    const { getPlayers } = require('../nba/model');
+    const b = await getPlayers({ profile: '242808' });
+    for (const bp of b.players.slice(0, 40)) {
+      if (!td[bp.team]) continue;
+      for (const wk of [1, 7, 17]) assert.strictEqual(R.gameDaysIn(td[bp.team], R.weekWindow(HL, wk)).length, bp.gamesByWeek[wk], `${bp.name} wk${wk}`);
+    }
+  });
+  await test('banked + forfeit logic holds under 9 slots', () => {
+    const P = [yk(1, ['PG'], 40), yk(2, ['SG'], 40), yk(3, ['PG', 'SG'], 40), yk(4, ['SF'], 40), yk(5, ['PF'], 40), yk(6, ['SF', 'PF'], 40), yk(7, ['C'], 40), yk(8, ['C'], 40), yk(9, ['PG'], 25), yk(10, ['PG'], 70)];
+    const roster = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL', 'BN'].map((sl, i) => ({ id: String(i + 1), slot: sl, banked: i === 8 ? 45 : undefined, gamesLeft: 2 }));
+    const out = L.recommend({ ...hl, roster, players: P, day: 3 });
+    // Player 10 (70/game) replaces someone; the banked-45 UTIL (25/game) is kept or flagged.
+    const benched = out.diff.filter(d => d.out).map(d => d.out.id);
+    for (const id of benched) if (id === '9') assert(out.warnings.some(w => w.type === 'forfeit' && w.id === '9'));
+    assert(out.slots.some(x => x.player.id === '10'));
+    const safe = L.recommend({ ...hl, roster, players: P, day: 3, options: { forbidForfeit: true } });
+    assert(safe.slots.some(x => x.player.id === '9'), 'forbidForfeit pins the banked starter');
+  });
+  await test('profile swap: same roster, High Score defaults → 6 slots; 242808 → 9 slots', () => {
+    const P = Array.from({ length: 12 }, (_, i) => mk(i + 1, i % 2 ? ['G'] : ['F'], 50 - i));
+    const a = L.recommend({ ...base, roster: P.map(p => ({ id: p.id })), players: P, day: 0, profile: LP.highScoreDefaultProfile() });
+    const b = L.recommend({ ...base, roster: P.map(p => ({ id: p.id })), players: P, day: 0, profile: HL });
+    assert.strictEqual(a.slots.length, 6);
+    assert.deepStrictEqual(a.spots.slots, ['G', 'G', 'FC', 'FC', 'FC', 'UTIL']);
+    assert.strictEqual(b.spots.slots.length, 9);
+    // Board positions PG/PF only (no SG/SF/C): 3 of the 9 slots stay open, flagged.
+    assert(b.total.expected >= a.total.expected);
+    assert(b.warnings.some(w => w.type === 'open-slots' && /3 starting slots/.test(w.message)));
+    assert.strictEqual(L.recommend({ ...base, roster: P.map(p => ({ id: p.id })), players: P, day: 0, profile: undefined }).spots.slots.length, 9, 'default profile = 242808');
+  });
+
   console.log('routes');
   const board = Array.from({ length: 14 }, (_, i) => ({ ...mk(100 + i, i % 2 ? ['G'] : ['F'], 30 + i * 2), name: `Player ${100 + i}`, rank: i + 1 }));
   const yp = (i, sel) => ({ player_key: `466.p.${i}`, player_id: String(i), name: { full: `Player ${i}` }, editorial_team_abbr: 'TST', display_position: 'PG', eligible_positions: ['PG'], selected_position: sel });
@@ -391,15 +527,22 @@ async function call(server, method, path, body, headers = {}) {
       clientMode = 'ok';
     });
     await test('POST /api/nba/lineup/manual works signed out; validates input', async () => {
-      const ok = await call(server, 'POST', '/api/nba/lineup/manual', { week: 1, day: 0, roster: board.slice(0, 10).map(p => ({ id: p.id })), opponent: board.slice(4, 14).map(p => p.id) });
+      const ok = await call(server, 'POST', '/api/nba/lineup/manual', { league_id: 'hs', week: 1, day: 0, roster: board.slice(0, 10).map(p => ({ id: p.id })), opponent: board.slice(4, 14).map(p => p.id) });
       assert.strictEqual(ok.status, 200, JSON.stringify(ok.json));
       assert.strictEqual(ok.json.source, 'manual');
       assert.strictEqual(ok.json.slots.length, 6);
       assert(ok.json.matchup);
+      // Default league = 242808: nine slots in the response's profile summary.
+      const hl = await call(server, 'POST', '/api/nba/lineup/manual', { week: 1, day: 0, roster: board.slice(0, 14).map(p => ({ id: p.id })) });
+      assert.strictEqual(hl.status, 200, JSON.stringify(hl.json));
+      assert.deepStrictEqual(hl.json.profile.slotList, ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL']);
+      assert.strictEqual(hl.json.window.start, '2026-10-20');
+      assert.strictEqual(hl.json.window.days, 6, 'week 1 is a 6-day matchup');
+      assert.strictEqual((await call(server, 'POST', '/api/nba/lineup/manual', { league_id: '<x>', week: 1, ids: ['100'] })).status, 400);
       const ids = await call(server, 'POST', '/api/nba/lineup/manual', { week: 1, ids: ['100', '101', 'nope'] });
       assert.strictEqual(ids.status, 200);
       assert.deepStrictEqual(ids.json.unmatched.map(u => u.id), ['nope']);
-      for (const bad of [{ roster: [{ id: '100' }] }, { week: 1 }, { week: 1, roster: [{ id: '<script>' }] }, { week: 1, roster: Array.from({ length: 21 }, (_, i) => ({ id: String(i) })) }, { week: 1, roster: [{ id: '100', banked: -5 }] }, { week: 1, day: 99, roster: [{ id: '100' }] }]) {
+      for (const bad of [{ week: 0, roster: [{ id: '100' }] }, { week: 1 }, { week: 1, roster: [{ id: '<script>' }] }, { week: 1, roster: Array.from({ length: 21 }, (_, i) => ({ id: String(i) })) }, { week: 1, roster: [{ id: '100', banked: -5 }] }, { week: 1, day: 99, roster: [{ id: '100' }] }]) {
         assert.strictEqual((await call(server, 'POST', '/api/nba/lineup/manual', bad)).status, 400, JSON.stringify(bad).slice(0, 80));
       }
       assert.strictEqual((await call(server, 'POST', '/api/nba/lineup/manual', '{bad json')).status, 400);
