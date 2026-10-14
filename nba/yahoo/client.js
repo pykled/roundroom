@@ -19,6 +19,29 @@ const P = require('./parse');
 
 const BASE = 'https://fantasysports.yahooapis.com/fantasy/v2';
 
+// Body as parsed JSON, or the raw text when it isn't JSON (XML error pages,
+// 999 HTML). Works with fetch Responses and test stubs that only have json().
+async function readBody(res) {
+  if (typeof res.text === 'function') {
+    const t = await res.text().catch(() => '');
+    try { return JSON.parse(t); } catch { return t; }
+  }
+  try { return await res.json(); } catch { return ''; }
+}
+
+// Short human description from a Yahoo error body (JSON or XML), capped.
+function errorDescription(body) {
+  let d = '';
+  if (body && typeof body === 'object') {
+    const e = body.error;
+    d = (e && typeof e === 'object' ? e.description || e.message : e) || '';
+  } else if (typeof body === 'string') {
+    const m = /<description>([^<]*)<\/description>/i.exec(body);
+    d = m ? m[1] : '';
+  }
+  return String(d).replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 class YahooError extends Error {
   constructor(message, status, code) { super(message); this.name = 'YahooError'; this.status = status; this.code = code; }
 }
@@ -48,6 +71,7 @@ function createClient({
   maxRetries = 3,
   backoffMs = 1000,
   sleep = ms => new Promise(r => setTimeout(r, ms)),
+  onWarning = null, // (msg) => void — parse warnings (missing keys, odd shapes)
 } = {}) {
   if (typeof getTokens !== 'function') throw new Error('createClient: getTokens required');
   let refreshing = null;
@@ -91,12 +115,25 @@ function createClient({
         await sleep(Number.isFinite(ra) && ra > 0 ? ra * 1000 : backoffMs * 2 ** attempt);
         continue;
       }
+      const body = await readBody(res);
       if (!res.ok) {
-        let desc = '';
-        try { const j = await res.json(); desc = (j && j.error && j.error.description) || ''; } catch { /* not JSON */ }
-        throw new YahooError(`Yahoo API ${res.status}${desc ? `: ${String(desc).slice(0, 200)}` : ''}`, res.status === 999 ? 429 : res.status);
+        const desc = errorDescription(body);
+        throw new YahooError(`Yahoo API ${res.status}${desc ? `: ${desc}` : ''}`, res.status === 999 ? 429 : res.status);
       }
-      return res.json();
+      if (typeof body === 'string') {
+        // 200 with a non-JSON body: Yahoo ignored ?format=json, or a proxy page.
+        const desc = errorDescription(body);
+        throw new YahooError(`Yahoo returned a non-JSON body${desc ? `: ${desc}` : ''}`, 502, 'bad_format');
+      }
+      return body;
+    }
+  }
+
+  // Run a parser, routing its warnings to onWarning; a parse failure becomes a
+  // YahooError (502) instead of a TypeError deep in the router.
+  function parse(fn, json) {
+    try { return P.capture(() => fn(json), onWarning); } catch (e) {
+      throw new YahooError(`Yahoo response not understood: ${e.message}`, 502, e.code || 'bad_response');
     }
   }
 
@@ -105,22 +142,23 @@ function createClient({
   async function getGameKey(code = 'nba') {
     const c = gameKeyCache.get(code);
     if (c && c.expires > Date.now()) return c.key;
-    const g = P.parseGame(await request(`game/${encodeURIComponent(code)}`));
+    const g = parse(P.parseGame, await request(`game/${encodeURIComponent(code)}`));
+    if (!g.game_key) throw new YahooError(`Yahoo returned no game key for "${code}"`, 502, 'bad_response');
     gameKeyCache.set(code, { key: g.game_key, expires: Date.now() + 6 * 60 * 60 * 1000 });
     return g.game_key;
   }
 
   async function getUserLeagues(gameKey) {
     const gk = gameKey || await getGameKey('nba');
-    return P.parseUserLeagues(await request(`users;use_login=1/games;game_keys=${encodeURIComponent(gk)}/leagues`)).leagues;
+    return parse(P.parseUserLeagues, await request(`users;use_login=1/games;game_keys=${encodeURIComponent(gk)}/leagues`)).leagues;
   }
 
   async function getGameWeeks(gameKey) {
-    return P.parseGameWeeks(await request(`game/${encodeURIComponent(gameKey)}/game_weeks`));
+    return parse(P.parseGameWeeks, await request(`game/${encodeURIComponent(gameKey)}/game_weeks`));
   }
 
   async function getLeague(leagueKey) {
-    const league = P.parseLeague(await request(`league/${encodeURIComponent(leagueKey)}/settings`));
+    const league = parse(P.parseLeague, await request(`league/${encodeURIComponent(leagueKey)}/settings`));
     const gameKey = String(leagueKey).split('.l.')[0];
     let weeks = [];
     try {
@@ -133,6 +171,9 @@ function createClient({
     return {
       ...league,
       scoring_type: league.scoring_type || s.scoring_type || null,
+      draft_type: s.draft_type || null,
+      is_auction_draft: !!s.is_auction_draft,
+      draft_pick_time: s.draft_pick_time ?? null,
       roster_positions: s.roster_positions || [],
       stat_categories: s.stat_categories || [],
       stat_modifiers: s.stat_modifiers || [],
@@ -141,23 +182,23 @@ function createClient({
   }
 
   async function getDraftResults(leagueKey) {
-    const d = P.parseDraftResults(await request(`league/${encodeURIComponent(leagueKey)}/draftresults`));
+    const d = parse(P.parseDraftResults, await request(`league/${encodeURIComponent(leagueKey)}/draftresults`));
     return { league_key: d.league_key, draft_status: d.draft_status, picks: d.picks };
   }
 
   async function getTeams(leagueKey) {
-    return P.parseTeams(await request(`league/${encodeURIComponent(leagueKey)}/teams`));
+    return parse(P.parseTeams, await request(`league/${encodeURIComponent(leagueKey)}/teams`));
   }
 
   async function getRoster(teamKey, week) {
     const w = week != null && week !== '' ? `;week=${encodeURIComponent(week)}` : '';
-    return P.parseRoster(await request(`team/${encodeURIComponent(teamKey)}/roster${w}`));
+    return parse(P.parseRoster, await request(`team/${encodeURIComponent(teamKey)}/roster${w}`));
   }
 
   async function getPlayers(leagueKey, { start = 0, count = 25, status } = {}) {
     let m = `;start=${Number(start) || 0};count=${Math.min(Number(count) || 25, 25)}`;
     if (status) m += `;status=${encodeURIComponent(status)}`;
-    return P.parsePlayers(await request(`league/${encodeURIComponent(leagueKey)}/players${m}`));
+    return parse(P.parsePlayers, await request(`league/${encodeURIComponent(leagueKey)}/players${m}`));
   }
 
   async function getPlayersByKeys(leagueKey, keys) {
@@ -165,7 +206,7 @@ function createClient({
     const uniq = [...new Set(keys.filter(Boolean))];
     for (let i = 0; i < uniq.length; i += 25) {
       const chunk = uniq.slice(i, i + 25).map(encodeURIComponent).join(',');
-      out.push(...P.parsePlayers(await request(`league/${encodeURIComponent(leagueKey)}/players;player_keys=${chunk}`)));
+      out.push(...parse(P.parsePlayers, await request(`league/${encodeURIComponent(leagueKey)}/players;player_keys=${chunk}`)));
     }
     return out;
   }
@@ -173,4 +214,4 @@ function createClient({
   return { request, getGameKey, getUserLeagues, getGameWeeks, getLeague, getDraftResults, getTeams, getRoster, getPlayers, getPlayersByKeys };
 }
 
-module.exports = { createClient, createLimiter, YahooError, BASE };
+module.exports = { createClient, createLimiter, YahooError, BASE, readBody, errorDescription };
