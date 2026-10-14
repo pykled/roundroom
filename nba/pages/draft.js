@@ -127,6 +127,11 @@
     }
     // Live: if Yahoo didn't give a draft position, learn my slot from my first pick.
     if (y && S.myTeamKey) {
+      // ...or from my round-1 pick in Yahoo's published order (before any picks).
+      var me = (S.teams || []).filter(function (t) { return t && t.team_key === S.myTeamKey; })[0];
+      var dp = me && parseInt(me.draft_position, 10);
+      var os = !(dp >= 1 && dp <= S.state.settings.teams) && L.yahooOrderSlot(y, S.myTeamKey, S.state.settings.teams);
+      if (os && os !== S.state.settings.mySlot) { S.state.settings.mySlot = os; save(); }
       var first = S.merged.picks.filter(function (p) { return p.source === 'yahoo' && p.mine; })[0];
       if (first && first.slot !== S.state.settings.mySlot) { S.state.settings.mySlot = first.slot; save(); }
     }

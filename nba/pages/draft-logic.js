@@ -924,8 +924,19 @@
     var mine = (o.teams || []).filter(function (t) { return t && t.team_key === o.myTeamKey; })[0];
     var dp = mine && parseInt(mine.draft_position, 10);
     if (dp >= 1 && (!n || dp <= n)) return true;
-    if (o.yahoo && Array.isArray(o.yahoo.order) && o.yahoo.order.some(function (x) { return x && x.team_key === o.myTeamKey; })) return true;
+    if (yahooOrderSlot(o.yahoo, o.myTeamKey, n)) return true;
     return (o.picks || []).some(function (p) { return p && p.source === 'yahoo' && p.mine; });
+  }
+
+  /* My round-1 pick in Yahoo's published order (= my draft slot), or null. */
+  function yahooOrderSlot(yahoo, myTeamKey, teams) {
+    if (!yahoo || !Array.isArray(yahoo.order) || !myTeamKey) return null;
+    var best = null;
+    yahoo.order.forEach(function (x) {
+      var p = x && parseInt(x.pick, 10);
+      if (x && x.team_key === myTeamKey && p >= 1 && (!teams || p <= teams) && (best == null || p < best)) best = p;
+    });
+    return best;
   }
 
   /* "Which pick are you?" control. mode: 'yahoo' = synced (no chips), 'pick' =
@@ -1052,7 +1063,7 @@
     injuryFactor: injuryFactor, injuryShort: injuryShort,
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,
     cheatSheet: cheatSheet, myPicksSnake: myPicksSnake,
-    mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, slotPickerView: slotPickerView,
+    mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, yahooOrderSlot: yahooOrderSlot, slotPickerView: slotPickerView,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,

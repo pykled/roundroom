@@ -45,6 +45,12 @@ t('live, no draft_position/order/picks: unknown -> picker shows', () => eq(L.yah
 t('live, my draft_position: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '5' }], settings: S12 }), true));
 t('draft_position out of range ignored', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '15' }], settings: S12 }), false));
 t('live, my team in Yahoo pick order: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, yahoo: { order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }] } }), true));
+t('order slot = my round-1 pick in Yahoo order', () => eq(L.yahooOrderSlot({ order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }, { pick: 3, team_key: 'me' }] }, 'me', 2), 2));
+t('order with only later-round (traded) picks of mine: unknown', () => {
+  const y = { order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'a' }, { pick: 3, team_key: 'me' }] };
+  eq(L.yahooOrderSlot(y, 'me', 2), null);
+  eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: L.normalizeSettings({ teams: 2 }), yahoo: y }), false);
+});
 t('live, Yahoo pick credited to me: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'yahoo', mine: true, slot: 2 }] }), true));
 t('manual pick of mine does not count', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'manual', mine: true }] }), false));
 t('settingsFromYahoo keeps a chosen slot when Yahoo has no draft_position', () => {
