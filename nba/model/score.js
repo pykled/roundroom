@@ -87,7 +87,8 @@ function ddCurve(logFiles) {
   const acc = { dd: Array.from({ length: BINS }, () => [0, 0]), td: Array.from({ length: BINS }, () => [0, 0]) };
   let pf = 0, tech = 0, min = 0;
   for (const file of logFiles || []) {
-    for (const p of Object.values(file.players || {})) {
+    for (const [pid, p] of Object.entries(file.players || {})) {
+      if (!/^\d+$/.test(pid)) continue; // Sleeper also emits team-total rows (TEAM_DEN, ...)
       const rows = p.g.filter(hasLine);
       for (const g of rows) { pf += g[COL.pf]; tech += g[COL.tech]; min += g[3]; }
       if (rows.length < MIN_PLAYER_GAMES) continue;

@@ -354,7 +354,7 @@ function runBacktest(profile) {
   const logs = Data.load().logs.find(l => l.season === '2025');
   const weeks = Object.keys(logs.weeks).map(Number).sort((a, b) => a - b);
   const score = g => Sc.rowScore(g, profile);
-  const players = Object.entries(logs.players).map(([pid, p]) => ({ pid, rw: p.rw, g: p.g.map(g => [g[0], g[1], score(g), g[3]]) }));
+  const players = Object.entries(logs.players).filter(([pid]) => /^\d+$/.test(pid)).map(([pid, p]) => ({ pid, rw: p.rw, g: p.g.map(g => [g[0], g[1], score(g), g[3]]) }));
   const run = span => {
     const out = [];
     for (const k of weeks.filter(w => w >= 4 && (span === 1 || (w % 2 === 0 && weeks.includes(w + 1))))) {
