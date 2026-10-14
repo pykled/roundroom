@@ -5,6 +5,7 @@
 'use strict';
 process.env.NBA_MODEL_OFFLINE = '1';
 const path = require('path');
+const fs = require('fs');
 const assert = require('assert');
 const express = require('express');
 const ROOT = path.join(__dirname, '..');
@@ -313,7 +314,60 @@ test('page logic: manual roster state, draft import, request body', () => {
   assert.deepStrictEqual(UI.searchPlayers(ps, 'nikola', ['1']).map(p => p.id), ['2']);
   assert.deepStrictEqual(UI.searchPlayers(ps, 'jokic').map(p => p.id), ['1']);
   assert.deepStrictEqual(UI.searchPlayers(ps, '  ').length, 0);
-  assert.deepStrictEqual(UI.prefs('{"horizon":2,"pos":"X","sort":"ceiling","roleUp":1}'), { horizon: 2, pos: 'ALL', roleUp: true, sort: 'ceiling', source: null });
+  assert.deepStrictEqual(UI.prefs('{"horizon":2,"pos":"X","sort":"ceiling","roleUp":1}'), { horizon: 2, pos: 'ALL', roleUp: true, sort: 'ceiling', source: null, fourGame: false, hideInjured: false, week: null });
+});
+
+test('page logic (P5): filters, likely-rostered pool, claim text, week options, drop reasons', () => {
+  const ts = [{ id: 'a', elig: ['PG'], gamesByWeek: [4, 3] }, { id: 'b', elig: ['C'], gamesByWeek: [3, 4] }, { id: 'c', elig: ['SF'], gamesByWeek: [5] }];
+  assert.deepStrictEqual(UI.filterTargets(ts, { fourGame: true }).map(t => t.id), ['a', 'c'], '4-game week = this week');
+  const p = UI.prefs('{"fourGame":true,"hideInjured":1,"week":7}');
+  assert.strictEqual(p.fourGame, true); assert.strictEqual(p.hideInjured, true); assert.strictEqual(p.week, 7);
+  assert.strictEqual(UI.prefs('{"week":"x"}').week, null); assert.strictEqual(UI.prefs('{"week":0}').week, null);
+  // likelyRostered: board order, skips my roster, (teams-1) * perTeam, capped
+  const board = Array.from({ length: 60 }, (_, i) => ({ id: String(i + 1), rank: i + 1 })).reverse();
+  assert.deepStrictEqual(UI.likelyRostered(board, ['2', '4'], 3, 2), ['1', '3', '5', '6']);
+  assert.strictEqual(UI.likelyRostered(board, [], 100, 100).length, 60);
+  assert.deepStrictEqual(UI.likelyRostered(null, null, 12, 14), []);
+  // manualRequest merges extra excludes without dupes or roster ids; old call shape unchanged
+  assert.deepStrictEqual(UI.manualRequest({ v: 1, roster: ['1'], exclude: ['2'] }, 1, null, ['2', '1', '3']), { roster: ['1'], weeks: 1, exclude: ['2', '3'] });
+  assert.deepStrictEqual(UI.manualRequest({ v: 1, roster: ['1'], exclude: [] }, 1, 7), { roster: ['1'], weeks: 1, week: 7 });
+  // assumeTaken: only an explicit false survives the round trip
+  assert.deepStrictEqual(UI.loadManual({ v: 1, roster: [], exclude: [], assumeTaken: false }).assumeTaken, false);
+  assert.ok(!('assumeTaken' in UI.loadManual({ v: 1, roster: [], exclude: [], assumeTaken: true })));
+  // gains / bars
+  assert.deepStrictEqual(UI.gainsById({ targets: [{ id: 'x', netGain: 2.5 }, { id: 'y', netGain: 'z' }] }), { x: 2.5, y: 0 });
+  assert.strictEqual(UI.barFrac(5, 10), 0.5); assert.strictEqual(UI.barFrac(-1, 10), 0); assert.strictEqual(UI.barFrac(3, 0), 0); assert.strictEqual(UI.barFrac(20, 10), 1);
+  // claim text (plain text, FA vs W, open spot)
+  const add = { name: 'Victor Wembanyama', team: 'SAS', yahooPos: ['C'], status: 'FA' };
+  const drop = { name: 'Reed Sheppard', team: 'HOU', pos: ['PG', 'SG'] };
+  assert.strictEqual(UI.claimText(add, drop, { gain: 25.46, span: 'pts this week' }), 'Add Victor Wembanyama (SAS · C), drop Reed Sheppard (HOU · PG,SG). Expected gain +25.5 pts this week. Free agent: add now.');
+  assert.match(UI.claimText(Object.assign({}, add, { status: 'W' }), null, { waiverDays: 1 }), /^Claim .* into an open roster spot\. On waivers: the claim clears after 1 day and moves you to the back/);
+  assert.strictEqual(UI.claimText(null), '');
+  assert.deepStrictEqual(UI.statusLabel({ status: 'W' }, 2), { kind: 'w', text: 'Waivers · clears in 2 days' });
+  assert.deepStrictEqual(UI.statusLabel({ status: 'FA' }), { kind: 'fa', text: 'Free agent · add now' });
+  // week options flag 14-day weeks (7 and 17 in 242808)
+  const wo = UI.weekOptions({ 7: { start: '2026-11-30', end: '2026-12-13', days: 14 }, 6: { start: '2026-11-23', end: '2026-11-29', days: 7 } });
+  assert.deepStrictEqual(wo.map(o => [o.week, o.long]), [[6, false], [7, true]]);
+  assert.strictEqual(wo[1].label, 'Wk 7 · Nov 30\u2013Dec 13');
+  // drop reasons
+  assert.match(UI.dropReason({ dropCost: 0.4, gamesByWeek: [2] }, 1), /loses 0\.4 pts this week without him; only 2 games this week\./);
+  assert.match(UI.dropReason({ dropCost: 0, gamesByWeek: [3] }, 4), /loses nothing the next 4 weeks/);
+  assert.match(UI.dropReason({ keeper: true }), /keep him/);
+  assert.match(UI.dropReason({ ilSlot: true }), /IL slot/);
+  assert.match(UI.dropReason({ dropCost: 1, bankedGames: 2, gamesByWeek: [3] }, 1), /already played 2/);
+});
+
+test('page markup (P5): design system shell, every player via NbaUI, no raw API strings', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'nba/pages/waivers.html'), 'utf8');
+  const js = fs.readFileSync(path.join(ROOT, 'nba/pages/waivers.js'), 'utf8');
+  assert.match(html, /<body class="sport-nba nba-ui">/);
+  assert.match(html, /\/nba\/pages\/nba-ui\.css/); assert.match(html, /<script src="\/nba\/pages\/nba-ui\.js"><\/script>/);
+  assert.match(html, /NbaUI\.mountNav\(\{ active: 'waivers' \}\)/);
+  assert.ok(!/id="app"/.test(html), 'not #app: shared/styles.css caps #app at 900px');
+  for (const id of ['wv-hero', 'wv-swaps', 'wv-list', 'wv-cal', 'wv-filters', 'wv-roster-sheet', 'wv-how-sheet', 'wv-actionbar']) assert.ok(html.includes('id="' + id + '"'), id);
+  for (const f of ['fourGame', 'roleUp', 'hideInjured']) assert.ok(html.includes('data-flag="' + f + '"'), f);
+  assert.ok(/U\.playerCell\(/.test(js) && /U\.avatar\(/.test(js), 'faces via NbaUI');
+  assert.ok(!/innerHTML = [^;]*\.name \+/.test(js.replace(/esc\([^)]*\)/g, '')), 'names are escaped');
 });
 
 // ---------------------------------------------------------------- routes
