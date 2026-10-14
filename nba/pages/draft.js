@@ -184,7 +184,7 @@
     save(); recompute(); render();
     var live = liveYahoo();
     toast((mine ? 'You took ' : clockTeamName(ci) + ' took ') + p.name + (live ? ' · waiting for Yahoo' : ''),
-      { tone: mine ? 'good' : undefined, action: { label: 'Undo', onClick: function () { if (S.state.manual.length && String(S.state.manual[S.state.manual.length - 1].playerId) === String(id)) undo(); } } });
+      { tone: mine ? 'good' : undefined, action: !mine ? null : { label: 'Undo', onClick: function () { if (S.state.manual.length && String(S.state.manual[S.state.manual.length - 1].playerId) === String(id)) undo(); } } });
   }
   function undo() {
     if (!S.state.manual.length) return;
@@ -241,8 +241,7 @@
   function renderHead() {
     var st = V.st, secs = timerSeconds();
     $('nd-eyebrow').textContent = leagueName() + ' · Yahoo High Score';
-    var mode = liveYahoo() ? '' : S.connected && S.leagueKey && S.auction ? '' : 'Manual · ';
-    $('nd-sub').innerHTML = '<span class="nd-status__lg">' + esc(leagueName()) + ' · </span>' + esc(mode) + '<b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
+    $('nd-sub').innerHTML = '<span class="nd-status__lg">' + esc(leagueName()) + ' · </span><b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
       '<span class="nd-status__more"> · ' + esc(L.starterCount(st)) + ' starters + ' + esc(st.bench) + ' BN' + (st.il ? ' + ' + esc(st.il) + ' IL' : '') + '</span>';
   }
 

@@ -306,6 +306,7 @@
 /* ── Phone/tablet thumb bar ───────────────────────────────────────────── */
 .nd-page .nd-minibar { display: none; }
 @media (max-width: 1023px) {
+  .nd-page .nd-reco__go { display: none; } /* the thumb bar carries the one-tap Draft */
   .nd-page #app.nd-shell { padding-bottom: calc(var(--nd-mb-h) + var(--nu-8)); }
   .nd-page .nd-minibar {
     display: flex; align-items: center; gap: 8px; position: fixed; z-index: 105; left: 8px; right: 8px; bottom: calc(8px + var(--nu-safe-b));

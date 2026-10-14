@@ -164,7 +164,7 @@ with sync_playwright() as pw:
             pg.select_option('#nd-tier', '0')
             pg.evaluate('window.scrollTo(0,0)')
         if pick == 66:
-            shot(pg, 'mid')
+            pg.evaluate('window.scrollTo(0,0)'); shot(pg, 'mid')
         if pick == 70:
             pg.locator('#nd-list .nd-row-main').first.click()
             pg.wait_for_selector('#nd-sheet.is-open')
@@ -186,7 +186,7 @@ with sync_playwright() as pw:
             pg.reload(wait_until='networkidle'); pg.wait_for_selector('.nd-row', timeout=20000); pg.wait_for_timeout(300)
             check('reload keeps picks', pg.inner_text('#nd-pick') == before, f'{before} vs {pg.inner_text("#nd-pick")}')
         if pick == 139:
-            shot(pg, 'late')
+            pg.evaluate('window.scrollTo(0,0)'); shot(pg, 'late')
             pg.click('#nd-views [data-view=cheat]'); pg.wait_for_timeout(300)
             check('cheat sheet renders', pg.locator('#nd-cheat .nd-cs-rounds li').count() >= 14)
             shot(pg, 'cheat')
