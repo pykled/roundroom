@@ -14,6 +14,10 @@ VIEWPORT_IMG = """() => {
     const r = a.getBoundingClientRect();
     if (r.bottom <= 0 || r.top >= vh || r.right <= 0 || r.left >= vw || r.width === 0) return;
     if (a.closest('[hidden]')) return;
+    // clipped by a horizontal scroller (trending strip) or covered by a sheet = not visible
+    const cx = Math.min(vw - 1, Math.max(0, r.left + r.width / 2)), cy = Math.min(vh - 1, Math.max(0, r.top + r.height / 2));
+    const hit = document.elementFromPoint(cx, cy);
+    if (!hit || !(a.contains(hit) || hit.contains(a) || (a.parentElement && a.parentElement.contains(hit)))) return;
     total++;
     const img = a.querySelector('img');
     if (img && img.classList.contains('is-loaded')) loaded++; else if (!img) noSrc++;
@@ -38,7 +42,7 @@ with sync_playwright() as p:
     for (w, h, tag) in [(1280, 800, '1280'), (375, 812, '375')]:
         ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2 if w < 500 else 1)
         pg = ctx.new_page()
-        pg.on('console', lambda m, tag=tag: m.type == 'error' and report['errors'].append(f'[{tag}] {m.text}'))
+        pg.on('console', lambda m, tag=tag: m.type == 'error' and report['errors'].append(f'[{tag}] {m.text} @ {m.location.get("url", "")}'))
         pg.on('pageerror', lambda e, tag=tag: report['errors'].append(f'[{tag}] pageerror {e}'))
         mobile = w < 768
         # 1 list default

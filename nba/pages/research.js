@@ -247,11 +247,11 @@
     var items = (trend[trendMode] || []).slice(0, 12);
     $('rs-trend-src').textContent = trend.derived ? 'Sleeper trending unavailable: biggest last-5 form swings' : 'Sleeper adds and drops, last ' + (trend.lookbackHours || 24) + 'h';
     if (!items.length) { list.innerHTML = '<p class="nu-hint">Nothing trending right now.</p>'; return; }
-    list.innerHTML = items.map(function (it) {
+    list.innerHTML = items.map(function (it, i) {
       var p = it.player, name = (p && p.name) || it.name || 'Unknown player';
       var stat = it.count != null ? (trendMode === 'adds' ? '+' : '−') + L.count(it.count) : (p && p.last5Delta != null ? L.signed(p.last5Delta) + ' form' : '');
       var sub = p ? U.posPill(String(p.pos || '').split(',').filter(Boolean)[0] || '') + '<span>' + esc(p.team || '') + '</span>' : '<span>' + esc(it.team || 'Not on the board') + '</span>';
-      var inner = (p ? avatarOf(p, 'sm') : U.avatar({ name: name }, { size: 'sm', noImage: true })) +
+      var inner = (p ? avatarOf(p, 'sm', { eager: i < 6 }) : U.avatar({ name: name }, { size: 'sm', noImage: true })) +
         '<span class="rs-tcard__text"><span class="rs-tcard__name">' + esc(name) + '</span><span class="rs-tcard__meta">' + sub + '</span></span>' +
         '<span class="rs-tcard__n" data-mode="' + trendMode + '">' + esc(stat) + '</span>';
       return p ? '<a role="listitem" class="rs-tcard" href="' + esc(playerHref(p.id)) + '" data-open="' + esc(p.id) + '">' + inner + '</a>'
@@ -465,8 +465,8 @@
     }
     // season line vs projection
     var ls = d.lastSeason, pj = d.projection, lines = [];
-    if (ls && ls.perGame) lines.push({ label: seasonLabel(ls.season) + ' actual', sub: ls.gp + ' games', s: Object.assign({ min: ls.mpg }, ls.perGame), score: ls.scored && ls.scored.mean });
-    if (pj && pj.pts != null) lines.push({ label: seasonLabel(pj.season) + ' projection', sub: 'Sleeper', s: pj, score: pj.modelMean });
+    if (ls && ls.perGame) lines.push({ label: seasonLabel(ls.season), sub: ls.gp + ' games', s: Object.assign({ min: ls.mpg }, ls.perGame), score: ls.scored && ls.scored.mean });
+    if (pj && pj.pts != null) lines.push({ label: seasonLabel(pj.season), sub: 'projection', s: pj, score: pj.modelMean });
     if (lines.length) {
       var h2 = '<tr><th scope="col">Per game</th>' + STAT_COLS.map(function (c) { return '<th scope="col" class="nu-col-num' + (c[2] ? ' nu-col-opt' : '') + '">' + c[1] + '</th>'; }).join('') + '<th scope="col" class="nu-col-num">Score</th></tr>';
       var b2 = lines.map(function (l) {
