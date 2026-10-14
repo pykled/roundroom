@@ -4,14 +4,17 @@
    no model and no stream A/B code present.
 
    Usage
-     node scripts/nba-ui-mock.js [--port=0] [--yahoo=off|on|live|degraded] [--interval=3]
+     node scripts/nba-ui-mock.js [--port=0] [--yahoo=off|on|live|degraded] [--interval=3] [--profile=on|off] [--lean=1]
        --port      0 = ephemeral (printed on start)
+       --profile   off  → GET /api/nba/league-profile 404s (page falls back to the built-in 242808 shape)
+       --lean      1    → players carry no Yahoo fields (yahooElig/eligConfidence/yahooPid/yahooPreRank/
+                          yahooPctRos/vorp/vorpBySlot): pre-H1 model, keyed by Sleeper id
        --yahoo     off      status.connected = false (manual mode)
                    on       connected, draft predraft (no picks yet)
                    live     connected, a pick lands every --interval seconds
                    degraded connected, but /api/nba/yahoo/draft returns 503
    Runtime switch (handy for screenshots):
-     POST /__mock/mode?yahoo=live&interval=2&reset=1   → { mode, picks }
+     POST /__mock/mode?yahoo=live&interval=2&reset=1&profile=off&lean=1   → { mode, picks }
      POST /__mock/advance?n=5                          → force n picks now
    /nba/auth/login simulates a successful Yahoo connect (mode → on) and redirects to /nba. */
 'use strict';
@@ -23,51 +26,21 @@ const arg = (k, d) => { const a = process.argv.find(x => x.startsWith('--' + k +
 
 let mode = arg('yahoo', 'off');
 let intervalSec = Number(arg('interval', 3)) || 3;
+let profileOn = arg('profile', 'on') !== 'off';
+let lean = arg('lean', '0') === '1';
 
 /* ------------------------------------------------------------- fixture */
-// [name, team, positions, mean HS/game, injury]
-const RAW = [
-  ['Nikola Jokić', 'DEN', 'C', 68.4], ['Victor Wembanyama', 'SAS', 'C', 61.2], ['Giannis Antetokounmpo', 'MIL', 'PF', 60.1],
-  ['Luka Dončić', 'LAL', 'PG,SG', 63.3], ['Shai Gilgeous-Alexander', 'OKC', 'PG,SG', 58.7], ['Anthony Davis', 'DAL', 'PF,C', 55.9, 'Questionable'],
-  ['Domantas Sabonis', 'SAC', 'PF,C', 54.8], ['Tyrese Haliburton', 'IND', 'PG', 47.2, 'Out'], ['Jayson Tatum', 'BOS', 'SF,PF', 50.4, 'Out'],
-  ['Karl-Anthony Towns', 'NYK', 'PF,C', 53.1], ['Cade Cunningham', 'DET', 'PG,SG', 54.0], ['Trae Young', 'ATL', 'PG', 52.6],
-  ['LeBron James', 'LAL', 'SF,PF', 51.9, 'Day-To-Day'], ['Anthony Edwards', 'MIN', 'SG,SF', 49.3], ['Alperen Şengün', 'HOU', 'C', 51.2],
-  ['Joel Embiid', 'PHI', 'C', 55.0, 'Questionable'], ['Kevin Durant', 'HOU', 'SF,PF', 47.6], ['Bam Adebayo', 'MIA', 'C', 46.5],
-  ['Jalen Johnson', 'ATL', 'SF,PF', 49.8], ['LaMelo Ball', 'CHA', 'PG', 50.2], ['Paolo Banchero', 'ORL', 'SF,PF', 48.1],
-  ['Devin Booker', 'PHX', 'PG,SG', 46.9], ['Jalen Brunson', 'NYK', 'PG', 45.8], ['Ja Morant', 'MEM', 'PG', 47.0],
-  ['Evan Mobley', 'CLE', 'PF,C', 47.9], ['Chet Holmgren', 'OKC', 'PF,C', 46.8], ['Josh Giddey', 'CHI', 'PG,SG', 47.4],
-  ['Scottie Barnes', 'TOR', 'SF,PF', 48.6], ['Donovan Mitchell', 'CLE', 'SG', 46.2], ['De\'Aaron Fox', 'SAS', 'PG', 44.9],
-  ['Zion Williamson', 'NOP', 'PF', 46.0, 'Questionable'], ['Stephen Curry', 'GSW', 'PG', 44.7], ['Jimmy Butler', 'GSW', 'SF,PF', 42.1],
-  ['Kawhi Leonard', 'LAC', 'SF', 43.9], ['Ivica Zubac', 'LAC', 'C', 43.2], ['Rudy Gobert', 'MIN', 'C', 41.0],
-  ['Jaren Jackson Jr.', 'MEM', 'PF,C', 42.8], ['Franz Wagner', 'ORL', 'SF,PF', 43.5], ['Pascal Siakam', 'IND', 'PF', 43.0],
-  ['Jamal Murray', 'DEN', 'PG,SG', 42.4], ['Tyrese Maxey', 'PHI', 'PG,SG', 45.5], ['Dyson Daniels', 'ATL', 'SG,SF', 42.9],
-  ['Amen Thompson', 'HOU', 'SG,SF', 44.6], ['Jalen Williams', 'OKC', 'SG,SF', 43.1], ['Darius Garland', 'CLE', 'PG', 39.8],
-  ['Desmond Bane', 'ORL', 'SG,SF', 40.6], ['Mikal Bridges', 'NYK', 'SF', 37.9], ['OG Anunoby', 'NYK', 'SF,PF', 38.3],
-  ['Derrick White', 'BOS', 'PG,SG', 40.1], ['Jaylen Brown', 'BOS', 'SG,SF', 42.0], ['Myles Turner', 'MIL', 'C', 38.8],
-  ['Walker Kessler', 'UTA', 'C', 41.7], ['Nikola Vučević', 'CHI', 'C', 43.6], ['Lauri Markkanen', 'UTA', 'SF,PF', 40.9],
-  ['Kristaps Porziņģis', 'ATL', 'C', 39.4], ['Deni Avdija', 'POR', 'SF,PF', 42.2], ['Toumani Camara', 'POR', 'SF,PF', 36.5],
-  ['Josh Hart', 'NYK', 'SG,SF', 40.4], ['Fred VanVleet', 'HOU', 'PG', 36.8, 'Out'], ['Dejounte Murray', 'NOP', 'PG,SG', 41.3, 'Out'],
-  ['Zach LaVine', 'SAC', 'SG,SF', 38.6], ['DeMar DeRozan', 'SAC', 'SG,SF', 37.4], ['Brandon Miller', 'CHA', 'SG,SF', 39.0],
-  ['Coby White', 'CHI', 'PG,SG', 38.1], ['Austin Reaves', 'LAL', 'PG,SG', 41.5], ['Jarrett Allen', 'CLE', 'C', 39.9],
-  ['Onyeka Okongwu', 'ATL', 'PF,C', 38.0], ['Jalen Duren', 'DET', 'C', 40.3], ['Mark Williams', 'PHX', 'C', 37.6],
-  ['Daniel Gafford', 'DAL', 'C', 34.8], ['Jusuf Nurkić', 'UTA', 'C', 35.9], ['Kel\'el Ware', 'MIA', 'C', 37.2],
-  ['Cooper Flagg', 'DAL', 'SF,PF', 41.0], ['Dylan Harper', 'SAS', 'PG,SG', 33.4], ['Ace Bailey', 'UTA', 'SF', 31.8],
-  ['Stephon Castle', 'SAS', 'PG,SG', 37.0], ['Zaccharie Risacher', 'ATL', 'SF', 30.9], ['Alex Sarr', 'WAS', 'C', 37.8],
-  ['Bilal Coulibaly', 'WAS', 'SG,SF', 33.0], ['Keegan Murray', 'SAC', 'SF,PF', 34.9], ['Jabari Smith Jr.', 'HOU', 'PF', 35.6],
-  ['Trey Murphy III', 'NOP', 'SF,PF', 38.4], ['Herbert Jones', 'NOP', 'SF', 33.9], ['Immanuel Quickley', 'TOR', 'PG,SG', 37.1],
-  ['RJ Barrett', 'TOR', 'SG,SF', 37.5], ['Jakob Poeltl', 'TOR', 'C', 39.2], ['Norman Powell', 'MIA', 'SG,SF', 34.0],
-  ['Tyler Herro', 'MIA', 'PG,SG', 39.6, 'Out'], ['Andrew Wiggins', 'MIA', 'SF', 32.8], ['Michael Porter Jr.', 'BKN', 'SF,PF', 37.9],
-  ['Cam Thomas', 'BKN', 'SG', 34.6], ['Nic Claxton', 'BKN', 'C', 34.1], ['Anfernee Simons', 'BOS', 'PG,SG', 34.3],
-  ['Shaedon Sharpe', 'POR', 'SG,SF', 33.7], ['Scoot Henderson', 'POR', 'PG', 32.5, 'Out'], ['Jrue Holiday', 'POR', 'PG,SG', 33.1],
-  ['Kyrie Irving', 'DAL', 'PG,SG', 41.9, 'Out'], ['Klay Thompson', 'DAL', 'SG,SF', 29.8], ['Draymond Green', 'GSW', 'PF,C', 36.2],
-  ['Brandon Ingram', 'TOR', 'SF,PF', 38.9], ['CJ McCollum', 'WAS', 'PG,SG', 35.2], ['Jordan Poole', 'NOP', 'PG,SG', 34.5],
-  ['Bradley Beal', 'LAC', 'SG', 32.0], ['James Harden', 'LAC', 'PG,SG', 45.1], ['Norman Powell Jr.', 'UTA', 'SG', 28.2],
-  ['Jonas Valančiūnas', 'DEN', 'C', 32.9], ['Aaron Gordon', 'DEN', 'PF', 34.4], ['Christian Braun', 'DEN', 'SG,SF', 33.8],
-  ['Julius Randle', 'MIN', 'PF', 39.3], ['Naz Reid', 'MIN', 'PF,C', 34.7], ['Mike Conley', 'MIN', 'PG', 27.9],
-  ['Kevin Huerter', 'CHI', 'SG,SF', 28.6], ['Matas Buzelis', 'CHI', 'SF,PF', 33.5], ['Ausar Thompson', 'DET', 'SG,SF', 36.0],
-  ['Tobias Harris', 'DET', 'PF', 33.2], ['Jaden Ivey', 'DET', 'PG,SG', 32.3, 'Questionable'], ['Collin Sexton', 'CHA', 'PG,SG', 31.7],
-  ['Miles Bridges', 'CHA', 'SF,PF', 36.6], ['Grayson Allen', 'PHX', 'SG,SF', 28.4], ['Paul George', 'PHI', 'SF,PF', 35.8]
-].filter(r => r[0] !== 'Norman Powell Jr.');
+// Real names/positions/ranks from Dillon's league (Yahoo player-list snapshot,
+// data/nba/yahoo-snapshot-242808.json, copied from branch nba). Model numbers
+// (mean, sd, games…) are synthesized from last season's Yahoo fantasy points.
+const SNAP = require(path.join(ROOT, 'data/nba/yahoo-snapshot-242808.json')).players
+  .filter(p => p.preRank != null).sort((a, b) => a.preRank - b.preRank);
+const BOARD_N = 200;
+const SNAP_BOARD = SNAP.slice(0, BOARD_N);
+const SNAP_DEEP = SNAP.slice(BOARD_N); // drafted-but-not-on-board names for the unmatched path
+const INJ = { 'Tyrese Haliburton': 'Out', 'Jayson Tatum': 'Out', 'Anthony Davis': 'Questionable', 'LeBron James': 'Day-To-Day',
+  'Joel Embiid': 'Questionable', 'Zion Williamson': 'Questionable', 'Fred VanVleet': 'Out', 'Dejounte Murray': 'Out',
+  'Kyrie Irving': 'Out', 'Tyler Herro': 'Out', 'Scoot Henderson': 'Out', 'Jaden Ivey': 'Questionable', 'Damian Lillard': 'Out' };
 
 // Deterministic PRNG so the fixture (and screenshots) are stable run to run.
 let seed = 42;
@@ -80,21 +53,23 @@ function eligOf(pos) {
   return ['G', 'F', 'UTIL'].filter(x => e.has(x));
 }
 
-const ROOKIES = new Set(['Cooper Flagg', 'Dylan Harper', 'Ace Bailey']);
-const PLAYERS = RAW.map((r, i) => {
-  const [name, team, posStr, mean, injury] = r;
-  const pos = posStr.split(',');
+const PLAYERS = SNAP_BOARD.map((y, i) => {
+  const name = y.name, team = y.team, pos = y.pos.split(',');
+  const rookie = !y.gp;
+  // Last season's Yahoo fantasy points per game; rookies get a rank-based guess.
+  const mean = +(rookie ? Math.max(18, 44 - y.preRank * 0.12) : y.fanPts / y.gp).toFixed(1);
   const sd = +(mean * (0.18 + rnd() * 0.08)).toFixed(1);
   const games = rnd() < 0.55 ? 4 : (rnd() < 0.85 ? 3 : 2);
   // E[max of n normals] ≈ mean + sd·c(n); c(2)=.564, c(3)=.846, c(4)=1.029. Pre-draft hsValue uses the 3.5-game typical week.
   const hsValue = +(mean + sd * 0.94).toFixed(1);
   const cn = { 2: 0.564, 3: 0.846, 4: 1.029 }[games];
   return {
-    id: String(1000 + i * 7), name, team, pos, elig: eligOf(pos), injury: injury || null,
+    id: String(1000 + i * 7), name, team, pos, elig: eligOf(pos), injury: INJ[name] || null,
     mean, sd, games, gamesByWeek: { 1: games }, hsValue, hsByWeek: { 1: +(mean + sd * cn).toFixed(1) },
     ceiling: +(mean + 1.2816 * sd).toFixed(1), floor: +(mean - 1.2816 * sd).toFixed(1),
-    rank: 0, tier: 0, posRank: 0, sampleGames: ROOKIES.has(name) ? 0 : 40 + Math.floor(rnd() * 40),
-    source: ROOKIES.has(name) ? 'rookie' : 'logs'
+    rank: 0, tier: 0, posRank: 0, sampleGames: rookie ? 0 : Math.min(82, y.gp),
+    source: rookie ? 'rookie' : 'logs',
+    yahooPid: y.pid, yahooPreRank: y.preRank, yahooPctRos: y.pctRos, _yahooPos: y.pos
   };
 }).sort((a, b) => b.hsValue - a.hsValue);
 // rank + tiers (break where the gap to the next player is large)
@@ -108,18 +83,56 @@ PLAYERS.forEach((p, i) => {
 });
 ['G', 'F'].forEach(pos => { let n = 0; PLAYERS.forEach(p => { if (p.elig[0] === pos) p.posRank = ++n; }); });
 
+/* --------------------------------------------- league 242808 profile (H1 shape) */
+const PROFILE = {
+  leagueId: '242808', name: 'HALIMSANITY 26-27', teams: 12, draft: { type: 'snake', pickSeconds: 90 },
+  scoring: { pts: 1, reb: 1.2, ast: 1.5, stl: 3, blk: 3, to: -1, pf: -1, tech: -1, dd: 5, td: 3 }, flags: { tdAlsoCountsDD: true },
+  slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2, BN: 5, IL: 2 }, starters: 9, rosterSize: 16,
+  weeks: [{ week: 1, start: '2026-10-20', end: '2026-10-25', days: 6 }, { week: 2, start: '2026-10-26', end: '2026-11-01', days: 7 }],
+  maxAddsPerWeek: 10, tradeEnd: '2027-03-04'
+};
+// Yahoo eligibility straight from the snapshot's position string (contract
+// legend: PG/SG → G, SF/PF → F, C only C). A few rows are marked as a
+// non-Yahoo guess so the "not confirmed by Yahoo" badge shows up.
+const TOK = { PG: ['PG', 'G'], SG: ['SG', 'G'], SF: ['SF', 'F'], PF: ['PF', 'F'], C: ['C'] };
+const SLOT_ORDER = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL'];
+PLAYERS.forEach((p, i) => {
+  const set = new Set(['UTIL']);
+  p._yahooPos.split(',').forEach(t => (TOK[t] || []).forEach(x => set.add(x)));
+  p.yahooElig = SLOT_ORDER.filter(x => set.has(x));
+  p.eligConfidence = i % 17 === 5 ? 'sleeper' : 'yahoo';
+  delete p._yahooPos;
+});
+// VORP by slot: replacement = value of the (teams × slots + 6)-th eligible player.
+const repl = {};
+SLOT_ORDER.forEach(sl => {
+  const el = PLAYERS.filter(p => p.yahooElig.includes(sl));
+  const n = sl === 'UTIL' ? 12 * 9 + 12 : 12 * PROFILE.slots[sl] + 6;
+  repl[sl] = (el[Math.min(el.length - 1, n - 1)] || {}).hsValue || 0;
+});
+PLAYERS.forEach(p => {
+  p.vorpBySlot = {};
+  p.yahooElig.forEach(sl => { p.vorpBySlot[sl] = +(p.hsValue - repl[sl]).toFixed(1); });
+  const pos = Object.keys(p.vorpBySlot).filter(k => k !== 'UTIL');
+  p.vorp = Math.max.apply(null, (pos.length ? pos : ['UTIL']).map(k => p.vorpBySlot[k]));
+});
+const YAHOO_FIELDS = ['yahooElig', 'eligConfidence', 'vorp', 'vorpBySlot', 'yahooPid', 'yahooPreRank', 'yahooPctRos'];
+const leanPlayers = () => PLAYERS.map(p => { const q = Object.assign({}, p); YAHOO_FIELDS.forEach(k => delete q[k]); return q; });
+
 /* ---------------------------------------------------------- yahoo mock */
 const LEAGUES = [
-  { league_key: '466.l.12345', name: 'Hardwood High Score', num_teams: 10, draft_status: 'predraft' },
+  { league_key: '466.l.242808', name: 'HALIMSANITY 26-27', num_teams: 12, draft_status: 'predraft' },
   { league_key: '466.l.67890', name: 'Office Hoops', num_teams: 12, draft_status: 'postdraft' }
 ];
-const TEAM_NAMES = ['Splash Bros', 'Glass Cleaners', 'Paint Protectors', 'Your Team', 'Euro Steps', 'Fast Breakers', 'Bench Mob', 'Lob City', 'Triple Doubles', 'Corner Threes'];
-const MY_TEAM_KEY = '466.l.12345.t.4';
-const teams = TEAM_NAMES.map((name, i) => ({ team_key: '466.l.12345.t.' + (i + 1), name, draft_position: i + 1, is_owned_by_current_login: i === 3 ? 1 : 0 }));
+const TEAM_NAMES = ['Splash Bros', 'Glass Cleaners', 'Paint Protectors', 'Euro Steps', 'Your Team', 'Fast Breakers', 'Bench Mob', 'Lob City', 'Triple Doubles', 'Corner Threes', 'Iso Joes', 'Pick & Pop'];
+const NTEAMS = 12, ROUNDS = 16, MY_DP = 5;
+const LK = '466.l.242808';
+const MY_TEAM_KEY = LK + '.t.' + MY_DP;
+const teams = TEAM_NAMES.map((name, i) => ({ team_key: LK + '.t.' + (i + 1), name, draft_position: i + 1, is_owned_by_current_login: i + 1 === MY_DP ? 1 : 0 }));
 const league = {
-  league_key: '466.l.12345', name: 'Hardwood High Score', num_teams: 10, scoring_type: 'headone',
-  roster_positions: [{ position: 'G', count: 2 }, { position: 'F', count: 3 }, { position: 'Util', count: 1 }, { position: 'BN', count: 4 }, { position: 'IL', count: 1 }],
-  stat_modifiers: { PTS: 1, REB: 1, AST: 2, ST: 3, BLK: 3 }, start_week: 1, end_week: 20,
+  league_key: LK, name: 'HALIMSANITY 26-27', num_teams: NTEAMS, scoring_type: 'headone', draft_type: 'live', is_auction_draft: 0, draft_pick_time: 90,
+  roster_positions: ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C'].map(p => ({ position: p, count: 1 })).concat([{ position: 'Util', count: 2 }, { position: 'BN', count: 5 }, { position: 'IL', count: 2 }]),
+  stat_modifiers: { PTS: 1, REB: 1.2, AST: 1.5, ST: 3, BLK: 3, TO: -1 }, start_week: 1, end_week: 22,
   weeks: [{ week: 1, start: '2026-10-20', end: '2026-10-25' }, { week: 2, start: '2026-10-26', end: '2026-11-01' }],
   draft_status: 'predraft'
 };
@@ -127,21 +140,31 @@ const league = {
 const picks = [];
 const slotForPick = (p, n) => { const r = Math.ceil(p / n), i = (p - 1) % n; return r % 2 ? i + 1 : n - i; };
 function makePick() {
-  const n = 10, pickNo = picks.length + 1;
-  if (pickNo > n * 10) return null;
+  const n = NTEAMS, pickNo = picks.length + 1;
+  if (pickNo > n * ROUNDS) return null;
   const taken = new Set(picks.map(p => p.player_key));
-  // ADP-ish: take one of the top 3 remaining by hsValue, with injury fade.
-  const avail = PLAYERS.filter(p => !taken.has('466.p.' + p.id));
+  const slot = slotForPick(pickNo, n);
+  // Every 9th pick: someone takes a deep player who isn't on the 200-player
+  // board (no Sleeper match → the "Unmatched" review path).
+  if (pickNo % 9 === 0) {
+    const deep = SNAP_DEEP.find(y => !taken.has('466.p.' + y.pid));
+    if (deep) {
+      const row = { pick: pickNo, round: Math.ceil(pickNo / n), team_key: LK + '.t.' + slot, player_key: '466.p.' + deep.pid, sleeperId: null, name: deep.name, matchConfidence: 0.3 };
+      picks.push(row);
+      return row;
+    }
+  }
+  // ADP-ish: take one of the top 3 remaining by hsValue.
+  const avail = PLAYERS.filter(p => !taken.has('466.p.' + p.yahooPid));
   const pool = avail.slice(0, 3);
   const pl = pool[Math.floor(rnd() * pool.length)] || avail[0];
   if (!pl) return null;
-  const slot = slotForPick(pickNo, n);
-  const unmatched = pickNo % 9 === 0; // every 9th pick simulates a name the matcher couldn't resolve
+  // Yahoo's player_key carries the Yahoo id; sleeperId is the server's match
+  // (dropped now and then: the board must still resolve by Yahoo id).
   const row = {
-    pick: pickNo, round: Math.ceil(pickNo / n), team_key: '466.l.12345.t.' + slot,
-    player_key: '466.p.' + pl.id, sleeperId: unmatched ? null : pl.id,
-    name: unmatched ? pl.name.replace(/[ćčšžņğş]/g, c => ({ ć: 'c', č: 'c', š: 's', ž: 'z', ņ: 'n', ğ: 'g', ş: 's' })[c]) + (pickNo % 18 === 0 ? ' Sr.' : '') : pl.name,
-    matchConfidence: unmatched ? 0.42 : 0.99
+    pick: pickNo, round: Math.ceil(pickNo / n), team_key: LK + '.t.' + slot,
+    player_key: '466.p.' + pl.yahooPid, sleeperId: pickNo % 7 === 0 ? null : pl.id, name: pl.name,
+    matchConfidence: pickNo % 7 === 0 ? 0.5 : 0.99
   };
   picks.push(row);
   return row;
@@ -165,13 +188,24 @@ app.get('/favicon.png', (req, res) => res.sendFile(path.join(ROOT, 'favicon.png'
 
 app.get('/nba/auth/login', (req, res) => { if (mode === 'off') mode = 'on'; schedule(); res.redirect('/nba'); });
 
-app.get('/api/nba/players', (req, res) => res.json({ season: '2026', week: Number(req.query.week) || 1, asOf: new Date().toISOString(), players: PLAYERS }));
+app.get('/api/nba/players', (req, res) => res.json({ season: '2026', week: Number(req.query.week) || 1, profile: req.query.profile || null, asOf: new Date().toISOString(), players: lean ? leanPlayers() : PLAYERS }));
+app.get('/api/nba/league-profile', (req, res) => {
+  if (!profileOn) return res.status(404).json({ error: 'not_found' });
+  if (req.query.league_id && req.query.league_id !== '242808') return res.status(404).json({ error: 'unknown_league' });
+  res.json(PROFILE);
+});
 app.get('/api/nba/health', (req, res) => res.json({ ok: true, yahooConfigured: true, modelAsOf: new Date().toISOString() }));
 app.get('/api/nba/yahoo/status', (req, res) => {
   if (mode === 'off') return res.json({ connected: false });
   res.json({ connected: true, yahooGuid: 'MOCKGUID', leagues: LEAGUES.map(l => Object.assign({}, l, l.league_key === league.league_key ? { draft_status: draftStatus() } : {})) });
 });
-function draftStatus() { return picks.length === 0 ? 'predraft' : picks.length >= 100 ? 'postdraft' : 'drafting'; }
+function draftStatus() { return picks.length === 0 ? 'predraft' : picks.length >= NTEAMS * ROUNDS ? 'postdraft' : 'drafting'; }
+// Remaining slots (G's /draft `order`): the snake from the next pick on.
+function remainingOrder() {
+  const out = [];
+  for (let p = picks.length + 1; p <= NTEAMS * ROUNDS; p++) out.push({ pick: p, round: Math.ceil(p / NTEAMS), team_key: LK + '.t.' + slotForPick(p, NTEAMS) });
+  return out;
+}
 app.get('/api/nba/yahoo/league', (req, res) => {
   if (mode === 'off') return res.status(401).json({ error: 'yahoo_not_connected' });
   if (req.query.league_key !== league.league_key) return res.json({ league: Object.assign({}, league, LEAGUES[1], { roster_positions: league.roster_positions }), teams: [], myTeamKey: null });
@@ -182,7 +216,7 @@ app.get('/api/nba/yahoo/draft', (req, res) => {
   if (mode === 'degraded') return res.status(503).json({ error: 'yahoo_unavailable' });
   if (req.query.league_key !== league.league_key) return res.json({ status: 'postdraft', picks: [], unmatched: [], polledAt: new Date().toISOString() });
   const unmatched = picks.filter(p => !p.sleeperId).map(p => ({ player_key: p.player_key, name: { full: p.name }, editorial_team_abbr: '', display_position: '' }));
-  res.json({ status: draftStatus(), picks, unmatched, polledAt: new Date().toISOString() });
+  res.json({ status: draftStatus(), picks, unmatched, order: remainingOrder(), onClock: remainingOrder()[0] || null, polledAt: new Date().toISOString() });
 });
 app.get('/api/nba/yahoo/roster', (req, res) => res.json({ players: [] }));
 
@@ -190,11 +224,13 @@ app.post('/__mock/mode', (req, res) => {
   if (req.query.yahoo) mode = req.query.yahoo;
   if (req.query.interval) intervalSec = Number(req.query.interval) || intervalSec;
   if (req.query.reset) picks.length = 0;
+  if (req.query.profile) profileOn = req.query.profile !== 'off';
+  if (req.query.lean != null) lean = req.query.lean === '1';
   schedule();
   res.json({ mode, interval: intervalSec, picks: picks.length });
 });
 app.post('/__mock/advance', (req, res) => {
-  const n = Math.max(1, Math.min(100, Number(req.query.n) || 1));
+  const n = Math.max(1, Math.min(NTEAMS * ROUNDS, Number(req.query.n) || 1));
   for (let i = 0; i < n; i++) makePick();
   res.json({ mode, picks: picks.length });
 });
