@@ -20,7 +20,19 @@ const FRANCHISES = new Set([
   'OKC', 'ORL', 'PHI', 'PHX', 'POR', 'SAC', 'SAS', 'TOR', 'UTA', 'WAS',
 ]);
 
-// Yahoo High Score per-game score.
+// Compact file format. 2 = log rows carry the per-game stat line and the
+// projection file carries per-stat means + team game dates (league profiles).
+// data.js only prefers a runtime cache copy written in the same format.
+const FORMAT = 2;
+
+// Per-game stat line stored after [epochDay, week, hs, minutes] in each log row
+// (Sleeper keys; tf = technical fouls). Projections carry STAT_KEYS_PROJ only:
+// Sleeper/Rotowire projections have no pf/tf.
+const STAT_KEYS = ['pts', 'reb', 'ast', 'stl', 'blk', 'to', 'pf', 'tf'];
+const STAT_KEYS_PROJ = ['pts', 'reb', 'ast', 'stl', 'blk', 'to'];
+
+// Legacy Yahoo High Score default per-game score (1/1/2/3/3). Kept for the
+// committed `hs` column; profile scoring lives in nba/model/score.js.
 function hsScore(st) {
   if (!st) return 0;
   return (st.pts || 0) + (st.reb || 0) + 2 * (st.ast || 0) + 3 * (st.stl || 0) + 3 * (st.blk || 0);
@@ -61,6 +73,7 @@ const URLS = {
 function weekMeta(rowsByWeek) {
   const weeks = {};
   const teamGames = {};
+  const teamDates = {};
   for (const [w, rows] of Object.entries(rowsByWeek)) {
     const seen = new Set();
     let lo = null, hi = null;
@@ -74,14 +87,17 @@ function weekMeta(rowsByWeek) {
       if (seen.has(k)) continue;
       seen.add(k);
       (teamGames[r.team] ||= {})[w] = (teamGames[r.team][w] || 0) + 1;
+      (teamDates[r.team] ||= []).push(epochDay(r.date));
     }
     if (lo) weeks[w] = [lo, hi];
   }
-  return { weeks, teamGames };
+  for (const d of Object.values(teamDates)) d.sort((a, b) => a - b);
+  return { weeks, teamGames, teamDates };
 }
 
 // Per-game stat rows for one season → compact log file.
-// players[pid] = { t: team of latest row, rw: {week: rostered games}, g: [[epochDay, week, hs, minutes]] }
+// players[pid] = { t: team of latest row, rw: {week: rostered games},
+//                  g: [[epochDay, week, hs, minutes, pts, reb, ast, stl, blk, to, pf, tf]] }
 function compactLogs(season, rowsByWeek) {
   const { weeks, teamGames } = weekMeta(rowsByWeek);
   const players = {};
@@ -102,11 +118,11 @@ function compactLogs(season, rowsByWeek) {
       const st = r.stats || {};
       if (!(st.sp > 0)) { counts.dnp++; continue; }
       counts.played++;
-      p.g.push([epochDay(r.date), +w, hsScore(st), Math.round(st.sp / 6) / 10]);
+      p.g.push([epochDay(r.date), +w, hsScore(st), Math.round(st.sp / 6) / 10, ...STAT_KEYS.map(k => st[k] || 0)]);
     }
   }
   for (const p of Object.values(players)) p.g.sort((a, b) => a[0] - b[0]);
-  return { season: String(season), generatedAt: new Date().toISOString(), weeks, teamGames, dedupe: counts, players };
+  return { season: String(season), format: FORMAT, generatedAt: new Date().toISOString(), weeks, teamGames, dedupe: counts, players };
 }
 
 // Replace the given weeks of a compact log file with freshly compacted ones.
@@ -130,20 +146,26 @@ function mergeLogs(old, fresh) {
   return out;
 }
 
-// Per-game projection rows → per-player per-week [mean HS per projected game, mean minutes, projected games].
+// Per-game projection rows → per-player per-week
+//   [mean HS per projected game, mean minutes, projected games, ...STAT_KEYS_PROJ per-game means].
 // Rows projected at 0 minutes (expected DNP) are excluded from the mean and count.
+// seasonProj[pid] = [HS per game, minutes per game, adp, ...STAT_KEYS_PROJ per-game means].
+const r2 = x => Math.round(x * 100) / 100;
 function compactProjections(season, rowsByWeek, seasonRows) {
-  const { weeks, teamGames } = weekMeta(rowsByWeek);
+  const { weeks, teamGames, teamDates } = weekMeta(rowsByWeek);
   const weekly = {};
+  const NS = STAT_KEYS_PROJ.length;
   for (const [w, rows] of Object.entries(rowsByWeek)) {
     const acc = {};
     for (const r of rows) {
       if (!r || !r.player_id || !r.stats || !(r.stats.sp > 0)) continue;
-      const a = (acc[r.player_id] ||= [0, 0, 0]);
+      const a = (acc[r.player_id] ||= new Array(3 + NS).fill(0));
       a[0] += hsScore(r.stats); a[1] += r.stats.sp / 60; a[2]++;
+      STAT_KEYS_PROJ.forEach((k, i) => { a[3 + i] += r.stats[k] || 0; });
     }
-    for (const [pid, [hs, min, n]] of Object.entries(acc)) {
-      (weekly[pid] ||= {})[w] = [Math.round(hs / n * 10) / 10, Math.round(min / n * 10) / 10, n];
+    for (const [pid, a] of Object.entries(acc)) {
+      const n = a[2];
+      (weekly[pid] ||= {})[w] = [Math.round(a[0] / n * 10) / 10, Math.round(a[1] / n * 10) / 10, n, ...a.slice(3).map(x => r2(x / n))];
     }
   }
   const seasonProj = {};
@@ -151,10 +173,10 @@ function compactProjections(season, rowsByWeek, seasonRows) {
     if (!r || !r.player_id || !r.stats) continue;
     const gp = r.stats.gp || 1;
     const per = {};
-    for (const k of ['pts', 'reb', 'ast', 'stl', 'blk']) per[k] = (r.stats[k] || 0) / gp;
-    seasonProj[r.player_id] = [Math.round(hsScore(per) * 10) / 10, Math.round((r.stats.sp || 0) / gp / 6) / 10, r.stats.adp_std ?? null];
+    for (const k of STAT_KEYS_PROJ) per[k] = (r.stats[k] || 0) / gp;
+    seasonProj[r.player_id] = [Math.round(hsScore(per) * 10) / 10, Math.round((r.stats.sp || 0) / gp / 6) / 10, r.stats.adp_std ?? null, ...STAT_KEYS_PROJ.map(k => r2(per[k]))];
   }
-  return { season: String(season), generatedAt: new Date().toISOString(), weeks, teamGames, seasonProj, weekly };
+  return { season: String(season), format: FORMAT, generatedAt: new Date().toISOString(), weeks, teamGames, teamDates, seasonProj, weekly };
 }
 
 // Sleeper players map → slim active-roster list.
@@ -178,6 +200,6 @@ function compactPlayers(raw) {
 }
 
 module.exports = {
-  FRANCHISES, URLS, hsScore, epochDay, dayToDate, fetchJson,
+  FRANCHISES, FORMAT, STAT_KEYS, STAT_KEYS_PROJ, URLS, hsScore, epochDay, dayToDate, fetchJson,
   weekMeta, compactLogs, mergeLogs, compactProjections, compactPlayers,
 };

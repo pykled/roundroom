@@ -15,6 +15,7 @@ const { createTokenStore } = require('./yahoo/store');
 const { createNonceStore } = require('./yahoo/nonces');
 const { createClient, YahooError } = require('./yahoo/client');
 const { runDiagnose, formatReport } = require('./yahoo/diagnose');
+const leagueProfile = require('./league-profile');
 
 const PAGES_DIR = path.join(__dirname, 'pages');
 const PROD_ORIGIN = 'https://pocketff.com';
@@ -145,10 +146,10 @@ function createNbaRouter({
     return u.host === String(req.get('host') || '') || u.origin === originFor(req);
   }
 
-  async function modelPlayers(week) {
+  async function modelPlayers(week, profile) {
     const model = loadModel();
-    const key = `nba:players:${week || 'default'}`;
-    const data = await apiCached(key, 10 * 60 * 1000, () => model.getPlayers({ week: week || undefined }));
+    const key = `nba:players:${week || 'default'}${profile ? ':p' + profile : ''}`;
+    const data = await apiCached(key, 10 * 60 * 1000, () => model.getPlayers({ week: week || undefined, profile: profile || undefined }));
     if (data && data.asOf) lastModelAsOf = data.asOf;
     return data;
   }
@@ -343,8 +344,11 @@ function createNbaRouter({
   router.get('/api/nba/players', async (req, res) => {
     const week = req.query.week != null && req.query.week !== '' ? Number(req.query.week) : null;
     if (week !== null && !(Number.isInteger(week) && week >= 1 && week <= 30)) return res.status(400).json({ error: 'Invalid week' });
+    const profile = req.query.profile == null || req.query.profile === '' ? leagueProfile.DEFAULT_LEAGUE_ID : String(req.query.profile).trim();
+    if (!/^\d{1,12}$/.test(profile)) return res.status(400).json({ error: 'Invalid profile' });
+    if (!leagueProfile.getProfile(profile)) return res.status(404).json({ error: 'Unknown league profile' });
     try {
-      const data = await modelPlayers(week);
+      const data = await modelPlayers(week, profile);
       const { body, etag } = encodePlayers(data);
       res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.setHeader('ETag', etag);
@@ -358,6 +362,7 @@ function createNbaRouter({
     }
   });
 
+  router.use(require('./routes/profile')());
   router.use(['/api/nba/me', '/api/nba/yahoo'], auth, (req, res, next) => { res.setHeader('Cache-Control', 'private, no-store'); next(); });
 
   router.get('/api/nba/yahoo/status', async (req, res) => {

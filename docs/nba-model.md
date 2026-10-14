@@ -1,6 +1,8 @@
 # Pocket NBA: High Score value model (stream B)
 
-Code: `nba/model/` (`index.js` is the contract entry point). Data: `data/nba/`. Ingest: `scripts/nba-ingest.js`. Tests and backtest: `node scripts/test-nba-model.js` (offline, exits 0; `--tune` adds the parameter grid).
+Code: `nba/model/` (`index.js` is the contract entry point). Data: `data/nba/`. Ingest: `scripts/nba-ingest.js`. Tests and backtest: `node scripts/test-nba-model.js` (offline, exits 0; `--tune` adds the parameter grid) and `node scripts/test-nba-profile.js` (league profiles, phase 3).
+
+> **Phase 3 (H1): league profiles.** `getPlayers({ profile })` values every player under a league's own scoring, roster slots and matchup-week calendar. `/api/nba/players` defaults to league 242808. The sections below describe the shared method; [League profiles](#league-profiles-phase-3-h1) covers what changes under a profile. `getPlayers()` without a profile keeps the legacy High Score behaviour exactly.
 
 ## What it values
 In Yahoo High Score, each starter scores their **single best game** of the week, where game = `pts + reb + 2*ast + 3*stl + 3*blk`. A player's weekly value is therefore **E[max of their games this week]**. That depends on three things: the per-game distribution (mean *and* spread), the number of games their team plays that week, and the chance they actually play each game.
@@ -131,3 +133,76 @@ Sanity on the 2026 pre-draft board: Jokić 74.9, Wembanyama 69.7, Dončić 66.5,
 - No back-to-back / rest-day modeling; no opponent-pace adjustment beyond what Rotowire's per-game projection includes.
 - Name aliases cover known cases only. Unmatched players come back as null (A surfaces them in `unmatched`).
 - `api.sleeper.com` is undocumented and may change. ESPN is used only by the ingest cross-check.
+
+## League profiles (phase 3, H1)
+Source of truth: `nba/league-profile.js` (`getProfile(id)`, `defaultProfile()` = 242808, `highScoreDefaultProfile()`). Spec: docs/nba-contracts.md "Phase 3 addendum".
+
+### Per-game score (`nba/model/score.js`)
+`score = Σ scoring[k]·stat[k]` over pts, reb, ast, stl, blk, to, pf, tech, plus a DD bonus when 2+ of PTS/REB/AST/STL/BLK reach 10, and a TD bonus when 3+ do. No weight is hardcoded. Every call takes the profile, and calling without one throws.
+
+**Stat availability (Sleeper `api.sleeper.com/stats/nba/{season}/{week}`, inspected 2025 week 10):**
+
+| stat | Sleeper key | status |
+|---|---|---|
+| turnovers | `to` | present |
+| personal fouls | `pf` | present |
+| technical fouls | `tf` | present (sparse: 732 of 26,665 player-games in 2025 had one, ≈0.04 per game) |
+| double/triple-double | `dd` / `td` | present, and matches our own count of 10+ categories on every row. We compute DD/TD ourselves from the line, so there's no dependence on the flags. |
+
+Flagrant fouls (`ff`) are present too but are not scored by the league. Projections (`/projections/nba/2026/{w}`) have pts/reb/ast/stl/blk/to (plus Rotowire `dd`/`td`) but **no pf or tf**.
+
+**DD/TD semantics: `flags.tdAlsoCountsDD = true` (UNVERIFIED against an official Yahoo help page).** Yahoo lists Double-Doubles and Triple-Doubles as two separate stat categories, and a triple-double line also satisfies the double-double definition. Sleeper's feed (sportradar) marks `dd=1` on every `td=1` row. Under this flag a triple-double earns +5 +3 = +8. I could not find a Yahoo help page stating this explicitly, so check one triple-double box score in the league once games start. If Yahoo shows only +3, set the flag to `false`. The impact is small: 0.5% of 2025 player-games were triple-doubles, so it changes values by about 0.05 points per game except for Jokić and a few others.
+
+**Snapshot format 2.** Log rows are now `[day, week, hs, min, pts, reb, ast, stl, blk, to, pf, tf]`, and projection rows carry per-stat means. The projection file also stores `teamDates` (each team's game days). `data.js` only prefers a runtime cache copy written in the same `format`, so a cache left by an older deploy can't feed rows without stat lines.
+
+### Expected per-game mean under a profile
+- **Logs:** each historical game is re-scored, then the same fit as above runs (recency, minutes, kernel, exact E[max]).
+- **Projection prior:** the profile score of the projected stat line, plus three adjustments:
+  - pf and tech come from the player's own recency-weighted per-minute rates × projected minutes. With no logs, the league rate is used (0.082 pf/min, 0.0013 tech/min).
+  - Expected DD/TD bonus comes from the **distribution of historical games**, not from the means. Each player's recency-weighted share of games with 2+ (3+) doubles is shrunk with 10 pseudo-games toward a league prior.
+  - The league prior is `ddCurve`: well-sampled 2025 players (15+ games) binned by their 2nd (3rd) largest category mean, with the share of DD (TD) games averaged per bin and forced monotone. For example, a 2nd-largest mean of 8–9 gives P(DD) ≈ 0.36, and 10–11 gives ≈ 0.53.
+- Players without logs use the prior at their projected means.
+
+### Matchup weeks
+- Weeks are the profile's matchup weeks, not Sleeper weeks.
+- Each team's games per week are counted **by date** from `proj.teamDates`. In 242808, weeks 7 (Nov 30–Dec 13) and 17 (Feb 15–28) are 14-day matchups, so a starter's best game is the max over up to ~5–8 games. `E[max_k]` is now precomputed for k ≤ 10.
+- **NBA Cup TBD games:** Sleeper's 2026-27 schedule has 80 games per team, and every team has a league-wide gap from 2026-12-03 to 12-11. Each team's 82 − 80 = 2 undated games are placed in the middle of that gap (`imputeUnscheduled`), so they fall in week 7. DEN week 7 = 3 scheduled + 2 imputed = 5.
+- Week 17 contains the All-Star break, so most teams play only ~3–4 games in it despite the 14 days.
+- Weekly projection means are games-weighted over the Sleeper weeks inside the matchup window.
+- `currentWeek` is the matchup week containing today (week 1 before Oct 20).
+- **Pre-draft `hsValue`** = equal-weight average of `hsByWeek` over **all 22 matchup weeks**, playoffs included. Each matchup week counts once in the standings, so the two long weeks lift everyone's average and don't reorder players beyond their real schedules. `games` = average games per matchup week.
+- `hsByWeek`, `gamesByWeek` and `?week=` are keyed by matchup week (1–22) under a profile.
+
+### Slots and VORP (`nba/model/slots.js`)
+- **`yahooElig`:** the profile's starting slots the player can fill, using the Yahoo legend (PG←PG; SG←SG,G,G/F; G←PG,SG,G,G/F; SF←SF,F,G/F; PF←PF,F,F/C; F←SF,PF,F,G/F,F/C; C←C,F/C; UTIL←anyone). A C-only player is **not** F-eligible.
+  - **Yahoo is the source of truth** (`nba/model/yahoo.js`): positions come from `data/nba/yahoo-snapshot-242808.json` (Yahoo player list of league 242808) and set `eligConfidence: 'yahoo'`. Only players missing from that snapshot fall back to Sleeper `fantasy_positions` used token-for-token, with `eligConfidence: 'sleeper-mapped'` (52 deep players on 2026-10-14).
+  - Sleeper lists differ from Yahoo's for many wings (Sleeper had Cooper Flagg PG/SF/SG; Yahoo has SG,SF,PF), which is why the fallback is flagged.
+- **Replacement level (assumption: "realistic draft"):**
+  - The drafted pool is the top `teams × (rosterSize − IL)` = 12 × 14 = 168 players by hsValue, skipping out-for-season players (they sit in IL spots).
+  - `replacement[slot]` = hsValue of the best player **outside** that pool who is eligible for the slot, i.e. the free agent you'd stream in.
+  - `vorpBySlot[slot] = hsValue − replacement[slot]`, `vorp` = max over eligible slots, and `vorpRank` orders by vorp. Ranks don't use ADP.
+- **Finding:** under Yahoo eligibility, replacement levels are nearly flat (≈25.8–26.5 across slots, 2026-10-14), so VORP rank ≈ hsValue rank. With 9 starters and 3 flex slots (G, F, 2 UTIL) and a deep 168-player pool, positional scarcity at the waiver level is small. Positional need is a roster-construction question for the draft board (H2), not a value question.
+- `getPlayers` returns `profile: { leagueId, name, teams, scoring, flags, slots, starters, rosterSize, weeks, longWeeks, replacement, draftedPool, unverified, yahoo }`.
+
+### Yahoo snapshot: identity, market fields, validation
+- **Identity:** each snapshot row is matched to a Sleeper player by normalized name + team (`matchYahooPlayer`, names.js); a Sleeper player claimed by two rows keeps the higher-confidence match. 602/725 rows match (83.0%). All 123 unmatched rows are players **absent from Sleeper's player list** (best: Westbrook #264, Konchar #275, Valančiūnas #277, Batum #288), so nobody Sleeper knows is left unmatched, and every Yahoo top-200 player is matched. 22 snapshot rows have no Yahoo pid (deep two-way players); they still give positions, with `yahooPid: null`.
+- **Per player:** `yahooPid`, `yahooPos`, `yahooPreRank` (Yahoo's pre-season rank for this league), `yahooPctRos`, `yahooFanPts`. Match summary in `profile.yahoo` (matched, total, matchRate, unmatchedTop ≤ preRank 300).
+- **Ground truth for the scoring weights:** league scoring (`gameScore` with the 242808 profile, DD/TD/tech weights set to 0 in a copy of the profile) of Yahoo's stat totals equals Yahoo `fanPts` within 0.1 for the top 200 by fanPts (test-nba-profile.js).
+- **Finding: the snapshot's stat columns are Yahoo's 2026-27 *projections*, not last season.** Haliburton and Lillard missed all of 2025-26 yet show 68 and 62 GP; Jokić's 1978/71 = 27.86 pts per game is exactly Sleeper's 2026 projection. So summing our 2025-26 per-game log scores cannot reproduce fanPts (483 matched players: only 6 within 0.5 points, mostly due to games played). Instead the test checks the projection inputs: for Yahoo's top 200, 145 have per-game pts/reb/ast/stl/blk/to identical to Sleeper's projection, and our per-game projected mean under linear scoring vs Yahoo fanPts/gp has bias −0.04 and MAE 1.14 (largest gaps: Hachimura −10.0, Kuminga −6.5, Raynaud +6.1, where Sleeper's projection differs from Yahoo's). Part of the MAE is fouls: Sleeper projections carry no pf, ours come from per-minute history (MAE 0.68 pf per game vs Yahoo).
+- **DD/TD bonus unverified:** Yahoo's fanPts contain no DD/TD (or tech) component and its list shows those stats blank, so whether +5/+3 actually score in this league is not confirmed by data. The profile keeps them per contract (`tdAlsoCountsDD = true`) and `profile.unverified` (both `/api/nba/players` and `/api/nba/league-profile`) says so.
+
+### Backtest under 242808 scoring (`node scripts/test-nba-profile.js`)
+Same no-hindsight protocol (fit on 2025 games before week k, predict week k, k ≥ 4, no projections), with every game re-scored under the league profile. Sleeper's team-total rows (`TEAM_*`) are excluded.
+
+| run | n | bias | MAE | r |
+|---|---|---|---|---|
+| 7-day weeks, all rostered player-weeks | 10,073 | +1.23 | 9.08 | 0.730 |
+| 7-day weeks, given games played (calibration) | 8,224 | −0.16 | 7.53 | 0.796 |
+| 14-day (two merged Sleeper weeks), all | 5,000 | +1.34 | 9.52 | 0.723 |
+| 14-day, given games played | 4,416 | −0.43 | 7.59 | 0.809 |
+
+The long-week calibration holds (−0.43 given played).
+
+**Note on the older table above:** `scripts/test-nba-model.js` iterates every key in the logs file, including Sleeper's `TEAM_*` aggregate rows (82 per team, scores of 150+). These inflate its r (0.977) and MAE base. Player-only correlation is ≈0.73–0.80. That file belongs to stream B and is left unchanged here; filter `/^\d+$/` ids there.
+
+Pre-draft board (2026-10-14, 242808): Jokić 75.0, Wembanyama 72.4, Dončić 65.6, Jalen Johnson 57.9, Giannis 56.0, SGA 56.6. Cold build ~130 ms, warm < 1 ms; response 547 KB / 75 KB gzipped.

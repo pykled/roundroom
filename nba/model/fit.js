@@ -11,7 +11,7 @@ const PARAMS = {
   minutesAdj: true,    // rescale to projected minutes (role change) when a projection exists
   rhoMin: 0.7, rhoMax: 1.4,
   bwFactor: 0.25,      // kernel bandwidth multiplier on Silverman's rule (0 = raw empirical)
-  maxK: 7,             // precompute E[max of k] for k = 1..maxK (no NBA week has more than 5)
+  maxK: 10,            // precompute E[max of k] for k = 1..maxK (a 14-day matchup week has up to ~8 games)
 };
 
 const POOLED_CV_DEFAULT = 0.3;
