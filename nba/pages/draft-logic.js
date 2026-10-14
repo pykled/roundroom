@@ -175,8 +175,10 @@
         if (SLOT_TYPES.indexOf(k) >= 0) slots[k] = true;
       });
       source = 'yahoo';
+      // H1 sends 'yahoo' when eligibility came from Yahoo's own snapshot; any
+      // other string (e.g. 'sleeper', 'inferred') or a numeric score < .7 is a guess.
       var c = p.eligConfidence;
-      low = c === 'low' || (typeof c === 'number' && c < 0.7);
+      low = c == null ? false : typeof c === 'number' ? c < 0.7 : String(c).toLowerCase() !== 'yahoo' && String(c).toLowerCase() !== 'high';
     } else {
       var toks = posTokens(p && p.pos);
       if (toks.length) {
@@ -201,10 +203,36 @@
 
   // Display positions for a player: Yahoo-style base positions (PG, SG, SF, PF, C).
   function displayPositions(p) {
+    var ys = yahooPosString(p);
+    if (ys) return ys.split(',');
     var e = slotElig(p).slots, out = [];
     ['PG', 'SG', 'SF', 'PF', 'C'].forEach(function (k) { if (e[k]) out.push(k); });
     if (!out.length) { if (e.G) out.push('G'); if (e.F) out.push('F'); }
     return out;
+  }
+
+  // Yahoo's own position string ('PG,SG'), from p.yahooPos when H1 sends it,
+  // else rebuilt from yahooElig. null when Yahoo eligibility is unknown.
+  function yahooPosString(p) {
+    if (!p) return null;
+    var raw = typeof p.yahooPos === 'string' ? p.yahooPos : null;
+    var toks = raw ? raw.toUpperCase().split(/[,/\s]+/) : Array.isArray(p.yahooElig) ? p.yahooElig.map(function (x) { return String(x || '').toUpperCase(); }) : [];
+    var out = ['PG', 'SG', 'SF', 'PF', 'C'].filter(function (k) { return toks.indexOf(k) >= 0; });
+    return out.length ? out.join(',') : null;
+  }
+
+  /* Stable identity for a board player: Yahoo's player id when the model has
+     one (Yahoo draft sync speaks Yahoo player_keys), else the Sleeper id. */
+  function playerKey(p) {
+    if (!p) return '';
+    if (p.yahooPid != null && p.yahooPid !== '') return 'y' + String(p.yahooPid);
+    return String(p.id);
+  }
+  // '466.p.5352' → '5352'; bare ids pass through. null when not parseable.
+  function yahooPidFromKey(k) {
+    if (k == null) return null;
+    var m = /(?:^|\.p\.)(\d+)$/.exec(String(k));
+    return m ? m[1] : null;
   }
 
   /* ------------------------------------------------------- slot assignment */
@@ -602,7 +630,11 @@
   /* Merge Yahoo draft results (truth) with locally tracked manual picks.
      yahoo:    { picks: [{pick, round, team_key, player_key, sleeperId|null, name, matchConfidence}], unmatched: [...] } | null
      manual:   [{ playerId, mine, at }] in the order they were marked
-     ctx:      { settings, myTeamKey, overrides: {player_key: sleeperId}, playersById }
+     ctx:      { settings, myTeamKey, overrides: {player_key: playerId}, playersById,
+                 byYahooPid?: {yahooPid: playerId}, alias?: {sleeperId|playerId: playerId} }
+               A Yahoo pick resolves by its player_key's Yahoo id first, then by
+               sleeperId, then by a manual override; alias maps legacy Sleeper
+               ids (saved picks, overrides) onto board ids.
      Returns {
        picks: [{ pick, round, slot, playerId|null, name, mine, source: 'yahoo'|'manual', confirmed, player_key?, team_key? }],
        unmatched: [{ pick, player_key, name, team_key }],
@@ -613,6 +645,8 @@
     var settings = normalizeSettings(ctx.settings);
     var overrides = ctx.overrides || {};
     var byId = ctx.playersById || {};
+    var byYpid = ctx.byYahooPid || {}, alias = ctx.alias || null;
+    var canon = function (x) { if (x == null || x === '') return null; x = String(x); return alias && alias[x] != null ? String(alias[x]) : x; };
     var out = [], unmatched = [], seen = {}, confirmed = [];
 
     var ypicks = (yahoo && yahoo.picks ? yahoo.picks : []).filter(function (p) { return p && p.pick > 0; })
@@ -621,7 +655,10 @@
     ypicks.forEach(function (yp) {
       if (seen['#' + yp.pick]) return; // duplicate pick number from a flaky poll
       seen['#' + yp.pick] = 1;
-      var id = yp.sleeperId != null && yp.sleeperId !== '' ? String(yp.sleeperId) : (overrides[yp.player_key] != null ? String(overrides[yp.player_key]) : null);
+      var ypid = yahooPidFromKey(yp.player_key);
+      var id = (ypid != null && byYpid[ypid] != null) ? String(byYpid[ypid])
+        : yp.sleeperId != null && yp.sleeperId !== '' ? canon(yp.sleeperId)
+        : (overrides[yp.player_key] != null ? canon(overrides[yp.player_key]) : null);
       if (id && seen[id]) id = null; // same player twice → treat the later one as unmatched
       if (id) seen[id] = 1;
       var row = {
@@ -638,6 +675,8 @@
     // Server-reported unmatched entries not already represented by a pick.
     (yahoo && yahoo.unmatched ? yahoo.unmatched : []).forEach(function (u) {
       if (!u || !u.player_key || overrides[u.player_key] != null) return;
+      var upid = yahooPidFromKey(u.player_key);
+      if (upid != null && byYpid[upid] != null) return; // board knows this Yahoo id
       if (unmatched.some(function (x) { return x.player_key === u.player_key; })) return;
       if (out.some(function (x) { return x.player_key === u.player_key && x.playerId; })) return;
       unmatched.push({ pick: u.pick || null, player_key: u.player_key, name: (u.name && u.name.full) || u.name || 'Unknown player', team_key: u.team_key || null });
@@ -652,7 +691,7 @@
     if (!open.length) n = lastPick;
     (manual || []).forEach(function (m) {
       if (!m || m.playerId == null) return;
-      var id = String(m.playerId);
+      var id = canon(m.playerId);
       if (seen[id]) { if (yahoo) confirmed.push(id); return; }
       seen[id] = 1;
       var o = open[oi++], pk;
@@ -921,6 +960,7 @@
     isLegacy: isLegacy, slotTypes: slotTypes, settingsFromProfile: settingsFromProfile, profilePickSeconds: profilePickSeconds,
     roundOf: roundOf, slotForPick: slotForPick, snakeOrder: snakeOrder, picksForSlot: picksForSlot, nextPickFor: nextPickFor,
     eligFor: eligFor, posTokens: posTokens, slotElig: slotElig, canFill: canFill, displayPositions: displayPositions,
+    yahooPosString: yahooPosString, playerKey: playerKey, yahooPidFromKey: yahooPidFromKey,
     assignSlots: assignSlots, starterTotal: starterTotal, filledSlot: filledSlot,
     injuryFactor: injuryFactor, injuryShort: injuryShort,
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,

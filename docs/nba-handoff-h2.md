@@ -39,8 +39,18 @@ Branch `nba-h2-board` (off `nba` @ `cff2be7`). Nothing was pushed or deployed. F
   - by-slot tiers of the best available;
   - `@media print` layout plus a Print button.
 
+## Yahoo-first update (lead request, 2026-10-13)
+Positions and identity now come from Yahoo, not Sleeper:
+- **Identity.** A board player's id is `'y' + yahooPid` when the model sends `yahooPid`; otherwise it's the Sleeper id (`L.playerKey`). `p.sleeperId` keeps the original. Yahoo draft picks resolve first by the Yahoo id inside `player_key` (`466.p.5352` → `5352`), then by `sleeperId`, then by a manual match override (`mergePicks` ctx `byYahooPid` / `alias`). If the server lists a pick as unmatched but the board knows its Yahoo id, it's dropped from the Unmatched list. Picks and overrides saved under Sleeper ids are rewritten to the new ids on load (`migrateIds`), so a board started earlier keeps its picks.
+- **Positions.** Each row shows Yahoo's own position string (`p.yahooPos` if sent, else rebuilt from `yahooElig`, e.g. `PG,SG`). The sheet reads "Yahoo PG,SG", or "Sleeper …" when Yahoo data is missing.
+- **Confidence badge.** A small amber `?` appears, and the pills turn dashed, when `eligConfidence` is anything but `'yahoo'` (numeric < .7, `'sleeper'`, `'inferred'`, `'low'` …) or when eligibility had to be derived from Sleeper `pos[]`.
+- **Yahoo #.** Yahoo's pre-season rank shows under the board rank on each row as `Y12`. The sheet also shows Yahoo # and % rostered.
+- **Mock.** The fixture is now the top 200 by `preRank` from the real snapshot `data/nba/yahoo-snapshot-242808.json`, copied from branch `nba` and byte-identical, so the merge is clean. Values are synthesized from last season's `fanPts/gp`. Yahoo picks carry `466.p.<yahooPid>`. Every 7th pick drops its `sleeperId`, and the board must still resolve it by Yahoo id. Every 9th pick is a deep player not on the board, which is the real Unmatched path. `--lean=1` strips all Yahoo fields, so the board falls back to Sleeper ids.
+- Short names on the Draft buttons skip suffixes ("Draft Porter", not "Draft Jr.").
+
 ## Tests (each run separately with `; echo exit=$?`)
-- `node scripts/test-nba-ui.js`: **66 passed, exit 0**, up from 31. New tests cover:
+- `node scripts/test-nba-ui.js`: **73 passed, exit 0** (66 before the Yahoo-first update, 31 originally). The 7 new tests cover playerKey/yahooPidFromKey, Yahoo-id pick resolution with no sleeperId, legacy Sleeper-id migration and double-pick protection, the no-index back-compat path, yahooPosString/displayPositions, the eligConfidence rule, and all 725 real snapshot rows (position string round-trips, C-only never F).
+- Earlier count, for reference: 66 passed, up from 31. New tests cover:
   - profile/Yahoo mapping;
   - the 12-team snake, including reversal and turn picks;
   - the eligibility legend (C-only is not F; F/C; G/F; generic G and F tokens; yahooElig precedence and confidence);
@@ -63,12 +73,12 @@ Branch `nba-h2-board` (off `nba` @ `cff2be7`). Nothing was pushed or deployed. F
 - Browser checks: Playwright against `node scripts/nba-ui-mock.js`, script at `/tmp/h2shots/shots.js` (outside the repo). The scenarios were empty, mid-draft R5 (on the clock), quick-draft plus undo, C filter, cheat sheet, late R12 with open PF/C slots, live Yahoo with picks arriving, my Yahoo pick, degraded with pending manual picks, and no-profile/lean fallback. They ran at 375×812 and 1280×800 with no page errors, no NaN and no horizontal scroll. The shots are in `docs/nba-ui/h2-*.png`.
 
 ## Mock
-`node scripts/nba-ui-mock.js --port=4791 [--yahoo=off|on|live|degraded] [--profile=off] [--lean=1]`. It serves 206 players carrying `yahooElig`/`eligConfidence`/`vorp`/`vorpBySlot`, the 242808 profile, and a 12-team Yahoo league (my draft position is 5, 90s picks, `order` included). Runtime switch: `POST /__mock/mode?profile=off&lean=1`.
+`node scripts/nba-ui-mock.js --port=4791 [--yahoo=off|on|live|degraded] [--profile=off] [--lean=1]`. It serves 200 real-snapshot players carrying `yahooElig`/`eligConfidence`/`yahooPid`/`yahooPreRank`/`yahooPctRos`/`vorp`/`vorpBySlot`, the 242808 profile, and a 12-team Yahoo league (my draft position is 5, 90s picks, `order` included). Runtime switch: `POST /__mock/mode?profile=off&lean=1`.
 
 ## Gaps and risks
 1. **IL in draft rounds.** The contract says 192 picks including IL. Yahoo usually drafts only active spots, which would mean 14 rounds and 168 picks. Once connected, Yahoo's `order` is the truth. On the manual board, set IL to 0 in the League dialog if Yahoo shows 14 rounds; the dialog hint says so.
 2. My draft slot defaults to 1. The order is randomized about 30 minutes before the draft: set **My draft slot** in League (manual), or let Yahoo supply it.
 3. `vorp` and `vorpBySlot` are only displayed and used as a bench tiebreak. The core score works in `hsValue` units so that starter totals stay consistent. If H1's `vorpBySlot` turns out better calibrated, it can replace the replacement level used in the VONA reference.
 4. Cheat-sheet targets use board rank as a stand-in for ADP, since there is no ADP feed.
-5. This hasn't been run against H1's real endpoints, only the mock. The field names follow the brief.
+5. This hasn't been run against H1's real endpoints, only the mock. The field names follow the brief and the lead's Yahoo-first note. If H1 serves players with no Sleeper `id`, they still key by `yahooPid`.
 6. Not checked on a physical phone; only Chromium device emulation.

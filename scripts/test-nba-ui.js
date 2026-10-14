@@ -453,5 +453,81 @@ t('settingsSource survives a round trip; anything else resets to null', () => {
   eq(L.deserializeState(L.serializeState(st), null).settings.il, 2);
 });
 
+console.log('yahoo-first identity + eligibility');
+t('playerKey: Yahoo id wins, Sleeper id is the fallback', () => {
+  eq(L.playerKey({ id: '1007', yahooPid: '10094' }), 'y10094');
+  eq(L.playerKey({ id: '1007', yahooPid: 10094 }), 'y10094');
+  eq(L.playerKey({ id: '1007' }), '1007');
+  eq(L.playerKey({ id: 1007, yahooPid: '' }), '1007');
+  eq(L.yahooPidFromKey('466.p.5352'), '5352');
+  eq(L.yahooPidFromKey('5352'), '5352');
+  eq(L.yahooPidFromKey('nba.p.abc'), null);
+  eq(L.yahooPidFromKey(null), null);
+});
+t('mergePicks resolves a Yahoo pick by player_key Yahoo id even with no sleeperId', () => {
+  const st = L.normalizeSettings(LP);
+  const byId = { y5352: { id: 'y5352', name: 'Nikola Jokić' }, y10094: { id: 'y10094', name: 'Victor Wembanyama' } };
+  const yahoo = { picks: [
+    { pick: 1, round: 1, team_key: 'k.t.1', player_key: '466.p.5352', sleeperId: null, name: 'Nikola Jokic' },
+    { pick: 2, round: 1, team_key: 'k.t.2', player_key: '466.p.10094', sleeperId: '1007', name: 'Victor Wembanyama' },
+    { pick: 3, round: 1, team_key: 'k.t.3', player_key: '466.p.99999', sleeperId: null, name: 'Deep Guy' }
+  ], unmatched: [{ player_key: '466.p.5352', name: { full: 'Nikola Jokic' } }, { player_key: '466.p.99999', name: { full: 'Deep Guy' } }] };
+  const m = L.mergePicks(yahoo, [], { settings: st, playersById: byId, byYahooPid: { 5352: 'y5352', 10094: 'y10094' }, alias: { 1007: 'y10094' } });
+  eq(m.picks.map(p => p.playerId), ['y5352', 'y10094', null]);
+  eq(m.picks[0].name, 'Nikola Jokić');
+  eq(m.unmatched.map(u => u.player_key), ['466.p.99999'], 'only the off-board player is unmatched');
+});
+t('mergePicks: legacy Sleeper ids in saved manual picks/overrides map onto Yahoo ids', () => {
+  const st = L.normalizeSettings(LP);
+  const ctx = { settings: st, playersById: { y1: { id: 'y1', name: 'A' }, y2: { id: 'y2', name: 'B' } }, byYahooPid: { 1: 'y1', 2: 'y2' }, alias: { 100: 'y1', 200: 'y2' }, overrides: { 'nba.p.x': '200' } };
+  const m = L.mergePicks(null, [{ playerId: '100', mine: true }], ctx);
+  eq(m.picks.map(p => p.playerId), ['y1']);
+  // Yahoo confirms the manual pick (by Yahoo id) → manual entry reported as confirmed (in canonical form).
+  const m2 = L.mergePicks({ picks: [{ pick: 1, team_key: 't1', player_key: '466.p.1', sleeperId: null, name: 'A' }, { pick: 2, team_key: 't2', player_key: 'nba.p.x', sleeperId: null, name: 'B?' }] }, [{ playerId: '100', mine: true }], ctx);
+  eq(m2.picks.map(p => p.playerId), ['y1', 'y2'], 'override with legacy Sleeper id resolves via alias');
+  eq(m2.confirmedManual, ['y1']);
+  // Same player via Yahoo id and via sleeperId twice → second is unmatched, not double-counted.
+  const m3 = L.mergePicks({ picks: [{ pick: 1, player_key: '466.p.1', name: 'A' }, { pick: 2, player_key: 'zz', sleeperId: '100', name: 'A' }] }, [], ctx);
+  eq(m3.picks.map(p => p.playerId), ['y1', null]);
+});
+t('mergePicks without Yahoo indexes behaves as before (Sleeper-keyed board)', () => {
+  const st = L.normalizeSettings(LP);
+  const m = L.mergePicks({ picks: [{ pick: 1, player_key: '466.p.5', sleeperId: '77', name: 'X' }] }, [{ playerId: 88 }], { settings: st });
+  eq(m.picks.map(p => p.playerId), ['77', '88']);
+});
+t('yahooPosString: Yahoo string, from yahoo pos or yahooElig; null without Yahoo data', () => {
+  eq(L.yahooPosString({ yahooElig: ['PG', 'SG', 'G', 'UTIL'] }), 'PG,SG');
+  eq(L.yahooPosString({ yahooPos: 'sf, pf', yahooElig: ['C'] }), 'SF,PF');
+  eq(L.yahooPosString({ yahooElig: ['UTIL'] }), null);
+  eq(L.yahooPosString({ pos: ['PG'] }), null);
+  eq(L.displayPositions({ yahooElig: ['PF', 'F', 'C', 'UTIL'], pos: ['C'] }), ['PF', 'C'], 'Yahoo beats Sleeper pos');
+  eq(L.displayPositions({ pos: ['C'] }), ['C']);
+});
+t("eligConfidence: 'yahoo' is confirmed; other strings / low numbers flag low", () => {
+  const lowOf = c => L.slotElig({ yahooElig: ['C', 'UTIL'], eligConfidence: c }).low;
+  eq(lowOf('yahoo'), false);
+  eq(lowOf('YAHOO'), false);
+  eq(lowOf(undefined), false);
+  eq(lowOf('sleeper'), true);
+  eq(lowOf('inferred'), true);
+  eq(lowOf('low'), true);
+  eq(lowOf(0.97), false);
+  eq(lowOf(0.5), true);
+  eq(L.slotElig({ pos: ['C'] }).source, 'derived');
+});
+t('real snapshot: every Yahoo position string maps to legal slots (C-only never F)', () => {
+  const fs = require('fs');
+  const f = path.join(__dirname, '..', 'data', 'nba', 'yahoo-snapshot-242808.json');
+  if (!fs.existsSync(f)) return; // snapshot lives on branch nba; optional here
+  const tok = { PG: ['PG', 'G'], SG: ['SG', 'G'], SF: ['SF', 'F'], PF: ['PF', 'F'], C: ['C'] };
+  const st = L.normalizeSettings(LP);
+  JSON.parse(fs.readFileSync(f, 'utf8')).players.forEach(y => {
+    const elig = Array.from(new Set(y.pos.split(',').flatMap(x => tok[x] || []).concat('UTIL')));
+    const p = { id: 'x', yahooPid: y.pid, yahooElig: elig, eligConfidence: 'yahoo', hsValue: 1 };
+    eq(L.yahooPosString(p), y.pos, y.name);
+    if (y.pos === 'C') ok(!L.canFill(p, 'F', st) && L.canFill(p, 'C', st), y.name + ' C-only');
+  });
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

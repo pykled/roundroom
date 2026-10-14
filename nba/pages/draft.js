@@ -13,7 +13,7 @@
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var S = {
-    players: [], byId: {}, asOf: null,
+    players: [], byId: {}, byYahooPid: {}, alias: {}, asOf: null,
     // league profile (GET /api/nba/league-profile); null until loaded / if unavailable
     profile: null, profileErr: false,
     state: L.emptyState(null),
@@ -36,6 +36,12 @@
   // Colour family for a slot / position: guards, forwards, centers, UTIL.
   function fam(t) { return /^(PG|SG|G)$/.test(t) ? 'G' : /^(SF|PF|F|FC)$/.test(t) ? 'F' : t === 'C' ? 'C' : 'UTIL'; }
   function slotLabel(t) { return t === 'UTIL' ? 'UTIL' : t === 'FC' ? 'F/C' : t; }
+  // 'Michael Porter Jr.' → 'Porter', 'Jaren Jackson Jr.' → 'Jackson'.
+  function shortName(name) {
+    var w = String(name || '').split(' ').filter(Boolean);
+    while (w.length > 1 && /^(jr\.?|sr\.?|ii|iii|iv|v)$/i.test(w[w.length - 1])) w.pop();
+    return w[w.length - 1] || '';
+  }
   function posPills(p) {
     if (L.isLegacy(S.state.settings)) {
       var e = (p.elig || []).filter(function (x) { return x !== 'UTIL'; });
@@ -45,9 +51,10 @@
     // Yahoo-style positions; dashed when eligibility isn't confirmed by Yahoo.
     var el = L.slotElig(p), list = L.displayPositions(p), low = el.source !== 'yahoo' || el.low;
     if (!list.length) list = ['UTIL'];
+    var why = el.source !== 'yahoo' ? 'from Sleeper positions' : 'eligibility source: ' + (p.eligConfidence == null ? 'unknown' : p.eligConfidence);
     return list.map(function (x) {
-      return '<span class="pp ' + fam(x) + (low ? ' low' : '') + '"' + (low ? ' title="Eligibility from Sleeper positions, not confirmed by Yahoo"' : '') + '>' + x + '</span>';
-    }).join('');
+      return '<span class="pp ' + fam(x) + (low ? ' low' : '') + '"' + (low ? ' title="Not confirmed by Yahoo (' + esc(why) + ')"' : '') + '>' + x + '</span>';
+    }).join('') + (low ? '<span class="nd-elig-badge" title="Positions not confirmed by Yahoo (' + esc(why) + ')" aria-label="Positions not confirmed by Yahoo">?</span>' : '');
   }
   function vorpTxt(p) { return typeof p.vorp === 'number' && isFinite(p.vorp) ? (p.vorp >= 0 ? '+' : '') + p.vorp.toFixed(1) : null; }
   function injBadge(p) {
@@ -88,6 +95,7 @@
     var raw = null;
     try { raw = localStorage.getItem(L.storageKey(leagueKey)); } catch (e) {}
     S.state = L.deserializeState(raw, leagueKey, defaults);
+    if (S.players.length) migrateIds();
   }
   // Manual board follows the league profile (12 teams, 9 starters…) unless the
   // user edited settings in the League dialog. Older saved boards (10-team
@@ -105,7 +113,7 @@
 
   function recompute() {
     var y = S.connected && S.leagueKey ? S.state.yahoo : null;
-    S.merged = L.mergePicks(y, S.state.manual, { settings: S.state.settings, myTeamKey: S.myTeamKey, overrides: S.state.overrides, playersById: S.byId });
+    S.merged = L.mergePicks(y, S.state.manual, { settings: S.state.settings, myTeamKey: S.myTeamKey, overrides: S.state.overrides, playersById: S.byId, byYahooPid: S.byYahooPid, alias: S.alias });
     if (S.merged.confirmedManual.length) {
       var gone = {}; S.merged.confirmedManual.forEach(function (id) { gone[id] = 1; });
       S.state.manual = S.state.manual.filter(function (m) { return !gone[String(m.playerId)]; });
@@ -287,7 +295,7 @@
       '</div>' +
       '<p class="nd-reco-why">' + esc(top.reason) + '</p>' +
       '<div class="nd-reco-alts">' +
-        (ci.onMe ? '<button type="button" class="btn-primary" data-act="mine" data-id="' + esc(p.id) + '">Draft ' + esc(p.name.split(' ').slice(-1)[0]) + '</button>' : '') +
+        (ci.onMe ? '<button type="button" class="btn-primary" data-act="mine" data-id="' + esc(p.id) + '">Draft ' + esc(shortName(p.name)) + '</button>' : '') +
         list.slice(1).map(function (r) {
           return '<button type="button" class="nd-alt" data-act="sheet" data-id="' + esc(r.player.id) + '" title="' + esc(r.reason) + '">' + esc(r.player.name) + ' <span class="v">' + (r.slot === 'BENCH' ? 'BN' : slotLabel(r.slot)) + ' ' + n1(r.player.hsValue) + '</span></button>';
         }).join('') +
@@ -319,7 +327,7 @@
       rows.push(
         '<div class="' + cls + '" role="listitem">' +
           '<button type="button" class="nd-row-main" data-act="sheet" data-id="' + esc(p.id) + '" aria-label="' + esc(p.name + ', ' + (p.team || '') + ', value ' + n1(p.hsValue) + (p.injury ? ', ' + p.injury : '')) + '">' +
-            '<span class="nd-rk">' + esc(p.rank) + '</span>' +
+            '<span class="nd-rk">' + esc(p.rank) + (p.yahooPreRank != null ? '<small title="Yahoo pre-season rank">Y' + esc(p.yahooPreRank) + '</small>' : '') + '</span>' +
             '<span class="nd-who"><span class="nd-name">' + esc(p.name) + '</span>' +
               '<span class="nd-meta">' + posPills(p) + '<span class="tm">' + esc(p.team || 'FA') + '</span>' + gamesChip(p) + injBadge(p) +
               (t ? '<span>· ' + esc(t.mine ? 'You' : teamNameForKey(t.team_key, t.slot)) + ' #' + t.pick + '</span>' : '') + '</span></span>' +
@@ -483,7 +491,7 @@
     var reco = recoCache[0];
     var act = $('nd-mb-act');
     if (ci.onMe && !ci.done && reco && !S.auction) {
-      var last = reco.player.name.split(' ').slice(-1)[0];
+      var last = shortName(reco.player.name);
       act.innerHTML = '<button type="button" class="btn-primary nd-mb-draft" data-act="mine" data-id="' + esc(reco.player.id) + '">Draft ' + esc(last) + ' <small>' + esc(reco.slot === 'BENCH' ? 'bench' : (reco.upgrade ? 'upgrade ' : '→ ') + slotLabel(reco.slot)) + '</small></button>';
       act.hidden = false;
       $('nd-mb-txt').hidden = true;
@@ -647,8 +655,8 @@
     var reco = recoCache.filter(function (r) { return r.player.id === p.id; })[0];
     $('nd-sheet-body').innerHTML =
       '<div class="nd-p-head"><h2 class="nd-p-name" id="nd-p-name" tabindex="-1">' + esc(p.name) + '</h2>' +
-      '<div class="nd-p-meta">' + posPills(p) + '<span>' + esc(p.team || 'FA') + '</span><span>·</span><span>' + esc((p.pos || []).join('/')) + '</span>' + gamesChip(p) + injBadge(p) +
-      '<span>· Rank ' + esc(p.rank) + ' · Tier ' + esc(p.tier) + '</span></div></div>' +
+      '<div class="nd-p-meta">' + posPills(p) + '<span>' + esc(p.team || 'FA') + '</span><span>·</span><span>' + esc(L.yahooPosString(p) ? 'Yahoo ' + L.yahooPosString(p) : 'Sleeper ' + (Array.isArray(p.pos) ? p.pos.join('/') : (p.pos || '—'))) + '</span>' + gamesChip(p) + injBadge(p) +
+      '<span>· Rank ' + esc(p.rank) + (p.yahooPreRank != null ? ' · Yahoo #' + esc(p.yahooPreRank) : '') + ' · Tier ' + esc(p.tier) + (p.yahooPctRos != null ? ' · ' + esc(p.yahooPctRos) + '% rostered' : '') + '</span></div></div>' +
       '<div class="nd-p-tiles">' +
         '<div class="stat-tile"><div class="stat-val">' + n1(p.hsValue) + '</div><div class="stat-lbl">Best-game value</div></div>' +
         '<div class="stat-tile"><div class="stat-val">' + n1(p.mean) + '</div><div class="stat-lbl">Avg game</div></div>' +
@@ -930,14 +938,32 @@
   function loadPlayers() {
     return api('/api/nba/players?profile=' + encodeURIComponent((S.profile && S.profile.leagueId) || '242808')).then(function (d) {
       var list = (d && d.players) || [];
-      list.forEach(function (p) { p.id = String(p.id); });
+      // Board identity = Yahoo player id when present (Yahoo draft sync speaks
+      // Yahoo player_keys), else the Sleeper id. Sleeper ids stay as aliases so
+      // picks/overrides saved before the switch still resolve.
+      S.byYahooPid = {}; S.alias = {};
+      list.forEach(function (p) {
+        p.sleeperId = p.id != null && p.id !== '' ? String(p.id) : null;
+        p.id = L.playerKey(p);
+        if (p.yahooPid != null && p.yahooPid !== '') S.byYahooPid[String(p.yahooPid)] = p.id;
+        if (p.sleeperId && p.sleeperId !== p.id && !S.alias[p.sleeperId]) S.alias[p.sleeperId] = p.id;
+      });
       list.sort(function (a, b) { return (a.rank || 1e9) - (b.rank || 1e9) || (b.hsValue || 0) - (a.hsValue || 0); });
       S.players = list; S.asOf = d.asOf;
       S.byId = {}; list.forEach(function (p) { S.byId[p.id] = p; });
+      migrateIds();
     }).catch(function (e) {
       $('nd-list').innerHTML = '<div class="empty-hint" style="margin-top:1rem"><span>Couldn’t load players' + (e.status ? ' (HTTP ' + e.status + ')' : '') + '</span><span class="eh-sub">Your picks are saved on this device.</span><button type="button" class="btn-secondary" id="nd-reload" style="margin-top:.5rem">Try again</button></div>';
       $('nd-reload').onclick = function () { loadPlayers().then(function () { recompute(); render(); }); };
     });
+  }
+
+  // Rewrite saved Sleeper ids (manual picks, match overrides) to board ids.
+  function migrateIds() {
+    var changed = false, a = S.alias;
+    S.state.manual.forEach(function (m) { var k = m && m.playerId != null && a[String(m.playerId)]; if (k) { m.playerId = k; changed = true; } });
+    Object.keys(S.state.overrides || {}).forEach(function (pk) { var k = a[String(S.state.overrides[pk])]; if (k) { S.state.overrides[pk] = k; changed = true; } });
+    if (changed) save();
   }
 
   // League profile (12 teams / 9 starters / 90s for 242808). If it can't load,

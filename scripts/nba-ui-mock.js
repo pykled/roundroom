@@ -7,7 +7,8 @@
      node scripts/nba-ui-mock.js [--port=0] [--yahoo=off|on|live|degraded] [--interval=3] [--profile=on|off] [--lean=1]
        --port      0 = ephemeral (printed on start)
        --profile   off  → GET /api/nba/league-profile 404s (page falls back to the built-in 242808 shape)
-       --lean      1    → players carry no yahooElig/eligConfidence/vorp/vorpBySlot (pre-H1 model)
+       --lean      1    → players carry no Yahoo fields (yahooElig/eligConfidence/yahooPid/yahooPreRank/
+                          yahooPctRos/vorp/vorpBySlot): pre-H1 model, keyed by Sleeper id
        --yahoo     off      status.connected = false (manual mode)
                    on       connected, draft predraft (no picks yet)
                    live     connected, a pick lands every --interval seconds
@@ -29,75 +30,17 @@ let profileOn = arg('profile', 'on') !== 'off';
 let lean = arg('lean', '0') === '1';
 
 /* ------------------------------------------------------------- fixture */
-// [name, team, positions, mean HS/game, injury]
-const RAW = [
-  ['Nikola Jokić', 'DEN', 'C', 68.4], ['Victor Wembanyama', 'SAS', 'C', 61.2], ['Giannis Antetokounmpo', 'MIL', 'PF', 60.1],
-  ['Luka Dončić', 'LAL', 'PG,SG', 63.3], ['Shai Gilgeous-Alexander', 'OKC', 'PG,SG', 58.7], ['Anthony Davis', 'DAL', 'PF,C', 55.9, 'Questionable'],
-  ['Domantas Sabonis', 'SAC', 'PF,C', 54.8], ['Tyrese Haliburton', 'IND', 'PG', 47.2, 'Out'], ['Jayson Tatum', 'BOS', 'SF,PF', 50.4, 'Out'],
-  ['Karl-Anthony Towns', 'NYK', 'PF,C', 53.1], ['Cade Cunningham', 'DET', 'PG,SG', 54.0], ['Trae Young', 'ATL', 'PG', 52.6],
-  ['LeBron James', 'LAL', 'SF,PF', 51.9, 'Day-To-Day'], ['Anthony Edwards', 'MIN', 'SG,SF', 49.3], ['Alperen Şengün', 'HOU', 'C', 51.2],
-  ['Joel Embiid', 'PHI', 'C', 55.0, 'Questionable'], ['Kevin Durant', 'HOU', 'SF,PF', 47.6], ['Bam Adebayo', 'MIA', 'C', 46.5],
-  ['Jalen Johnson', 'ATL', 'SF,PF', 49.8], ['LaMelo Ball', 'CHA', 'PG', 50.2], ['Paolo Banchero', 'ORL', 'SF,PF', 48.1],
-  ['Devin Booker', 'PHX', 'PG,SG', 46.9], ['Jalen Brunson', 'NYK', 'PG', 45.8], ['Ja Morant', 'MEM', 'PG', 47.0],
-  ['Evan Mobley', 'CLE', 'PF,C', 47.9], ['Chet Holmgren', 'OKC', 'PF,C', 46.8], ['Josh Giddey', 'CHI', 'PG,SG', 47.4],
-  ['Scottie Barnes', 'TOR', 'SF,PF', 48.6], ['Donovan Mitchell', 'CLE', 'SG', 46.2], ['De\'Aaron Fox', 'SAS', 'PG', 44.9],
-  ['Zion Williamson', 'NOP', 'PF', 46.0, 'Questionable'], ['Stephen Curry', 'GSW', 'PG', 44.7], ['Jimmy Butler', 'GSW', 'SF,PF', 42.1],
-  ['Kawhi Leonard', 'LAC', 'SF', 43.9], ['Ivica Zubac', 'LAC', 'C', 43.2], ['Rudy Gobert', 'MIN', 'C', 41.0],
-  ['Jaren Jackson Jr.', 'MEM', 'PF,C', 42.8], ['Franz Wagner', 'ORL', 'SF,PF', 43.5], ['Pascal Siakam', 'IND', 'PF', 43.0],
-  ['Jamal Murray', 'DEN', 'PG,SG', 42.4], ['Tyrese Maxey', 'PHI', 'PG,SG', 45.5], ['Dyson Daniels', 'ATL', 'SG,SF', 42.9],
-  ['Amen Thompson', 'HOU', 'SG,SF', 44.6], ['Jalen Williams', 'OKC', 'SG,SF', 43.1], ['Darius Garland', 'CLE', 'PG', 39.8],
-  ['Desmond Bane', 'ORL', 'SG,SF', 40.6], ['Mikal Bridges', 'NYK', 'SF', 37.9], ['OG Anunoby', 'NYK', 'SF,PF', 38.3],
-  ['Derrick White', 'BOS', 'PG,SG', 40.1], ['Jaylen Brown', 'BOS', 'SG,SF', 42.0], ['Myles Turner', 'MIL', 'C', 38.8],
-  ['Walker Kessler', 'UTA', 'C', 41.7], ['Nikola Vučević', 'CHI', 'C', 43.6], ['Lauri Markkanen', 'UTA', 'SF,PF', 40.9],
-  ['Kristaps Porziņģis', 'ATL', 'C', 39.4], ['Deni Avdija', 'POR', 'SF,PF', 42.2], ['Toumani Camara', 'POR', 'SF,PF', 36.5],
-  ['Josh Hart', 'NYK', 'SG,SF', 40.4], ['Fred VanVleet', 'HOU', 'PG', 36.8, 'Out'], ['Dejounte Murray', 'NOP', 'PG,SG', 41.3, 'Out'],
-  ['Zach LaVine', 'SAC', 'SG,SF', 38.6], ['DeMar DeRozan', 'SAC', 'SG,SF', 37.4], ['Brandon Miller', 'CHA', 'SG,SF', 39.0],
-  ['Coby White', 'CHI', 'PG,SG', 38.1], ['Austin Reaves', 'LAL', 'PG,SG', 41.5], ['Jarrett Allen', 'CLE', 'C', 39.9],
-  ['Onyeka Okongwu', 'ATL', 'PF,C', 38.0], ['Jalen Duren', 'DET', 'C', 40.3], ['Mark Williams', 'PHX', 'C', 37.6],
-  ['Daniel Gafford', 'DAL', 'C', 34.8], ['Jusuf Nurkić', 'UTA', 'C', 35.9], ['Kel\'el Ware', 'MIA', 'C', 37.2],
-  ['Cooper Flagg', 'DAL', 'SF,PF', 41.0], ['Dylan Harper', 'SAS', 'PG,SG', 33.4], ['Ace Bailey', 'UTA', 'SF', 31.8],
-  ['Stephon Castle', 'SAS', 'PG,SG', 37.0], ['Zaccharie Risacher', 'ATL', 'SF', 30.9], ['Alex Sarr', 'WAS', 'C', 37.8],
-  ['Bilal Coulibaly', 'WAS', 'SG,SF', 33.0], ['Keegan Murray', 'SAC', 'SF,PF', 34.9], ['Jabari Smith Jr.', 'HOU', 'PF', 35.6],
-  ['Trey Murphy III', 'NOP', 'SF,PF', 38.4], ['Herbert Jones', 'NOP', 'SF', 33.9], ['Immanuel Quickley', 'TOR', 'PG,SG', 37.1],
-  ['RJ Barrett', 'TOR', 'SG,SF', 37.5], ['Jakob Poeltl', 'TOR', 'C', 39.2], ['Norman Powell', 'MIA', 'SG,SF', 34.0],
-  ['Tyler Herro', 'MIA', 'PG,SG', 39.6, 'Out'], ['Andrew Wiggins', 'MIA', 'SF', 32.8], ['Michael Porter Jr.', 'BKN', 'SF,PF', 37.9],
-  ['Cam Thomas', 'BKN', 'SG', 34.6], ['Nic Claxton', 'BKN', 'C', 34.1], ['Anfernee Simons', 'BOS', 'PG,SG', 34.3],
-  ['Shaedon Sharpe', 'POR', 'SG,SF', 33.7], ['Scoot Henderson', 'POR', 'PG', 32.5, 'Out'], ['Jrue Holiday', 'POR', 'PG,SG', 33.1],
-  ['Kyrie Irving', 'DAL', 'PG,SG', 41.9, 'Out'], ['Klay Thompson', 'DAL', 'SG,SF', 29.8], ['Draymond Green', 'GSW', 'PF,C', 36.2],
-  ['Brandon Ingram', 'TOR', 'SF,PF', 38.9], ['CJ McCollum', 'WAS', 'PG,SG', 35.2], ['Jordan Poole', 'NOP', 'PG,SG', 34.5],
-  ['Bradley Beal', 'LAC', 'SG', 32.0], ['James Harden', 'LAC', 'PG,SG', 45.1], ['Norman Powell Jr.', 'UTA', 'SG', 28.2],
-  ['Jonas Valančiūnas', 'DEN', 'C', 32.9], ['Aaron Gordon', 'DEN', 'PF', 34.4], ['Christian Braun', 'DEN', 'SG,SF', 33.8],
-  ['Julius Randle', 'MIN', 'PF', 39.3], ['Naz Reid', 'MIN', 'PF,C', 34.7], ['Mike Conley', 'MIN', 'PG', 27.9],
-  ['Kevin Huerter', 'CHI', 'SG,SF', 28.6], ['Matas Buzelis', 'CHI', 'SF,PF', 33.5], ['Ausar Thompson', 'DET', 'SG,SF', 36.0],
-  ['Tobias Harris', 'DET', 'PF', 33.2], ['Jaden Ivey', 'DET', 'PG,SG', 32.3, 'Questionable'], ['Collin Sexton', 'CHA', 'PG,SG', 31.7],
-  ['Miles Bridges', 'CHA', 'SF,PF', 36.6], ['Grayson Allen', 'PHX', 'SG,SF', 28.4], ['Paul George', 'PHI', 'SF,PF', 35.8]
-].filter(r => r[0] !== 'Norman Powell Jr.');
-
-// Depth to reach ~200 (realistic role players; mean HS/game is rough).
-const DEPTH = [
-  ['Jalen Suggs', 'ORL', 'PG,SG', 33.0], ['Wendell Carter Jr.', 'ORL', 'PF,C', 31.4], ['Goga Bitadze', 'ORL', 'C', 27.5], ['Cole Anthony', 'MEM', 'PG', 26.8],
-  ['Santi Aldama', 'MEM', 'PF,C', 30.2], ['Zach Edey', 'MEM', 'C', 33.6], ['Jaylen Wells', 'MEM', 'SG,SF', 27.0], ['Brandon Clarke', 'MEM', 'PF', 25.9],
-  ['Bennedict Mathurin', 'IND', 'SG,SF', 30.6], ['Andrew Nembhard', 'IND', 'PG,SG', 29.4], ['Obi Toppin', 'IND', 'PF', 26.1], ['Aaron Nesmith', 'IND', 'SF', 27.3],
-  ['T.J. McConnell', 'IND', 'PG', 26.4], ['Isaiah Hartenstein', 'OKC', 'C', 34.8], ['Lu Dort', 'OKC', 'SG,SF', 25.6], ['Cason Wallace', 'OKC', 'PG,SG', 27.2],
-  ['Aaron Wiggins', 'OKC', 'SG,SF', 24.9], ['Kelly Oubre Jr.', 'PHI', 'SG,SF', 30.0], ['Quentin Grimes', 'PHI', 'SG', 29.1], ['Andre Drummond', 'PHI', 'C', 31.0],
-  ['VJ Edgecombe', 'PHI', 'SG', 28.5], ['Kyle Kuzma', 'MIL', 'SF,PF', 29.8], ['Bobby Portis', 'MIL', 'PF,C', 30.4], ['Kevin Porter Jr.', 'MIL', 'PG,SG', 30.9],
-  ['Gary Trent Jr.', 'MIL', 'SG', 24.0], ['Brook Lopez', 'LAC', 'C', 28.3], ['John Collins', 'LAC', 'PF,C', 31.9], ['Kris Dunn', 'LAC', 'PG,SG', 26.5],
-  ['Derrick Jones Jr.', 'LAC', 'SF,PF', 24.4], ['Nickeil Alexander-Walker', 'ATL', 'SG,SF', 27.9], ['Luke Kennard', 'ATL', 'SG', 22.8], ['Mouhamed Gueye', 'ATL', 'PF', 21.5],
-  ['Rui Hachimura', 'LAL', 'SF,PF', 28.2], ['Deandre Ayton', 'LAL', 'C', 33.3], ['Jaxson Hayes', 'LAL', 'C', 23.6], ['Marcus Smart', 'LAL', 'PG,SG', 24.7],
-  ['Jonathan Kuminga', 'GSW', 'SF,PF', 31.6], ['Brandin Podziemski', 'GSW', 'SG', 28.0], ['Moses Moody', 'GSW', 'SG,SF', 23.9], ['Buddy Hield', 'GSW', 'SG,SF', 23.3],
-  ['Trayce Jackson-Davis', 'GSW', 'PF,C', 23.0], ['Keon Ellis', 'SAC', 'SG', 24.6], ['Malik Monk', 'SAC', 'PG,SG', 29.0], ['Dennis Schröder', 'SAC', 'PG', 28.6],
-  ['Jeremy Sochan', 'SAS', 'PF', 26.9], ['Harrison Barnes', 'SAS', 'SF,PF', 23.8], ['Luke Kornet', 'SAS', 'C', 22.1], ['Keldon Johnson', 'SAS', 'SF,PF', 27.7],
-  ['Jordan Clarkson', 'NYK', 'PG,SG', 26.2], ['Mitchell Robinson', 'NYK', 'C', 27.8], ['Miles McBride', 'NYK', 'PG,SG', 24.2], ['Isaiah Collier', 'UTA', 'PG', 27.6],
-  ['Keyonte George', 'UTA', 'PG,SG', 30.7], ['Kyle Filipowski', 'UTA', 'PF,C', 27.4], ['Taylor Hendricks', 'UTA', 'PF', 23.1], ['Svi Mykhailiuk', 'UTA', 'SG,SF', 20.7],
-  ['Tre Jones', 'CHI', 'PG', 26.7], ['Patrick Williams', 'CHI', 'SF,PF', 24.5], ['Jalen Smith', 'CHI', 'PF,C', 28.9], ['Ayo Dosunmu', 'CHI', 'PG,SG', 26.0],
-  ['Bub Carrington', 'WAS', 'PG,SG', 25.2], ['Khris Middleton', 'WAS', 'SF', 26.6], ['Tristan Vukcevic', 'WAS', 'C', 24.3], ['Kyshawn George', 'WAS', 'SG,SF', 25.7],
-  ['Marcus Sasser', 'DET', 'PG', 22.5], ['Isaiah Stewart', 'DET', 'PF,C', 26.3], ['Ron Holland II', 'DET', 'SF', 24.8], ['Duncan Robinson', 'DET', 'SF', 22.0],
-  ['Max Strus', 'CLE', 'SG,SF', 25.1], ['De\'Andre Hunter', 'CLE', 'SF,PF', 26.4], ['Sam Merrill', 'CLE', 'SG', 21.2], ['Dean Wade', 'CLE', 'PF', 21.0],
-  ['Pelle Larsson', 'MIA', 'SG', 22.3], ['Nikola Jović', 'MIA', 'PF', 27.1], ['Davion Mitchell', 'MIA', 'PG', 25.3], ['Simone Fontecchio', 'MIA', 'SF', 21.9],
-  ['Grant Williams', 'CHA', 'PF', 22.6], ['Moussa Diabaté', 'CHA', 'C', 25.5], ['Kon Knueppel', 'CHA', 'SG,SF', 29.3], ['Tidjane Salaün', 'CHA', 'PF', 22.4],
-  ['Royce O\'Neale', 'PHX', 'SF,PF', 23.4], ['Ryan Dunn', 'PHX', 'SF', 21.7], ['Collin Gillespie', 'PHX', 'PG', 23.0], ['Jusuf Nurkić Jr.', 'PHX', 'C', 20.0],
-  ['Neemias Queta', 'BOS', 'C', 25.9], ['Payton Pritchard', 'BOS', 'PG', 29.2], ['Sam Hauser', 'BOS', 'SF', 21.4], ['Xavier Tillman', 'BOS', 'PF,C', 20.5]
-].filter(r => r[0] !== 'Jusuf Nurkić Jr.');
+// Real names/positions/ranks from Dillon's league (Yahoo player-list snapshot,
+// data/nba/yahoo-snapshot-242808.json, copied from branch nba). Model numbers
+// (mean, sd, games…) are synthesized from last season's Yahoo fantasy points.
+const SNAP = require(path.join(ROOT, 'data/nba/yahoo-snapshot-242808.json')).players
+  .filter(p => p.preRank != null).sort((a, b) => a.preRank - b.preRank);
+const BOARD_N = 200;
+const SNAP_BOARD = SNAP.slice(0, BOARD_N);
+const SNAP_DEEP = SNAP.slice(BOARD_N); // drafted-but-not-on-board names for the unmatched path
+const INJ = { 'Tyrese Haliburton': 'Out', 'Jayson Tatum': 'Out', 'Anthony Davis': 'Questionable', 'LeBron James': 'Day-To-Day',
+  'Joel Embiid': 'Questionable', 'Zion Williamson': 'Questionable', 'Fred VanVleet': 'Out', 'Dejounte Murray': 'Out',
+  'Kyrie Irving': 'Out', 'Tyler Herro': 'Out', 'Scoot Henderson': 'Out', 'Jaden Ivey': 'Questionable', 'Damian Lillard': 'Out' };
 
 // Deterministic PRNG so the fixture (and screenshots) are stable run to run.
 let seed = 42;
@@ -110,21 +53,23 @@ function eligOf(pos) {
   return ['G', 'F', 'UTIL'].filter(x => e.has(x));
 }
 
-const ROOKIES = new Set(['Cooper Flagg', 'Dylan Harper', 'Ace Bailey']);
-const PLAYERS = RAW.concat(DEPTH).map((r, i) => {
-  const [name, team, posStr, mean, injury] = r;
-  const pos = posStr.split(',');
+const PLAYERS = SNAP_BOARD.map((y, i) => {
+  const name = y.name, team = y.team, pos = y.pos.split(',');
+  const rookie = !y.gp;
+  // Last season's Yahoo fantasy points per game; rookies get a rank-based guess.
+  const mean = +(rookie ? Math.max(18, 44 - y.preRank * 0.12) : y.fanPts / y.gp).toFixed(1);
   const sd = +(mean * (0.18 + rnd() * 0.08)).toFixed(1);
   const games = rnd() < 0.55 ? 4 : (rnd() < 0.85 ? 3 : 2);
   // E[max of n normals] ≈ mean + sd·c(n); c(2)=.564, c(3)=.846, c(4)=1.029. Pre-draft hsValue uses the 3.5-game typical week.
   const hsValue = +(mean + sd * 0.94).toFixed(1);
   const cn = { 2: 0.564, 3: 0.846, 4: 1.029 }[games];
   return {
-    id: String(1000 + i * 7), name, team, pos, elig: eligOf(pos), injury: injury || null,
+    id: String(1000 + i * 7), name, team, pos, elig: eligOf(pos), injury: INJ[name] || null,
     mean, sd, games, gamesByWeek: { 1: games }, hsValue, hsByWeek: { 1: +(mean + sd * cn).toFixed(1) },
     ceiling: +(mean + 1.2816 * sd).toFixed(1), floor: +(mean - 1.2816 * sd).toFixed(1),
-    rank: 0, tier: 0, posRank: 0, sampleGames: ROOKIES.has(name) ? 0 : 40 + Math.floor(rnd() * 40),
-    source: ROOKIES.has(name) ? 'rookie' : 'logs'
+    rank: 0, tier: 0, posRank: 0, sampleGames: rookie ? 0 : Math.min(82, y.gp),
+    source: rookie ? 'rookie' : 'logs',
+    yahooPid: y.pid, yahooPreRank: y.preRank, yahooPctRos: y.pctRos, _yahooPos: y.pos
   };
 }).sort((a, b) => b.hsValue - a.hsValue);
 // rank + tiers (break where the gap to the next player is large)
@@ -146,17 +91,17 @@ const PROFILE = {
   weeks: [{ week: 1, start: '2026-10-20', end: '2026-10-25', days: 6 }, { week: 2, start: '2026-10-26', end: '2026-11-01', days: 7 }],
   maxAddsPerWeek: 10, tradeEnd: '2027-03-04'
 };
-// Yahoo eligibility per the contract legend (a few "Yahoo says F/C" upgrades so
-// yahooElig differs from the Sleeper-derived one, like the real feed will).
+// Yahoo eligibility straight from the snapshot's position string (contract
+// legend: PG/SG → G, SF/PF → F, C only C). A few rows are marked as a
+// non-Yahoo guess so the "not confirmed by Yahoo" badge shows up.
 const TOK = { PG: ['PG', 'G'], SG: ['SG', 'G'], SF: ['SF', 'F'], PF: ['PF', 'F'], C: ['C'] };
-const YAHOO_EXTRA = { 'Giannis Antetokounmpo': ['C'], 'Paolo Banchero': ['PF'], 'Scottie Barnes': ['PG', 'G'] };
 const SLOT_ORDER = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL'];
 PLAYERS.forEach((p, i) => {
   const set = new Set(['UTIL']);
-  p.pos.forEach(t => TOK[t].forEach(x => set.add(x)));
-  (YAHOO_EXTRA[p.name] || []).forEach(x => set.add(x));
+  p._yahooPos.split(',').forEach(t => (TOK[t] || []).forEach(x => set.add(x)));
   p.yahooElig = SLOT_ORDER.filter(x => set.has(x));
-  p.eligConfidence = i % 17 === 5 ? 0.55 : 0.97; // a few low-confidence matches
+  p.eligConfidence = i % 17 === 5 ? 'sleeper' : 'yahoo';
+  delete p._yahooPos;
 });
 // VORP by slot: replacement = value of the (teams × slots + 6)-th eligible player.
 const repl = {};
@@ -171,7 +116,8 @@ PLAYERS.forEach(p => {
   const pos = Object.keys(p.vorpBySlot).filter(k => k !== 'UTIL');
   p.vorp = Math.max.apply(null, (pos.length ? pos : ['UTIL']).map(k => p.vorpBySlot[k]));
 });
-const leanPlayers = () => PLAYERS.map(p => { const q = Object.assign({}, p); delete q.yahooElig; delete q.eligConfidence; delete q.vorp; delete q.vorpBySlot; return q; });
+const YAHOO_FIELDS = ['yahooElig', 'eligConfidence', 'vorp', 'vorpBySlot', 'yahooPid', 'yahooPreRank', 'yahooPctRos'];
+const leanPlayers = () => PLAYERS.map(p => { const q = Object.assign({}, p); YAHOO_FIELDS.forEach(k => delete q[k]); return q; });
 
 /* ---------------------------------------------------------- yahoo mock */
 const LEAGUES = [
@@ -197,18 +143,28 @@ function makePick() {
   const n = NTEAMS, pickNo = picks.length + 1;
   if (pickNo > n * ROUNDS) return null;
   const taken = new Set(picks.map(p => p.player_key));
-  // ADP-ish: take one of the top 3 remaining by hsValue, with injury fade.
-  const avail = PLAYERS.filter(p => !taken.has('466.p.' + p.id));
+  const slot = slotForPick(pickNo, n);
+  // Every 9th pick: someone takes a deep player who isn't on the 200-player
+  // board (no Sleeper match → the "Unmatched" review path).
+  if (pickNo % 9 === 0) {
+    const deep = SNAP_DEEP.find(y => !taken.has('466.p.' + y.pid));
+    if (deep) {
+      const row = { pick: pickNo, round: Math.ceil(pickNo / n), team_key: LK + '.t.' + slot, player_key: '466.p.' + deep.pid, sleeperId: null, name: deep.name, matchConfidence: 0.3 };
+      picks.push(row);
+      return row;
+    }
+  }
+  // ADP-ish: take one of the top 3 remaining by hsValue.
+  const avail = PLAYERS.filter(p => !taken.has('466.p.' + p.yahooPid));
   const pool = avail.slice(0, 3);
   const pl = pool[Math.floor(rnd() * pool.length)] || avail[0];
   if (!pl) return null;
-  const slot = slotForPick(pickNo, n);
-  const unmatched = pickNo % 9 === 0; // every 9th pick simulates a name the matcher couldn't resolve
+  // Yahoo's player_key carries the Yahoo id; sleeperId is the server's match
+  // (dropped now and then: the board must still resolve by Yahoo id).
   const row = {
     pick: pickNo, round: Math.ceil(pickNo / n), team_key: LK + '.t.' + slot,
-    player_key: '466.p.' + pl.id, sleeperId: unmatched ? null : pl.id,
-    name: unmatched ? pl.name.replace(/[ćčšžņğş]/g, c => ({ ć: 'c', č: 'c', š: 's', ž: 'z', ņ: 'n', ğ: 'g', ş: 's' })[c]) + (pickNo % 18 === 0 ? ' Sr.' : '') : pl.name,
-    matchConfidence: unmatched ? 0.42 : 0.99
+    player_key: '466.p.' + pl.yahooPid, sleeperId: pickNo % 7 === 0 ? null : pl.id, name: pl.name,
+    matchConfidence: pickNo % 7 === 0 ? 0.5 : 0.99
   };
   picks.push(row);
   return row;
