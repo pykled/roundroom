@@ -21,7 +21,8 @@ Checked 2026-10-13. ✅ = stated by the source. ⚠️ = not verified, so it's a
 - **One decision per slot from today to Sunday.** The picker answers "who should be in the six slots *from now on*?" Re-run it each day: earlier days are locked in and passed as `day` plus each starter's `banked` best.
 - **Banked floor.** A current starter with banked score B is worth `E[max(B, best remaining game)]`. With no games left that's exactly B. A strong banked score (say 80 against a 40-per-game player) adds almost nothing, and the card reports `pBeat`, the probability that any remaining game beats B.
 - **Forfeiture.** A bench player who comes in is worth only `E[max(remaining games)]`; his past games don't count. A current starter who gets benched loses B. So the optimiser prices the forfeit in automatically. Every recommended move that benches a starter with B > 0 gets a `forfeit` warning (in `warnings[]` and on the diff row). `options.forbidForfeit` pins those starters instead.
-- **Locks.** A `locked` player (his game today has started) can't move: a locked starter stays in his exact slot, and a locked bench player stays on the bench.
+- **Locks.** A `locked` player (his game today has started) can't move: a locked starter stays in his exact slot, and a locked bench player stays on the bench. A locked starter keeps his Yahoo slot even if our eligibility data disagrees (Yahoo already allowed him there). If locks alone overfill a slot (bad manual input), locks are ignored with a `lock-conflict` warning instead of returning an empty lineup.
+- **Unmatched starters** (not in our player data) are left in their current slot unprojected, with an `unmatched-starter` warning, rather than benched: benching could forfeit a banked game we can't see.
 - **IL** players are never started.
 
 ## Method (`nba/model/lineup.js`)

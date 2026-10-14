@@ -39,22 +39,25 @@ function mk(id, elig, mean, { sd = 10, games = 3, injury = null, a = 0.9, name, 
 const base = { week: 1, currentWeek: 0, weekLength: 7 }; // currentWeek < week → injury-free availability = max(a0, 0.55)
 
 // Exhaustive search with the same rules as the optimiser.
-function brute(evals, { forbidForfeit = false } = {}) {
+// Pinned = locked or unmatched current starter: stays in his Yahoo slot even if
+// the model's eligibility disagrees. Infeasible pins → pins relaxed (as optimise).
+function brute(evals, { forbidForfeit = false } = {}, relax = false) {
   const val = e => (e.starter ? e.keep : e.insert);
   let best = -Infinity;
   (function go(i, g, f, u, v) {
     if (i === evals.length) { if (v > best) best = v; return; }
     const e = evals[i];
-    const mustStart = e.starter && (e.locked || (forbidForfeit && e.banked > 0));
-    const mustBench = !e.starter && e.locked;
+    const pinned = !relax && e.starter && (e.locked || e.unmatched);
+    const mustStart = pinned || (e.starter && forbidForfeit && e.banked > 0 && !e.unmatched);
+    const mustBench = !relax && !e.starter && e.locked;
     if (!mustStart) go(i + 1, g, f, u, v);
-    if (mustBench || e.unmatched || e.slot === 'IL') return;
-    const ok = t => !(mustStart && e.locked && t !== e.slot);
-    if (e.elig.includes('G') && g < 2 && ok('G')) go(i + 1, g + 1, f, u, v + val(e));
-    if (e.elig.includes('F') && f < 3 && ok('F')) go(i + 1, g, f + 1, u, v + val(e));
-    if (u < 1 && ok('UTIL')) go(i + 1, g, f, u + 1, v + val(e));
+    if (mustBench || (e.unmatched && !pinned) || e.slot === 'IL') return;
+    const ok = t => (pinned ? t === e.slot : t === 'UTIL' || e.elig.includes(t));
+    if (ok('G') && g < 2) go(i + 1, g + 1, f, u, v + val(e));
+    if (ok('F') && f < 3) go(i + 1, g, f + 1, u, v + val(e));
+    if (ok('UTIL') && u < 1) go(i + 1, g, f, u + 1, v + val(e));
   })(0, 0, 0, 0, 0);
-  return best;
+  return best === -Infinity && !relax ? brute(evals, { forbidForfeit }, true) : best;
 }
 
 function listen(app) {
@@ -151,17 +154,42 @@ async function call(server, method, path, body, headers = {}) {
         const val = e => (e.starter ? e.keep : e.insert);
         const got = opt.picks.reduce((s, [i]) => s + val(evals[i]), 0);
         const want = brute(evals, { forbidForfeit });
-        if (want === -Infinity) continue; // infeasible lock combo (can't happen with caps but be safe)
         assert(Math.abs(got - want) < 1e-6, `roster ${t} forbid=${forbidForfeit}: dp ${got} vs brute ${want}`);
         const c = { G: 0, F: 0, UTIL: 0 };
         for (const [i, s] of opt.picks) {
           c[s]++;
-          if (s !== 'UTIL') assert(evals[i].elig.includes(s), 'eligibility respected');
+          if (s !== 'UTIL') assert(evals[i].elig.includes(s) || (evals[i].locked && evals[i].slot === s), 'eligibility respected (or locked in his Yahoo slot)');
           assert(evals[i].slot !== 'IL');
         }
         assert(c.G <= 2 && c.F <= 3 && c.UTIL <= 1);
       }
     }
+  });
+
+  await test('checker regression: locked/unmatched starters never empty the lineup', () => {
+    const P = [mk(1, ['G'], 50), mk(2, ['G'], 48), mk(3, ['F'], 47), mk(4, ['F'], 46), mk(5, ['F'], 45), mk(6, ['G', 'F'], 44), mk(7, ['F'], 40), mk(8, ['G'], 39)];
+    const ros = [{ id: '1', slot: 'G' }, { id: '2', slot: 'G' }, { id: '3', slot: 'F' }, { id: '4', slot: 'F' }, { id: '5', slot: 'F' }, { id: '6', slot: 'UTIL' }, { id: '7' }, { id: '8' }];
+    // (a) locked starter not in our data (was: DP infeasible → 0 slots, bench all six)
+    let out = L.recommend({ ...base, day: 3, players: P, roster: ros.map(r => (r.id === '6' ? { id: 'ghost', slot: 'UTIL', locked: true } : r)) });
+    assert.strictEqual(out.slots.length, 6);
+    assert.strictEqual(out.slots.find(s => s.player.id === 'ghost').slot, 'UTIL');
+    assert(out.warnings.some(w => w.type === 'unmatched-starter'));
+    // (b) unmatched starter (not locked, banked 70) is left in place, not benched with a forfeit
+    out = L.recommend({ ...base, day: 3, players: P, roster: ros.map(r => (r.id === '1' ? { id: 'ghost', slot: 'G', banked: 70 } : r)) });
+    assert(out.slots.some(s => s.player.id === 'ghost' && s.slot === 'G' && s.unmatched));
+    assert(!out.warnings.some(w => w.type === 'forfeit'), 'no forfeit for the unknown starter');
+    // (c) locked pure-F starter sitting in a Yahoo G slot (Yahoo eligibility ≠ model's)
+    out = L.recommend({ ...base, day: 3, players: P, roster: ros.map(r => (r.id === '3' ? { id: '3', slot: 'G', locked: true } : r.id === '1' ? { id: '1', slot: 'F' } : r)) });
+    assert.strictEqual(out.slots.length, 6);
+    assert.strictEqual(out.slots.find(s => s.player.id === '3').slot, 'G');
+    // (d) more locked starters than G slots (bad manual input) → locks dropped with a warning, full lineup
+    out = L.recommend({ ...base, day: 3, players: P, roster: ros.map(r => (['1', '2'].includes(r.id) ? { ...r, locked: true } : r.id === '8' ? { id: '8', slot: 'G', locked: true } : r)) });
+    assert.strictEqual(out.slots.length, 6);
+    assert(out.warnings.some(w => w.type === 'lock-conflict'));
+    // (e) duplicate opponent ids are counted once
+    out = L.recommend({ ...base, day: 3, players: P, roster: ros, opponent: { roster: [...ros, ...ros] } });
+    const opp = out.matchup.opponentStarters.map(s => s.id);
+    assert.strictEqual(new Set(opp).size, opp.length);
   });
 
   console.log('banked scores / forfeiture / locks');

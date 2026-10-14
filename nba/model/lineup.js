@@ -156,7 +156,17 @@ const startValue = e => (e.starter ? e.keep : e.insert);
 
 // Exact optimal assignment: DP over players with state (G used, F used, UTIL used).
 // Each player → bench | G | F | UTIL (if eligible). 3·4·2 = 24 states.
-function optimise(evals, { forbidForfeit = false } = {}) {
+// Pinned starters (locked, or not in our data so we can't judge them) stay in
+// their current Yahoo slot whatever the model's eligibility says: Yahoo already
+// allowed him there. If the pins alone overfill a slot (bad manual input) the
+// pins are dropped rather than returning an empty lineup.
+function optimise(evals, opts = {}) {
+  const best = optimiseOnce(evals, opts);
+  if (best) return best;
+  return optimiseOnce(evals, { ...opts, relaxPins: true }) || { v: 0, picks: [], relaxed: true };
+}
+const isPinned = (e, relaxPins) => !relaxPins && e.starter && (e.locked || e.unmatched);
+function optimiseOnce(evals, { forbidForfeit = false, relaxPins = false } = {}) {
   const key = (g, f, u) => (g * 4 + f) * 2 + u;
   let dp = new Map([[key(0, 0, 0), { v: 0, picks: [] }]]);
   for (let i = 0; i < evals.length; i++) {
@@ -167,9 +177,10 @@ function optimise(evals, { forbidForfeit = false } = {}) {
       if (!cur || v > cur.v + 1e-9) next.set(k, { v, picks });
     };
     const val = startValue(e);
-    const mustStart = e.starter && (e.locked || (forbidForfeit && e.banked > 0));
-    const mustBench = !e.starter && e.locked;
-    const canStart = !e.unmatched && e.slot !== 'IL';
+    const pinned = isPinned(e, relaxPins);
+    const mustStart = pinned || (e.starter && forbidForfeit && e.banked > 0 && !e.unmatched);
+    const mustBench = !e.starter && e.locked && !relaxPins;
+    const canStart = (pinned || !e.unmatched) && e.slot !== 'IL';
     for (const [k, s] of dp) {
       const u = k % 2, f = (k >> 1) % 4, g = k >> 3;
       if (!mustStart) put(k, s.v, s.picks);
@@ -177,19 +188,17 @@ function optimise(evals, { forbidForfeit = false } = {}) {
       // Tiny preference for leaving a current starter where he is (no churn on ties).
       const stay = t => (e.starter && e.slot === t ? 1e-6 : 0);
       const opts = [];
-      if (e.elig.includes('G') && g < CAP.G) opts.push(['G', key(g + 1, f, u)]);
-      if (e.elig.includes('F') && f < CAP.F) opts.push(['F', key(g, f + 1, u)]);
-      if (u < CAP.UTIL) opts.push(['UTIL', key(g, f, 1)]);
-      for (const [t, nk] of opts) {
-        if (mustStart && e.locked && t !== e.slot) continue; // locked: can't even change slot
-        put(nk, s.v + val + stay(t), [...s.picks, [i, t]]);
-      }
+      const ok = t => (pinned ? t === e.slot : t === 'UTIL' || e.elig.includes(t)); // pinned: can't even change slot
+      if (ok('G') && g < CAP.G) opts.push(['G', key(g + 1, f, u)]);
+      if (ok('F') && f < CAP.F) opts.push(['F', key(g, f + 1, u)]);
+      if (ok('UTIL') && u < CAP.UTIL) opts.push(['UTIL', key(g, f, 1)]);
+      for (const [t, nk] of opts) put(nk, s.v + val + stay(t), [...s.picks, [i, t]]);
     }
     dp = next;
   }
   let best = null;
   for (const s of dp.values()) if (!best || s.v > best.v + 1e-9) best = s;
-  return best || { v: 0, picks: [] };
+  return best ? { ...best, relaxed: relaxPins } : null;
 }
 
 // Normal draw via Box–Muller from the seeded generator.
@@ -220,12 +229,16 @@ function playerIndex(players) {
   return new Map(arr.map(p => [String(p.id), p]));
 }
 
+const dedupe = roster => {
+  const seen = new Set();
+  return (Array.isArray(roster) ? roster : []).filter(r => r && r.id != null && !seen.has(String(r.id)) && seen.add(String(r.id)));
+};
 function buildSide(roster, index, ctx, options) {
-  const evals = roster.map(r => evalPlayer(r, index.get(String(r.id)), ctx));
+  const evals = dedupe(roster).map(r => evalPlayer(r, index.get(String(r.id)), ctx));
   const best = optimise(evals, options);
   const chosen = new Map(best.picks.map(([i, t]) => [i, t]));
   const starters = [...chosen.entries()].map(([i, t]) => ({ ...evals[i], to: t, value: startValue(evals[i]), useBanked: evals[i].starter }));
-  return { evals, chosen, starters, total: best.v - starters.reduce((s, e) => s + (e.starter && e.slot === e.to ? 1e-6 : 0), 0) };
+  return { evals, chosen, starters, relaxed: !!best.relaxed, total: best.v - starters.reduce((s, e) => s + (e.starter && e.slot === e.to ? 1e-6 : 0), 0) };
 }
 
 function recommend({ roster = [], players, week, currentWeek, weekLength = 7, day = 0, opponent = null, options = {} } = {}) {
@@ -238,9 +251,7 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
     day: Math.max(0, Math.min(14, Math.floor(Number(day) || 0))),
   };
   const index = playerIndex(players);
-  const seen = new Set();
-  const ros = roster.filter(r => r && r.id != null && !seen.has(String(r.id)) && seen.add(String(r.id)));
-  const side = buildSide(ros, index, ctx, options);
+  const side = buildSide(roster, index, ctx, options);
   const { evals, chosen, starters } = side;
   const rep = { ...DEFAULT_REPLACEMENT, ...(options.replacement || {}) };
   const daysLeft = Math.max(0, ctx.weekLength - ctx.day);
@@ -263,6 +274,15 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
       .map(({ e: b }) => ({ id: b.id, name: b.name, expected: r1(startValue(b)), delta: r1(startValue(b) - e.value), gamesLeft: b.gamesLeft }))
       .sort((x, y) => y.expected - x.expected || x.id.localeCompare(y.id)).slice(0, 3);
     const why = [];
+    if (e.unmatched) {
+      return {
+        slot: e.to, player: pub(e), expected: r1(e.value), banked: e.banked ? r1(e.banked) : null,
+        gamesLeft: null, gamesWeek: null, availability: null, b2b: 0, pBeat: null,
+        locked: e.locked, currentSlot: e.slot, unmatched: true, alternatives: alts,
+        rationale: 'not in our player data, so we can\'t project him; left in his current slot (benching a starter can forfeit his best game)',
+        streamNote: 'Check him yourself: not in our player data.',
+      };
+    }
     if (e.banked > 0) {
       why.push(`banked ${r1(e.banked)}; ${e.gamesLeft} game${e.gamesLeft === 1 ? '' : 's'} left with ${Math.round((e.pBeat || 0) * 100)}% chance to beat it (+${r1(e.keep - e.banked)} expected upside)`);
     } else {
@@ -309,8 +329,12 @@ function recommend({ roster = [], players, week, currentWeek, weekLength = 7, da
   }
   for (const n of insLeft) diff.push({ out: null, in: { id: n.id, name: n.name, expected: r1(n.value) }, slot: n.to, gain: r1(n.value), forfeits: 0 });
   const moved = starters.filter(s => s.starter && s.slot !== s.to).map(s => ({ id: s.id, name: s.name, from: s.slot, to: s.to }));
+  if (side.relaxed) warnings.push({ type: 'lock-conflict', message: 'More locked starters than slots for them, so locks were ignored. Check the slots you entered.' });
   for (const e of evals) {
-    if (e.unmatched) continue;
+    if (e.unmatched) {
+      if (e.starter && starters.some(s => s.id === e.id)) warnings.push({ type: 'unmatched-starter', id: e.id, message: `${e.name} isn't in our player data, so he was left in his ${e.slot} slot unprojected.` });
+      continue;
+    }
     if (starters.some(s => s.id === e.id) && e.gamesLeft === 0 && !e.banked) warnings.push({ type: 'no-games', id: e.id, message: `${e.name} has no games left this week.` });
     if (e.injury && /out|ir|sus/i.test(e.injury) && starters.some(s => s.id === e.id)) warnings.push({ type: 'injury', id: e.id, message: `${e.name} is ${e.injury}; started only because nobody better is eligible.` });
   }
