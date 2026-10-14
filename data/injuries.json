@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-14T13:53:06.822Z",
+  "fetched_at": "2026-10-14T18:45:15.715Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -47,7 +47,7 @@
       "name": "Adonai Mitchell",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Finger"
     },
     {
@@ -124,7 +124,7 @@
       "name": "Baker Mayfield",
       "position": "QB",
       "team": "TB",
-      "status": "Out",
+      "status": "Doubtful",
       "body_part": "Thumb"
     },
     {
@@ -180,7 +180,7 @@
       "name": "Breece Hall",
       "position": "RB",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Quadriceps"
     },
     {
@@ -1178,6 +1178,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Keenan Allen",
+      "position": "WR",
+      "team": "IND",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Keilan Robinson",
       "position": "RB",
       "team": null,
@@ -1792,6 +1799,13 @@
       "team": "DET",
       "status": "Out",
       "body_part": "Knee - MCL"
+    },
+    {
+      "name": "Tony Pollard",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Tra Barnett",
