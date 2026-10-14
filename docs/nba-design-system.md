@@ -257,3 +257,7 @@ No placeholder silhouettes detected (no identical image bytes across different p
 - **Do** use the court motif only in `.nu-page-head--court`. **Don't** add court lines/glows to cards.
 - **Do** escape with `NbaUI.esc`. **Don't** concatenate API strings into HTML raw.
 - **Don't** add page-inline CSS for anything in this doc; **don't** re-skin `.nu-*` classes per page.
+
+## 9. Verification
+- `node scripts/test-nba-ui-kit.js` — 108 checks: CSS braces/parse, scope, tokens, contrast table (`--table` prints it), helpers. Part of `npm test`.
+- `BASE=http://127.0.0.1:7992 python3 scripts/nba-u0-screens.py` — style guide at 375×812 and 1280×800: no console errors, no horizontal scroll, ≥44px targets, headshots load, 404 → initials, tabs keys, chip toggle, sheet focus trap/ESC/return focus/inert, hamburger, reduced-motion. Saves `docs/nba-ui/u0-*.png` (styleguide, players, data, stats, templates, buttons hover/focus, sheet, toast, nav menu).
