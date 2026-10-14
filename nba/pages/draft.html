@@ -62,6 +62,7 @@
 .nd-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: 0.75rem 0.9rem; margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
 .nd-banner b { color: var(--text-primary); }
 .nd-banner .btn-secondary { margin-left: auto; flex-shrink: 0; min-height: 36px; }
+.nd-banner.info { border-color: rgba(124,58,237,.4); border-left-color: #8b5cf6; background: rgba(124,58,237,.07); }
 .nd-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
 
 /* ── Clock bar ────────────────────────────────────────────────────────── */
@@ -83,6 +84,29 @@
 .nd-tick.now { color: var(--text-primary); border-color: var(--border-bright); background: rgba(255,255,255,.09); }
 .nd-tick.me { color: var(--clock); background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.4); font-weight: 500; }
 .nd-tick.turn { margin-left: 6px; }
+
+/* pick timer: quiet for other teams, loud when it's my pick */
+.nd-timer { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 68px; min-height: 40px; padding: 0 0.6rem; border-radius: var(--radius-md); border: 1px solid var(--border-bright); background: rgba(255,255,255,.03); color: var(--text-secondary); font-family: var(--font-mono); cursor: pointer; line-height: 1.05; }
+.nd-timer .w { font-family: var(--font-sans); font-size: 0.5rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
+.nd-timer .t { font-size: 0.95rem; font-weight: 500; }
+.nd-timer.warn .t { color: var(--amber); }
+.nd-timer.urgent .t, .nd-timer.expired .t { color: var(--danger); }
+.nd-timer.me { border-color: rgba(251,146,60,.6); background: rgba(251,146,60,.12); color: var(--clock); min-width: 86px; }
+.nd-timer.me .w { color: var(--clock); }
+.nd-timer.me .t { font-size: 1.3rem; }
+.nd-timer.me.urgent { border-color: var(--danger); background: rgba(239,68,68,.16); animation: nd-urgent 1s steps(2, start) infinite; }
+.nd-timer.me.expired { border-color: var(--danger); background: rgba(239,68,68,.22); }
+@keyframes nd-urgent { 50% { background: rgba(239,68,68,.32); } }
+
+/* first-run: Connect Yahoo vs manual */
+.nd-firstrun { border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: var(--space-4); background: var(--bg-card); }
+.nd-firstrun h2 { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 0.7rem; }
+.nd-fr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.nd-fr-opt h3 { display: flex; align-items: center; gap: 0.45rem; font-size: 0.84rem; font-weight: 700; margin-bottom: 0.35rem; }
+.nd-fr-opt h3 .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.66rem; font-weight: 800; }
+.nd-fr-opt p { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.65rem; }
+.nd-fr-opt p.sub { margin: 0.45rem 0 0; font-size: 0.68rem; color: var(--text-muted); }
+.nd-fr-opt .btn-primary, .nd-fr-opt .btn-secondary { display: inline-flex; align-items: center; min-height: 40px; text-decoration: none; }
 
 /* ── Layout ───────────────────────────────────────────────────────────── */
 .nd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
@@ -264,6 +288,10 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-clock-num .big { font-size: 1.3rem; }
   .nd-clock-ctl .lbl-txt { display: none; }
   .nd-clock-ctl .btn-secondary { min-width: 44px; min-height: 44px; padding: 0 0.6rem; }
+  .nd-timer { min-width: 56px; min-height: 44px; }
+  .nd-timer.me { min-width: 70px; }
+  .nd-timer.me .t { font-size: 1.1rem; }
+  .nd-fr-cols { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
   .nd-filters .board-search { flex: 1 1 auto; width: 0; }
   .nd-seg button { min-width: 38px; min-height: 36px; padding: 0 0.4rem; }
 
@@ -306,7 +334,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-sheet.open { opacity: 1; }
   .nd-side { transform: none !important; opacity: 0; }
   .nd-side.open { opacity: 1; }
-  .nd-sync.live .dot, .nd-skel, .nd-pick.flash { animation: none; }
+  .nd-sync.live .dot, .nd-skel, .nd-pick.flash, .nd-timer.me.urgent { animation: none; }
   .nd-draft:active { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) and (min-width: 901px) { .nd-side { opacity: 1; } .nd-sheet, .nd-sheet.open { transform: translate(-50%, -50%); } }
@@ -355,6 +383,23 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   <div id="nd-banner" class="nd-banner" role="alert" hidden></div>
   <div id="nd-matchbar" class="nd-matchbar" hidden></div>
 
+  <section id="nd-firstrun" class="nd-firstrun" aria-labelledby="nd-fr-h" hidden>
+    <h2 id="nd-fr-h">Two ways to run your draft</h2>
+    <div class="nd-fr-cols">
+      <div class="nd-fr-opt">
+        <h3><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</h3>
+        <p>Loads your league’s teams, roster slots, draft order and pick timer, then syncs every pick live (keepers and traded picks included). Read-only: Pocket can’t change your team.</p>
+        <a id="nd-fr-connect" class="btn-primary" href="/nba/auth/login">Connect Yahoo</a>
+        <p class="sub" id="nd-fr-connect-sub"></p>
+      </div>
+      <div class="nd-fr-opt">
+        <h3>Manual board</h3>
+        <p>Works for any league, no account needed. Set teams and your slot under League, then tap <b>Draft</b> as picks happen. Saved on this device.</p>
+        <button id="nd-fr-manual" type="button" class="btn-secondary">Use manual board</button>
+      </div>
+    </div>
+  </section>
+
   <section id="nd-clock" class="nd-clock" aria-label="Draft clock">
     <div class="nd-clock-num">
       <div><span class="lbl">Round</span><span class="big" id="nd-round">1</span></div>
@@ -365,6 +410,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
       <div class="sub" id="nd-otc-sub"></div>
     </div>
     <div class="nd-clock-ctl">
+      <button id="nd-timer" class="nd-timer" type="button" hidden><span class="w"></span><span class="t">1:00</span></button>
       <button id="nd-undo" class="btn-secondary" type="button" aria-label="Undo last pick" disabled>
         <span aria-hidden="true">↶</span><span class="lbl-txt"> Undo</span>
       </button>
@@ -441,6 +487,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
       <label>F slots<input name="F" type="number" inputmode="numeric" min="0" max="6"></label>
       <label>UTIL slots<input name="UTIL" type="number" inputmode="numeric" min="0" max="6"></label>
       <label>Bench<input name="bench" type="number" inputmode="numeric" min="0" max="15"></label>
+      <label>Pick timer (sec, 0 = off)<input name="timer" type="number" inputmode="numeric" min="0" max="600"></label>
     </div>
     <div class="nd-dialog-actions">
       <button type="button" class="nd-danger" id="nd-reset">Reset draft</button>
@@ -464,6 +511,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 </footer>
 
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="/nba/pages/yahoo-chip.js"></script>
 <script src="/nba/pages/draft-logic.js"></script>
 <script src="/nba/pages/draft.js"></script>
 </body>

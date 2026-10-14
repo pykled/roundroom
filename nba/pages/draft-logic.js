@@ -360,23 +360,102 @@
       unmatched.push({ pick: u.pick || null, player_key: u.player_key, name: (u.name && u.name.full) || u.name || 'Unknown player', team_key: u.team_key || null });
     });
 
-    var n = lastPick;
+    // With Yahoo's remaining order (keepers / traded picks), pending manual
+    // picks fill the next open Yahoo slots, owner included; otherwise they
+    // follow Yahoo's last pick on the snake.
+    var open = openSlots(yahoo);
+    var n = lastPick, oi = 0;
+    open.forEach(function (o) { n = Math.max(n, o.pick); });
+    if (!open.length) n = lastPick;
     (manual || []).forEach(function (m) {
       if (!m || m.playerId == null) return;
       var id = String(m.playerId);
       if (seen[id]) { if (yahoo) confirmed.push(id); return; }
       seen[id] = 1;
-      n++;
-      out.push({
-        pick: n, round: roundOf(n, settings.teams), slot: slotForPick(n, settings.teams),
+      var o = open[oi++], pk;
+      if (o) pk = o.pick; else { n++; pk = n; }
+      var row = {
+        pick: pk, round: (o && o.round) || roundOf(pk, settings.teams), slot: slotForPick(pk, settings.teams),
         playerId: id, name: (byId[id] && byId[id].name) || m.name || id,
         mine: !!m.mine, source: 'manual', confirmed: !yahoo
-      });
+      };
+      if (o && o.team_key) row.team_key = o.team_key;
+      out.push(row);
     });
 
     out.sort(function (a, b) { return a.pick - b.pick; });
     return { picks: out, unmatched: unmatched, confirmedManual: confirmed };
   }
+
+  // Yahoo's unfilled pick slots in pick order: [{pick, round, team_key}].
+  function openSlots(yahoo) {
+    if (!yahoo || !Array.isArray(yahoo.order)) return [];
+    var seenPick = {};
+    (yahoo.picks || []).forEach(function (p) { if (p && p.pick) seenPick[p.pick] = 1; });
+    return yahoo.order.filter(function (o) { return o && o.pick > 0 && !seenPick[o.pick]; })
+      .slice().sort(function (a, b) { return a.pick - b.pick; });
+  }
+
+  /* Who is on the clock according to Yahoo (draft order with team_key per
+     pick), so keepers and traded picks are right. pending = local picks not
+     yet confirmed by Yahoo (they occupy the next open slots).
+     Returns null when Yahoo gave no order (caller falls back to the snake), else
+     { cur, round, teamKey, total, done, onMe, myNext, myAfter, myNextRound,
+       awayN (picks before my next), gapNow (others' picks between now and my
+       following pick when I'm up), gapNext (others' picks between my next two) } */
+  function yahooClock(yahoo, myTeamKey, pending) {
+    var open = openSlots(yahoo);
+    var picks = (yahoo && yahoo.picks) || [];
+    // No open slots listed: only trust that as "draft over" when Yahoo says
+    // postdraft; otherwise Yahoo just didn't send future slots → snake fallback.
+    if (!open.length && !(yahoo && yahoo.status === 'postdraft' && picks.length)) return null;
+    var total = 0;
+    picks.forEach(function (p) { if (p && p.pick > total) total = p.pick; });
+    open.forEach(function (o) { if (o.pick > total) total = o.pick; });
+    var k = Math.max(0, pending || 0);
+    var rest = open.slice(k);
+    if (!rest.length) return { cur: total + 1, round: null, teamKey: null, total: total, done: true, onMe: false, myNext: null, myAfter: null, myNextRound: null, awayN: null, gapNow: 0, gapNext: 0 };
+    var now = rest[0];
+    var mineIdx = [];
+    rest.forEach(function (o, i) { if (myTeamKey && o.team_key === myTeamKey) mineIdx.push(i); });
+    var i0 = mineIdx.length ? mineIdx[0] : -1, i1 = mineIdx.length > 1 ? mineIdx[1] : -1;
+    return {
+      cur: now.pick, round: now.round || null, teamKey: now.team_key || null, total: total, done: false,
+      onMe: !!myTeamKey && now.team_key === myTeamKey,
+      myNext: i0 >= 0 ? rest[i0].pick : null, myAfter: i1 >= 0 ? rest[i1].pick : null,
+      myNextRound: i0 >= 0 ? rest[i0].round || null : null,
+      awayN: i0 >= 0 ? i0 : null,
+      gapNow: i0 === 0 ? (i1 >= 0 ? i1 - 1 : 0) : 0,
+      gapNext: i0 >= 0 && i1 >= 0 ? i1 - i0 - 1 : 0
+    };
+  }
+
+  /* Auction leagues: Yahoo settings or draft results say so. The board has no
+     nomination/bidding model yet, so the page drops to manual mode. */
+  function isAuction(league, yahoo) {
+    if (league && (league.is_auction_draft === true || league.is_auction_draft === 1 || league.is_auction_draft === '1' ||
+        /auction/i.test(String(league.draft_type || '')) || (league.settings && (league.settings.is_auction_draft === true || /auction/i.test(String(league.settings.draft_type || '')))))) return true;
+    return !!(yahoo && (yahoo.auction === true || (yahoo.picks || []).some(function (p) { return p && p.cost != null; })));
+  }
+
+  /* ---------------------------------------------------------- pick timer */
+  var DEFAULT_PICK_SECONDS = 60;
+  function normalizeTimerSeconds(v) {
+    var n = parseInt(v, 10);
+    if (!isFinite(n) || n < 0) return DEFAULT_PICK_SECONDS;
+    return Math.min(600, n); // 0 = off
+  }
+  // { running, left (whole seconds), level: 'off'|'idle'|'ok'|'warn'|'urgent'|'expired', text }
+  function timerState(startedAt, seconds, now) {
+    seconds = normalizeTimerSeconds(seconds);
+    if (!seconds) return { running: false, left: 0, level: 'off', text: '' };
+    if (!startedAt) return { running: false, left: seconds, level: 'idle', text: fmtClock(seconds) };
+    var left = Math.ceil((startedAt + seconds * 1000 - now) / 1000);
+    if (left <= 0) return { running: true, left: 0, level: 'expired', text: '0:00' };
+    var level = left <= 10 ? 'urgent' : left <= Math.max(15, Math.round(seconds / 3)) ? 'warn' : 'ok';
+    return { running: true, left: left, level: level, text: fmtClock(left) };
+  }
+  function fmtClock(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
   /* ----------------------------------------------------- yahoo league map */
 
@@ -388,7 +467,8 @@
     var num = parseInt(league.num_teams, 10);
     if (num > 1) s.teams = Math.min(20, num);
     var rp = league.roster_positions;
-    if (rp) {
+    // An empty list ([] or {}) means Yahoo didn't send positions: keep current settings.
+    if (rp && (Array.isArray(rp) ? rp.length : Object.keys(rp).length)) {
       var counts = {};
       if (Array.isArray(rp)) rp.forEach(function (x) {
         var pos = typeof x === 'string' ? x : (x.position || x.roster_position && x.roster_position.position);
@@ -499,6 +579,8 @@
     injuryFactor: injuryFactor, injuryShort: injuryShort,
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings,
     mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo,
+    openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
+    DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState,
     storageKey: storageKey, emptyState: emptyState, serializeState: serializeState, deserializeState: deserializeState,
     pollDelay: pollDelay, agoText: agoText, normName: normName, matchesQuery: matchesQuery, matchesPos: matchesPos
   };
