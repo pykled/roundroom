@@ -314,7 +314,7 @@
     document.body.classList.toggle('nd-on-clock', !!ci.onMe && !ci.done && !S.auction);
     var who = $('nd-otc-who'), sub = $('nd-otc-sub');
     if (S.auction) { who.textContent = 'Auction draft · manual tracking'; sub.textContent = 'Mark players as they’re won; ★ the ones you win'; }
-    else if (ci.done) { who.textContent = 'Draft complete'; sub.textContent = 'Your roster is set — see My team'; }
+    else if (ci.done) { who.textContent = 'Draft complete'; sub.textContent = 'Your roster is set — see My Team'; }
     else if (ci.onMe) { who.textContent = "You're on the clock"; sub.textContent = !ci.myAfter ? 'Last pick of your draft' : ci.gapNow ? 'Then ' + ci.gapNow + ' picks until #' + ci.myAfter : 'Back-to-back: you also pick #' + ci.myAfter; }
     else {
       who.textContent = clockTeamName(ci) + ' on the clock';
@@ -1087,7 +1087,7 @@
     } else if (S.yahooProblem === 'down') {
       mode = 'notice';
       html = U.callout('error', '<b>Yahoo isn’t responding right now.</b> Manual mode works meanwhile; your connection is kept.') +
-        '<button type="button" class="nu-btn nu-btn--sm" data-act="yahoo-retry">Try again</button>';
+        '<button type="button" class="nu-btn nu-btn--sm" data-act="yahoo-retry">Try Again</button>';
     } else if (S.yahooProblem === 'reauth') {
       mode = 'notice';
       html = U.callout('warn', '<b>Yahoo sign-in expired.</b> Reconnect to load your leagues and live picks.') + reconnect;

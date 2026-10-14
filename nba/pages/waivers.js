@@ -155,7 +155,7 @@
     if (!pairs.length) {
       var why = r.adds && r.adds.left === 0 ? { title: 'No Adds Left This Week', body: 'You\'ve used your weekly adds. The list below still shows who to watch for next week.' }
         : r.targets && r.targets.length ? { title: 'Your Roster Is Set', body: 'No add/drop beats your current lineup this week. Check the calendar for next week\'s 4-game streamers.' }
-        : { title: 'No Free Agents to Rank', body: r.unmatched && r.unmatched.roster && r.unmatched.roster.length ? 'Some of your players aren\'t in our model yet (see Not matched).' : 'Try a different week or show more players.' };
+        : { title: 'No Free Agents to Rank', body: r.unmatched && r.unmatched.roster && r.unmatched.roster.length ? 'Some of your players aren\'t in our model yet (see Not Matched).' : 'Try a different week or show more players.' };
       $('wv-swaps').innerHTML = '<div class="nu-card">' + U.emptyState(why) + '</div>';
       $('wv-more-swaps').innerHTML = ''; $('wv-more-swaps-h').hidden = true;
       $('wv-actionbar').hidden = true; document.body.classList.remove('nu-has-actionbar');
@@ -309,7 +309,7 @@
       var stack = ids.slice(0, 7).map(function (id) { var p = S.byId[id] || { id: id, name: id }; return U.avatar(p, { size: 'sm' }); }).join('');
       sec.innerHTML = '<div class="wv-roster-sum"><span class="wv-stack" aria-hidden="true">' + stack + '</span><span class="wv-roster-sum__txt"><b>' + ids.length + ' player' + (ids.length === 1 ? '' : 's') + ' on your team</b><span class="nu-hint">' +
         (S.manual.assumeTaken === false ? 'Everyone else counts as available' : 'Top of the board counts as owned') + (S.manual.exclude.length ? ' · ' + S.manual.exclude.length + ' hidden' : '') + '</span></span>' +
-        '<button type="button" class="nu-btn nu-btn--sm" data-open-roster>Edit roster</button></div>';
+        '<button type="button" class="nu-btn nu-btn--sm" data-open-roster>Edit Roster</button></div>';
     }
     renderRosterSheet();
   }

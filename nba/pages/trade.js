@@ -243,7 +243,7 @@
   function emptyVerdict() {
     var st = S.st, n = st.myRoster.length, yahoo = isYahoo();
     var steps = [
-      { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Yahoo.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add players') + '</button>' },
+      { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Yahoo.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add Players') + '</button>' },
       { done: st.give.length > 0, html: '<b>Pick who you give.</b> Tap “Add” under You Give.' },
       { done: st.get.length > 0, html: yahoo ? '<b>Pick a partner and who you get.</b>' : '<b>Pick who you get.</b> Any player works.' }
     ];
