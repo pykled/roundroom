@@ -382,6 +382,9 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 
   /* bottom bar (thumb zone): my 9 starter slots, then status or a one-tap Draft */
   .nd-minibar { display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; min-height: var(--minibar-h); padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom)); background: rgba(10,10,10,.88); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border-top: 1px solid var(--border-bright); }
+  /* Phones: the sticky clock sits where the toast would; show it above the thumb bar instead. */
+  .nd-toast { top: auto; bottom: calc(var(--minibar-h, 96px) + 14px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); }
+  .nd-toast.show { transform: translate(-50%, 0); }
   .nd-mb-slots { display: grid; grid-template-columns: repeat(var(--n, 9), minmax(0, 1fr)); gap: 3px; }
   .nd-mb-slot { height: 24px; border-radius: 5px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.6rem; border: 1px dashed rgba(255,255,255,.25); color: var(--text-muted); }
   .nd-mb-slot.need { border: 1px solid var(--amber); color: var(--amber); }

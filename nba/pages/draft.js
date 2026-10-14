@@ -287,7 +287,7 @@
     if (!list.length) { el.hidden = true; return; }
     var top = list[0], p = top.player;
     var label = ci.onMe ? 'Your pick now' : 'Best for your pick #' + ci.myNext;
-    var tag = top.slot === 'BENCH' ? 'Bench' : (top.upgrade ? 'Upgrade ' : 'Fills ') + slotLabel(top.slot);
+    var tag = top.slot === 'BENCH' ? 'Bench' : top.ownSlot ? 'Starts ' + slotLabel(top.ownSlot) : (top.upgrade ? 'Upgrade ' : 'Fills ') + slotLabel(top.slot);
     el.innerHTML =
       '<div class="lbl"><span class="section-label">' + esc(label) + ' <span class="nd-fill ' + fam(top.slot) + '">' + esc(tag) + '</span></span><span class="section-label">Value / ceiling</span></div>' +
       '<div class="nd-reco-main">' +
@@ -298,7 +298,7 @@
       '<div class="nd-reco-alts">' +
         (ci.onMe ? '<button type="button" class="btn-primary" data-act="mine" data-id="' + esc(p.id) + '">Draft ' + esc(shortName(p.name)) + '</button>' : '') +
         list.slice(1).map(function (r) {
-          return '<button type="button" class="nd-alt" data-act="sheet" data-id="' + esc(r.player.id) + '" title="' + esc(r.reason) + '">' + esc(r.player.name) + ' <span class="v">' + (r.slot === 'BENCH' ? 'BN' : slotLabel(r.slot)) + ' ' + n1(r.player.hsValue) + '</span></button>';
+          return '<button type="button" class="nd-alt" data-act="sheet" data-id="' + esc(r.player.id) + '" title="' + esc(r.reason) + '">' + esc(r.player.name) + ' <span class="v">' + (r.slot === 'BENCH' ? 'BN' : slotLabel(r.ownSlot || r.slot)) + ' ' + n1(r.player.hsValue) + '</span></button>';
         }).join('') +
       '</div>';
     el.hidden = false;

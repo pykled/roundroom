@@ -530,6 +530,18 @@
     out.sort(function (a, b) { return b.score - a.score || byValThenId(a.player, b.player); });
     out = out.slice(0, opts.limit || 3);
     var a0 = assignSlots(roster, settings);
+    // A pick can open a slot it can't play itself (PF-only Banchero lets Barnes
+    // slide PF → C): report the player's own slot and who moves.
+    out.forEach(function (r) {
+      if (r.slot === 'BENCH' || canFill(r.player, r.slot, settings)) return;
+      var a1 = assignSlots(roster.concat([r.player]), settings), own = null, mover = null;
+      a1.starters.forEach(function (x) { if (x.player === r.player) own = x.slot; });
+      a1.starters.forEach(function (x) {
+        if (mover || x.slot !== r.slot || !x.player || x.player === r.player) return;
+        if (!a0.starters.some(function (y) { return y.slot === r.slot && y.player === x.player; })) mover = x.player;
+      });
+      if (own) { r.ownSlot = own; r.mover = mover; }
+    });
     out.forEach(function (r) { r.reason = reasonFor(r, a0, settings, opts, topN); });
     return out;
   }
@@ -545,7 +557,8 @@
       var filled = 0;
       a.starters.forEach(function (s) { if (s.slot === r.slot && s.player) filled++; });
       var head;
-      if (r.upgrade) head = 'Upgrades your ' + r.slot + ' (+' + fmt1(r.gain) + ')';
+      if (r.ownSlot && r.ownSlot !== r.slot) head = 'Starts at ' + r.ownSlot + (r.mover ? '; ' + (r.mover.name || 'a teammate') + ' slides to your open ' + r.slot : '; fills your open ' + r.slot + ' by reshuffling');
+      else if (r.upgrade) head = 'Upgrades your ' + r.slot + ' (+' + fmt1(r.gain) + ')';
       else if (r.slot === 'UTIL') head = 'Fills open UTIL slot';
       else {
         head = 'Fills open ' + r.slot + ' slot' + ((settings.slots[r.slot] || 0) > 1 ? ' (your ' + ordinal(filled + 1) + ' ' + r.slot + ')' : '');

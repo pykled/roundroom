@@ -569,5 +569,18 @@ t('rounds: profile draft.rounds wins; League dialog value persists; Yahoo roster
   eq(L.balanceWarnings(full, LP, { available: [] }).length, 0);
 });
 
+t('reshuffle: a PF-only pick that opens C via a PF/C teammate says where it starts and who slides', () => {
+  const roster = [Q('jj', 'SF,PF', 57, { name: 'Jalen Johnson' }), Q('sb', 'SF,PF,C', 54, { name: 'Scottie Barnes' }), Q('jh', 'PG', 50, { name: 'James Harden' })];
+  const av = [Q('pb', 'PF', 49.9, { name: 'Paolo Banchero' })];
+  for (let i = 0; i < 30; i++) av.push(Q('z' + i, 'PG,SG', 30 - i * 0.2));
+  const r = L.bestAvailable(av, roster, LP, { picksUntilNext: 8, limit: 3 }).find(x => x.player.id === 'pb');
+  ok(r, 'Banchero recommended');
+  if (r.slot === 'C') {
+    eq(r.ownSlot === 'PF' || r.ownSlot === 'F', true);
+    ok(/^Starts at (PF|F); Scottie Barnes slides to your open C/.test(r.reason), r.reason);
+  }
+  ok(!/Fills open C slot/.test(r.reason), r.reason);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
