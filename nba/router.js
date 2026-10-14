@@ -316,6 +316,7 @@ function createNbaRouter({
     } catch (err) { sendYahooError(res, err, uid); }
   });
 
+  router.use(require('./routes/waivers')({ auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers, log, env }));
   return router;
 }
 
