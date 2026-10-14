@@ -4,13 +4,17 @@
 //
 //   GET  /nba/trade                                    page
 //   POST /api/nba/trade/evaluate                       manual mode, public, rate + size limited
-//        body { give[], get[], myRoster[], partnerRoster?[], leagueRostered?[], settings?, league_key? }
+//        body { give[], get[], myRoster[], partnerRoster?[], leagueRostered?[], settings?, league_key?, league_id? }
 //        ids are Sleeper ids or Yahoo player_keys (keys need a signed-in, Yahoo-connected user + league_key)
 //   GET  /api/nba/trade/context?league_key=&team_key=  Yahoo-first rosters (auth)
+// League profile (L1): league_key / league_id (default 242808) picks the profile;
+// the board is valued under its scoring and the evaluator uses its slots, roster
+// size, IL, playoff weeks and trade rules. Yahoo roster_positions override slots.
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { evaluateTrade } = require('../model/trade');
+const LC = require('./league-context');
 
 const LEAGUE_KEY_RE = /^\d+\.l\.\d+$/;
 const TEAM_KEY_RE = /^\d+\.l\.\d+\.t\.\d+$/;
@@ -36,22 +40,26 @@ function createRateLimit({ windowMs = 60 * 1000, max = 40, now = () => Date.now(
   };
 }
 
-// Yahoo roster_positions → { rosterSize, slots }. C/SF/PF count as F, PG/SG as G.
+// Yahoo roster_positions → { slots: {PG,SG,G,SF,PF,F,C,FC,UTIL,BN,IL}, rosterSize (active spots) }.
+// Yahoo names its slots like the profile does (PG…C, Util, BN, IL, IL+). A
+// High Score league's frontcourt slot shows as F with no SF/PF/C slots: FC.
 function rosterShape(positions) {
-  const slots = { G: 0, F: 0, UTIL: 0 };
-  let bench = 0, seen = false;
+  const slots = { PG: 0, SG: 0, G: 0, SF: 0, PF: 0, F: 0, C: 0, FC: 0, UTIL: 0, BN: 0, IL: 0 };
+  let seen = false;
   for (const rp of positions || []) {
     const pos = String(rp.position || '').toUpperCase();
     const n = Number(rp.count) || 0;
-    if (/^IL/.test(pos)) continue;
     seen = true;
-    if (pos === 'BN') bench += n;
-    else if (pos === 'G' || pos === 'PG' || pos === 'SG') slots.G += n;
-    else if (pos === 'F' || pos === 'SF' || pos === 'PF' || pos === 'C') slots.F += n;
+    if (/^IL|^IR/.test(pos)) slots.IL += n;
+    else if (pos === 'BN') slots.BN += n;
+    else if (pos === 'UTIL' || pos === 'UT') slots.UTIL += n;
+    else if (pos in slots) slots[pos] += n;
     else slots.UTIL += n;
   }
   if (!seen) return null;
-  return { slots, rosterSize: slots.G + slots.F + slots.UTIL + bench };
+  if (slots.F && !slots.SF && !slots.PF && !slots.C) { slots.FC = slots.F; slots.F = 0; }
+  const starters = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'FC', 'UTIL'].reduce((a, k) => a + slots[k], 0);
+  return { slots, rosterSize: starters + slots.BN };
 }
 
 function createTradeRoutes({
@@ -143,9 +151,12 @@ function createTradeRoutes({
     if (lk && !LEAGUE_KEY_RE.test(lk)) return badBody(res, 'Invalid league_key');
     const settings = b.settings && typeof b.settings === 'object' && !Array.isArray(b.settings) ? { ...b.settings } : {};
     const warnings = [];
+    const lid = b.league_id != null && b.league_id !== '' ? String(b.league_id) : null;
+    if (lid && !/^(\d{1,10}|hs)$/.test(lid)) return badBody(res, 'Invalid league_id');
+    const lc = LC.profileFor({ leagueKey: lk, leagueId: lid });
 
     let board;
-    try { board = await modelPlayers(); } catch (err) {
+    try { board = await modelPlayers(undefined, lc.profileId || undefined); } catch (err) {
       if (err.status !== 503) log.error('[nba] trade model:', err.message);
       return res.status(503).json({ error: 'NBA player data unavailable' });
     }
@@ -187,8 +198,10 @@ function createTradeRoutes({
       const out = evaluateTrade({
         players: board.players, currentWeek: board.currentWeek,
         myRoster: lists.myRoster, partnerRoster: lists.partnerRoster, give: lists.give, get: lists.get,
-        leagueRostered: lists.leagueRostered, settings,
+        leagueRostered: lists.leagueRostered, settings, profile: lc.profile, today: LC.todayEt(),
       });
+      out.profile = LC.profileSummary(lc.profile, lc.profileId);
+      if (!out.meta.rules.open) warnings.push(out.meta.rules.notes[0]);
       if (out.meta.unknown.length) warnings.push(`${out.meta.unknown.length} player${out.meta.unknown.length > 1 ? 's' : ''} not found in the model; ignored`);
       if (out.meta.pastEnd) warnings.push(`The season is past its last week; only week ${out.meta.lastWeek} is scored`);
       warnings.push(...out.meta.notes);

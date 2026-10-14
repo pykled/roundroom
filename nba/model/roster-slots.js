@@ -45,7 +45,10 @@ function eligFor(p, profile) {
   const have = new Set(slotList(prof));
   const out = new Set();
   if (Array.isArray(p && p.yahooElig) && p.yahooElig.length) {
+    // Model eligibility for its own profile + the same legend on the Yahoo
+    // positions (covers slots that profile doesn't have, e.g. FC).
     for (const s of p.yahooElig) out.add(String(s).toUpperCase());
+    for (const s of Slots.slotsForPositions(p.yahooPos || p.pos || [])) out.add(s);
   } else {
     for (const s of Slots.slotsForPositions((p && (p.yahooPos || p.pos)) || [])) out.add(s);
     const legacy = Array.isArray(p && p.elig) ? p.elig : [];

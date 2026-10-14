@@ -8,7 +8,15 @@ const path = require('path');
 const http = require('http');
 const express = require('express');
 const ROOT = path.join(__dirname, '..');
-const T = require(path.join(ROOT, 'nba', 'model', 'trade.js'));
+const T0 = require(path.join(ROOT, 'nba', 'model', 'trade.js'));
+const LP = require(path.join(ROOT, 'nba', 'league-profile.js'));
+const RS = require(path.join(ROOT, 'nba', 'model', 'roster-slots.js'));
+// The synthetic checks below encode Yahoo's High Score defaults (6 starters
+// G,G,FC,FC,FC,UTIL, 10-man roster, no IL); the default profile is 242808, so
+// they pin the High Score profile explicitly. 242808 checks follow later.
+const HS = LP.highScoreDefaultProfile();
+const HL = LP.defaultProfile();
+const T = { ...T0, evaluateTrade: o => T0.evaluateTrade({ profile: HS, ...o }), normSettings: (s, p) => T0.normSettings(s, p || HS), createEvaluator: o => T0.createEvaluator({ profile: HS, ...o }) };
 const createTradeRoutes = require(path.join(ROOT, 'nba', 'routes', 'trade.js'));
 const L = require(path.join(ROOT, 'nba', 'pages', 'trade-logic.js'));
 
@@ -116,7 +124,10 @@ t('positional surplus: a 5th great F is worth little to a team full of Fs, a lot
   const star = P(21, 'F', 58, { name: 'Big' });
   const partner = [star, P(22, 'G', 46), P(23, 'G', 43), P(24, 'F', 40), P(25, 'F', 38), P(26, 'G', 35), P(27, 'F', 33), P(28, 'G', 31), P(29, 'F', 28), P(30, 'G', 26)];
   const players = [...deep, ...hole, ...partner, ...pool(150)];
-  const run = (mine, giveId) => T.evaluateTrade({ players, currentWeek: 1, myRoster: ids(mine), partnerRoster: ids(partner), give: [giveId], get: [star.id] });
+  // Everyone rostered → nothing useful on waivers, so an empty slot can't be
+  // streamed (L1: on a full roster an unfillable slot is otherwise filled at
+  // waiver replacement level; checked separately below).
+  const run = (mine, giveId) => T.evaluateTrade({ players, currentWeek: 1, myRoster: ids(mine), partnerRoster: ids(partner), give: [giveId], get: [star.id], leagueRostered: ids(players) });
   const rDeep = run(deep, '5');   // give a 45 G for a 58 F
   const rHole = run(hole, '13');  // give a 60 G (3rd guard → UTIL) for a 58 F
   const bigDeep = rDeep.players.find(p => p.id === star.id);
@@ -125,7 +136,7 @@ t('positional surplus: a 5th great F is worth little to a team full of Fs, a lot
   eq(rDeep.verdict, 'Decline');
   ok(rHole.you.perWeek > 5, 'hole team gains: ' + rHole.you.perWeek);
   eq(rHole.verdict, 'Accept');
-  ok(rHole.why.some(w => /fills your F\d hole/.test(w)), 'hole bullet: ' + rHole.why.join(' | '));
+  ok(rHole.why.some(w => /fills your FC\d hole/.test(w)), 'hole bullet: ' + rHole.why.join(' | '));
   ok(rHole.lineup.changed.length >= 1);
 });
 
@@ -237,7 +248,8 @@ t('verdict bands: lopsided win → Accept / unlikely, wash → Counter', () => {
 t('CPU bound: slot counts are clamped and the worst-case body stays well under a second', () => {
   // Checker E: slots {6,6,6} + a 25-man roster receiving 6 blocked the event loop ~2.2 s per request.
   const st = T.normSettings({ slots: { G: 99, F: 99, UTIL: 99 } });
-  eq(JSON.stringify(st.slots), JSON.stringify({ G: 4, F: 5, UTIL: 3 }));
+  eq(JSON.stringify([st.profile.slots.G, st.profile.slots.FC, st.profile.slots.UTIL]), JSON.stringify([4, 5, 3]));
+  eq(st.slotList.length, 12);
   const t0 = Date.now();
   T.evaluateTrade({ players: base, currentWeek: 1, myRoster: ids(base.slice(0, 25)), give: [], get: ids(base.slice(100, 106)), settings: { slots: { G: 6, F: 6, UTIL: 6 } } });
   const ms = Date.now() - t0;
@@ -460,7 +472,7 @@ t('route: GET context needs auth, returns normalized rosters + unmatched, caches
     eq(r.json.teams.length, 4);
     eq(r.json.teams[0].players[0].sleeperId, snake(1, 4, 10)[0].id);
     eq(r.json.unmatched, [{ team_key: '466.l.77.t.2', player_key: '466.p.1', name: 'Mystery Man' }]);
-    eq(r.json.league.settings, { teams: 4, slots: { G: 2, F: 3, UTIL: 1 }, rosterSize: 10 });
+    eq(r.json.league.settings, { teams: 4, slots: { PG: 0, SG: 0, G: 2, SF: 0, PF: 0, F: 0, C: 0, FC: 3, UTIL: 1, BN: 4, IL: 2 }, rosterSize: 10 });
     eq(r.json.league.playoff_start_week, 18);
     const r2 = await call(s, 'GET', '/api/nba/trade/context?league_key=466.l.77&team_key=466.l.77.t.3', { headers: { 'x-user': 'u1' } });
     eq(r2.json.myTeamKey, '466.l.77.t.3');
@@ -494,9 +506,96 @@ t('route: mounted through nba/router (one line) — page + evaluate', async () =
   } finally { s.close(); }
 });
 
+/* ------------------------------------------------------------ league 242808 */
+let hlBoard = null;
+async function hlb() { if (!hlBoard) hlBoard = await require(path.join(ROOT, 'nba', 'model')).getPlayers({ profile: '242808' }); return hlBoard; }
+// 12-team, 14-round snake by Yahoo pre-rank (as scripts/nba-trade-validate.js).
+function hlRosters(players) {
+  const order = players.filter(p => !p.outForSeason).slice().sort((a, b) => (a.yahooPreRank || 9999) - (b.yahooPreRank || 9999) || a.rank - b.rank);
+  const R = Array.from({ length: 12 }, () => []);
+  let k = 0;
+  for (let r = 0; r < 14; r++) for (let i = 0; i < 12; i++) R[r % 2 ? 11 - i : i].push(order[k++]);
+  return R;
+}
+
+t('242808: settings come from the profile (9 starters, 14 active + 2 IL, playoffs 20-22, bench share scaled)', () => {
+  const st = T0.normSettings({});
+  eq(st.slotList, ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL']);
+  eq([st.teams, st.rosterSize, st.il, st.draftRounds, st.endWeek, st.playoffStartWeek], [12, 14, 2, 14, 22, 20]);
+  eq(st.bench.length, 5);
+  near(st.bench[0], 0.18, 1e-9, 'bench share #1 = 12% × 9/6');
+  ok(st.bench.every((x, i) => i === 0 || x < st.bench[i - 1]), 'shares decrease');
+  const hs = T0.normSettings({}, HS);
+  eq(hs.bench, [0.12, 0.07, 0.04, 0.02]);
+  eq([hs.rosterSize, hs.il, hs.playoffStartWeek], [10, 0, null]);
+});
+
+t('242808: real-board trade → 9-row typical lineup, 22 weeks, playoff weeks weighted, rules in meta', async () => {
+  const b = await hlb();
+  const Rs = hlRosters(b.players);
+  const r = T0.evaluateTrade({ players: b.players, currentWeek: 1, myRoster: ids(Rs[0]), partnerRoster: ids(Rs[6]), give: [Rs[0][1].id], get: [Rs[6][1].id], leagueRostered: Rs.flat().map(p => p.id), today: '2026-10-20' });
+  eq(r.lineup.before.starters.map(x => x.slot), ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL1', 'UTIL2']);
+  eq(r.weeks.length, 22);
+  eq(r.weeks.filter(w => w.playoff).map(w => w.week), [20, 21, 22]);
+  ok(r.weeks.filter(w => w.playoff).every(w => w.weight === 1.5));
+  eq(r.meta.rules.tradeEnd, '2027-03-04');
+  eq(r.meta.rules.daysLeft, 135);
+  ok(r.meta.rules.open);
+  ok(r.meta.rules.notes.some(n => /commissioner/.test(n)) && r.meta.rules.notes.some(n => /2 days to protest/.test(n)) && r.meta.rules.notes.some(n => /Draft picks/.test(n)));
+  eq(T0.tradeRules(HL, '2027-03-05').open, false);
+  ok(!/NaN/.test(JSON.stringify(r)));
+});
+
+t('242808: a slot nobody can fill is filled at waiver level, so a hole-filling C is worth (C − replacement), not C', async () => {
+  const b = await hlb();
+  const isC = p => (p.yahooElig || []).includes('C');
+  const noC = b.players.filter(p => !isC(p) && !p.outForSeason && !p.injury).slice(20, 34);
+  const center = b.players.find(p => isC(p) && p.rank > 30 && !p.injury);
+  const outsider = b.players.filter(p => !isC(p) && !p.injury && !noC.includes(p))[60];
+  const partner = [center, ...b.players.filter(p => !isC(p) && !noC.includes(p) && p !== outsider).slice(80, 93)];
+  const r = T0.evaluateTrade({ players: b.players, currentWeek: 1, myRoster: ids(noC), partnerRoster: ids(partner), give: [noC[13].id], get: [center.id], today: '2026-10-20' });
+  const cRow = r.lineup.before.starters.find(x => x.slot === 'C');
+  ok(cRow.hole && cRow.replacement, 'C hole shown as a waiver add: ' + JSON.stringify(cRow));
+  const cGain = r.players.find(p => p.id === center.id).forYou;
+  ok(cGain < center.hsValue - 0.5 * r.replacement.perWeek, `hole C credited ${cGain} vs raw ${center.hsValue}`);
+  ok(cGain > 0);
+});
+
+t('242808: an Out player in IL does not force a drop; a healthy 15th does', async () => {
+  const b = await hlb();
+  const healthy = b.players.filter(p => !p.injury && !p.outForSeason).slice(30, 44);
+  const out = b.players.find(p => /^out$/i.test(p.injury || '') && !p.outForSeason);
+  const theirs = b.players.filter(p => !p.injury && !healthy.includes(p)).slice(60, 74);
+  const one = T0.evaluateTrade({ players: b.players, currentWeek: 1, myRoster: ids([...healthy, out]), partnerRoster: ids(theirs), give: [], get: [theirs[13].id], today: '2026-10-20' });
+  eq(one.roster.you.cap, 15, '14 active + 1 IL in use');
+  eq(one.roster.you.dropped.length, 1, '16th player (healthy) → one drop');
+  const ilIn = T0.evaluateTrade({ players: b.players, currentWeek: 1, myRoster: ids(healthy), partnerRoster: ids([...theirs.slice(0, 13), out]), give: [], get: [out.id], today: '2026-10-20' });
+  eq(ilIn.roster.you.dropped.length, 0, 'an Out player goes straight to IL');
+});
+
+t('242808: verdict thresholds re-validated on 30 realistic trades (scripts/nba-trade-validate.js)', () => {
+  const { execFileSync } = require('child_process');
+  const outTxt = execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'nba-trade-validate.js')], { encoding: 'utf8', env: { ...process.env, NBA_MODEL_OFFLINE: '1' } });
+  const rows = outTxt.split('\n').filter(l => /^\s*\d+ (Accept|Counter|Decline)/.test(l));
+  eq(rows.length, 30);
+  for (const l of rows) {
+    const [, v, you] = /^\s*\d+ (\w+)\s+you\s+(-?[\d.]+)/.exec(l);
+    const band = Number(/band ([\d.]+)/.exec(l)[1]);
+    if (Number(you) <= -3 * band) eq(v, 'Decline', 'big loss must be Decline: ' + l);
+    if (Number(you) >= band) eq(v, 'Accept', 'clear gain must be Accept: ' + l);
+    ok(Math.abs(Number(you)) < 40, 'no runaway values: ' + l);
+  }
+});
+
 t('rosterShape: Yahoo positions → slots', () => {
   eq(createTradeRoutes.rosterShape([{ position: 'PG', count: 1 }, { position: 'SG', count: 1 }, { position: 'C', count: 1 }, { position: 'Util', count: 2 }, { position: 'BN', count: 3 }, { position: 'IL+', count: 1 }]),
-    { slots: { G: 2, F: 1, UTIL: 2 }, rosterSize: 8 });
+    { slots: { PG: 1, SG: 1, G: 0, SF: 0, PF: 0, F: 0, C: 1, FC: 0, UTIL: 2, BN: 3, IL: 1 }, rosterSize: 8 });
+  // 242808's real roster_positions → the profile's slot map.
+  const hl = createTradeRoutes.rosterShape(['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C'].map(p => ({ position: p, count: 1 })).concat([{ position: 'Util', count: 2 }, { position: 'BN', count: 5 }, { position: 'IL', count: 2 }]));
+  eq(hl.rosterSize, 14);
+  eq(RS.slotList({ slots: hl.slots }), RS.slotList(HL));
+  // High Score: G,G,F,F,F,Util → FC.
+  eq(createTradeRoutes.rosterShape([{ position: 'G', count: 2 }, { position: 'F', count: 3 }, { position: 'Util', count: 1 }, { position: 'BN', count: 4 }]).slots.FC, 3);
   eq(createTradeRoutes.rosterShape([]), null);
 });
 
