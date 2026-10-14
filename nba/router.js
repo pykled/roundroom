@@ -149,7 +149,11 @@ function createNbaRouter({
   async function modelPlayers(week, profile) {
     const model = loadModel();
     const key = `nba:players:${week || 'default'}${profile ? ':p' + profile : ''}`;
-    const data = await apiCached(key, 10 * 60 * 1000, () => model.getPlayers({ week: week || undefined, profile: profile || undefined }));
+    const data = await apiCached(key, 10 * 60 * 1000, async () => {
+      const d = await model.getPlayers({ week: week || undefined, profile: profile || undefined });
+      // Profile responses also carry the market layer + Yahoo-only rows (nba/model/enrich.js).
+      return profile && !model.stub && d && d.profile ? require('./model/enrich').enrichPlayers(d) : d;
+    });
     if (data && data.asOf) lastModelAsOf = data.asOf;
     return data;
   }
@@ -363,6 +367,7 @@ function createNbaRouter({
   });
 
   router.use(require('./routes/profile')());
+  router.use('/api/nba/market', rateLimit(limitApi), require('./routes/market'));
   router.use(['/api/nba/me', '/api/nba/yahoo'], auth, (req, res, next) => { res.setHeader('Cache-Control', 'private, no-store'); next(); });
 
   router.get('/api/nba/yahoo/status', async (req, res) => {

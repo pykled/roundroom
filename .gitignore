@@ -4,3 +4,4 @@ node_modules/
 *.log
 .env.local
 dist/
+data/nba/adp-cache/
