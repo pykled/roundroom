@@ -416,8 +416,11 @@ function createNbaRouter({
           const m = match(yp);
           return { pick: p.pick, round: p.round, team_key: p.team_key, player_key: p.player_key, sleeperId: m.sleeperId, name: yp.name.full, matchConfidence: m.matchConfidence };
         });
+        // Picks with an unknown/missing status mean the draft is running. An
+        // explicit "predraft" is kept: those picks are keepers, and the board
+        // must not show "live" or start the pick clock hours early.
         let status = DRAFT_STATUS[d.draft_status] || 'predraft';
-        if (status === 'predraft' && picks.length) status = 'drafting';
+        if (status === 'predraft' && picks.length && d.draft_status !== 'predraft') status = 'drafting';
         made.forEach((p, i) => { if (p.cost != null) picks[i].cost = p.cost; });
         // Remaining slots in Yahoo's own order (team_key per pick), so the
         // board can show who is really on the clock with keepers / traded
@@ -470,13 +473,23 @@ function createNbaRouter({
     }
     lastDiagnose.set(uid, Date.now());
     const warnings = [];
-    const report = await runDiagnose({ client: clientFor(uid, { onWarning: w => warnings.push(w) }), warnings });
+    // Express 4 doesn't catch a rejected async handler, and server.js has no
+    // unhandledRejection handler: an unexpected throw here would exit Node.
+    let report;
+    try { report = await runDiagnose({ client: clientFor(uid, { onWarning: w => warnings.push(w) }), warnings }); } catch (err) {
+      log.error('[nba] diagnose failed:', err && err.message);
+      return res.status(500).json({ error: 'Diagnose failed' });
+    }
     // Same token handling as every other endpoint: a dead refresh token is
     // dropped; an app-credential failure only logs.
     const kinds = report.steps.filter(s => !s.ok).map(s => oauth.classifyError(s.error));
     if (kinds.includes('revoked')) { store.remove(uid).catch(() => {}); report.reauth = true; }
     if (kinds.includes('misconfigured')) { logMisconfigured({ code: (report.steps.find(s => !s.ok && oauth.classifyError(s.error) === 'misconfigured') || {}).error.code }); report.appMisconfigured = true; }
-    if (req.query.format === 'text') return res.type('text/plain; charset=utf-8').send(formatReport(report) + '\n');
+    if (req.query.format === 'text') {
+      let text;
+      try { text = formatReport(report); } catch (err) { log.error('[nba] diagnose format failed:', err && err.message); return res.status(500).json({ error: 'Diagnose failed' }); }
+      return res.type('text/plain; charset=utf-8').send(text + '\n');
+    }
     res.type('application/json').send(JSON.stringify(report, null, 2));
   });
 

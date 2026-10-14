@@ -20,7 +20,7 @@ const MAX_LEAGUES = 8;
 const REDACT_KEY = /url|sendbird|token|secret|guid|email|password|invite/i;
 function redactExtra(extra) {
   const out = {};
-  for (const [k, v] of Object.entries(extra || {})) if (!REDACT_KEY.test(k)) out[k] = v;
+  for (const [k, v] of Object.entries(extra || {})) if (!REDACT_KEY.test(k) && !/^\s*https?:\/\//i.test(String(v))) out[k] = v;
   return out;
 }
 

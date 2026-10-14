@@ -408,6 +408,52 @@ async function freePort() {
     assert.strictEqual(nodb.status, 2); assert.match(nodb.stderr, /DATABASE_URL/);
   });
 
+  console.log('Checker G regressions');
+  await test('/draft: explicit Yahoo "predraft" with keeper picks stays predraft; unknown status + picks → drafting', async () => {
+    const store = createTokenStore({ env: ENV });
+    await store.save('user_K', { access_token: 'A', refresh_token: 'R', expires_at: Date.now() + 3600e3 });
+    let draftStatus = 'predraft';
+    const keeperDraft = () => ({ fantasy_content: { league: [{ league_key: '466.l.1', draft_status: draftStatus }, { draft_results: {
+      0: { draft_result: { pick: 1, round: 1, team_key: '466.l.1.t.1' } },
+      1: { draft_result: { pick: 2, round: 1, team_key: '466.l.1.t.2', player_key: '466.p.5' } }, count: 2 } }] } });
+    const { srv, base } = await listen(makeApp({ store, apiCached: async (k, ttl, fn) => fn(),
+      makeClient: o => createClient({ ...o, limiter: noWait, fetchImpl: async url => resp(200, /draftresults/.test(url) ? keeperDraft() : yahooFixtureFor(url)) }) }));
+    try {
+      let d = JSON.parse((await raw(base, '/api/nba/yahoo/draft?league_key=466.l.1', { headers: { 'x-test-user': 'user_K' } })).body);
+      assert.strictEqual(d.status, 'predraft'); assert.strictEqual(d.onClock, null); assert.strictEqual(d.picks.length, 1);
+      for (const s of ['draft', undefined, 'inprogress']) {
+        draftStatus = s;
+        d = JSON.parse((await raw(base, '/api/nba/yahoo/draft?league_key=466.l.1', { headers: { 'x-test-user': 'user_K' } })).body);
+        assert.strictEqual(d.status, 'drafting', String(s)); assert.strictEqual(d.onClock.pick, 1);
+      }
+    } finally { srv.close(); }
+  });
+  await test('diagnose: an unexpected throw is a 500, not an unhandled rejection (would exit Node)', async () => {
+    const store = createTokenStore({ env: ENV });
+    await store.save('user_D', { access_token: 'A', refresh_token: 'R', expires_at: Date.now() + 3600e3 });
+    const rejections = [];
+    const onRej = e => rejections.push(e);
+    process.on('unhandledRejection', onRej);
+    // runDiagnose only guards client calls; a client whose results are malformed
+    // in a way the parser can't produce still must not take the server down.
+    const weird = { getGameKey: async () => '466', getUserLeagues: async () => ({ slice() { throw new TypeError('boom'); }, length: 1 }) };
+    const { srv, base } = await listen(makeApp({ store, makeClient: () => weird }));
+    try {
+      const r = await Promise.race([raw(base, '/api/nba/yahoo/diagnose', { headers: { 'x-test-user': 'user_D' } }),
+        new Promise(res => setTimeout(() => res({ status: 'no response (handler rejected)' }), 3000))]);
+      assert.strictEqual(r.status, 500);
+      await new Promise(r => setTimeout(r, 20));
+      assert.strictEqual(rejections.length, 0);
+    } finally { srv.close(); process.off('unhandledRejection', onRej); }
+  });
+  await test('diagnose: URL-valued "other settings" are dropped whatever the key', () => {
+    const { runDiagnose } = require('../nba/yahoo/diagnose');
+    return runDiagnose({ client: {
+      getGameKey: async () => '466', getUserLeagues: async () => [{ league_key: '466.l.1', name: 'L' }],
+      getLeague: async () => ({ weeks: [], roster_positions: [], stat_modifiers: [], settings: { extra: { chat_link: 'https://chat.example/inv/abc', logo: ' http://x', uses_faab: '1' } } }),
+      getTeams: async () => [], getDraftResults: async () => ({ picks: [] }),
+    } }).then(r => assert.deepStrictEqual(r.leagues[0].settings.extra, { uses_faab: '1' }));
+  });
   console.log('server.js (spawned real server)');
   await test('real server: players gzip + ETag/304, GET logout 405, no secret in stdout', async () => {
     const env = { ...process.env, ...ENV, DATABASE_URL: '' };
