@@ -170,6 +170,17 @@ async function t(name, fn) {
     assert.ok(d2.mean >= 0, 'REPORT: VORP-per-need lost to best-available-by-rank: ' + line);
   });
 
+  await t('pool: basketball positions only; vorp never drafts a 0-value player before the IL rounds', () => {
+    assert.ok(players.every(p => p.mask > 0), 'every pool player fills some positional slot');
+    for (const pol of ['vorp', 'safe', 'stars']) {
+      for (let k = 0; k < 6; k++) {
+        const d = E.runDraft({ players, layout: lay, mySlot: k * 2, seed: 100 + k, policy: pol });
+        const mine = d.picks.filter(p => p.team === k * 2);
+        mine.slice(0, 14).forEach(p => assert.ok(players[p.idx].value > 0, `${pol} round ${p.round} took ${p.name} (value 0)`));
+      }
+    }
+  });
+
   await t('groupsOf: C-only → C; PG → G; SG/SF → G,F', () => {
     assert.deepStrictEqual(P.groupsOf({ mask: L.slotMask({ pos: ['C'] }, lay) }, lay), ['C']);
     assert.deepStrictEqual(P.groupsOf({ mask: L.slotMask({ pos: ['PG'] }, lay) }, lay), ['G']);

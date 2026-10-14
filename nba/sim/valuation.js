@@ -137,7 +137,9 @@ function buildPool(boardRes, opts = {}) {
   // Pass 1: per-player league/HS ratio from own games.
   const fits = new Map();
   const ratiosByGroup = { C: [], G: [], F: [] };
-  for (const p of boardRes.players) {
+  // Basketball players only (Sleeper's NBA feed also lists team "DEF" entries).
+  const board = boardRes.players.filter(p => (p.pos || []).some(x => /^(PG|SG|SF|PF|C|G|F|G\/F|F\/C)$/.test(String(x).toUpperCase())));
+  for (const p of board) {
     const g = (lines.players[p.id] || []).filter(r => r[3] >= 4);
     const grp = group(p) || ((p.pos || []).some(x => /G/.test(x)) ? 'G' : 'F');
     if (g.length >= 8) {
@@ -152,7 +154,7 @@ function buildPool(boardRes, opts = {}) {
   const groupRatio = { C: median(ratiosByGroup.C), G: median(ratiosByGroup.G), F: median(ratiosByGroup.F) };
 
   const pool = [];
-  for (const p of boardRes.players) {
+  for (const p of board) {
     const f = fits.get(p.id);
     const ratio = h1 ? 1 : (f.ratio != null ? f.ratio : groupRatio[f.grp]);
     const mean = Math.max(0, (p.mean || 0) * ratio);

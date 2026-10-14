@@ -15,7 +15,7 @@
 //
 // Policies: bpa (league value), hs-rank (High Score default rank = naive),
 // vorp, c-round:K (take the best C-eligible at my round-K pick, no C before),
-// stars (value + 0.6·sd), safe (value − 0.6·sd, durability-weighted),
+// stars / safe (VORP score ± 0.3·sd: needs-aware variance tilt), stars-raw (value + 0.6·sd, ignores needs),
 // and any policy + ':waiver-bench' (last 5 picks = worst available, to price bench depth).
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./lineup'));
@@ -56,7 +56,9 @@
       for (let k = 0; k < weeks.length; k++) s += lineupValue(r, players, lay, weeks[k]) - base[k];
       return s / weeks.length;
     };
-    const avail = available.slice().sort((a, b) => players[b].value - players[a].value);
+    const all = available.slice().sort((a, b) => players[b].value - players[a].value);
+    const live = all.filter(i => players[i].value > 0);
+    const avail = live.length ? live : all;
     const groupTop = { C: [], G: [], F: [], U: [] };
     const cands = new Set(avail.slice(0, 20));
     for (const i of avail) {
@@ -79,7 +81,11 @@
       const nx = Math.max(...groupsOf(players[i], lay).map(g => next[g]));
       out.push({ idx: i, player: players[i], gain, next: nx, score: gain - alpha * nx + 1e-3 * players[i].value });
     }
-    out.sort((a, b) => b.score - a.score || players[b.idx].value - players[a.idx].value);
+    // No candidate improves any sampled week's lineup (starters + schedule depth
+    // saturated): fall back to best available value for the bench.
+    const maxGain = out.reduce((m, r) => Math.max(m, r.gain), 0);
+    if (maxGain < 0.05) out.sort((a, b) => players[b.idx].value - players[a.idx].value);
+    else out.sort((a, b) => b.score - a.score || players[b.idx].value - players[a.idx].value);
     return out;
   }
 
@@ -127,8 +133,15 @@
       return bestBy(fills.length ? fills : avail, f);
     }
     if (name === 'hs-rank') return bestBy(avail, i => -(players[i].hsRank || 1e6));
-    if (name === 'stars') return bestBy(avail, i => players[i].value + 0.6 * players[i].sd);
-    if (name === 'safe') return bestBy(avail, i => (players[i].value - 0.6 * players[i].sd) * (0.6 + 0.4 * players[i].a0));
+    // Variance tilt on top of VORP-per-need (needs-aware, so only the risk preference differs).
+    if (name === 'stars' || name === 'safe' || name === 'stars-raw') {
+      if (name === 'stars-raw') return bestBy(avail, i => players[i].value + 0.6 * players[i].sd);
+      const tilt = name === 'stars' ? 0.3 : -0.3;
+      const rec = recommend(st.roster, avail, st.ctx);
+      let best = rec[0];
+      for (const r of rec) if (r.score + tilt * r.player.sd > best.score + tilt * best.player.sd) best = r;
+      return best.idx;
+    }
     const m = /^c-round(\d+)$/.exec(name);
     if (m) {
       const K = +m[1] - 1;
