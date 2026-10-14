@@ -317,6 +317,7 @@ function evaluateTrade(input = {}) {
 
   const lineupBefore = E.typicalLineup(myBefore, myCap);
   const lineupAfter = E.typicalLineup(you.roster, myCap);
+  alignSlots(lineupBefore.starters, lineupAfter.starters);
   const changed = lineupBefore.starters.filter((r, i) => r.id !== lineupAfter.starters[i].id).map(r => r.slot);
 
   const out = {
@@ -359,27 +360,43 @@ function evaluateTrade(input = {}) {
   return out;
 }
 
+// Keep a player who stays in the same slot group (G1/G2, F1-F3) on the same row,
+// so the before/after diff shows only real changes.
+function alignSlots(before, after) {
+  const group = r => r.slot.replace(/\d+$/, '');
+  for (const g of [...new Set(after.map(group))]) {
+    const idx = after.map((r, i) => (group(r) === g ? i : -1)).filter(i => i >= 0);
+    const rows = idx.map(i => after[i]);
+    const placed = new Array(idx.length).fill(null);
+    idx.forEach((bi, k) => { const j = rows.findIndex(r => r && r.id && r.id === before[bi].id); if (j >= 0) { placed[k] = rows[j]; rows[j] = null; } });
+    const rest = rows.filter(Boolean);
+    idx.forEach((ai, k) => { const r = placed[k] || rest.shift(); after[ai] = { ...r, slot: before[ai].slot }; });
+  }
+}
+
 function consolidationNote(r, give, get) {
   if (give.length === get.length) return null;
   const y = r.roster.you;
   const repl = r.replacement.perWeek;
   if (get.length > give.length) {
     const n = get.length - give.length;
+    if (!give.length) return y.dropped.length ? `Adding ${n} for nothing: you must drop ${y.dropped.map(d => `${d.name} (${d.rosValue}/wk)`).join(', ')}.` : `Adding ${n} for nothing uses an open roster spot.`;
     if (y.dropped.length) return `${get.length}-for-${give.length}: you must drop ${y.dropped.map(d => `${d.name} (${d.rosValue}/wk)`).join(', ')}. That loss is already in the numbers.`;
     return `${get.length}-for-${give.length}: uses ${n} of your open roster spot${n > 1 ? 's' : ''}, so no drop needed.`;
   }
   const n = give.length - get.length;
-  return `${give.length}-for-${get.length}: frees ${n} roster spot${n > 1 ? 's' : ''}. A waiver add at ~${repl}/wk fills it; that is already in the numbers.`;
+  const label = get.length ? `${give.length}-for-${get.length}` : `Giving ${give.length} for nothing`;
+  return `${label}: frees ${n} roster spot${n > 1 ? 's' : ''}. A waiver add at ~${repl}/wk fills it; that is already in the numbers.`;
 }
 
 function headline(r) {
   if (!r.verdict) return 'Add players to both sides';
-  const s = x => (x > 0 ? '+' : '') + x;
+  const s = x => (x > 0 ? '+' : '') + Number(x).toFixed(1);
   const who = r.them.estimated ? 'a typical partner' : 'them';
   const take = { likely: 'they should accept', maybe: 'they might accept', unlikely: 'they will probably say no' }[r.them.likely];
   if (r.verdict === 'Accept') return `${s(r.you.perWeek)}/wk for you; ${s(r.them.perWeek)}/wk for ${who}, so ${take}.`;
-  if (r.verdict === 'Decline') return `Costs you ${Math.abs(r.you.perWeek)}/wk. Decline unless they add more.`;
-  if (r.you.perWeek <= -r.meta.fairBand) return `You lose ${Math.abs(r.you.perWeek)}/wk but they gain ${r.them.perWeek}/wk, so there is room to ask for more.`;
+  if (r.verdict === 'Decline') return `Costs you ${Math.abs(r.you.perWeek).toFixed(1)}/wk. Decline unless they add more.`;
+  if (r.you.perWeek <= -r.meta.fairBand) return `You lose ${Math.abs(r.you.perWeek).toFixed(1)}/wk but they gain ${r.them.perWeek.toFixed(1)}/wk, so there is room to ask for more.`;
   return `Close to even (${s(r.you.perWeek)}/wk). Ask for a small add.`;
 }
 
@@ -406,18 +423,20 @@ function whyBullets(r, E) {
     const slot = slotOfBefore.get(p.id);
     if (slot) {
       const repl = r.lineup.after.starters.find(x => x.slot === slot);
-      out.push(`Losing ${p.name} costs ${s(-p.forYou)}/wk at ${slot}${repl && repl.name && repl.id !== p.id ? ` (${repl.name} steps in)` : ''}.`);
-    } else if (p.forYou > 0.5) out.push(`${p.name} is bench depth for you (${s(-p.forYou)}/wk).`);
+      out.push(`Losing ${p.name} costs ${Math.abs(p.forYou).toFixed(1)}/wk at ${slot}${repl && repl.name && repl.id !== p.id ? ` (${repl.name} steps in)` : ''}.`);
+    } else if (p.forYou > 0.5) out.push(`${p.name} is bench depth for you (${Math.abs(p.forYou).toFixed(1)}/wk).`);
   }
   // Schedule.
   const avg = (side, k) => { const xs = r.players.filter(x => x.side === side); return xs.length ? xs.reduce((a, x) => a + x[k], 0) / xs.length : 0; };
+  const both = r.players.some(x => x.side === 'get') && r.players.some(x => x.side === 'give');
   const heavyIn = avg('get', 'heavyWeeks'), heavyOut = avg('give', 'heavyWeeks');
-  const per = (x, n) => `${Math.round(x * 10) / 10} per player ${n}`;
-  if (heavyOut - heavyIn >= 1.5) out.push(`Costs you 4-game weeks: ${per(heavyOut, 'out')} vs ${per(heavyIn, 'in')}.`);
-  else if (heavyIn - heavyOut >= 1.5) out.push(`Adds 4-game weeks: ${per(heavyIn, 'in')} vs ${per(heavyOut, 'out')}.`);
-  if (r.meta.playoffStartWeek != null) {
+  const per = (x, n) => `${Math.round(x * 10) / 10} per player ${n}`; // n: 'going out' | 'coming in'
+  if (!both) { /* schedule comparison needs players on both sides */ }
+  else if (heavyOut - heavyIn >= 1.5) out.push(`Costs you 4-game weeks: ${per(heavyOut, 'going out')} vs ${per(heavyIn, 'coming in')}.`);
+  else if (heavyIn - heavyOut >= 1.5) out.push(`Adds 4-game weeks: ${per(heavyIn, 'coming in')} vs ${per(heavyOut, 'going out')}.`);
+  if (both && r.meta.playoffStartWeek != null) {
     const pin = avg('get', 'playoffGames'), pout = avg('give', 'playoffGames');
-    if (Math.abs(pin - pout) >= 1) out.push(`Playoff weeks (${r.meta.playoffStartWeek}+, weighted ×${r.meta.playoffWeight}): ${per(pin, 'in')} vs ${per(pout, 'out')} games.`);
+    if (Math.abs(pin - pout) >= 1) out.push(`Playoff weeks (${r.meta.playoffStartWeek}+, weighted ×${r.meta.playoffWeight}): ${per(pin, 'coming in')} vs ${per(pout, 'going out')} games.`);
   }
   // Injuries.
   for (const p of r.players) {
