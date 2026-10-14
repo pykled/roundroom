@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/shared/styles.css?v=nba-2026-10-13">
 <script defer src="/shared/nav.js"></script>
 <script defer src="https://umami-production-e09b.up.railway.app/script.js" data-website-id="97ba8ad5-da19-4e56-a096-f21d2426ebb1"></script>
 <script>document.documentElement.classList.add('js');</script>
@@ -498,28 +498,103 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
 .method .fresh { margin-top: 12px; color: var(--text-secondary); text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
 
 /* ---- NBA entry (banner under the nav + #nba section) ----
-   Both carry .sport-nba so they pick up the orange tokens from the "NBA theme"
-   section of /shared/styles.css; the rest of the page stays NFL indigo. */
+   Self-contained: the tokens and the button are defined right here, so the
+   banner and section render correctly even when a browser still holds an older
+   cached /shared/styles.css (that is what made the banner CTA show up as a bare
+   underlined "OpenNBA board→" link). The .sport-nba class on both blocks is
+   only an extra hook; nothing below depends on it, and no orange leaks onto
+   the NFL parts of the page. Values mirror the NBA theme in shared/styles.css. */
+#nba-banner, #nba {
+  --nba-200: #ffd2ad; --nba-300: #ffb27a; --nba-400: #ff8a3d; --nba-500: #f7711f; --nba-600: #db5a0c;
+  --nba-ink: #1c0b02;            /* label on orange: 6.7:1 on 500, 5.0:1 on 600 */
+  --nba-surface: #120c08; --nba-surface-2: #1a110b;
+  --nba-border: rgba(255,138,61,0.22); --nba-border-bright: rgba(255,138,61,0.42);
+  --nba-glow: rgba(255,138,61,0.14); --nba-glow-strong: rgba(247,113,31,0.32);
+  --nba-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 #nba-banner {
   position: relative; z-index: 2;
   border-bottom: 1px solid var(--nba-border);
-  background: linear-gradient(90deg, rgba(247,113,31,0.13), rgba(247,113,31,0.04) 55%, rgba(247,113,31,0.10));
+  background: linear-gradient(90deg, rgba(247,113,31,0.14), rgba(247,113,31,0.045) 55%, rgba(247,113,31,0.11));
+  box-shadow: inset 0 1px 0 rgba(255,178,122,0.05);
 }
 #nba-banner .container {
-  display: flex; align-items: center; gap: 12px;
-  min-height: 56px; padding-top: 8px; padding-bottom: 8px;
+  display: flex; align-items: center; gap: 14px;
+  min-height: 64px; padding-top: 10px; padding-bottom: 10px;
 }
-#nba-banner .nb-ball { font-size: 1.15rem; box-shadow: 0 0 14px rgba(255,138,61,0.45); border-radius: 50%; }
-#nba-banner .nb-text { flex: 1; min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; font-size: 0.9rem; line-height: 1.35; }
+#nba-banner .nb-ball {
+  display: block; width: 22px; height: 22px; border-radius: 50%; flex: none;
+  background:
+    radial-gradient(circle at -18% 50%, transparent 0 52%, var(--nba-ink) 52% 58%, transparent 58%),
+    radial-gradient(circle at 118% 50%, transparent 0 52%, var(--nba-ink) 52% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 47%, var(--nba-ink) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, var(--nba-ink) 47% 53%, transparent 53%),
+    radial-gradient(circle at 35% 30%, var(--nba-300), var(--nba-500) 60%, var(--nba-600));
+  box-shadow: 0 0 0 3px rgba(255,138,61,0.12), 0 0 16px rgba(255,138,61,0.4);
+}
+#nba-banner .nb-text {
+  flex: 1; min-width: 0; margin: 0;
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px;
+  font-size: 0.92rem; line-height: 1.35;
+}
 #nba-banner .nb-text strong { color: var(--nba-300); font-weight: 700; white-space: nowrap; }
 #nba-banner .nb-text span { color: var(--text-body); }
-#nba-banner .nba-btn { min-height: 40px; padding: 0 1.05rem; gap: 0.3rem; font-size: 0.85rem; flex: none; }
+
+/* The NBA call-to-action: a filled basketball-orange pill with dark ink. */
+#nba-banner .nba-btn,
+#nba .nba-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; flex: none;
+  min-height: 44px; padding: 0 1.05rem 0 1.25rem; border: 0; border-radius: 999px;
+  font-family: var(--font-sans); font-size: 0.9rem; font-weight: 700; letter-spacing: -0.005em; line-height: 1;
+  color: var(--nba-ink); text-decoration: none; white-space: nowrap; cursor: pointer;
+  background: linear-gradient(180deg, var(--nba-400), var(--nba-500));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -1px 0 rgba(0,0,0,0.14),
+    0 0 0 1px rgba(255,138,61,0.45), 0 8px 24px -10px rgba(247,113,31,0.75);
+  transition: box-shadow 0.2s var(--nba-ease), transform 0.16s var(--nba-ease), filter 0.2s var(--nba-ease);
+}
+#nba-banner .nba-btn .nba-arrow,
+#nba .nba-btn .nba-arrow { display: block; width: 16px; height: 16px; flex: none; transition: transform 0.22s var(--nba-ease); }
+@media (hover: hover) {
+  #nba-banner .nba-btn:hover,
+  #nba .nba-btn:hover {
+    color: var(--nba-ink);
+    background: linear-gradient(180deg, var(--nba-300), var(--nba-400));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 0 0 1px rgba(255,178,122,0.6), 0 0 0 5px rgba(255,138,61,0.12), 0 10px 30px -8px rgba(247,113,31,0.85);
+  }
+  #nba-banner .nba-btn:hover .nba-arrow,
+  #nba .nba-btn:hover .nba-arrow { transform: translateX(3px); }
+}
+#nba-banner .nba-btn:active,
+#nba .nba-btn:active {
+  transform: scale(0.97);
+  background: linear-gradient(180deg, var(--nba-500), var(--nba-600));
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,138,61,0.5);
+}
+#nba-banner .nba-btn:focus-visible,
+#nba .nba-btn:focus-visible {
+  outline: 2px solid var(--nba-300); outline-offset: 3px;
+}
+#nba-banner .nba-btn:focus-visible .nba-arrow,
+#nba .nba-btn:focus-visible .nba-arrow { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  #nba-banner .nba-btn, #nba .nba-btn,
+  #nba-banner .nba-btn .nba-arrow, #nba .nba-btn .nba-arrow { transition: none; }
+  #nba-banner .nba-btn:active, #nba .nba-btn:active,
+  #nba-banner .nba-btn:hover .nba-arrow, #nba .nba-btn:hover .nba-arrow,
+  #nba-banner .nba-btn:focus-visible .nba-arrow, #nba .nba-btn:focus-visible .nba-arrow { transform: none; }
+}
 @media (max-width: 640px) {
-  #nba-banner .container { gap: 10px; min-height: 60px; }
-  #nba-banner .nb-text { flex-direction: column; gap: 1px; font-size: 0.85rem; }
-  #nba-banner .nb-text span { font-size: 0.78rem; }
-  #nba-banner .nba-btn { min-height: 44px; padding: 0 0.9rem; }
-  #nba-banner .nba-btn .long { display: none; }
+  /* Ball + copy on the first row, a full-width button underneath. */
+  #nba-banner .container {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
+    gap: 10px 12px; padding-top: 12px; padding-bottom: 14px;
+  }
+  #nba-banner .nb-text { flex-direction: column; align-items: flex-start; gap: 1px; font-size: 0.9rem; }
+  #nba-banner .nb-text span { font-size: 0.8rem; }
+  #nba-banner .nba-btn { grid-column: 1 / -1; width: 100%; }
 }
 
 #nba { padding: var(--section-pad) 0; border-top: 1px solid var(--nba-border); }
@@ -540,7 +615,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
 .nba-panel h2 em { font-style: normal; color: var(--nba-400); }
 .nba-panel .lede { font-size: 1rem; line-height: 1.6; color: var(--text-body); max-width: 34rem; margin-bottom: 24px; }
 .nba-cta-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; }
-.nba-cta-row .nba-btn { min-height: 48px; padding: 0 1.5rem; font-size: 0.95rem; }
+#nba .nba-cta-row .nba-btn { min-height: 48px; padding: 0 1.3rem 0 1.5rem; font-size: 0.95rem; }
 .nba-cta-row .note { color: var(--text-secondary); text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
 
 /* Pick card mock: what the board's recommendation looks like. */
@@ -583,7 +658,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
 @media (max-width: 640px) {
   .nba-panel { padding: 24px 20px; border-radius: var(--radius-xl); }
   .nba-cta-row { flex-direction: column; align-items: stretch; }
-  .nba-cta-row .nba-btn { width: 100%; }
+  #nba .nba-cta-row .nba-btn { width: 100%; }
   .nba-cta-row .note { text-align: center; }
   .nba-feats { grid-template-columns: 1fr; gap: 12px; }
   .nba-feat { padding: 18px; }
@@ -709,7 +784,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
   <div class="container">
     <span class="nba-ball nb-ball" aria-hidden="true"></span>
     <p class="nb-text"><strong>NBA is live</strong><span>Yahoo High Score draft board, built for your league</span></p>
-    <a class="nba-btn" id="nba-banner-cta" href="/nba">Open<span class="long">NBA board</span><span aria-hidden="true">→</span></a>
+    <a class="nba-btn" id="nba-banner-cta" href="/nba">Open NBA board <svg class="nba-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 3.5 13 8l-4.5 4.5"/></svg></a>
   </div>
 </aside>
 
@@ -847,7 +922,7 @@ a.card:hover { border-color: var(--border-bright); background: var(--bg-hover); 
         <h2 id="nba-title">Pocket for NBA: a draft board built for <em>High Score</em> leagues.</h2>
         <p class="lede">In Yahoo High Score, each starter counts only their best game of the week. Pocket ranks every player on that, fills your PG, SG, SF, PF, C, G, F and UTIL slots as you draft, and tells you why each pick fits your roster.</p>
         <div class="nba-cta-row">
-          <a class="nba-btn" id="nba-cta" href="/nba">Open the NBA draft board →</a>
+          <a class="nba-btn" id="nba-cta" href="/nba">Open the NBA draft board <svg class="nba-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 3.5 13 8l-4.5 4.5"/></svg></a>
           <span class="note mono">Free · Connect Yahoo read-only, or use the manual board</span>
         </div>
       </div>
