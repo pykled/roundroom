@@ -190,6 +190,8 @@ function createTradeRoutes({
         leagueRostered: lists.leagueRostered, settings,
       });
       if (out.meta.unknown.length) warnings.push(`${out.meta.unknown.length} player${out.meta.unknown.length > 1 ? 's' : ''} not found in the model; ignored`);
+      if (out.meta.pastEnd) warnings.push(`The season is past its last week; only week ${out.meta.lastWeek} is scored`);
+      warnings.push(...out.meta.notes);
       res.json({ ...out, warnings, asOf: board.asOf || null });
     } catch (err) {
       log.error('[nba] trade evaluate:', err.message);

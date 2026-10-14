@@ -93,12 +93,15 @@ function scheduleWeeks(players, currentWeek, st) {
   for (const p of players.slice(0, 50)) for (const w of Object.keys(p.hsByWeek || {})) all.add(Number(w));
   let weeks = [...all].filter(Number.isFinite).sort((a, b) => a - b);
   const cw = Number(currentWeek) || weeks[0] || 1;
-  const rest = weeks.filter(w => w >= cw && (st.endWeek == null || w <= st.endWeek));
-  weeks = rest.length ? rest : weeks.slice(-1);
-  return weeks.map(w => {
+  const inSeason = weeks.filter(w => st.endWeek == null || w <= st.endWeek);
+  const rest = inSeason.filter(w => w >= cw);
+  // Past the last week: score the final in-season week only and say so (meta.pastEnd).
+  const out = (rest.length ? rest : (inSeason.length ? inSeason : weeks).slice(-1)).map(w => {
     const playoff = st.playoffStartWeek != null && w >= st.playoffStartWeek;
     return { week: w, weight: playoff ? st.playoffWeight : 1, playoff };
   });
+  out.pastEnd = !rest.length && out.length > 0;
+  return out;
 }
 
 // Waiver replacement level per week: Nth best outside league rosters when they
@@ -257,10 +260,22 @@ function evaluateTrade(input = {}) {
   const unknown = [];
   const known = list => list.filter(id => (index.has(id) ? true : (unknown.push(id), false)));
 
+  const notes = [];
+  const nameOf = id => index.get(id).name;
   const give = known(ids(input.give));
-  const get = known(ids(input.get)).filter(id => !give.includes(id));
   const mineIds = known(ids(input.myRoster));
-  for (const id of give) if (!mineIds.includes(id)) mineIds.push(id);
+  const getAll = known(ids(input.get));
+  // Ids that can't be part of a trade: on both sides, or "getting" someone I already own.
+  for (const id of getAll) {
+    if (give.includes(id)) notes.push(`${nameOf(id)} is on both sides; counted as given only.`);
+    else if (mineIds.includes(id)) notes.push(`${nameOf(id)} is already on your roster; left out of what you get.`);
+  }
+  const get = getAll.filter(id => !give.includes(id) && !mineIds.includes(id));
+  const hadRoster = mineIds.length > 0;
+  for (const id of give) if (!mineIds.includes(id)) {
+    if (hadRoster) notes.push(`${nameOf(id)} isn't on your roster; counted as yours.`);
+    mineIds.push(id);
+  }
   const mine = mineIds.filter(id => !get.includes(id));
   const partnerEstimated = !Array.isArray(input.partnerRoster) || !input.partnerRoster.length;
   const theirsIds = partnerEstimated ? estimatePartner(players, mine, get, st) : known(ids(input.partnerRoster));
@@ -311,13 +326,13 @@ function evaluateTrade(input = {}) {
     const p = index.get(id);
     pl.push({ side: 'give', id, name: p.name, team: p.team, elig: p.elig, injury: p.injury || null, outForSeason: !!p.outForSeason,
       rosValue: r1(E.rosAvg(p)), forYou: r1(marginal(myBefore, p, myCap, false)), forThem: r1(marginal(theirBefore.filter(x => !get.includes(x.id)), p, theirCap, true)),
-      games: games(p), heavyWeeks: heavy(p), playoffGames: playoffGames(p), uncertainty: uncertainty(p), nowValue: r1(E.val(p, weeks[0].week)) });
+      games: games(p), heavyWeeks: heavy(p), playoffGames: playoffGames(p), uncertainty: uncertainty(p), nowValue: weeks.length ? r1(E.val(p, weeks[0].week)) : 0 });
   }
   for (const id of get) {
     const p = index.get(id);
     pl.push({ side: 'get', id, name: p.name, team: p.team, elig: p.elig, injury: p.injury || null, outForSeason: !!p.outForSeason,
       rosValue: r1(E.rosAvg(p)), forYou: r1(marginal(myBefore.filter(x => !give.includes(x.id)), p, myCap, true)), forThem: r1(marginal(theirBefore, p, theirCap, false)),
-      games: games(p), heavyWeeks: heavy(p), playoffGames: playoffGames(p), uncertainty: uncertainty(p), nowValue: r1(E.val(p, weeks[0].week)) });
+      games: games(p), heavyWeeks: heavy(p), playoffGames: playoffGames(p), uncertainty: uncertainty(p), nowValue: weeks.length ? r1(E.val(p, weeks[0].week)) : 0 });
   }
 
   const lineupBefore = E.typicalLineup(myBefore, myCap);
@@ -356,7 +371,7 @@ function evaluateTrade(input = {}) {
     meta: {
       weeks: weeks.length, firstWeek: weeks[0] && weeks[0].week, lastWeek: weeks.length ? weeks[weeks.length - 1].week : null,
       currentWeek: Number(input.currentWeek) || null, playoffStartWeek: st.playoffStartWeek, playoffWeight: st.playoffStartWeek != null ? st.playoffWeight : 1,
-      fairBand: r1(band), unknown, settings: { teams: st.teams, rosterSize: st.rosterSize, slots: st.slots },
+      fairBand: r1(band), unknown, notes, pastEnd: !!weeks.pastEnd, settings: { teams: st.teams, rosterSize: st.rosterSize, slots: st.slots },
     },
   };
   out.consolidation = consolidationNote(out, give, get);

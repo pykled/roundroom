@@ -243,6 +243,28 @@ t('CPU bound: slot counts are clamped and the worst-case body stays well under a
   ok(ms < 1000, `worst case took ${ms} ms`);
 });
 
+t('edge cases (Checker E): season end, no weeks, ownership conflicts', () => {
+  // currentWeek past the season / past endWeek: score only the last in-season week and flag it
+  const late = ev({ currentWeek: 99, myRoster: ids(A), give: [A[0].id], get: [B[0].id] });
+  eq(late.meta.weeks, 1); eq(late.meta.lastWeek, WEEKS); eq(late.meta.pastEnd, true);
+  const capped = ev({ currentWeek: 15, settings: { endWeek: 10 }, myRoster: ids(A), give: [A[0].id], get: [B[0].id] });
+  eq(capped.meta.lastWeek, 10, 'endWeek is respected even past the end'); eq(capped.meta.pastEnd, true);
+  eq(ev({ currentWeek: 3, myRoster: ids(A), give: [A[0].id], get: [B[0].id] }).meta.pastEnd, false);
+  // players with no week data at all: no throw
+  const bare = T.evaluateTrade({ players: [{ id: 'a', name: 'A', elig: ['G'] }, { id: 'b', name: 'B', elig: ['F'] }], currentWeek: 1, myRoster: ['a'], give: ['a'], get: ['b'] });
+  eq(bare.meta.weeks, 0); ok(!JSON.stringify(bare).includes('null,null'));
+  // "getting" a player I already own is not a trade gain
+  const own = ev({ myRoster: ids(A), give: [A[1].id], get: [A[0].id] });
+  ok(own.you.perWeek < 0, 'giving A[1] for my own A[0] is a pure loss, got ' + own.you.perWeek);
+  ok(own.meta.notes.some(n => /already on your roster/.test(n)));
+  ok(!own.players.some(p => p.side === 'get'));
+  const both = ev({ myRoster: ids(A), give: [A[0].id], get: [A[0].id] });
+  ok(both.meta.notes.some(n => /both sides/.test(n)));
+  const notMine = ev({ myRoster: ids(A), give: [B[0].id], get: [] });
+  ok(notMine.meta.notes.some(n => /isn't on your roster/.test(n)));
+  eq(ev({ myRoster: [], give: [A[0].id, A[1].id], get: [B[0].id] }).meta.notes.length, 0, 'no roster sent: nothing to complain about');
+});
+
 t('no-NaN fuzz: garbage values, unknown ids, odd rosters', () => {
   let s = 99;
   const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
