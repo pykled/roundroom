@@ -23,10 +23,13 @@ let lastError = null;
 function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
-// Prefer the runtime cache copy when it is newer than the committed snapshot.
+// Prefer the runtime cache copy when it is newer than the committed snapshot
+// and written in the same compact format (an older deploy's cache lacks the
+// per-game stat lines that league-profile scoring needs).
 function readBest(name) {
   const snap = readJson(path.join(SNAP_DIR, name));
   const cache = readJson(path.join(CACHE_DIR, name));
+  if (cache && snap && snap.format !== cache.format) return snap;
   if (cache && (!snap || (cache.generatedAt || '') > (snap.generatedAt || ''))) return cache;
   return snap;
 }
@@ -93,7 +96,12 @@ async function refresh() {
     }
     if (Object.keys(fresh).length) {
       const part = S.compactProjections(PROJ_SEASON, fresh, []);
-      const proj = { ...cur.proj, generatedAt: part.generatedAt, weeks: { ...cur.proj.weeks, ...part.weeks }, weekly: { ...cur.proj.weekly }, teamGames: {} };
+      const proj = { ...cur.proj, format: part.format, generatedAt: part.generatedAt, weeks: { ...cur.proj.weeks, ...part.weeks }, weekly: { ...cur.proj.weekly }, teamGames: {}, teamDates: {} };
+      // Team game dates: keep known dates outside the refreshed weeks' windows, add the fresh ones.
+      const fresh0 = Math.min(...Object.values(part.weeks).map(([lo]) => S.epochDay(lo)));
+      const fresh1 = Math.max(...Object.values(part.weeks).map(([, hi]) => S.epochDay(hi)));
+      for (const [team, days] of Object.entries(cur.proj.teamDates || {})) proj.teamDates[team] = days.filter(d => d < fresh0 || d > fresh1);
+      for (const [team, days] of Object.entries(part.teamDates || {})) proj.teamDates[team] = (proj.teamDates[team] || []).concat(days).sort((a, b) => a - b);
       for (const [team, byW] of Object.entries(cur.proj.teamGames)) proj.teamGames[team] = { ...byW };
       for (const [team, byW] of Object.entries(part.teamGames)) Object.assign(proj.teamGames[team] ||= {}, byW);
       for (const pid of Object.keys(proj.weekly)) {
