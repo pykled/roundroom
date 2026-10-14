@@ -76,6 +76,10 @@
       il: clampInt(s.il, 0, 5, base ? base.il : 0)
     };
     out.mySlot = clampInt(s.mySlot, 1, out.teams, 1);
+    // Draft rounds: Yahoo drafts active + bench spots only (IL starts empty), so
+    // the default is starters + BN; a profile / the League dialog can override.
+    var n = 0; Object.keys(slots).forEach(function (k) { n += slots[k] || 0; });
+    out.rounds = clampInt(s.rounds, 1, 30, n + out.bench);
     return out;
   }
 
@@ -84,14 +88,16 @@
   function slotTypes(settings) { return SLOT_TYPES.filter(function (t) { return (settings.slots[t] || 0) > 0; }); }
   function starterCount(settings) { var n = 0; Object.keys(settings.slots).forEach(function (k) { n += settings.slots[k] || 0; }); return n; }
   function rosterSize(settings) { return starterCount(settings) + settings.bench + (settings.il || 0); }
-  function totalPicks(settings) { return settings.teams * rosterSize(settings); }
+  function draftRounds(settings) { return settings.rounds > 0 ? settings.rounds : starterCount(settings) + settings.bench; }
+  function totalPicks(settings) { return settings.teams * draftRounds(settings); }
 
   /* League profile (GET /api/nba/league-profile) → settings. Keeps prev.mySlot. */
   function settingsFromProfile(profile, prev) {
     if (!profile || !profile.slots || typeof profile.slots !== 'object') return normalizeSettings(prev);
     var sl = {};
     SLOT_TYPES.forEach(function (t) { if (profile.slots[t] != null) sl[t] = profile.slots[t]; });
-    return normalizeSettings({ teams: profile.teams, mySlot: prev && prev.mySlot, slots: sl, bench: profile.slots.BN, il: profile.slots.IL });
+    return normalizeSettings({ teams: profile.teams, mySlot: prev && prev.mySlot, slots: sl, bench: profile.slots.BN, il: profile.slots.IL,
+      rounds: profile.draft && profile.draft.rounds });
   }
   function profilePickSeconds(profile) {
     var n = profile && profile.draft && parseInt(profile.draft.pickSeconds, 10);
@@ -128,7 +134,7 @@
 
   // Next pick number >= currentPick owned by mySlot, or null when the draft is over for us.
   function nextPickFor(slot, currentPick, settings) {
-    var list = picksForSlot(slot, settings.teams, rosterSize(settings), currentPick);
+    var list = picksForSlot(slot, settings.teams, draftRounds(settings), currentPick);
     return list.length ? list[0] : null;
   }
 
@@ -439,19 +445,49 @@
      and its top-N supply is under the picks before my turn + ceiling bias,
      all x injury factor. Deterministic: ties break by value then id.
      opts: { picksUntilNext, nextPick, ceilingBias (0..1, default 0.35), limit, topN } */
+  function mktKey(p) {
+    if (p && typeof p.marketRank === 'number' && isFinite(p.marketRank)) return p.marketRank;
+    if (p && typeof p.rank === 'number' && isFinite(p.rank)) return p.rank;
+    return 1e6;
+  }
+  // P(a player at market position pos (0-based among the available) is taken
+  // in the next k picks); market noise sd grows with depth (2 + 12% of rank).
+  function probGone(pos, k, mk) {
+    if (pos == null || !(k > 0)) return 0;
+    var sd = 2 + 0.12 * Math.min(mk, 400), z = (k - 0.5 - pos) / sd;
+    return 1 / (1 + Math.exp(-1.702 * z)); // logistic ≈ normal CDF
+  }
+
   function bestAvailable(available, myRoster, settings, opts) {
     settings = normalizeSettings(settings);
     opts = opts || {};
     var bias = opts.ceilingBias == null ? 0.35 : opts.ceilingBias;
     var k = Math.max(0, opts.picksUntilNext == null ? settings.teams - 1 : opts.picksUntilNext);
     var roster = (myRoster || []).filter(Boolean);
-    if (roster.length >= rosterSize(settings)) return [];
+    if (roster.length >= draftRounds(settings)) return [];
     var sol = solveSlots(roster, settings);
     var pool = (available || []).filter(Boolean).slice().sort(byValThenId);
     var topN = opts.topN || 40;
     var sup = slotSupply(pool, settings, topN);
     var cands = pool.slice(0, Math.max(60, (opts.limit || 3) * 4));
-    var later = pool.slice(k); // assume others take the top-k by value before we pick again
+    // Who is gone before my next pick: the other teams draft by market (ADP),
+    // not by our value, so when the board has market ranks the top-k by
+    // market are removed and each candidate gets P(taken before my next pick).
+    // Without market data: the old "others take the top-k by value".
+    var hasMkt = pool.some(function (q) { return typeof q.marketRank === 'number' && isFinite(q.marketRank); });
+    var mpos = null, later;
+    if (hasMkt) {
+      var byMkt = pool.slice().sort(function (x, y) { return mktKey(x) - mktKey(y) || byValThenId(x, y); });
+      mpos = new Map(); byMkt.forEach(function (q, i) { mpos.set(q, i); });
+      later = pool.filter(function (q) { return mpos.get(q) >= k; });
+    } else later = pool.slice(k);
+    // Bench depth: eligible roster players beyond each starting slot's count.
+    var cover = {};
+    sol.plan.types.forEach(function (t) {
+      if (t === 'UTIL') return;
+      var n = 0; roster.forEach(function (q) { if (canFill(q, t, settings)) n++; });
+      cover[t] = Math.max(0, n - (settings.slots[t] || 0));
+    });
 
     var bestLater = {}; // slot type -> top-2 [{gain, player}] (2nd is used when the candidate is the 1st)
     later.slice(0, 80).forEach(function (q) {
@@ -467,19 +503,24 @@
       var info = addInfo(sol, p, settings), slot = info.slot, gain = info.gain;
       var top = bestLater[slot] || [];
       var ref = top[0] && top[0].player === p ? top[1] : top[0];
-      var vona = gain - (ref ? ref.gain : 0);
+      var pGone = mpos ? probGone(mpos.get(p), k, mktKey(p)) : 1;
+      var vona = (gain - (ref ? ref.gain : 0)) * pGone;
       var ceil = typeof p.ceiling === 'number' && isFinite(p.ceiling) ? p.ceiling : val(p);
       var upside = Math.max(0, ceil - val(p)) * 0.1 * bias;
       var supply = sup.left[slot] != null ? sup.left[slot] : null;
       var pressure = info.opens && slot !== 'UTIL' && supply != null ? Math.max(0, Math.min(1, (k + 1 - supply) / (k + 1))) : 0;
-      var score;
+      var score, need = 0, needSlot = null;
       if (slot === 'BENCH') {
         var bv = typeof p.vorp === 'number' && isFinite(p.vorp) ? Math.max(0, p.vorp) * 0.05 : 0;
         score = 0.35 * Math.max(0, val(p) - benchLine * 0.9) + upside + val(p) * 0.01 + bv;
+        // Prefer backups for thin slots: 4 C-eligibles already → a 5th C is worth less.
+        sol.plan.types.forEach(function (t) { if (t !== 'UTIL' && canFill(p, t, settings)) { var nd = 1 / (1 + cover[t]); if (nd > need) { need = nd; needSlot = t; } } });
+        score *= 0.3 + 0.7 * (needSlot ? need : 0.25);
       } else score = gain + 0.6 * vona + 0.15 * pressure * gain + upside;
       score *= injuryFactor(p.injury);
       if (!isFinite(score)) score = 0;
-      return { player: p, slot: slot, gain: gain, vona: vona, score: score, opens: info.opens, upgrade: info.upgrade, supply: supply, pressure: pressure };
+      return { player: p, slot: slot, gain: gain, vona: vona, score: score, opens: info.opens, upgrade: info.upgrade, supply: supply, pressure: pressure,
+        pGone: pGone, depthFor: slot === 'BENCH' && needSlot && need >= 0.5 ? needSlot : null };
     });
     out.sort(function (a, b) { return b.score - a.score || byValThenId(a.player, b.player); });
     out = out.slice(0, opts.limit || 3);
@@ -494,7 +535,7 @@
     var inj = injuryShort(p.injury);
     var parts;
     if (r.slot === 'BENCH') {
-      parts = ['Starters set — best bench upside' + (ceil != null ? ' (ceiling ' + ceil + ')' : '')];
+      parts = ['Starters set — best bench upside' + (ceil != null ? ' (ceiling ' + ceil + ')' : '') + (r.depthFor ? '; adds ' + r.depthFor + ' depth' : '')];
     } else {
       var filled = 0;
       a.starters.forEach(function (s) { if (s.slot === r.slot && s.player) filled++; });
@@ -509,6 +550,7 @@
         ? '+' + fmt1(r.vona) + ' over the best ' + r.slot + ' likely left at ' + (opts.nextPick ? '#' + opts.nextPick : 'your next pick')
         : 'value holds — ' + r.slot + ' depth is deep';
       parts = [head, tail];
+      if (r.pGone != null && r.pGone < 0.35 && typeof p.marketRank === 'number') parts.push('market #' + p.marketRank + ': likely still there next pick');
       if (ceil != null && ceil - val(p) >= 12) parts.push('ceiling ' + ceil);
     }
     if (inj) parts.push(inj === 'OUT' ? 'currently OUT' : inj + ' tag');
@@ -524,7 +566,7 @@
     ctx = ctx || {};
     var roster = (myRoster || []).filter(Boolean);
     var a = assignSlots(roster, settings);
-    var picksLeft = rosterSize(settings) - roster.length;
+    var picksLeft = draftRounds(settings) - roster.length;
     var types = slotTypes(settings);
     var openTotal = 0; types.forEach(function (t) { openTotal += a.open[t] || 0; });
     var out = [];
@@ -535,7 +577,7 @@
     }
 
     // Catch-up: open starter slots with the draft running out.
-    var urgent = picksLeft - openTotal <= 2 || roster.length >= Math.ceil(rosterSize(settings) / 2);
+    var urgent = picksLeft - openTotal <= 2 || roster.length >= Math.ceil(draftRounds(settings) / 2);
     types.filter(function (t) { return t !== 'UTIL'; }).sort(function (x, y) { return (a.open[y] || 0) - (a.open[x] || 0); }).forEach(function (pos) {
       var open = a.open[pos];
       if (!open || !urgent) return;
@@ -622,7 +664,7 @@
   // My remaining picks on the snake from `fromPick`: [{pick, round}].
   function myPicksSnake(settings, fromPick) {
     settings = normalizeSettings(settings);
-    return picksForSlot(settings.mySlot, settings.teams, rosterSize(settings), fromPick || 1).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
+    return picksForSlot(settings.mySlot, settings.teams, draftRounds(settings), fromPick || 1).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
   }
 
   /* ------------------------------------------------------ Yahoo pick merge */
@@ -844,6 +886,7 @@
       }
       s.bench = Math.min(15, bench);
       s.il = Math.min(5, il);
+      s.rounds = undefined; // re-derive from Yahoo's roster (IL not drafted); Yahoo's pick list governs once live
     }
     if (myTeamKey && Array.isArray(teams)) {
       var mine = teams.filter(function (t) { return t.team_key === myTeamKey; })[0];
@@ -956,7 +999,7 @@
   return {
     DEFAULT_SETTINGS: DEFAULT_SETTINGS, STORAGE_PREFIX: STORAGE_PREFIX, POLL_MS: POLL_MS,
     HIGH_SCORE_SETTINGS: HIGH_SCORE_SETTINGS, SLOT_TYPES: SLOT_TYPES,
-    normalizeSettings: normalizeSettings, starterCount: starterCount, rosterSize: rosterSize, totalPicks: totalPicks,
+    normalizeSettings: normalizeSettings, starterCount: starterCount, rosterSize: rosterSize, draftRounds: draftRounds, totalPicks: totalPicks,
     isLegacy: isLegacy, slotTypes: slotTypes, settingsFromProfile: settingsFromProfile, profilePickSeconds: profilePickSeconds,
     roundOf: roundOf, slotForPick: slotForPick, snakeOrder: snakeOrder, picksForSlot: picksForSlot, nextPickFor: nextPickFor,
     eligFor: eligFor, posTokens: posTokens, slotElig: slotElig, canFill: canFill, displayPositions: displayPositions,
@@ -969,6 +1012,7 @@
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
+    probGone: probGone, mktKey: mktKey,
     storageKey: storageKey, emptyState: emptyState, serializeState: serializeState, deserializeState: deserializeState,
     pollDelay: pollDelay, agoText: agoText, normName: normName, matchesQuery: matchesQuery, matchesPos: matchesPos
   };

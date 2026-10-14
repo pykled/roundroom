@@ -40,7 +40,7 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     assert.strictEqual(P.leagueId, '242808');
     assert.strictEqual(P.name, 'HALIMSANITY 26-27');
     assert.strictEqual(P.teams, 12);
-    assert.deepStrictEqual(P.draft, { type: 'snake', pickSeconds: 90 });
+    assert.deepStrictEqual(P.draft, { type: 'snake', pickSeconds: 90, rounds: 14 }); // IL not drafted (docs/nba-checker-integration-2026-10-14.md)
     assert.deepStrictEqual(P.scoring, { pts: 1, reb: 1.2, ast: 1.5, stl: 3, blk: 3, to: -1, pf: -1, tech: -1, dd: 5, td: 3 });
     assert.strictEqual(typeof P.flags.tdAlsoCountsDD, 'boolean');
     assert.deepStrictEqual(P.slots, { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2, BN: 5, IL: 2 });

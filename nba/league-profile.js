@@ -36,7 +36,10 @@ const HALIMSANITY = {
   name: 'HALIMSANITY 26-27',
   teams: 12,
   aggregation: 'high-score', // each starter's single best game of the matchup week counts
-  draft: { type: 'snake', pickSeconds: 90 },
+  // rounds: Yahoo drafts active + bench spots only; IL starts empty (Yahoo's own
+  // default "13 rounds" = 10 active + 3 BN with 2 IL). 9 starters + 5 BN = 14,
+  // 168 picks. The draft room's pick list wins once Yahoo is connected.
+  draft: { type: 'snake', pickSeconds: 90, rounds: 14 },
   scoring: { pts: 1, reb: 1.2, ast: 1.5, stl: 3, blk: 3, to: -1, pf: -1, tech: -1, dd: 5, td: 3 },
   // Yahoo's stat feed records Double-Doubles and Triple-Doubles as two separate
   // stats, and a triple-double game also satisfies the double-double definition
