@@ -148,7 +148,7 @@
     sub += ' · ' + L.countWord(sl.length) + ' starters (' + L.slotListText(sl) + '), each scores his single best game of the matchup week';
     $('ln-sub').textContent = sub;
     var ey = $('ln-eyebrow');
-    if (ey) ey.textContent = (r && r.profile && r.profile.name ? r.profile.name : S.profile ? S.profile.name : 'Yahoo High Score') + ' · Lineup';
+    if (ey) ey.textContent = (r && r.profile && r.profile.name ? r.profile.name + ' · ' : S.profile && S.profile.name ? S.profile.name + ' · ' : '') + 'Yahoo High Score · Lineup';
     $('ln-mode').hidden = !S.connected || !S.myTeamKey;
     Array.prototype.forEach.call($('ln-mode').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
     var lg = $('ln-league');

@@ -6,7 +6,7 @@
 <title>NBA High Score Trade Calculator | Pocket</title>
 <meta name="description" content="Trade calculator for Yahoo High Score fantasy basketball. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
 <link rel="canonical" href="https://pocketff.com/nba/trade">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
 <meta property="og:title" content="NBA High Score Trade Calculator | Pocket">
 <meta property="og:description" content="Accept, counter or decline: trade value measured on your High Score lineup, not a generic points chart.">
@@ -23,18 +23,15 @@
 /* Shared tokens, nav, buttons, page head and footer come from /shared/styles.css.
    This block holds only the NBA trade calculator's own widgets. */
 :root {
-  --g: #fb923c; --f: #38bdf8;
-  --g-bg: rgba(251,146,60,.14); --f-bg: rgba(56,189,248,.14);
+  --g: #facc15; --f: #38bdf8;
+  --g-bg: rgba(250,204,21,.13); --f-bg: rgba(56,189,248,.14);
   --give: #f87171; --give-bg: rgba(239,68,68,.10); --give-bd: rgba(239,68,68,.45);
   --get: #34d399; --get-bg: rgba(16,185,129,.10); --get-bd: rgba(16,185,129,.45);
   --vbar-h: 64px;
 }
 #app { max-width: 1180px; width: 100%; padding-top: var(--space-5); padding-bottom: calc(var(--vbar-h) + 24px); }
-.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
-.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
-.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
 
-.nt-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--g); margin-bottom: 0.35rem; }
+.nt-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nba-300); margin-bottom: 0.35rem; }
 .nt-head-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .nt-head-ctl select, .nt-select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.6rem; min-height: 40px; max-width: 100%; }
 .nt-connect { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0 0.85rem; border-radius: var(--radius-pill); border: 1px solid rgba(124,58,237,.45); background: rgba(124,58,237,.12); color: #c4b5fd; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
@@ -89,7 +86,7 @@
 .pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
 .pp.G { background: var(--g-bg); color: var(--g); }
 .pp.F { background: var(--f-bg); color: var(--f); }
-.pp.C { background: rgba(167,139,250,.14); color: #a78bfa; }
+.pp.C { background: rgba(167,139,250,.16); color: #c4b5fd; }
 .nt-rules { margin-top: 0.7rem; font-size: 0.74rem; line-height: 1.45; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--text-secondary); }
 .nt-rules b { color: var(--text-body); font-weight: 600; }
 .nt-rules ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
@@ -217,9 +214,9 @@
 <div id="app">
   <header class="page-head">
     <div class="page-head-text">
-      <p class="nt-eyebrow">NBA · HALIMSANITY 26-27 · High Score</p>
+      <p class="nt-eyebrow">Yahoo High Score · Trade</p>
       <h1 class="page-title">Trade calculator</h1>
-      <p class="page-sub">Scores a trade by what it does to your best nine-man lineup (PG, SG, G, SF, PF, F, C, 2 UTIL) each remaining matchup week, under your league's scoring, not by adding up points.</p>
+      <p class="page-sub">Scores a trade by what it does to your best starting lineup each remaining matchup week, using your league's roster slots and scoring, not by adding up points.</p>
     </div>
     <div class="nt-head-ctl">
       <a id="nt-connect" class="nt-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
@@ -281,7 +278,7 @@
     </aside>
   </div>
 
-  <p class="nt-method"><b>How it works.</b> Each player is worth what he adds to your best lineup over your league's starting slots each remaining matchup week (14-day weeks included): his expected best game given that week's games and injury outlook, minus the lineup without him. Players who would sit behind your starters count as bench depth, a share above waiver level that grows with the number of starters it covers (nine starters: 18% for the first bench player). An empty roster spot, or a slot nobody on your roster can play, is filled at waiver replacement level, so 2-for-1 deals count the drop or the freed spot. Out players can sit in IL without forcing a drop. Playoff weeks (20-22) weigh 1.5×. The other team's side is scored the same way to judge whether they'd accept; without their roster, a typical mid-draft roster stands in.</p>
+  <p class="nt-method"><b>How it works.</b> Each player is worth what he adds to your best lineup over your league's starting slots each remaining matchup week (14-day weeks included): his expected best game given that week's games and injury outlook, minus the lineup without him. Players who would sit behind your starters count as bench depth, a share above waiver level that grows with the number of starters it covers (with nine starters, 18% for the first bench player). An empty roster spot, or a slot nobody on your roster can play, is filled at waiver replacement level, so 2-for-1 deals count the drop or the freed spot. Out players can sit in IL without forcing a drop. Playoff weeks (20-22) weigh 1.5×. The other team's side is scored the same way to judge whether they'd accept; without their roster, a typical mid-draft roster stands in.</p>
 </div>
 
 <div class="nt-vbar" id="nt-vbar" aria-hidden="true">

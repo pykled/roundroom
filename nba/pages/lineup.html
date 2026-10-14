@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Lineup | Pocket</title>
-<meta name="description" content="Weekly lineup picker for Yahoo High Score fantasy basketball: best six starters by expected best game, banked scores, bench-forfeit warnings and matchup win probability.">
+<meta name="description" content="Weekly lineup picker for Yahoo High Score fantasy basketball: best starters by expected best game, banked scores, bench-forfeit warnings and matchup win probability.">
 <link rel="canonical" href="https://pocketff.com/nba/lineup">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1a110b">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,19 +17,16 @@
 /* Shared tokens, nav, buttons and footer come from /shared/styles.css.
    This block holds only the lineup picker's own widgets (mirrors draft.html). */
 :root {
-  --g: #fb923c; --f: #38bdf8; --util: rgba(255,255,255,0.7);
-  --g-bg: rgba(251,146,60,.14); --f-bg: rgba(56,189,248,.14); --u-bg: rgba(255,255,255,.08);
-  --c: #a78bfa; --c-bg: rgba(167,139,250,.14);
-  --hot: #fb923c;
+  --g: #facc15; --f: #38bdf8; --util: rgba(255,255,255,0.7);
+  --g-bg: rgba(250,204,21,.13); --f-bg: rgba(56,189,248,.14); --u-bg: rgba(255,255,255,.08);
+  --c: #c4b5fd; --c-bg: rgba(167,139,250,.16);
+  --hot: var(--nba-400, #ff8a3d);
 }
 #app { max-width: 1080px; width: 100%; padding-top: var(--space-5); padding-bottom: var(--space-8); }
-.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
-.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
-.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
 
 /* ── Head ─────────────────────────────────────────────────────────────── */
 .ln-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
-.ln-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hot); margin-bottom: 0.3rem; }
+.ln-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nba-300); margin-bottom: 0.3rem; }
 .ln-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
 .ln-sub { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: 0.25rem; }
 .ln-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
@@ -41,7 +38,7 @@
 .ln-week select { border: none; background: none; min-height: 40px; font-family: var(--font-mono); font-size: 16px; padding: 0 0.2rem; text-align: center; }
 .ln-seg { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); }
 .ln-seg button { min-height: 34px; padding: 0 0.75rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; cursor: pointer; }
-.ln-seg button[aria-pressed="true"] { background: var(--text-primary); color: var(--bg-primary); }
+.ln-seg button[aria-pressed="true"] { background: var(--nba-400); color: var(--nba-ink); }
 .ln-connect { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0 0.85rem; border-radius: var(--radius-pill); border: 1px solid rgba(124,58,237,.45); background: rgba(124,58,237,.12); color: #c4b5fd; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .ln-connect .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.7rem; font-weight: 800; }
 
@@ -50,14 +47,14 @@
 .ln-day { min-height: 46px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); font-size: 0.68rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; }
 .ln-day b { font-family: var(--font-mono); font-weight: 500; font-size: 0.8rem; color: var(--text-primary); }
 .ln-day.done { opacity: .45; background: transparent; }
-.ln-day.today { border-color: var(--hot); color: var(--hot); background: rgba(251,146,60,.08); }
+.ln-day.today { border-color: var(--hot); color: var(--hot); background: rgba(255,138,61,.08); }
 .ln-days[hidden], .ln-days-lbl[hidden] { display: none; }
 .ln-days-lbl { display: flex; justify-content: space-between; font-size: 0.66rem; color: var(--text-muted); margin: 0 0 0.35rem; }
 
 /* banners */
 .ln-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: 0.7rem 0.9rem; margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
 .ln-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
-.ln-banner.info { border-color: var(--border-bright); border-left-color: var(--text-secondary); background: var(--bg-card); }
+.ln-banner.info { border-color: var(--nba-border); border-left-color: var(--nba-400); background: rgba(255,138,61,.05); }
 .ln-banner b { color: var(--text-primary); }
 
 /* ── Summary: total band + matchup ─────────────────────────────────────── */
@@ -70,7 +67,7 @@
 .ln-total .gain.zero { color: var(--text-muted); }
 .ln-band { position: relative; height: 22px; margin-top: 0.7rem; }
 .ln-band .track { position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; }
-.ln-band .rng { position: absolute; top: 6px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(251,146,60,.25), rgba(251,146,60,.5), rgba(251,146,60,.25)); }
+.ln-band .rng { position: absolute; top: 6px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(255,138,61,.25), rgba(255,138,61,.5), rgba(255,138,61,.25)); }
 .ln-band .mk { position: absolute; top: 2px; width: 2px; height: 18px; margin-left: -1px; background: var(--text-primary); border-radius: 1px; }
 .ln-band-lbl { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-secondary); margin-top: 0.15rem; }
 .ln-vs { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); margin-top: 0.3rem; }
@@ -130,7 +127,7 @@
 .chip .pips { display: inline-flex; gap: 2px; }
 .chip .pip { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.15); }
 .chip .pip.left { background: var(--success); }
-.chip.bank { border-color: rgba(251,146,60,.45); color: var(--hot); background: rgba(251,146,60,.08); font-family: var(--font-mono); font-weight: 500; }
+.chip.bank { border-color: rgba(255,138,61,.45); color: var(--hot); background: rgba(255,138,61,.08); font-family: var(--font-mono); font-weight: 500; }
 .chip.b2b { border-color: rgba(245,158,11,.35); color: #fbbf24; }
 .chip.zero { border-color: rgba(239,68,68,.35); color: #fca5a5; }
 .ln-why { font-size: 0.74rem; line-height: 1.45; color: var(--text-body); }
@@ -223,9 +220,9 @@ details.ln-more summary { cursor: pointer; font-size: 0.78rem; font-weight: 600;
 <main id="app">
   <header class="ln-head">
     <div>
-      <div class="ln-eyebrow" id="ln-eyebrow">HALIMSANITY 26-27 · Lineup</div>
+      <div class="ln-eyebrow" id="ln-eyebrow">Yahoo High Score · Lineup</div>
       <h1 class="ln-title" id="ln-title">Weekly lineup</h1>
-      <div class="ln-sub" id="ln-sub">Nine starters, each scores his single best game of the matchup week.</div>
+      <div class="ln-sub" id="ln-sub">Each starter scores his single best game of the matchup week.</div>
     </div>
     <div class="ln-ctl">
       <div class="ln-week" aria-label="Week">
