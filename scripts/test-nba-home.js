@@ -152,10 +152,10 @@ nav = nflNav();
 PocketNav.enhance(nav, '/nba/lineup', doc);
 ok(active(nav.children[1]).getAttribute('data-sport') === 'nba', 'NBA page with NFL markup: NBA active');
 const links = nav.querySelectorAll('a.rr-link');
-ok(links.map(a => a.getAttribute('href')).join() === '/nba,/nba/lineup', 'NBA page: links rewritten to the NBA set');
+ok(links.map(a => a.getAttribute('href')).join() === '/nba,/nba/lineup,/nba/trade,/nba/waivers', 'NBA page: links rewritten to the NBA set');
 ok(links[1].getAttribute('aria-current') === 'page' && !links[0].getAttribute('aria-current'), 'NBA page: Lineup marked current');
 ok(nav.querySelector('a.rr-logo').getAttribute('href') === '/nba', 'NBA page: logo points to /nba');
-ok(!/Trade|Research|Movers/.test(nav.textContent), 'NBA page: no NFL link labels');
+ok(!/Research|Movers/.test(nav.textContent) && !links.some(a => /^\/(trade|lineup|research|team|trending|draft)$/.test(a.getAttribute('href'))), 'NBA page: no NFL link labels or NFL paths (NBA Trade is /nba/trade)');
 
 // Real NBA page markup: static #rr-sport-switch + /nba links → keep both, add menu copy only.
 nav = el('nav', { id: 'rr-nav' }, [
