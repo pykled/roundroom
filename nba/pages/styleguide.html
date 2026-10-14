@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA UI style guide | Pocket</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1a110b">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sleepercdn.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/nba/pages/nba-ui.css">
+<script src="/nba/pages/nba-ui.js"></script>
+<script defer src="/shared/nav.js"></script>
+<style>
+/* Style-guide chrome only (swatch grid + specimen frames). Components come from nba-ui.css. */
+.sg-sec { scroll-margin-top: 72px; }
+.sg-sec > h2 { font-size: var(--nu-fs-title); font-weight: 750; letter-spacing: -0.02em; margin-bottom: 4px; }
+.sg-sec > p.sg-lead { color: var(--nu-text-2); font-size: var(--nu-fs-sm); margin-bottom: var(--nu-4); max-width: 70ch; }
+.sg-sec code, .sg-code { font-family: var(--nu-mono); font-size: 0.72rem; color: var(--nba-300); }
+.sg-swatches { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+.sg-sw { border-radius: var(--nu-r-md); border: 1px solid var(--nu-line); overflow: hidden; background: var(--nu-s1); }
+.sg-sw i { display: block; height: 52px; }
+.sg-sw div { padding: 8px 10px; font-family: var(--nu-mono); font-size: 0.66rem; color: var(--nu-text-2); line-height: 1.5; }
+.sg-sw b { display: block; color: var(--nu-text); font-weight: 500; }
+.sg-type > div { display: flex; align-items: baseline; gap: var(--nu-4); padding: 10px 0; border-bottom: 1px solid var(--nu-line); min-width: 0; }
+.sg-type > div > code { flex: none; width: 104px; }
+.sg-demo { display: flex; flex-wrap: wrap; gap: var(--nu-3); align-items: center; }
+.sg-toc { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--nu-6); }
+.sg-toc a { font-size: var(--nu-fs-xs); color: var(--nu-text-2); text-decoration: none; padding: 6px 10px; border-radius: var(--nu-r-pill); border: 1px solid var(--nu-line-2); }
+.sg-toc a:hover { color: var(--nu-text); border-color: var(--nu-line-3); }
+</style>
+</head>
+<body class="sport-nba nba-ui nu-has-actionbar">
+<div data-nu-nav></div>
+<script>NbaUI.mountNav({ active: 'research' });</script>
+
+<main class="nu-shell" id="app">
+  <div id="sg-head"></div>
+  <nav class="sg-toc" aria-label="Sections">
+    <a href="#tokens">Tokens</a><a href="#type">Type</a><a href="#buttons">Buttons</a><a href="#forms">Forms</a>
+    <a href="#players">Players</a><a href="#badges">Badges</a><a href="#stats">Stats + charts</a><a href="#data">Table + list</a>
+    <a href="#feedback">Feedback</a><a href="#sheet">Sheet</a><a href="#templates">Templates</a>
+  </nav>
+
+  <div class="nu-stack nu-stack--lg">
+
+  <!-- TOKENS -->
+  <section class="sg-sec" id="tokens">
+    <h2>Colour</h2>
+    <p class="sg-lead">Graphite surfaces carry the hierarchy; orange is a signal: active tab, primary action, the number that matters, focus.</p>
+    <div class="sg-swatches" id="sg-swatches"></div>
+  </section>
+
+  <!-- TYPE -->
+  <section class="sg-sec" id="type">
+    <h2>Type scale</h2>
+    <p class="sg-lead">Plus Jakarta Sans for words, DM Mono (tabular) for every number you compare.</p>
+    <div class="nu-card sg-type">
+      <div><code>display 28→40</code><span class="nu-display nu-truncate">Week 1 lineup</span></div>
+      <div><code>title 22</code><span class="nu-title">Your pick now</span></div>
+      <div><code>h3 17</code><span class="nu-h3">Roster needs</span></div>
+      <div><code>body 14</code><span class="nu-body">Each starter scores his single best game of the matchup week.</span></div>
+      <div><code>meta 13</code><span class="nu-meta">C · DEN · 3.5 games</span></div>
+      <div><code>hint 12</code><span class="nu-hint">Band = 10th–90th percentile of 2,000 simulations.</span></div>
+      <div><code>label 11</code><span class="nu-label">Value / ceiling</span>&nbsp;<span class="nu-eyebrow">Halimsanity 26-27</span></div>
+      <div><code>stat 28</code><span class="nu-num" style="font-size:var(--nu-fs-stat)">75.0</span><span class="nu-num nu-accent" style="font-size:var(--nu-fs-hero-num);line-height:1">62.9</span></div>
+    </div>
+  </section>
+
+  <!-- BUTTONS -->
+  <section class="sg-sec" id="buttons">
+    <h2>Buttons</h2>
+    <p class="sg-lead">One <code>.nu-btn--primary</code> per view region. 44px targets; <code>--sm</code> keeps a 44px hit area.</p>
+    <div class="nu-card nu-stack">
+      <div class="sg-demo" id="sg-btns">
+        <button class="nu-btn nu-btn--primary" id="sg-primary">Draft Jokić</button>
+        <button class="nu-btn">Secondary</button>
+        <button class="nu-btn nu-btn--ghost">How it works</button>
+        <button class="nu-btn nu-btn--danger">Disconnect</button>
+        <a class="nu-btn nu-btn--yahoo" href="#buttons"><span class="nu-y">Y!</span>Connect Yahoo</a>
+        <button class="nu-btn nu-btn--icon" aria-label="League settings" id="sg-icon-btn"></button>
+      </div>
+      <div class="sg-demo">
+        <button class="nu-btn nu-btn--primary nu-btn--sm">Small primary</button>
+        <button class="nu-btn nu-btn--sm">Small <span class="nu-count">3</span></button>
+        <button class="nu-btn nu-btn--primary" aria-busy="true">Saving</button>
+        <button class="nu-btn" disabled>Disabled</button>
+        <button class="nu-btn nu-btn--primary nu-btn--lg">Large</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMS -->
+  <section class="sg-sec" id="forms">
+    <h2>Forms, filters, tabs</h2>
+    <div class="nu-cols-2">
+      <div class="nu-card nu-stack">
+        <label class="nu-search" id="sg-search"><input class="nu-input" type="search" placeholder="Search players" aria-label="Search players"></label>
+        <div class="nu-field"><label for="sg-league">League</label>
+          <select class="nu-select" id="sg-league"><option>Halimsanity 26-27</option><option>Manual board</option></select></div>
+        <div class="nu-field"><label for="sg-slot">Draft slot</label>
+          <input class="nu-input" id="sg-slot" value="13" aria-invalid="true" inputmode="numeric"><span class="nu-error">Slot must be 1–12</span></div>
+        <div class="nu-row-flex"><button class="nu-switch" role="switch" aria-checked="true" aria-label="Hide drafted" id="sg-switch"></button><span class="nu-meta">Hide drafted players</span></div>
+      </div>
+      <div class="nu-card nu-stack">
+        <div class="nu-chip-row nu-chip-row--scroll" id="sg-chips" role="group" aria-label="Position">
+          <button class="nu-chip" data-value="ALL" aria-pressed="true">All <span class="nu-chip__n">771</span></button>
+          <button class="nu-chip" data-value="PG" aria-pressed="false">PG</button>
+          <button class="nu-chip" data-value="SG" aria-pressed="false">SG</button>
+          <button class="nu-chip" data-value="SF" aria-pressed="false">SF</button>
+          <button class="nu-chip" data-value="PF" aria-pressed="false">PF</button>
+          <button class="nu-chip" data-value="C" aria-pressed="false">C</button>
+          <button class="nu-chip" data-value="INJ" aria-pressed="false">Healthy only</button>
+        </div>
+        <div class="nu-tabs" role="tablist" aria-label="Board view" id="sg-tabs">
+          <button class="nu-tab" role="tab" aria-selected="true" aria-controls="sg-tp1" data-value="board">Board</button>
+          <button class="nu-tab" role="tab" aria-selected="false" aria-controls="sg-tp2" data-value="cheat">Cheat sheet</button>
+          <button class="nu-tab" role="tab" aria-selected="false" aria-controls="sg-tp3" data-value="queue">Queue</button>
+        </div>
+        <div id="sg-tp1" role="tabpanel" class="nu-hint">Board panel (arrow keys move between tabs).</div>
+        <div id="sg-tp2" role="tabpanel" class="nu-hint" hidden>Cheat-sheet panel.</div>
+        <div id="sg-tp3" role="tabpanel" class="nu-hint" hidden>Queue panel.</div>
+        <div class="nu-seg" role="group" aria-label="Week" id="sg-seg">
+          <button data-value="this" aria-pressed="true">This week</button><button data-value="next" aria-pressed="false">Next</button><button data-value="ros" aria-pressed="false">Rest of season</button>
+        </div>
+        <div class="nu-seg nu-seg--accent nu-seg--block" role="group" aria-label="Roster source" id="sg-seg2">
+          <button data-value="yahoo" aria-pressed="true">Yahoo</button><button data-value="manual" aria-pressed="false">Manual</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAYERS -->
+  <section class="sg-sec" id="players">
+    <h2>Players</h2>
+    <p class="sg-lead">A face on every player. Chain: Sleeper → ESPN (needs <code>espnId</code> + CSP) → Yahoo → initials on a team-tinted disc. Last two: Yahoo-only player with no image source, and a Sleeper id that 404s.</p>
+    <div class="nu-card nu-stack">
+      <div class="sg-demo" id="sg-avatars"></div>
+      <div class="nu-divider"></div>
+      <div class="nu-cols-3" id="sg-cells"></div>
+      <div class="nu-divider"></div>
+      <div class="sg-demo" id="sg-logos"></div>
+    </div>
+  </section>
+
+  <!-- BADGES -->
+  <section class="sg-sec" id="badges">
+    <h2>Pills + badges</h2>
+    <div class="nu-card nu-stack" id="sg-badges"></div>
+  </section>
+
+  <!-- STATS -->
+  <section class="sg-sec" id="stats">
+    <h2>Stat tiles + charts</h2>
+    <div class="nu-cols-2">
+      <div class="nu-card nu-stack">
+        <div class="nu-stats nu-stats--3" id="sg-tiles"></div>
+        <div id="sg-range"></div>
+      </div>
+      <div class="nu-card nu-stack">
+        <div class="nu-section__head"><span class="nu-section__title">Weekly value (hsByWeek)</span><span id="sg-spark"></span></div>
+        <div class="nu-section__title">Best-game distribution · 2,000 sims</div>
+        <div id="sg-hist"></div>
+        <div class="nu-section__title">Win probability</div>
+        <div class="nu-meter nu-meter--split" role="img" aria-label="Win probability 63%"><span style="width:63%;background:var(--nu-good)"></span><span style="width:37%;background:rgba(248,113,113,0.55)"></span></div>
+        <div class="nu-range__labels"><span>You 63%</span><span>Opp 37%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section class="sg-sec" id="data">
+    <h2>Table + list</h2>
+    <p class="sg-lead">Desktop: dense table, optional columns drop under 768px. Mobile-first: list rows. Selected row = orange inset bar; drafted = dimmed + struck.</p>
+    <div class="nu-stack">
+      <div class="nu-table-wrap"><table class="nu-table" id="sg-table">
+        <thead><tr><th class="nu-col-num">#</th><th>Player</th><th class="nu-col-opt">Tier</th><th class="nu-col-num" aria-sort="descending"><button>Value</button></th><th class="nu-col-num nu-col-opt"><button>Ceil</button></th><th class="nu-col-num nu-col-opt"><button>VORP</button></th><th class="nu-col-opt">Trend</th><th class="nu-col-num">ADP±</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="nu-cols-2">
+        <div class="nu-list" id="sg-list"></div>
+        <div class="nu-list" id="sg-skel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEEDBACK -->
+  <section class="sg-sec" id="feedback">
+    <h2>Feedback</h2>
+    <div class="nu-cols-2">
+      <div class="nu-stack" id="sg-callouts"></div>
+      <div class="nu-card nu-card--inset" id="sg-empty"></div>
+    </div>
+    <div class="sg-demo" style="margin-top:var(--nu-3)">
+      <button class="nu-btn" id="sg-toast">Show toast</button>
+      <button class="nu-btn" id="sg-toast-undo">Toast with undo</button>
+      <span class="nu-status-chip" data-state="connected"><span class="nu-dot" aria-hidden="true"></span>Yahoo connected</span>
+      <span class="nu-status-chip" data-state="syncing"><span class="nu-dot" aria-hidden="true"></span>Syncing</span>
+      <span class="nu-status-chip" data-state="error"><span class="nu-dot" aria-hidden="true"></span>Reconnect</span>
+      <span class="nu-status-chip" data-state="off"><span class="nu-dot" aria-hidden="true"></span>Not connected</span>
+    </div>
+  </section>
+
+  <!-- SHEET -->
+  <section class="sg-sec" id="sheet">
+    <h2>Sheet</h2>
+    <p class="sg-lead">Bottom sheet on phones, centred modal on desktop. Focus trap, ESC, backdrop tap, focus returns to the opener.</p>
+    <div class="sg-demo"><button class="nu-btn nu-btn--primary" id="sg-open-sheet">Open player sheet</button><button class="nu-btn" id="sg-open-settings">League settings</button></div>
+  </section>
+
+  <!-- TEMPLATES -->
+  <section class="sg-sec" id="templates">
+    <h2>Focus card (one per view)</h2>
+    <div class="nu-card nu-card--focus nu-stack" id="sg-focus"></div>
+  </section>
+  </div>
+
+  <div class="nu-actionbar">
+    <div class="nu-actionbar__info"><b>Give 2 · Get 1</b><span>+4.2 weekly value · fits your C hole</span></div>
+    <button class="nu-btn nu-btn--primary" id="sg-eval">Evaluate</button>
+  </div>
+</main>
+
+<div class="nu-sheet" id="sg-player-sheet" role="dialog" aria-modal="true" aria-labelledby="sg-ps-title" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="sg-ps-title">Player</h2>
+    <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="sg-close-x"></button></div>
+  <div class="nu-sheet__body nu-stack" id="sg-ps-body"></div>
+  <div class="nu-sheet__foot"><button class="nu-btn" data-nu-close>Close</button><button class="nu-btn nu-btn--primary" data-nu-close>Add to queue</button></div>
+</div>
+<div class="nu-sheet" id="sg-settings" role="dialog" aria-modal="true" aria-labelledby="sg-st-title" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="sg-st-title">League settings</h2></div>
+  <div class="nu-sheet__body nu-stack">
+    <div class="nu-field"><label for="sg-teams">Teams</label><input class="nu-input" id="sg-teams" value="12" inputmode="numeric"></div>
+    <div class="nu-field"><label for="sg-myslot">Your draft slot</label><input class="nu-input" id="sg-myslot" value="5" inputmode="numeric"></div>
+  </div>
+  <div class="nu-sheet__foot"><button class="nu-btn" data-nu-close>Cancel</button><button class="nu-btn nu-btn--primary" data-nu-close>Save</button></div>
+</div>
+
+<script>
+(function () {
+  var U = NbaUI, $ = function (id) { return document.getElementById(id); };
+  // Fallback sample (real ids from /api/nba/players, 2026-10-13); replaced by the live API when reachable.
+  var SAMPLE = [
+    { id: '1658', name: 'Nikola Jokić', team: 'DEN', pos: ['C'], tier: 1, rank: 1, hsValue: 75, ceiling: 84.8, floor: 39.3, mean: 62.9, vorp: 48.8, adpDelta: 0, label: 'fair', hsByWeek: { 1: 66.4, 2: 73.1, 3: 73.4, 4: 73.4, 5: 76.1, 6: 74.1, 7: 79.5, 8: 73.4 } },
+    { id: '2577', name: 'Victor Wembanyama', team: 'SAS', pos: ['C'], tier: 2, rank: 2, hsValue: 72.4, ceiling: 83, floor: 35, vorp: 46.2, adpDelta: 1, label: 'value' },
+    { id: '1970', name: 'Luka Dončić', team: 'LAL', pos: ['PG'], tier: 3, rank: 3, hsValue: 65.6, ceiling: 80, floor: 30, vorp: 40.1, adpDelta: -1, injury: 'DTD', label: 'fair' },
+    { id: '1380', name: 'Giannis Antetokounmpo', team: 'MIA', pos: ['PF'], tier: 6, rank: 6, hsValue: 56, ceiling: 78, floor: 31, vorp: 37.9, adpDelta: -3.2, label: 'reach', strong: true },
+    { id: '4760', name: 'Cooper Flagg', team: 'DAL', pos: ['SF'], tier: 7, rank: 8, hsValue: 54.8, ceiling: 74, floor: 28, vorp: 33.4, adpDelta: 4.1, label: 'value', strong: true },
+    { id: 'y4390', name: 'Russell Westbrook', team: 'SAC', pos: ['PG'], tier: 5, rank: 140, hsValue: 34.2, ceiling: 52, floor: 12, vorp: 2.1, adpDelta: 0.4, injury: 'Out' },
+  ];
+  function render(players) {
+    var top = players.slice(0, 6);
+    var j = top[0];
+    $('sg-head').innerHTML = U.pageHeader({ eyebrow: 'Pocket NBA · Design system v' + U.version, title: 'Style guide', sub: 'Every component in every state. Built on nba-ui.css + nba-ui.js; contract in docs/nba-design-system.md.',
+      actions: '<button class="nu-btn nu-btn--ghost nu-btn--sm">' + U.icon.info + 'How it works</button><button class="nu-btn nu-btn--sm">' + U.icon.settings + 'League</button>' });
+    $('sg-avatars').innerHTML = ['xs', 'sm', 'md', 'lg', 'xl', 'hero'].map(function (s) { return U.avatar(j, { size: s, eager: true }); }).join('') +
+      U.avatar(j, { size: 'xl', teamBadge: true, injuryDot: false, eager: true }) +
+      U.avatar(Object.assign({}, top[2], { injury: 'DTD' }), { size: 'lg', teamBadge: true, injuryDot: true, eager: true }) +
+      U.avatar({ id: 'y4390', name: 'Russell Westbrook', team: 'SAC' }, { size: 'lg' }) +
+      U.avatar({ id: '99999999', name: 'Missing Image', team: 'BOS' }, { size: 'lg', eager: true });
+    $('sg-cells').innerHTML = top.slice(0, 3).map(function (p, i) { return U.playerCell(p, { size: i === 0 ? 'lg' : 'md', teamBadge: i === 0 }); }).join('');
+    $('sg-logos').innerHTML = ['DEN', 'SAS', 'LAL', 'NOP', 'UTA', 'GSW', 'BOS', 'NYK'].map(function (t) { return U.teamLogo(t, { size: 'lg' }); }).join('') + U.teamLogo('DEN', { size: 'xl' }) + U.teamLogo(null, { size: 'lg' });
+    $('sg-badges').innerHTML =
+      '<div class="sg-demo">' + U.POS_ORDER.map(U.posPill).join('') + U.posPill(['PG', 'SG']) + '</div>' +
+      '<div class="sg-demo">' + [1, 2, 3, 4, 5].map(U.tierBadge).join('') + '<span class="nu-rank is-top">#1</span><span class="nu-rank">#42</span></div>' +
+      '<div class="sg-demo">' + ['Out', 'IR', 'DTD', 'GTD', 'Q'].map(function (s) { return U.injuryBadge(s); }).join('') + U.injuryBadge(null, { outForSeason: true }) + '</div>' +
+      '<div class="sg-demo">' + U.valueBadge('value', true) + U.valueBadge('value') + U.valueBadge('fair') + U.valueBadge('reach') + U.valueBadge('reach', true) + U.delta(2.34) + U.delta(-1.05) + U.delta(0) + '<span class="nu-tag">3.5 games</span><span class="nu-tag">' + U.icon.star.replace('<svg', '<svg width="12" height="12"') + 'Target</span></div>';
+    $('sg-tiles').innerHTML = U.statTile({ label: 'Value', value: j.hsValue, tone: 'accent', sub: 'best game' }) + U.statTile({ label: 'Ceiling', value: j.ceiling, delta: 2.3 }) + U.statTile({ label: 'VORP', value: j.vorp, sub: U.fmt.rank(j.vorpRank || 1) }) +
+      U.statTile({ label: 'Floor', value: j.floor }) + U.statTile({ label: 'Games', value: j.games || 3.5, sub: 'this week' }) + U.statTile({ label: 'Pos rank', value: 'C1' });
+    $('sg-range').innerHTML = '<div class="nu-section__title" style="margin-bottom:6px">Floor → ceiling (mean marker)</div>' + U.rangeBand({ min: 0, max: 100, lo: j.floor, hi: j.ceiling, mark: j.mean || j.hsValue, labels: ['Floor ' + U.fmt.score(j.floor, 0), 'Ceiling ' + U.fmt.score(j.ceiling, 0)] });
+    var hs = j.hsByWeek ? Object.keys(j.hsByWeek).map(function (k) { return j.hsByWeek[k]; }) : [60, 66, 63, 70, 72, 69, 75];
+    $('sg-spark').innerHTML = U.sparkline(hs, { w: 120, h: 30, label: 'Weekly value' });
+    var sims = []; var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var i = 0; i < 2000; i++) { var best = 0; for (var g = 0; g < 4; g++) { var u = rnd() + rnd() + rnd() + rnd() - 2; best = Math.max(best, 55 + u * 14); } sims.push(best); }
+    $('sg-hist').innerHTML = U.histogram(sims, { bins: 28, w: 520, h: 84, mark: j.hsValue, highlightFrom: 80, label: 'Best-game distribution' });
+    var rows = top.map(function (p, i) {
+      var spark = p.hsByWeek ? Object.keys(p.hsByWeek).slice(0, 10).map(function (k) { return p.hsByWeek[k]; }) : [];
+      var cls = i === 0 ? ' class="is-clickable is-selected"' : i === 3 ? ' class="is-gone"' : ' class="is-clickable"';
+      return '<tr' + cls + ' tabindex="0"><td class="nu-col-num"><span class="nu-rank' + (i < 3 ? ' is-top' : '') + '">' + (p.rank || i + 1) + '</span></td>' +
+        '<td class="nu-col-name">' + U.playerCell(p, { size: 'sm' }) + '</td><td class="nu-col-opt">' + U.tierBadge(p.tier) + '</td>' +
+        '<td class="nu-col-num"><b style="font-weight:500">' + U.fmt.score(p.hsValue) + '</b></td><td class="nu-col-num nu-col-opt">' + U.fmt.score(p.ceiling) + '</td>' +
+        '<td class="nu-col-num nu-col-opt">' + U.fmt.score(p.vorp) + '</td><td class="nu-col-opt">' + U.sparkline(spark, { w: 64, h: 20, dot: false, area: false, tone: 'muted' }) + '</td>' +
+        '<td class="nu-col-num">' + U.delta(p.adpDelta) + '</td></tr>';
+    }).join('');
+    document.querySelector('#sg-table tbody').innerHTML = rows;
+    $('sg-list').innerHTML = '<div class="nu-tier-rule"><b>Tier 1</b> · elite</div>' + top.slice(0, 3).map(function (p, i) {
+      return '<button class="nu-row' + (i === 1 ? ' is-selected' : '') + '" type="button">' + U.playerCell(p) + '<span class="nu-row__end">' + U.valueBadge(p.label, p.strong) +
+        '<span class="nu-row__num"><b>' + U.fmt.score(p.hsValue) + '</b><small>value</small></span></span></button>';
+    }).join('') + '<div class="nu-tier-rule"><b>Tier 2</b></div>' + top.slice(3, 5).map(function (p) {
+      return '<div class="nu-row nu-row--compact"><span class="nu-slot">' + U.posPill(p.pos[0]) + '</span>' + U.playerCell(p, { size: 'sm' }) + '<span class="nu-row__end"><span class="nu-row__num"><b>' + U.fmt.score(p.hsValue) + '</b></span></span></div>';
+    }).join('');
+    $('sg-skel').innerHTML = U.skeleton(5);
+    $('sg-callouts').innerHTML = U.callout('', '<b>Tip:</b> tap a day to mark it as today; earlier days count as played.') + U.callout('info', 'Synced with Yahoo 2 min ago.') +
+      U.callout('warn', '<b>Bench forfeit:</b> benching Jokić now wipes his Monday 71.2.') + U.callout('error', '<b>Yahoo sign-in expired.</b> Reconnect to load your roster.') + U.callout('success', 'Lineup saved.');
+    $('sg-empty').innerHTML = U.emptyState({ title: 'No players match', body: 'Clear a filter or search by team (e.g. "DEN").', action: '<button class="nu-btn nu-btn--sm">Clear filters</button>' });
+    $('sg-focus').innerHTML = '<div class="nu-card__head"><span class="nu-eyebrow">Your pick now · Fills C</span><span class="nu-label">Round 1 · Pick 1</span></div>' +
+      '<div class="nu-row-flex" style="gap:var(--nu-4);align-items:center">' + U.playerCell(j, { lg: true, teamBadge: true }) + '<span class="nu-spacer"></span>' +
+      '<div class="nu-stat nu-stat--bare nu-stat--accent nu-stat--hero" style="align-items:flex-end"><span class="nu-stat__label">Value</span><span class="nu-stat__value">' + U.fmt.score(j.hsValue) + '</span><span class="nu-stat__sub">ceil ' + U.fmt.score(j.ceiling, 0) + ' · VORP +' + U.fmt.score(j.vorp) + '</span></div></div>' +
+      '<p class="nu-body">Fills your open C slot; 15 C-eligibles left in the top 40, +22.8 over the best C likely left at #24.</p>' +
+      '<div class="nu-row-flex"><button class="nu-btn nu-btn--primary">Draft ' + U.esc(j.name.split(' ').pop()) + '</button>' + top.slice(1, 3).map(function (p) { return '<button class="nu-btn nu-btn--sm">' + U.avatar(p, { size: 'xs' }) + U.esc(p.name) + ' <span class="nu-num nu-muted">' + U.fmt.score(p.hsValue) + '</span></button>'; }).join('') + '</div>';
+    $('sg-ps-body').innerHTML = U.playerCell(j, { lg: true, teamBadge: true }) + '<div class="nu-stats nu-stats--3">' + U.statTile({ label: 'Value', value: j.hsValue, tone: 'accent' }) + U.statTile({ label: 'Ceiling', value: j.ceiling }) + U.statTile({ label: 'Floor', value: j.floor }) + '</div>' +
+      U.histogram(sims, { bins: 24, w: 480, h: 72, mark: j.hsValue, highlightFrom: 80 }) + '<p class="nu-body">Weekly High Score value is his expected best single game of the matchup week.</p>';
+  }
+  // tokens
+  var SW = [['--nu-bg', 'page'], ['--nu-s1', 'card'], ['--nu-s2', 'raised / input'], ['--nu-s3', 'sheet / pressed'], ['--nba-300', 'hover / eyebrow'], ['--nba-400', 'accent'], ['--nba-500', 'pressed'], ['--nba-ink', 'on orange'],
+    ['--nu-text', 'text'], ['--nu-text-2', 'secondary'], ['--nu-text-3', 'hint (≥4.5)'], ['--nu-good', 'good'], ['--nu-bad', 'bad'], ['--nu-warn', 'warn'], ['--nu-info', 'info'], ['--nu-pos-g', 'guards'], ['--nu-pos-f', 'forwards'], ['--nu-pos-c', 'centers']];
+  var cs = getComputedStyle(document.body);
+  $('sg-swatches').innerHTML = SW.map(function (s) { return '<div class="sg-sw"><i style="background:var(' + s[0] + ')"></i><div><b>' + s[0] + '</b>' + U.esc(cs.getPropertyValue(s[0]).trim()) + ' · ' + s[1] + '</div></div>'; }).join('');
+  $('sg-search').insertAdjacentHTML('afterbegin', U.icon.search);
+  $('sg-icon-btn').innerHTML = U.icon.settings;
+  $('sg-close-x').innerHTML = U.icon.close;
+  render(SAMPLE);
+  fetch('/api/nba/players').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || !d.players || !d.players.length) return;
+    var ps = d.players.slice().sort(function (a, b) { return (a.rank || 1e9) - (b.rank || 1e9); });
+    var yahooOnly = ps.filter(function (p) { return /^y/.test(p.id); })[0];
+    var pick = ps.slice(0, 5); if (yahooOnly) pick.push(yahooOnly);
+    render(pick);
+  }).catch(function () {});
+  U.segmented($('sg-chips'), { multi: false });
+  U.tabs($('sg-tabs'));
+  U.segmented($('sg-seg')); U.segmented($('sg-seg2'));
+  $('sg-switch').addEventListener('click', function () { this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
+  $('sg-toast').addEventListener('click', function () { U.toast('Lineup saved to Yahoo', { tone: 'good' }); });
+  $('sg-toast-undo').addEventListener('click', function () { U.toast('Drafted Nikola Jokić', { action: { label: 'Undo', onClick: function () { U.toast('Pick undone'); } } }); });
+  $('sg-open-sheet').addEventListener('click', function () { U.sheet.open('sg-player-sheet'); });
+  $('sg-open-settings').addEventListener('click', function () { U.sheet.open('sg-settings', { initialFocus: '#sg-teams' }); });
+  $('sg-eval').addEventListener('click', function () { var b = this; b.setAttribute('aria-busy', 'true'); setTimeout(function () { b.removeAttribute('aria-busy'); U.toast('Trade evaluated: +4.2 for you', { tone: 'good' }); }, 900); });
+})();
+</script>
+</body>
+</html>

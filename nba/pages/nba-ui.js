@@ -496,7 +496,9 @@
     doc.body.classList.add('nu-scroll-lock');
     // next frame so the transition runs
     var raf = win.requestAnimationFrame || function (f) { return setTimeout(f, 16); };
-    raf(function () { raf(function () { el.classList.add('is-open'); bd.classList.add('is-open'); }); });
+    // focus only once .is-open is on: a visibility:hidden sheet can't take focus
+    var focusTarget = null;
+    raf(function () { raf(function () { if (!sheetState || sheetState.el !== el) return; el.classList.add('is-open'); bd.classList.add('is-open'); if (focusTarget) focusTarget.focus({ preventScroll: true }); }); });
     function onKey(e) {
       if (e.key === 'Escape') { e.preventDefault(); sheetClose(); return; }
       if (e.key !== 'Tab') return;
@@ -510,9 +512,11 @@
     doc.addEventListener('keydown', onKey, true);
     el.addEventListener('click', onClick);
     sheetState = { el: el, bd: bd, opener: doc.activeElement, onKey: onKey, onClick: onClick, inerted: inerted, onClose: opts.onClose };
-    var target = opts.initialFocus ? el.querySelector(opts.initialFocus) : (el.querySelector('[autofocus]') || focusables(el)[0]);
-    setTimeout(function () { (target || el).focus({ preventScroll: true }); }, 30);
+    // Focus the dialog itself (no ring flash on the close button for touch
+    // users) unless the page asks for a field; Tab then enters the trap.
+    var target = opts.initialFocus ? el.querySelector(opts.initialFocus) : el.querySelector('[autofocus]');
     if (!target) el.setAttribute('tabindex', '-1');
+    focusTarget = target || el;
   }
   function sheetClose(immediate) {
     if (!sheetState) return;
