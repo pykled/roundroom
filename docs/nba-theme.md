@@ -66,3 +66,11 @@ White on orange fails AA, so orange buttons always use the dark `--nba-ink` labe
 | `n1-home-footer-375.png`, `-1280.png` | Footer with the "NBA draft board" link |
 | `n1-nba-plain-375.png`, `-1280.png` | `/nba` as it ships today (no theme class) |
 | `n1-nba-themed-375.png`, `-1280.png`, `n1-nba-themed-menu-375.png` | `/nba` with `sport-nba` injected by the test driver (preview of N2) |
+
+## N2: pages that use the theme
+
+- All four NBA pages (`draft`, `lineup`, `trade`, `waivers`) and the router's fallback page have `<body class="sport-nba">` and `<meta name="theme-color" content="#1a110b">` (`--nba-surface-2`). `scripts/test-nba-copy.js` enforces both.
+- **Guards are gold now (`--g: #facc15`)** on every NBA page, so a position pill never reads as the orange accent ("mine", "PICK", "on the clock"). Forwards stay sky blue and centres stay lavender (`#c4b5fd`, unified across pages).
+- On the draft board, the pressed view tab, the pressed slot chip, the Draft button on your own pick and the "Got it" button use a solid orange fill with the `--nba-ink` label (8.15:1). The clock bar and the phone bar are warm glass (`rgba(18,12,8,.86–.9)`). The hero is the only `.nba-court` panel.
+- Semantic colours are unchanged: injury red/amber, value green ▲ / reach red ▼, live green, degraded amber. Yahoo purple is kept for Yahoo-only UI (Connect, the unmatched-pick review, match mode).
+- **`shared/styles.css` was not edited in N2.** No new tokens were needed.
