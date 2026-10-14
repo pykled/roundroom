@@ -233,6 +233,16 @@ t('verdict bands: lopsided win → Accept / unlikely, wash → Counter', () => {
   eq(wash.verdict, 'Counter');
 });
 
+t('CPU bound: slot counts are clamped and the worst-case body stays well under a second', () => {
+  // Checker E: slots {6,6,6} + a 25-man roster receiving 6 blocked the event loop ~2.2 s per request.
+  const st = T.normSettings({ slots: { G: 99, F: 99, UTIL: 99 } });
+  eq(JSON.stringify(st.slots), JSON.stringify({ G: 4, F: 5, UTIL: 3 }));
+  const t0 = Date.now();
+  T.evaluateTrade({ players: base, currentWeek: 1, myRoster: ids(base.slice(0, 25)), give: [], get: ids(base.slice(100, 106)), settings: { slots: { G: 6, F: 6, UTIL: 6 } } });
+  const ms = Date.now() - t0;
+  ok(ms < 1000, `worst case took ${ms} ms`);
+});
+
 t('no-NaN fuzz: garbage values, unknown ids, odd rosters', () => {
   let s = 99;
   const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };

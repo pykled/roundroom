@@ -19,7 +19,7 @@ const REPL_RANK = 3;          // replacement = Nth best player outside rosters t
 const REPL_DISCOUNT = 0.9;    // waiver adds aren't free: one claim, uncertain role
 const PLAYOFF_WEIGHT = 1.5;   // only when the league gives a playoff start week
 const FAIR_BAND = 0.0075;     // |Δ| under this share of the weekly lineup = a wash
-const MAX_DROP_CANDIDATES = 20;
+const MAX_DROP_CANDIDATES = 10;
 const COUNTER_BANDS = 3;     // a loss beyond 3 fair bands is a Decline, however much they gain
 
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
@@ -79,7 +79,7 @@ function normSettings(s = {}) {
   return {
     teams: int(s.teams, 2, 20, 10),
     rosterSize: int(s.rosterSize, 6, 20, 10),
-    slots: { G: int(slots.G, 0, 6, DEFAULT_SLOTS.G), F: int(slots.F, 0, 6, DEFAULT_SLOTS.F), UTIL: int(slots.UTIL, 0, 6, DEFAULT_SLOTS.UTIL) },
+    slots: { G: int(slots.G, 0, 4, DEFAULT_SLOTS.G), F: int(slots.F, 0, 5, DEFAULT_SLOTS.F), UTIL: int(slots.UTIL, 0, 3, DEFAULT_SLOTS.UTIL) },
     endWeek: s.endWeek == null ? null : int(s.endWeek, 1, 30, null),
     playoffStartWeek: s.playoffStartWeek == null ? null : int(s.playoffStartWeek, 1, 30, null),
     playoffWeight: s.playoffWeight == null ? PLAYOFF_WEIGHT : Math.max(1, Math.min(3, num(Number(s.playoffWeight)) || 1)),
