@@ -66,10 +66,52 @@ t('slotChosen + mySlot survive serialize/deserialize', () => {
   const back = L.deserializeState(L.serializeState(st), null, L.DEFAULT_SETTINGS);
   eq(back.slotChosen, true); eq(back.settings.mySlot, 11);
 });
-t('older saved board (no slotChosen): picker shows', () => {
-  const raw = JSON.parse(L.serializeState(L.emptyState(null, S12))); delete raw.slotChosen;
+const legacy = (settings) => { const raw = JSON.parse(L.serializeState(L.emptyState(null, S12))); delete raw.slotChosen; if (settings) raw.settings = settings; return JSON.stringify(raw); };
+t('older saved board (no slotChosen) with a valid mySlot: chosen, collapsed', () => {
+  const back = L.deserializeState(legacy(Object.assign({}, S12, { mySlot: 5 })), null, L.DEFAULT_SETTINGS);
+  eq(back.slotChosen, true); eq(back.settings.mySlot, 5);
+  const v = L.slotPickerView(back.settings, { chosen: back.slotChosen });
+  eq(v.mode, 'chosen'); eq(v.slot, 5); eq(v.chips, []);
+});
+t('older saved board: slot == teams (last pick) still valid', () => eq(L.deserializeState(legacy(Object.assign({}, S12, { mySlot: 12 })), null, L.DEFAULT_SETTINGS).slotChosen, true));
+t('older saved board: mySlot out of range / missing / junk: picker shows', () => {
+  [13, 0, -1, 2.5, 'x', null, undefined].forEach(ms => {
+    const st = Object.assign({}, S12); if (ms === undefined) delete st.mySlot; else st.mySlot = ms;
+    eq(L.deserializeState(legacy(st), null, L.DEFAULT_SETTINGS).slotChosen, false, 'mySlot ' + ms);
+  });
+});
+t('older saved board: slot checked against its own team count', () => {
+  eq(L.deserializeState(legacy(Object.assign({}, S12, { teams: 8, mySlot: 10 })), null, L.DEFAULT_SETTINGS).slotChosen, false);
+  eq(L.deserializeState(legacy(Object.assign({}, S12, { teams: 8, mySlot: '8' })), null, L.DEFAULT_SETTINGS).slotChosen, true);
+});
+t('explicit slotChosen:false is kept (not migrated)', () => {
+  const raw = JSON.parse(L.serializeState(L.emptyState(null, Object.assign({}, S12, { mySlot: 4 }))));
+  eq(raw.slotChosen, false);
   eq(L.deserializeState(JSON.stringify(raw), null, L.DEFAULT_SETTINGS).slotChosen, false);
 });
+t('migrated legacy board re-saves with slotChosen:true', () => {
+  const back = L.deserializeState(legacy(Object.assign({}, S12, { mySlot: 3 })), null, L.DEFAULT_SETTINGS);
+  eq(JSON.parse(L.serializeState(back)).slotChosen, true);
+});
+
+console.log('hold while Yahoo status loads (no chip flash)');
+const H = L.SLOT_HOLD_STATUS_MS, HL = L.SLOT_HOLD_LEAGUE_MS;
+t('status pending on a Yahoo device: hold', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: true, sinceBootMs: 50 }), true));
+t('status pending, never used Yahoo: no wait', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: false, sinceBootMs: 0 }), false));
+t('status pending past the ~1s cap: stop holding', () => {
+  eq(H <= 1000, true, 'cap <= 1s');
+  eq(L.slotPickerHold({ statusResolved: false, maybeConnected: true, sinceBootMs: H }), false);
+});
+t('status back (signed out / failed / manual): no hold', () => eq(L.slotPickerHold({ statusResolved: true, maybeConnected: true, sinceBootMs: 10, leagueLoading: false }), false));
+t('connected league still loading: hold until first poll or cap', () => {
+  eq(L.slotPickerHold({ statusResolved: true, leagueLoading: true, sinceLeagueMs: 100 }), true);
+  eq(L.slotPickerHold({ statusResolved: true, leagueLoading: true, sinceLeagueMs: HL }), false);
+});
+t('hold view: no chips, hold mode even when nothing chosen', () => {
+  const v = L.slotPickerView(S12, { hold: true, chosen: false });
+  eq(v.mode, 'hold'); eq(v.chips, []);
+});
+t('Yahoo-known beats hold', () => eq(L.slotPickerView(S12, { hold: true, yahooKnown: true }).mode, 'yahoo'));
 t('league profile keeps the chosen slot', () => {
   eq(L.settingsFromProfile({ teams: 12, slots: { PG: 1, C: 1, UTIL: 2, BN: 5 } }, Object.assign({}, S12, { mySlot: 6 })).mySlot, 6);
 });

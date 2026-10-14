@@ -939,13 +939,26 @@
     return best;
   }
 
+  /* Hold the picker (render nothing) while Yahoo may still supply the slot, so
+     the chips don't flash on reload: /status not back yet on a device that has
+     used Yahoo (capped at SLOT_HOLD_STATUS_MS so manual boards barely wait), or
+     a connected league whose first draft poll hasn't landed (SLOT_HOLD_LEAGUE_MS).
+     o: { statusResolved, maybeConnected, sinceBootMs, leagueLoading, sinceLeagueMs } */
+  var SLOT_HOLD_STATUS_MS = 1000, SLOT_HOLD_LEAGUE_MS = 4000;
+  function slotPickerHold(o) {
+    o = o || {};
+    if (!o.statusResolved) return !!o.maybeConnected && (o.sinceBootMs || 0) < SLOT_HOLD_STATUS_MS;
+    return !!o.leagueLoading && (o.sinceLeagueMs || 0) < SLOT_HOLD_LEAGUE_MS;
+  }
+
   /* "Which pick are you?" control. mode: 'yahoo' = synced (no chips), 'pick' =
-     chips open, 'chosen' = collapsed with a Change button. chips = 1..teams. */
+     chips open, 'chosen' = collapsed with a Change button, 'hold' = hidden while
+     Yahoo status loads (see slotPickerHold). chips = 1..teams. */
   function slotPickerView(settings, o) {
     o = o || {};
     var st = normalizeSettings(settings), chips = [];
     for (var i = 1; i <= st.teams; i++) chips.push(i);
-    var mode = o.yahooKnown ? 'yahoo' : (o.chosen && !o.open ? 'chosen' : 'pick');
+    var mode = o.yahooKnown ? 'yahoo' : o.hold ? 'hold' : (o.chosen && !o.open ? 'chosen' : 'pick');
     return { mode: mode, slot: st.mySlot, teams: st.teams, chips: mode === 'pick' ? chips : [] };
   }
 
@@ -972,6 +985,14 @@
     });
   }
 
+  /* Boards saved before slotChosen existed: a valid saved mySlot (1..teams)
+     counts as chosen, so the picker shows "You pick #N · Change", not chips. */
+  function legacySlotChosen(settings) {
+    if (!settings || typeof settings !== 'object') return false;
+    var slot = Number(settings.mySlot), teams = normalizeSettings(settings).teams;
+    return Math.floor(slot) === slot && slot >= 1 && slot <= teams;
+  }
+
   // Never throws: corrupt / foreign / older data yields a fresh state.
   function deserializeState(raw, leagueKey, defaults) {
     var fresh = emptyState(leagueKey, defaults);
@@ -986,7 +1007,7 @@
       settings: normalizeSettings(o.settings || defaults),
       // 'user' = edited in the League dialog (kept); anything else follows the league profile / Yahoo.
       settingsSource: o.settingsSource === 'user' ? 'user' : null,
-      slotChosen: o.slotChosen === true,
+      slotChosen: typeof o.slotChosen === 'boolean' ? o.slotChosen : legacySlotChosen(o.settings),
       manual: Array.isArray(o.manual) ? o.manual.filter(function (m) { return m && m.playerId != null; }).map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name }; }) : [],
       overrides: o.overrides && typeof o.overrides === 'object' ? o.overrides : {},
       yahoo: o.yahoo && Array.isArray(o.yahoo.picks) ? o.yahoo : null,
@@ -1064,6 +1085,7 @@
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,
     cheatSheet: cheatSheet, myPicksSnake: myPicksSnake,
     mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, yahooOrderSlot: yahooOrderSlot, slotPickerView: slotPickerView,
+    slotPickerHold: slotPickerHold, SLOT_HOLD_STATUS_MS: SLOT_HOLD_STATUS_MS, SLOT_HOLD_LEAGUE_MS: SLOT_HOLD_LEAGUE_MS, legacySlotChosen: legacySlotChosen,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,

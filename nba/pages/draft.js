@@ -28,6 +28,8 @@
     sync: 'off',            // off | connecting | live | degraded
     failures: 0, lastOk: 0, nextPollAt: 0, pollTimer: null, lastErr: '',
     auction: false, signedOut: false, yahooDown: false,
+    // slot picker hold (no chip flash while Yahoo may still supply the slot)
+    statusResolved: false, bootAt: Date.now(), maybeYahoo: false, leagueReady: true, leagueLoadAt: 0, slotHoldTimer: null,
     // pick timer: restarts whenever the pick on the clock changes
     timer: { pick: null, startedAt: 0, beeped: false },
     // ui
@@ -35,6 +37,8 @@
     merged: { picks: [], unmatched: [], confirmedManual: [] }, lastYahooCount: -1
   };
   try { var sp = localStorage.getItem(SORT_PREF); if (sp) S.sort = sp; } catch (e) {}
+  // Has this device used Yahoo? (league pref is only written while connected, or we're back from OAuth.)
+  try { S.maybeYahoo = localStorage.getItem(LEAGUE_PREF) !== null || /[?&]yahoo=connected/.test(location.search); } catch (e) {}
 
   /* ------------------------------------------------------------ utils */
   var esc = U.esc;
@@ -255,10 +259,20 @@
   function slotKnownFromYahoo() {
     return L.yahooSlotKnown({ live: liveYahoo(), myTeamKey: S.myTeamKey, teams: S.teams, settings: S.state.settings, yahoo: S.state.yahoo, picks: S.merged.picks });
   }
+  function slotHold() {
+    var now = Date.now();
+    var hold = L.slotPickerHold({ statusResolved: S.statusResolved, maybeConnected: S.maybeYahoo, sinceBootMs: now - S.bootAt,
+      leagueLoading: !!liveYahoo() && !S.leagueReady, sinceLeagueMs: now - S.leagueLoadAt });
+    // Re-check when the cap runs out, even if Yahoo never answers.
+    clearTimeout(S.slotHoldTimer);
+    if (hold) S.slotHoldTimer = setTimeout(renderSlotPick, S.statusResolved ? L.SLOT_HOLD_LEAGUE_MS - (now - S.leagueLoadAt) + 20 : L.SLOT_HOLD_STATUS_MS - (now - S.bootAt) + 20);
+    return hold;
+  }
   function renderSlotPick() {
-    var el = $('nd-slotpick'), v = L.slotPickerView(V.st, { yahooKnown: slotKnownFromYahoo(), chosen: S.state.slotChosen, open: S.slotOpen });
-    el.hidden = false;
+    var el = $('nd-slotpick'), v = L.slotPickerView(S.state.settings, { yahooKnown: slotKnownFromYahoo(), hold: slotHold(), chosen: S.state.slotChosen, open: S.slotOpen });
     el.setAttribute('data-mode', v.mode);
+    if (v.mode === 'hold') { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
     if (v.mode === 'pick') {
       el.innerHTML = '<div class="nd-slotpick__head"><span class="nd-slotpick__q">Which pick are you?</span><span class="nu-hint">Your spot in round 1 of ' + esc(v.teams) + '</span></div>' +
         '<div class="nd-slotpick__chips" role="group" aria-label="Draft slot">' + v.chips.map(function (n) {
@@ -924,7 +938,8 @@
     f.teams.value = st.teams; f.mySlot.value = st.mySlot;
     f.timer.value = timerSeconds();
     f.teams.disabled = !!live;
-    f.mySlot.disabled = !!(live && S.myTeamKey && S.merged.picks.some(function (p) { return p.source === 'yahoo' && p.mine; }));
+    // Locked whenever the picker says "synced from Yahoo" (draft_position, round-1 order or a Yahoo pick of mine).
+    f.mySlot.disabled = slotKnownFromYahoo();
     $('nd-profile-reset').hidden = !!live || S.state.settingsSource !== 'user';
     $('nd-settings-hint').textContent = live
       ? 'Loaded from Yahoo league “' + ((S.league && S.league.name) || S.leagueKey) + '”. Reset clears only picks marked on this device.'
@@ -971,6 +986,7 @@
       S.signedOut = !!(st && st.httpStatus === 401);
       S.yahooDown = !!(st && (st.httpStatus === 503 || st.code === 'yahoo_misconfigured'));
     }).catch(function () { S.connected = false; S.leagues = []; }).then(function () {
+      S.statusResolved = true;
       var sel = $('nd-league');
       if (!S.connected || !S.leagues.length) { sel.hidden = true; return selectLeague(null); }
       var pref = null; try { pref = localStorage.getItem(LEAGUE_PREF); } catch (e) {}
@@ -988,6 +1004,7 @@
   function selectLeague(key) {
     stopPolling();
     S.leagueKey = key; S.league = null; S.teams = []; S.myTeamKey = null; S.failures = 0; S.lastOk = 0; S.lastYahooCount = -1; S.auction = false;
+    S.slotOpen = false; S.leagueReady = !(key && S.connected); S.leagueLoadAt = Date.now();
     try { if (S.connected) localStorage.setItem(LEAGUE_PREF, key || ''); } catch (e) {}
     if (S.connected) window.dispatchEvent(new CustomEvent('pocket-nba:league', { detail: { leagueKey: key || null, source: 'page' } }));
     load(key, L.DEFAULT_SETTINGS);
@@ -1032,7 +1049,7 @@
         save(); recompute(); render(); return;
       }
       S.state.yahoo = { status: d.status, picks: d.picks || [], unmatched: d.unmatched || [], order: d.order || null, polledAt: d.polledAt || new Date().toISOString() };
-      S.failures = 0; S.lastOk = Date.now(); S.sync = 'live'; S.lastErr = '';
+      S.leagueReady = true; S.failures = 0; S.lastOk = Date.now(); S.sync = 'live'; S.lastErr = '';
       save(); recompute(); render();
       var n = S.state.yahoo.picks.length;
       if (before >= 0 && n > before) {
@@ -1047,7 +1064,10 @@
       if (key !== S.leagueKey) return;
       S.failures++; S.lastErr = e.code === 'yahoo_misconfigured' ? 'Yahoo app issue on our side' : e.code === 'yahoo_reauth' ? 'Yahoo sign-in expired — reconnect' : e.status ? 'HTTP ' + e.status : 'offline';
       if (S.failures >= 2 || !S.lastOk) S.sync = 'degraded';
-    }).then(function () { inflight = false; if (key === S.leagueKey) { schedulePoll(); renderSync(); } });
+    }).then(function () {
+      inflight = false;
+      if (key === S.leagueKey) { schedulePoll(); renderSync(); if (!S.leagueReady) { S.leagueReady = true; renderSlotPick(); } }
+    });
   }
 
   /* --------------------------------------------------------- events */
