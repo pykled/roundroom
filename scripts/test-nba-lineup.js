@@ -391,5 +391,29 @@ async function call(server, method, path, body, headers = {}) {
     assert.strictEqual(k, '466.l.1.t.4');
   });
 
+  console.log('page logic (lineup-logic.js)');
+  await test('paste parsing, search, banked storage, manual body, formatting', () => {
+    const UL = require('../nba/pages/lineup-logic.js');
+    const ps = [{ id: '1', name: 'Nikola Jokić', team: 'DEN', rank: 1 }, { id: '2', name: 'Jaren Jackson Jr.', team: 'MEM', rank: 40 }, { id: '3', name: 'Jalen Williams', team: 'OKC', rank: 30 }, { id: '4', name: 'Jaylin Williams', team: 'OKC', rank: 300 }];
+    const r = UL.parseRosterText('Nikola Jokic (C)\nJaren Jackson Jr - MEM, Williams; Mystery Man', ps);
+    assert.deepStrictEqual(r.ids, ['1', '2']);
+    assert.deepStrictEqual(r.unknown, ['Williams', 'Mystery Man'], 'ambiguous surname not guessed');
+    assert.strictEqual(UL.searchPlayers('jok', ps)[0].id, '1');
+    let b = UL.setBanked({}, 2, '1', '55.25');
+    b = UL.setBanked(b, 2, '3', '');
+    assert.deepStrictEqual(b, { 2: { 1: 55.3 } });
+    assert.strictEqual(UL.bankedQuery(UL.bankedFor(b, 2)), '1:55.3');
+    const st = UL.deserialize(JSON.stringify({ roster: [{ id: '1', slot: 'F' }, { id: '<x>' }, { id: '3', slot: 'nope' }], opponent: ['2'], banked: b }));
+    assert.deepStrictEqual(st.roster, [{ id: '1', slot: 'F' }, { id: '3', slot: 'BN' }]);
+    assert.deepStrictEqual(UL.manualBody(st, 2, 3), { week: 2, day: 3, roster: [{ id: '1', slot: 'F', banked: 55.3 }, { id: '3', slot: 'BN' }], opponent: ['2'] });
+    assert.deepStrictEqual(UL.deserialize('{corrupt').roster, []);
+    assert.strictEqual(UL.diffText({ out: { name: 'A' }, in: { name: 'B' }, gain: 6.25 }), 'Swap A for B: +6.3 expected');
+    assert.deepStrictEqual(UL.dayChips(['2026-10-26', '2026-11-01'], 7).map(c => c.label), ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    assert.deepStrictEqual(UL.gamePips(1, 3), ['done', 'done', 'left']);
+    assert.strictEqual(UL.winText(0.999), '>99%');
+    const g = UL.bandGeometry({ p10: 280, p90: 380, expected: 330 });
+    assert(g.left > 0 && g.left + g.width < 100 && Math.abs(g.mark - 50) < 1e-9);
+  });
+
   console.log(`\n${passed} passed${process.exitCode ? ', FAILURES above' : ''}`);
 })();

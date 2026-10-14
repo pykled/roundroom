@@ -113,10 +113,11 @@ function createLineupRoutes({
     return { players: data.players, currentWeek: data.currentWeek ?? week };
   }
   function clock(week, q) {
-    const c = weekClock((weekDates() || {})[week], now());
+    const range = (weekDates() || {})[week] || null;
+    const c = weekClock(range, now());
     const day = parseIntIn(q.day, 0, 14);
     const weekLength = parseIntIn(q.weekLength, 1, 14);
-    return { weekLength: Number.isInteger(weekLength) ? weekLength : c.weekLength, day: Number.isInteger(day) ? day : c.day };
+    return { weekLength: Number.isInteger(weekLength) ? weekLength : c.weekLength, day: Number.isInteger(day) ? day : c.day, dates: range };
   }
 
   router.get('/api/nba/lineup', auth, async (req, res) => {
@@ -178,7 +179,7 @@ function createLineupRoutes({
         options: { replacement: replacementFrom(b.players) },
       });
       res.json({
-        source: 'yahoo', league_key: lk, team_key: tk, ...out,
+        source: 'yahoo', league_key: lk, team_key: tk, dates: c.dates, currentWeek: b.currentWeek, ...out,
         roster: roster.map(r => ({ id: r.matched ? r.id : null, player_key: r.player_key, name: r.name, slot: r.slot, matchConfidence: r.matchConfidence })),
         unmatched: roster.filter(r => !r.matched).map(r => ({ player_key: r.player_key, name: r.name, slot: r.slot })),
         ...(matchupError ? { matchupError } : {}),
@@ -221,7 +222,7 @@ function createLineupRoutes({
       opponent: opp.length ? { roster: opp.map(id => ({ id })) } : null,
       options: { replacement: replacementFrom(b.players) },
     });
-    res.json({ source: 'manual', ...out, unmatched: roster.filter(r => !known.has(r.id)).map(r => ({ id: r.id })) });
+    res.json({ source: 'manual', dates: c.dates, currentWeek: b.currentWeek, ...out, unmatched: roster.filter(r => !known.has(r.id)).map(r => ({ id: r.id })) });
   });
 
   // Malformed / oversize JSON on the manual endpoint → JSON 400/413, not an HTML stack.
