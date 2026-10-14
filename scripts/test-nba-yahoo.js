@@ -411,9 +411,14 @@ async function freePort() {
       assert.strictEqual(j.players[1].sleeperId, null);
       assert.strictEqual((await get('/api/nba/yahoo/roster?team_key=466.l.12345', 'user_A')).status, 400);
     });
-    await test('logout removes tokens', async () => {
-      const r = await get('/nba/auth/logout', 'user_A');
-      assert.strictEqual(r.headers.get('location'), '/nba?yahoo=disconnected');
+    await test('logout removes tokens (POST, same-origin; GET is 405)', async () => {
+      const g = await get('/nba/auth/logout', 'user_A');
+      assert.strictEqual(g.status, 405, 'GET logout is not allowed (CSRF)');
+      assert.strictEqual(g.headers.get('allow'), 'POST');
+      assert.strictEqual((await get('/api/nba/yahoo/status', 'user_A', {})).status, 200);
+      const r = await get('/nba/auth/logout', 'user_A', { method: 'POST', headers: { origin: base } });
+      assert.strictEqual(r.status, 200);
+      assert.deepStrictEqual(await r.json(), { ok: true });
       assert.deepStrictEqual(await (await get('/api/nba/yahoo/status', 'user_A')).json(), { connected: false });
     });
     await test('default model loader never throws (stub when nba/model absent)', () => {
