@@ -1,0 +1,842 @@
+/* ============================================================================
+   Pocket NBA — design system ("nba-ui")
+   ----------------------------------------------------------------------------
+   Contract: docs/nba-design-system.md. Living style guide: /nba/pages/styleguide.html
+   Helpers:  /nba/pages/nba-ui.js (window.NbaUI)
+
+   Opt in with <body class="sport-nba nba-ui">. EVERY rule below is scoped
+   under .nba-ui or .sport-nba (scripts/test-nba-ui-kit.js enforces it), so the
+   file is inert on NFL pages. Self-contained: it re-declares the --nba-* tokens
+   it uses, so it works even without shared/styles.css (which pages still load
+   for the reset, #rr-nav base and footer).
+
+   Direction: "night game". Graphite, near-neutral surfaces; basketball orange
+   is a SIGNAL (active, primary action, the one number that matters, focus),
+   never a border on every box. Hierarchy comes from type weight + surface
+   elevation, not outlines. Numbers are DM Mono, tabular. Faces everywhere.
+
+   Sections
+     1. Tokens            8. Player cell, avatar, team logo
+     2. Base + type       9. Pills & badges (pos, tier, injury, value, delta)
+     3. Layout            10. Stat tiles, meters, range band, charts
+     4. Nav + tab bar     11. Table + list rows
+     5. Page header       12. Callouts, empty, skeleton, toast
+     6. Cards, sections   13. Sheet (bottom sheet / modal), action bar
+     7. Buttons, forms,   14. Motion + a11y preferences
+        chips, tabs, seg
+   ========================================================================== */
+
+
+/* 1. Tokens ---------------------------------------------------------------- */
+.nba-ui {
+  /* orange ramp (same values as shared/styles.css .sport-nba) */
+  --nba-50:  #fff4ec;
+  --nba-200: #ffd2ad;
+  --nba-300: #ffb27a;
+  --nba-400: #ff8a3d;
+  --nba-500: #f7711f;
+  --nba-600: #db5a0c;
+  --nba-700: #a8430a;
+  --nba-ink: #1c0b02;
+  --nba-hardwood: #c8915a;
+
+  /* surfaces: graphite, a hair of warmth, each step one elevation */
+  --nu-bg: #08090b;          /* page */
+  --nu-s1: #0f1114;          /* card */
+  --nu-s2: #15181c;          /* raised: card-in-card, inputs, hover row */
+  --nu-s3: #1c2026;          /* highest: sheet, menu, pressed */
+  --nu-line: rgba(255,255,255,0.07);       /* hairline divider */
+  --nu-line-2: rgba(255,255,255,0.12);     /* control border */
+  --nu-line-3: rgba(255,255,255,0.20);     /* hover border */
+
+  /* text */
+  --nu-text: #f4f5f7;        /* primary */
+  --nu-text-2: #aab0ba;      /* secondary: meta, labels */
+  --nu-text-3: #8a919c;      /* tertiary: hints, axis labels (>=4.5:1 on s3) */
+  --nu-text-dis: #5c626b;    /* disabled only (not body text) */
+
+  /* accent */
+  --nu-accent: var(--nba-400);
+  --nu-accent-2: var(--nba-300);           /* hover text */
+  --nu-accent-ink: var(--nba-ink);         /* text on orange fills */
+  --nu-accent-soft: rgba(255,138,61,0.12); /* tinted fill */
+  --nu-accent-line: rgba(255,138,61,0.40); /* active border */
+  --nu-glow: 0 0 0 1px rgba(255,138,61,0.35), 0 8px 28px -10px rgba(247,113,31,0.55);
+  --nu-ring: 0 0 0 2px var(--nu-bg), 0 0 0 4px var(--nba-400);
+
+  /* semantic */
+  --nu-good: #34d399;
+  --nu-good-soft: rgba(52,211,153,0.12);
+  --nu-bad: #f87171;
+  --nu-bad-soft: rgba(248,113,113,0.12);
+  --nu-warn: #fbbf24;
+  --nu-warn-soft: rgba(251,191,36,0.12);
+  --nu-info: #7dd3fc;
+  --nu-info-soft: rgba(125,211,252,0.12);
+
+  /* positions (families: guards amber, forwards sky, centers violet) */
+  --nu-pos-g: #fcd34d;
+  --nu-pos-f: #7dd3fc;
+  --nu-pos-c: #c4b5fd;
+  --nu-pos-u: #d4d4d8;
+
+  /* type */
+  --nu-font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nu-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --nu-fs-display: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem); /* 28 → 40 page title */
+  --nu-fs-title: 1.375rem;   /* 22 section/sheet title */
+  --nu-fs-h3: 1.0625rem;     /* 17 card title, player name (detail) */
+  --nu-fs-body: 0.875rem;    /* 14 body */
+  --nu-fs-sm: 0.8125rem;     /* 13 secondary/meta */
+  --nu-fs-xs: 0.75rem;       /* 12 hints */
+  --nu-fs-micro: 0.6875rem;  /* 11 eyebrows, column heads (mono caps) */
+  --nu-fs-stat: 1.75rem;     /* 28 stat tile number */
+  --nu-fs-hero-num: 3rem;    /* 48 hero number */
+  --nu-track-tight: -0.025em;
+  --nu-track-caps: 0.09em;
+
+  /* space (4px grid) */
+  --nu-1: 4px; --nu-2: 8px; --nu-3: 12px; --nu-4: 16px; --nu-5: 20px;
+  --nu-6: 24px; --nu-8: 32px; --nu-10: 40px; --nu-12: 48px;
+  --nu-gutter: clamp(16px, 3vw, 32px);
+  --nu-max: 1200px;
+
+  /* radius */
+  --nu-r-xs: 6px; --nu-r-sm: 8px; --nu-r-md: 12px; --nu-r-lg: 16px; --nu-r-xl: 22px; --nu-r-pill: 999px;
+
+  /* depth */
+  --nu-shadow-1: 0 1px 0 rgba(255,255,255,0.04) inset, 0 1px 2px rgba(0,0,0,0.4);
+  --nu-shadow-2: 0 1px 0 rgba(255,255,255,0.05) inset, 0 12px 32px -12px rgba(0,0,0,0.7);
+  --nu-shadow-3: 0 1px 0 rgba(255,255,255,0.06) inset, 0 24px 64px -16px rgba(0,0,0,0.85);
+
+  /* touch + chrome */
+  --nu-tap: 44px;
+  --nu-nav-h: 56px;
+  --nu-tabbar-h: 64px;
+  --nu-safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* motion */
+  --nu-ease: cubic-bezier(0.2, 0.8, 0.2, 1);        /* standard decelerate */
+  --nu-ease-spring: cubic-bezier(0.32, 0.72, 0, 1); /* sheet / iOS-like */
+  --nu-dur-1: 120ms; --nu-dur-2: 200ms; --nu-dur-3: 320ms;
+
+  /* z */
+  --nu-z-sticky: 20; --nu-z-nav: 100; --nu-z-tabbar: 110; --nu-z-sheet: 900; --nu-z-toast: 1000;
+
+  /* shared/styles.css aliases, so legacy widgets inherit the palette */
+  --accent: var(--nba-400);
+  --accent-glow: var(--nu-accent-soft);
+  --brand-400: var(--nba-400);
+  --shadow-focus: var(--nu-ring);
+}
+
+
+/* 2. Base + type ----------------------------------------------------------- */
+body.nba-ui {
+  background:
+    radial-gradient(1200px 420px at 50% -220px, rgba(247,113,31,0.10), transparent 70%),
+    var(--nu-bg);
+  background-attachment: fixed;
+  color: var(--nu-text);
+  font-family: var(--nu-font);
+  font-size: var(--nu-fs-body);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+.nba-ui :focus-visible { outline: none; box-shadow: var(--nu-ring); border-radius: var(--nu-r-xs); }
+.nba-ui ::selection { background: rgba(247,113,31,0.4); color: #fff; }
+.nba-ui [hidden] { display: none !important; }
+
+.nba-ui .nu-display { font-size: var(--nu-fs-display); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+.nba-ui .nu-title { font-size: var(--nu-fs-title); font-weight: 750; letter-spacing: var(--nu-track-tight); line-height: 1.15; }
+.nba-ui .nu-h3 { font-size: var(--nu-fs-h3); font-weight: 700; letter-spacing: -0.015em; line-height: 1.25; }
+.nba-ui .nu-body { font-size: var(--nu-fs-body); color: var(--nu-text-2); line-height: 1.55; }
+.nba-ui .nu-meta { font-size: var(--nu-fs-sm); color: var(--nu-text-2); }
+.nba-ui .nu-hint { font-size: var(--nu-fs-xs); color: var(--nu-text-3); line-height: 1.5; }
+.nba-ui .nu-eyebrow {
+  font-family: var(--nu-mono); font-size: var(--nu-fs-micro); font-weight: 500;
+  letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-accent-2);
+}
+.nba-ui .nu-label {
+  font-family: var(--nu-mono); font-size: var(--nu-fs-micro); font-weight: 500;
+  letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-3);
+}
+.nba-ui .nu-num { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.nba-ui .nu-accent { color: var(--nu-accent); }
+.nba-ui .nu-good { color: var(--nu-good); }
+.nba-ui .nu-bad { color: var(--nu-bad); }
+.nba-ui .nu-muted { color: var(--nu-text-3); }
+.nba-ui .nu-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.nba-ui .nu-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.nba-ui .nu-kbd {
+  font-family: var(--nu-mono); font-size: 0.7rem; padding: 1px 6px; border-radius: 5px;
+  background: var(--nu-s3); border: 1px solid var(--nu-line-2); color: var(--nu-text-2);
+}
+.nba-ui .nu-divider { height: 1px; background: var(--nu-line); border: 0; margin: var(--nu-4) 0; }
+
+
+/* 3. Layout ----------------------------------------------------------------
+   .nu-shell     page container (max 1200, gutters, room for tab bar on mobile)
+   .nu-split     list + detail (research, board): 2 cols ≥1024, stacked below
+   .nu-grid      auto-fit card grid; .nu-cols-2/3/4 fixed columns ≥768
+   .nu-stack     vertical rhythm; .nu-row-flex horizontal cluster */
+.nba-ui .nu-shell {
+  width: 100%; max-width: var(--nu-max); margin: 0 auto;
+  padding: var(--nu-5) var(--nu-gutter) var(--nu-12);
+}
+.nba-ui .nu-shell--narrow { max-width: 880px; }
+.nba-ui .nu-stack { display: flex; flex-direction: column; gap: var(--nu-4); }
+.nba-ui .nu-stack--lg { gap: var(--nu-8); }
+.nba-ui .nu-stack--sm { gap: var(--nu-2); }
+.nba-ui .nu-row-flex { display: flex; align-items: center; gap: var(--nu-2); flex-wrap: wrap; min-width: 0; }
+.nba-ui .nu-spacer { flex: 1; }
+.nba-ui .nu-grid { display: grid; gap: var(--nu-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.nba-ui .nu-cols-2, .nba-ui .nu-cols-3, .nba-ui .nu-cols-4 { display: grid; gap: var(--nu-3); grid-template-columns: 1fr; }
+.nba-ui .nu-split { display: grid; gap: var(--nu-5); grid-template-columns: 1fr; align-items: start; }
+.nba-ui .nu-split > * { min-width: 0; }
+@media (min-width: 768px) {
+  .nba-ui .nu-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nba-ui .nu-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nba-ui .nu-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .nba-ui .nu-split { grid-template-columns: minmax(0, 1fr) minmax(360px, 420px); }
+  .nba-ui .nu-split--detail { grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); }
+  .nba-ui .nu-sticky-col { position: sticky; top: calc(var(--nu-nav-h) + var(--nu-4)); }
+}
+
+
+/* 4. Nav (#rr-nav built by NbaUI.mountNav) + mobile tab bar ----------------
+   Keeps shared/nav.js classes (.rr-logo, .rr-sport/.rr-sport-opt, .rr-links,
+   .rr-link, .nav-hamburger, .rr-sport-menu) so analytics + hamburger work. */
+.nba-ui #rr-nav {
+  min-height: var(--nu-nav-h); padding: 0 var(--nu-gutter); gap: var(--nu-3);
+  background: rgba(8,9,11,0.72);
+  -webkit-backdrop-filter: saturate(160%) blur(18px); backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid var(--nu-line);
+  box-shadow: none;
+}
+/* court-line motif: the 1px orange baseline fades out from the logo */
+.nba-ui #rr-nav::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,138,61,0.55), rgba(255,138,61,0.12) 30%, transparent 70%);
+}
+.nba-ui #rr-nav .rr-logo { display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 800; letter-spacing: -0.02em; color: var(--nu-text); min-height: var(--nu-tap); }
+.nba-ui #rr-nav .rr-logo::before { display: none; }
+.nba-ui #rr-nav .rr-logo .nu-ball { width: 20px; height: 20px; }
+.nba-ui #rr-nav .rr-sport,
+.nba-ui #rr-nav .sport-switch { background: var(--nu-s2); border: 1px solid var(--nu-line-2); }
+.nba-ui #rr-nav .rr-sport-opt.active,
+.nba-ui #rr-nav .sport-switch a[aria-current="page"] {
+  color: var(--nu-accent-ink); background: var(--nba-400); box-shadow: 0 0 14px -4px rgba(247,113,31,0.7);
+}
+.nba-ui #rr-nav .rr-links { gap: 2px; align-items: center; }
+.nba-ui #rr-nav .rr-link {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px;
+  border-radius: var(--nu-r-sm); font-size: var(--nu-fs-sm); font-weight: 600; color: var(--nu-text-2);
+  position: relative; box-shadow: none; background: none;
+  transition: color var(--nu-dur-1) var(--nu-ease), background var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui #rr-nav .rr-link svg { width: 16px; height: 16px; flex: none; opacity: 0.85; }
+.nba-ui #rr-nav .rr-link:hover { color: var(--nu-text); background: rgba(255,255,255,0.05); }
+.nba-ui #rr-nav .rr-link.active,
+.nba-ui #rr-nav .rr-link[aria-current="page"] { color: var(--nu-text); background: rgba(255,255,255,0.06); box-shadow: none; }
+.nba-ui #rr-nav .rr-link[aria-current="page"]::after {
+  content: ""; position: absolute; left: 12px; right: 12px; bottom: -11px; height: 2px; border-radius: 2px;
+  background: var(--nba-400); box-shadow: 0 0 10px rgba(255,138,61,0.7);
+}
+.nba-ui #rr-nav .rr-link[aria-current="page"] svg { color: var(--nba-400); opacity: 1; }
+.nba-ui #rr-nav .rr-auth { gap: var(--nu-2); }
+.nba-ui .nu-nav-status { display: inline-flex; align-items: center; }
+.nba-ui .nu-status-chip {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px 0 10px;
+  border-radius: var(--nu-r-pill); border: 1px solid var(--nu-line-2); background: var(--nu-s2);
+  font-size: var(--nu-fs-xs); font-weight: 600; color: var(--nu-text-2); white-space: nowrap; text-decoration: none;
+}
+.nba-ui .nu-status-chip .nu-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--nu-text-3); }
+.nba-ui .nu-status-chip[data-state="connected"] .nu-dot { background: var(--nu-good); box-shadow: 0 0 0 3px var(--nu-good-soft); }
+.nba-ui .nu-status-chip[data-state="syncing"] .nu-dot { background: var(--nu-warn); animation: nu-pulse 1.2s var(--nu-ease) infinite; }
+.nba-ui .nu-status-chip[data-state="error"] .nu-dot { background: var(--nu-bad); }
+.nba-ui .nu-status-chip[data-state="connected"] { color: var(--nu-text); }
+
+/* Mobile tab bar: the five tools live in the thumb zone. */
+.nba-ui .nu-tabbar { display: none; }
+@media (max-width: 768px) {
+  .nba-ui #rr-nav { padding: 0 var(--nu-4); min-height: 52px; }
+  .nba-ui #rr-nav::after { background: linear-gradient(90deg, rgba(255,138,61,0.5), transparent 60%); }
+  /* the tab bar replaces the link list; the hamburger keeps auth + sport */
+  .nba-ui #rr-nav.open .rr-links { display: none; }
+  .nba-ui #rr-nav .rr-link[aria-current="page"]::after { display: none; }
+  body.nba-ui.nu-has-tabbar { padding-bottom: calc(var(--nu-tabbar-h) + var(--nu-safe-b)); }
+  .nba-ui .nu-tabbar {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--nu-z-tabbar);
+    height: calc(var(--nu-tabbar-h) + var(--nu-safe-b)); padding: 0 6px var(--nu-safe-b);
+    background: rgba(12,13,16,0.86);
+    -webkit-backdrop-filter: saturate(160%) blur(20px); backdrop-filter: saturate(160%) blur(20px);
+    border-top: 1px solid var(--nu-line);
+  }
+  .nba-ui .nu-tabbar a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    min-height: var(--nu-tap); color: var(--nu-text-3); text-decoration: none;
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.01em; position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nba-ui .nu-tabbar a svg { width: 22px; height: 22px; transition: transform var(--nu-dur-2) var(--nu-ease-spring); }
+  .nba-ui .nu-tabbar a:active svg { transform: scale(0.88); }
+  .nba-ui .nu-tabbar a[aria-current="page"] { color: var(--nu-text); }
+  .nba-ui .nu-tabbar a[aria-current="page"] svg { color: var(--nba-400); }
+  .nba-ui .nu-tabbar a[aria-current="page"]::before {
+    content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; border-radius: 0 0 2px 2px;
+    background: var(--nba-400); box-shadow: 0 0 12px rgba(255,138,61,0.8);
+  }
+  .nba-ui .nu-tabbar a:focus-visible { box-shadow: inset 0 0 0 2px var(--nba-400); border-radius: var(--nu-r-sm); }
+}
+
+
+/* 5. Page header (court motif lives HERE only) ------------------------------ */
+.nba-ui .nu-page-head {
+  position: relative; isolation: isolate;
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--nu-4);
+  padding: var(--nu-4) 0 var(--nu-5); margin-bottom: var(--nu-5);
+}
+.nba-ui .nu-page-head__text { min-width: 0; flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px; }
+.nba-ui .nu-page-head__title { font-size: var(--nu-fs-display); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+.nba-ui .nu-page-head__sub { font-size: var(--nu-fs-body); color: var(--nu-text-2); max-width: 62ch; line-height: 1.5; }
+.nba-ui .nu-page-head__actions { display: flex; gap: var(--nu-2); flex-wrap: wrap; align-items: center; }
+/* court lines: half-court circle + 3pt arc, top-right, masked; 1px, 8% */
+.nba-ui .nu-page-head--court::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: -40px; right: calc(var(--nu-gutter) * -1); width: min(560px, 90vw); height: calc(100% + 40px);
+  background:
+    radial-gradient(circle at 100% 0%, transparent 0 219px, rgba(255,178,122,0.10) 219px 220px, transparent 221px),
+    radial-gradient(circle at 100% 0%, transparent 0 99px, rgba(255,178,122,0.10) 99px 100px, transparent 101px),
+    linear-gradient(180deg, transparent calc(100% - 1px), rgba(255,178,122,0.10) calc(100% - 1px));
+  -webkit-mask-image: radial-gradient(120% 120% at 100% 0%, #000 30%, transparent 75%);
+          mask-image: radial-gradient(120% 120% at 100% 0%, #000 30%, transparent 75%);
+}
+.nba-ui .nu-page-head--court::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; z-index: -1;
+  background: linear-gradient(90deg, var(--nu-line-2), transparent);
+}
+
+
+/* 6. Cards + sections ------------------------------------------------------ */
+.nba-ui .nu-card {
+  background: var(--nu-s1); border: 1px solid var(--nu-line); border-radius: var(--nu-r-lg);
+  padding: var(--nu-4); box-shadow: var(--nu-shadow-1); min-width: 0;
+}
+@media (min-width: 768px) { .nba-ui .nu-card { padding: var(--nu-5); } }
+.nba-ui .nu-card--flush { padding: 0; overflow: hidden; }
+.nba-ui .nu-card--raised { background: var(--nu-s2); box-shadow: var(--nu-shadow-2); }
+.nba-ui .nu-card--inset { background: var(--nu-bg); border-color: var(--nu-line); box-shadow: none; }
+/* the ONE emphasised card per view (your pick, recommendation): orange edge + glow */
+.nba-ui .nu-card--focus {
+  background: linear-gradient(180deg, rgba(255,138,61,0.07), rgba(255,138,61,0) 55%), var(--nu-s1);
+  border-color: var(--nu-accent-line); box-shadow: var(--nu-glow);
+}
+.nba-ui .nu-card--interactive { cursor: pointer; transition: border-color var(--nu-dur-1) var(--nu-ease), background var(--nu-dur-1) var(--nu-ease), transform var(--nu-dur-2) var(--nu-ease); }
+.nba-ui .nu-card--interactive:hover { border-color: var(--nu-line-3); background: var(--nu-s2); }
+.nba-ui .nu-card--interactive:active { transform: scale(0.99); }
+.nba-ui .nu-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--nu-3); margin-bottom: var(--nu-3); min-width: 0; }
+.nba-ui .nu-card__title { font-size: var(--nu-fs-h3); font-weight: 700; letter-spacing: -0.015em; }
+.nba-ui .nu-card--flush > .nu-card__head { padding: var(--nu-4) var(--nu-4) 0; }
+.nba-ui .nu-section { display: flex; flex-direction: column; gap: var(--nu-3); }
+.nba-ui .nu-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--nu-3); }
+.nba-ui .nu-section__title { font-size: var(--nu-fs-micro); font-family: var(--nu-mono); font-weight: 500; letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-2); }
+.nba-ui .nu-kv { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: var(--nu-fs-sm); }
+.nba-ui .nu-kv dt { color: var(--nu-text-3); }
+.nba-ui .nu-kv dd { margin: 0; text-align: right; font-family: var(--nu-mono); font-variant-numeric: tabular-nums; }
+
+
+/* 7. Buttons, forms, chips, tabs, segmented -------------------------------- */
+.nba-ui .nu-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: var(--nu-tap); padding: 0 18px; border-radius: var(--nu-r-md);
+  font-family: var(--nu-font); font-size: var(--nu-fs-body); font-weight: 700; line-height: 1; letter-spacing: -0.005em;
+  border: 1px solid var(--nu-line-2); background: var(--nu-s2); color: var(--nu-text);
+  text-decoration: none; white-space: nowrap; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+  transition: background var(--nu-dur-1) var(--nu-ease), border-color var(--nu-dur-1) var(--nu-ease), transform var(--nu-dur-1) var(--nu-ease), box-shadow var(--nu-dur-2) var(--nu-ease);
+}
+.nba-ui .nu-btn svg { width: 18px; height: 18px; flex: none; }
+.nba-ui .nu-btn:hover { background: var(--nu-s3); border-color: var(--nu-line-3); }
+.nba-ui .nu-btn:active { transform: scale(0.97); }
+.nba-ui .nu-btn:focus-visible { box-shadow: var(--nu-ring); border-radius: var(--nu-r-md); }
+.nba-ui .nu-btn:disabled, .nba-ui .nu-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; transform: none; }
+.nba-ui .nu-btn--primary {
+  background: linear-gradient(180deg, var(--nba-400), var(--nba-500)); border-color: transparent; color: var(--nu-accent-ink);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.28) inset, 0 8px 22px -10px rgba(247,113,31,0.9);
+}
+.nba-ui .nu-btn--primary:hover { background: linear-gradient(180deg, var(--nba-300), var(--nba-400)); border-color: transparent; }
+.nba-ui .nu-btn--primary:active { background: var(--nba-500); }
+.nba-ui .nu-btn--ghost { background: transparent; border-color: transparent; color: var(--nu-text-2); }
+.nba-ui .nu-btn--ghost:hover { background: rgba(255,255,255,0.06); color: var(--nu-text); border-color: transparent; }
+.nba-ui .nu-btn--danger { background: var(--nu-bad-soft); border-color: rgba(248,113,113,0.35); color: #fecaca; }
+.nba-ui .nu-btn--danger:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.55); }
+.nba-ui .nu-btn--sm { min-height: 36px; padding: 0 12px; font-size: var(--nu-fs-sm); border-radius: var(--nu-r-sm); }
+.nba-ui .nu-btn--lg { min-height: 52px; padding: 0 24px; font-size: 1rem; border-radius: var(--nu-r-lg); }
+.nba-ui .nu-btn--block { display: flex; width: 100%; }
+.nba-ui .nu-btn--icon { width: var(--nu-tap); padding: 0; }
+.nba-ui .nu-btn--icon.nu-btn--sm { width: 36px; }
+/* 36px visual buttons still get a 44px hit area */
+.nba-ui .nu-btn--sm { position: relative; }
+.nba-ui .nu-btn--sm::after { content: ""; position: absolute; inset: -4px; }
+.nba-ui .nu-btn[aria-busy="true"] { color: transparent; pointer-events: none; position: relative; }
+.nba-ui .nu-btn[aria-busy="true"]::before {
+  content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid currentColor; border-color: var(--nu-text) var(--nu-text) transparent transparent; animation: nu-spin 0.7s linear infinite;
+}
+.nba-ui .nu-btn--primary[aria-busy="true"]::before { border-color: var(--nu-accent-ink) var(--nu-accent-ink) transparent transparent; }
+.nba-ui .nu-btn .nu-count { font-family: var(--nu-mono); font-size: var(--nu-fs-xs); padding: 2px 6px; border-radius: var(--nu-r-pill); background: rgba(0,0,0,0.22); }
+
+/* Yahoo connect button (brand purple is allowed only here) */
+.nba-ui .nu-btn--yahoo { background: rgba(124,58,237,0.16); border-color: rgba(167,139,250,0.45); color: #ddd6fe; }
+.nba-ui .nu-btn--yahoo:hover { background: rgba(124,58,237,0.26); border-color: rgba(167,139,250,0.7); }
+.nba-ui .nu-y { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: #6001d2; color: #fff; font-size: 0.68rem; font-weight: 800; }
+
+/* forms */
+.nba-ui .nu-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.nba-ui .nu-field > label, .nba-ui .nu-field__label { font-size: var(--nu-fs-sm); font-weight: 600; color: var(--nu-text-2); }
+.nba-ui .nu-input, .nba-ui .nu-select {
+  width: 100%; min-height: var(--nu-tap); padding: 0 14px; border-radius: var(--nu-r-md);
+  background: var(--nu-s2); border: 1px solid var(--nu-line-2); color: var(--nu-text);
+  font-family: var(--nu-font); font-size: 16px; /* 16px = no iOS zoom */
+  transition: border-color var(--nu-dur-1) var(--nu-ease), box-shadow var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui .nu-input::placeholder { color: var(--nu-text-3); }
+.nba-ui .nu-input:hover, .nba-ui .nu-select:hover { border-color: var(--nu-line-3); }
+.nba-ui .nu-input:focus, .nba-ui .nu-select:focus { outline: none; border-color: var(--nba-400); box-shadow: 0 0 0 3px rgba(255,138,61,0.22); }
+.nba-ui .nu-input[aria-invalid="true"] { border-color: var(--nu-bad); }
+.nba-ui .nu-select {
+  -webkit-appearance: none; appearance: none; padding-right: 38px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='%23aab0ba' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.nba-ui .nu-search { position: relative; display: flex; align-items: center; min-width: 0; }
+.nba-ui .nu-search svg { position: absolute; left: 14px; width: 18px; height: 18px; color: var(--nu-text-3); pointer-events: none; }
+.nba-ui .nu-search .nu-input { padding-left: 42px; }
+.nba-ui .nu-error { font-size: var(--nu-fs-xs); color: var(--nu-bad); }
+
+/* chips: filter toggles (aria-pressed) and read-only tags */
+.nba-ui .nu-chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.nba-ui .nu-chip-row--scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--nu-gutter) * -1); padding: 2px var(--nu-gutter); scroll-padding: var(--nu-gutter); }
+.nba-ui .nu-chip-row--scroll::-webkit-scrollbar { display: none; }
+@media (min-width: 768px) { .nba-ui .nu-chip-row--scroll { flex-wrap: wrap; margin: 0; padding: 0; } }
+.nba-ui .nu-chip {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  min-height: 36px; padding: 0 14px; border-radius: var(--nu-r-pill);
+  border: 1px solid var(--nu-line-2); background: transparent; color: var(--nu-text-2);
+  font-family: var(--nu-font); font-size: var(--nu-fs-sm); font-weight: 600; white-space: nowrap; cursor: pointer;
+  position: relative; transition: all var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui .nu-chip::after { content: ""; position: absolute; inset: -4px 0; } /* 44px hit */
+.nba-ui .nu-chip:hover { color: var(--nu-text); border-color: var(--nu-line-3); background: rgba(255,255,255,0.04); }
+.nba-ui .nu-chip[aria-pressed="true"], .nba-ui .nu-chip.is-on {
+  color: var(--nu-text); background: var(--nu-accent-soft); border-color: var(--nu-accent-line);
+}
+.nba-ui .nu-chip[aria-pressed="true"] .nu-chip__n { color: var(--nu-accent-2); }
+.nba-ui .nu-chip__n { font-family: var(--nu-mono); font-size: var(--nu-fs-xs); color: var(--nu-text-3); }
+.nba-ui .nu-tag {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 22px; padding: 0 8px; border-radius: var(--nu-r-pill);
+  font-size: var(--nu-fs-xs); font-weight: 600; color: var(--nu-text-2); background: rgba(255,255,255,0.06); white-space: nowrap;
+}
+
+/* underline tabs: role=tablist > role=tab[aria-selected] */
+.nba-ui .nu-tabs { display: flex; gap: var(--nu-5); border-bottom: 1px solid var(--nu-line); overflow-x: auto; scrollbar-width: none; }
+.nba-ui .nu-tabs::-webkit-scrollbar { display: none; }
+.nba-ui .nu-tab {
+  position: relative; min-height: var(--nu-tap); padding: 0 2px; background: none; border: 0; cursor: pointer;
+  font-family: var(--nu-font); font-size: var(--nu-fs-body); font-weight: 600; color: var(--nu-text-3); white-space: nowrap;
+  transition: color var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui .nu-tab:hover { color: var(--nu-text-2); }
+.nba-ui .nu-tab[aria-selected="true"] { color: var(--nu-text); }
+.nba-ui .nu-tab[aria-selected="true"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px; background: var(--nba-400);
+}
+
+/* segmented control: .nu-seg > button[aria-pressed] (or role=tab) */
+.nba-ui .nu-seg {
+  display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--nu-r-md);
+  background: var(--nu-bg); border: 1px solid var(--nu-line-2); max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.nba-ui .nu-seg--block { display: flex; }
+.nba-ui .nu-seg--block > * { flex: 1; }
+.nba-ui .nu-seg > button {
+  position: relative; min-height: 38px; padding: 0 14px; border: 0; border-radius: 9px; background: none; cursor: pointer;
+  font-family: var(--nu-font); font-size: var(--nu-fs-sm); font-weight: 650; color: var(--nu-text-2); white-space: nowrap;
+  transition: background var(--nu-dur-2) var(--nu-ease), color var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui .nu-seg > button::after { content: ""; position: absolute; inset: -4px 0; } /* 44px hit */
+.nba-ui .nu-seg > button:hover { color: var(--nu-text); }
+.nba-ui .nu-seg > button[aria-pressed="true"], .nba-ui .nu-seg > button[aria-selected="true"] {
+  background: var(--nu-s3); color: var(--nu-text); box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.45);
+}
+.nba-ui .nu-seg--accent > button[aria-pressed="true"], .nba-ui .nu-seg--accent > button[aria-selected="true"] {
+  background: var(--nba-400); color: var(--nu-accent-ink);
+}
+
+/* toggle switch: <button class="nu-switch" role="switch" aria-checked> */
+.nba-ui .nu-switch {
+  position: relative; width: 44px; height: 26px; border-radius: 13px; border: 0; cursor: pointer; flex: none;
+  background: var(--nu-s3); box-shadow: inset 0 0 0 1px var(--nu-line-2); transition: background var(--nu-dur-2) var(--nu-ease);
+}
+.nba-ui .nu-switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); transition: transform var(--nu-dur-2) var(--nu-ease-spring);
+}
+.nba-ui .nu-switch[aria-checked="true"] { background: var(--nba-500); box-shadow: none; }
+.nba-ui .nu-switch[aria-checked="true"]::after { transform: translateX(18px); }
+.nba-ui .nu-switch:focus-visible { border-radius: 13px; }
+
+
+/* 8. Player cell, avatar, team logo --------------------------------------- */
+.nba-ui .nu-player { display: flex; align-items: center; gap: var(--nu-3); min-width: 0; }
+.nba-ui .nu-player__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nba-ui .nu-player__name { font-size: var(--nu-fs-body); font-weight: 700; letter-spacing: -0.01em; color: var(--nu-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nba-ui .nu-player__meta { display: flex; align-items: center; gap: 6px; font-size: var(--nu-fs-xs); color: var(--nu-text-2); min-width: 0; white-space: nowrap; }
+.nba-ui .nu-player__meta .nu-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--nu-text-3); flex: none; }
+.nba-ui .nu-player--lg .nu-player__name { font-size: var(--nu-fs-title); font-weight: 800; letter-spacing: var(--nu-track-tight); white-space: normal; }
+.nba-ui .nu-player--lg .nu-player__meta { font-size: var(--nu-fs-sm); }
+
+/* .nu-avatar: initials sit underneath; the <img> covers them once loaded.
+   NbaUI walks data-srcs on error and removes the img at the end of the chain. */
+.nba-ui .nu-avatar {
+  --sz: 40px; --team: #2a2f37;
+  position: relative; flex: none; display: inline-grid; place-items: center;
+  width: var(--sz); height: var(--sz); border-radius: 50%;
+  background: radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--team) 70%, #000) 0%, var(--nu-s3) 75%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85); font-weight: 800; font-size: calc(var(--sz) * 0.36); letter-spacing: -0.02em;
+  overflow: hidden; user-select: none; isolation: isolate;
+}
+.nba-ui .nu-avatar img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%;
+  opacity: 0; transition: opacity var(--nu-dur-2) var(--nu-ease);
+}
+.nba-ui .nu-avatar img.is-loaded { opacity: 1; }
+/* Sleeper + ESPN headshots are shot on white / transparent: once a photo has
+   loaded the disc turns into a light, team-tinted "card" and the JPG is
+   multiplied onto it, so the white background takes the disc colour. */
+.nba-ui .nu-avatar:has(img.is-loaded) {
+  background: radial-gradient(circle at 50% 28%, #f6f7f9 0%, color-mix(in srgb, var(--team) 26%, #d9dde4) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 1px 2px rgba(0,0,0,0.5);
+}
+.nba-ui .nu-avatar:has(img.is-loaded) > span { visibility: hidden; }
+.nba-ui .nu-avatar img[data-src-kind="sleeper"] { mix-blend-mode: multiply; }
+.nba-ui .nu-avatar img[data-src-kind="espn"] { object-fit: cover; object-position: 50% 0; transform: scale(1.35); transform-origin: 50% 0; }
+.nba-ui .nu-avatar--xs { --sz: 24px; }
+.nba-ui .nu-avatar--sm { --sz: 32px; }
+.nba-ui .nu-avatar--md { --sz: 40px; }
+.nba-ui .nu-avatar--lg { --sz: 56px; }
+.nba-ui .nu-avatar--xl { --sz: 96px; }
+.nba-ui .nu-avatar--hero { --sz: 128px; }
+.nba-ui .nu-avatar--square { border-radius: var(--nu-r-md); }
+/* wrapper to badge an avatar with a team logo */
+.nba-ui .nu-avatar-wrap { position: relative; display: inline-flex; flex: none; }
+.nba-ui .nu-avatar-wrap > .nu-team-logo { position: absolute; right: -3px; bottom: -3px; box-shadow: 0 0 0 2px var(--nu-s1); }
+.nba-ui .nu-avatar-wrap > .nu-inj-dot { position: absolute; top: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 2px var(--nu-s1); background: var(--nu-bad); }
+.nba-ui .nu-avatar-wrap > .nu-inj-dot[data-status="dtd"], .nba-ui .nu-avatar-wrap > .nu-inj-dot[data-status="q"], .nba-ui .nu-avatar-wrap > .nu-inj-dot[data-status="gtd"] { background: var(--nu-warn); }
+
+.nba-ui .nu-team-logo {
+  --sz: 20px; position: relative; display: inline-grid; place-items: center; flex: none;
+  width: var(--sz); height: var(--sz); border-radius: 50%; background: var(--nu-s3);
+  font-family: var(--nu-mono); font-size: calc(var(--sz) * 0.32); font-weight: 500; color: var(--nu-text-2); overflow: hidden;
+}
+.nba-ui .nu-team-logo img { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; }
+.nba-ui .nu-team-logo--sm { --sz: 16px; }
+.nba-ui .nu-team-logo--md { --sz: 24px; }
+.nba-ui .nu-team-logo--lg { --sz: 40px; }
+.nba-ui .nu-team-logo--xl { --sz: 64px; }
+
+
+/* 9. Pills + badges --------------------------------------------------------- */
+.nba-ui .nu-pos {
+  --c: var(--nu-pos-u);
+  display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 20px; padding: 0 6px;
+  border-radius: 6px; font-family: var(--nu-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.04em;
+  color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
+  white-space: nowrap;
+}
+.nba-ui .nu-pos[data-pos="PG"], .nba-ui .nu-pos[data-pos="SG"], .nba-ui .nu-pos[data-pos="G"] { --c: var(--nu-pos-g); }
+.nba-ui .nu-pos[data-pos="SF"], .nba-ui .nu-pos[data-pos="PF"], .nba-ui .nu-pos[data-pos="F"] { --c: var(--nu-pos-f); }
+.nba-ui .nu-pos[data-pos="C"] { --c: var(--nu-pos-c); }
+.nba-ui .nu-pos-group { display: inline-flex; gap: 3px; }
+
+.nba-ui .nu-tier {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 6px;
+  font-family: var(--nu-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.04em; white-space: nowrap;
+  color: var(--nu-text-2); background: rgba(255,255,255,0.06);
+}
+.nba-ui .nu-tier[data-tier="1"] { color: var(--nu-accent-ink); background: var(--nba-400); }
+.nba-ui .nu-tier[data-tier="2"] { color: var(--nba-300); background: var(--nu-accent-soft); box-shadow: inset 0 0 0 1px var(--nu-accent-line); }
+.nba-ui .nu-tier[data-tier="3"] { color: #e7c39b; background: rgba(200,145,90,0.14); }
+/* tier divider inside lists */
+.nba-ui .nu-tier-rule { display: flex; align-items: center; gap: var(--nu-2); padding: var(--nu-3) var(--nu-4) var(--nu-1); font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-3); }
+.nba-ui .nu-tier-rule::after { content: ""; flex: 1; height: 1px; background: var(--nu-line); }
+.nba-ui .nu-tier-rule b { color: var(--nu-accent-2); font-weight: 500; }
+
+.nba-ui .nu-inj {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 6px;
+  font-family: var(--nu-mono); font-size: 0.64rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+  color: #fecaca; background: var(--nu-bad-soft);
+}
+.nba-ui .nu-inj[data-status="dtd"], .nba-ui .nu-inj[data-status="q"], .nba-ui .nu-inj[data-status="gtd"], .nba-ui .nu-inj[data-status="prob"] { color: #fde68a; background: var(--nu-warn-soft); }
+
+.nba-ui .nu-value {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 6px;
+  font-size: var(--nu-fs-xs); font-weight: 700; white-space: nowrap; color: var(--nu-text-2); background: rgba(255,255,255,0.06);
+}
+.nba-ui .nu-value[data-label="value"] { color: var(--nu-good); background: var(--nu-good-soft); }
+.nba-ui .nu-value[data-label="reach"] { color: var(--nu-bad); background: var(--nu-bad-soft); }
+.nba-ui .nu-value[data-strong="true"] { box-shadow: inset 0 0 0 1px currentColor; }
+
+.nba-ui .nu-delta { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: var(--nu-fs-xs); font-weight: 500; color: var(--nu-text-3); white-space: nowrap; }
+.nba-ui .nu-delta.is-up { color: var(--nu-good); }
+.nba-ui .nu-delta.is-down { color: var(--nu-bad); }
+
+.nba-ui .nu-rank { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: var(--nu-fs-sm); color: var(--nu-text-3); min-width: 2.2em; text-align: right; }
+.nba-ui .nu-rank.is-top { color: var(--nu-accent-2); }
+
+
+/* 10. Stat tiles, meters, range band, charts -------------------------------- */
+.nba-ui .nu-stats { display: grid; gap: var(--nu-2); grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); }
+.nba-ui .nu-stats--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nba-ui .nu-stats--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nba-ui .nu-stat {
+  display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 12px; min-width: 0;
+  background: var(--nu-s2); border: 1px solid var(--nu-line); border-radius: var(--nu-r-md);
+}
+.nba-ui .nu-stat__label { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nba-ui .nu-stat__value { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: var(--nu-fs-stat); font-weight: 500; letter-spacing: -0.04em; line-height: 1; color: var(--nu-text); }
+.nba-ui .nu-stat__sub { display: flex; align-items: center; gap: 6px; font-size: var(--nu-fs-xs); color: var(--nu-text-2); min-height: 16px; }
+.nba-ui .nu-stat--accent .nu-stat__value { color: var(--nba-400); }
+.nba-ui .nu-stat--hero .nu-stat__value { font-size: var(--nu-fs-hero-num); }
+.nba-ui .nu-stat--bare { background: none; border: 0; padding: 0; }
+
+.nba-ui .nu-meter { position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+.nba-ui .nu-meter > span { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: linear-gradient(90deg, var(--nba-500), var(--nba-300)); }
+.nba-ui .nu-meter--good > span { background: var(--nu-good); }
+.nba-ui .nu-meter--bad > span { background: var(--nu-bad); }
+.nba-ui .nu-meter--split { display: flex; overflow: hidden; }
+.nba-ui .nu-meter--split > span { position: static; border-radius: 0; }
+
+/* floor–ceiling band with a mean marker: NbaUI.rangeBand() */
+.nba-ui .nu-range { position: relative; height: 24px; }
+.nba-ui .nu-range__track { position: absolute; left: 0; right: 0; top: 11px; height: 2px; border-radius: 1px; background: rgba(255,255,255,0.08); }
+.nba-ui .nu-range__band { position: absolute; top: 7px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(255,138,61,0.25), rgba(255,138,61,0.6), rgba(255,138,61,0.25)); }
+.nba-ui .nu-range__mark { position: absolute; top: 3px; width: 2px; height: 18px; margin-left: -1px; border-radius: 1px; background: var(--nu-text); box-shadow: 0 0 0 2px var(--nu-s1); }
+.nba-ui .nu-range__labels { display: flex; justify-content: space-between; font-family: var(--nu-mono); font-size: var(--nu-fs-micro); color: var(--nu-text-3); }
+
+/* inline SVG charts: NbaUI.sparkline(), NbaUI.histogram() */
+.nba-ui .nu-spark { display: block; overflow: visible; color: var(--nba-400); }
+.nba-ui .nu-spark .nu-spark__line { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.nba-ui .nu-spark .nu-spark__area { fill: currentColor; opacity: 0.12; }
+.nba-ui .nu-spark .nu-spark__dot { fill: currentColor; stroke: var(--nu-s1); stroke-width: 2; }
+.nba-ui .nu-spark--good { color: var(--nu-good); }
+.nba-ui .nu-spark--bad { color: var(--nu-bad); }
+.nba-ui .nu-spark--muted { color: var(--nu-text-3); }
+.nba-ui .nu-hist { display: block; width: 100%; height: auto; overflow: visible; }
+.nba-ui .nu-hist .nu-hist__bar { fill: rgba(255,138,61,0.45); }
+.nba-ui .nu-hist .nu-hist__bar.is-hi { fill: var(--nba-400); }
+.nba-ui .nu-hist .nu-hist__base { stroke: var(--nu-line-2); stroke-width: 1; }
+.nba-ui .nu-hist .nu-hist__mark { stroke: var(--nu-text); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.nba-ui .nu-hist text { fill: var(--nu-text-3); font-family: var(--nu-mono); font-size: 10px; }
+
+
+/* 11. Table + list rows ----------------------------------------------------
+   .nu-table: dense desktop data. Columns marked .nu-col-opt hide < 768px;
+   .nu-col-num right-aligns mono numerals. Rows are clickable when they carry
+   .is-clickable (give them tabindex=0 + role=button or wrap the name in <a>).
+   .nu-list: mobile-first stacked rows (player cell left, numbers right). */
+.nba-ui .nu-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--nu-r-lg); border: 1px solid var(--nu-line); background: var(--nu-s1); }
+.nba-ui .nu-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--nu-fs-sm); }
+.nba-ui .nu-table th {
+  position: sticky; top: 0; z-index: 1; background: var(--nu-s1);
+  padding: 10px 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--nu-line-2);
+  font-family: var(--nu-mono); font-size: var(--nu-fs-micro); font-weight: 500; letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-3);
+}
+.nba-ui .nu-table th button { all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; min-height: 24px; }
+.nba-ui .nu-table th button:focus-visible { box-shadow: var(--nu-ring); border-radius: 4px; }
+.nba-ui .nu-table th[aria-sort="ascending"], .nba-ui .nu-table th[aria-sort="descending"] { color: var(--nu-accent-2); }
+.nba-ui .nu-table th[aria-sort="ascending"] button::after { content: "▲"; font-size: 0.55rem; }
+.nba-ui .nu-table th[aria-sort="descending"] button::after { content: "▼"; font-size: 0.55rem; }
+.nba-ui .nu-table td { padding: 10px 12px; border-bottom: 1px solid var(--nu-line); vertical-align: middle; white-space: nowrap; }
+.nba-ui .nu-table tr:last-child td { border-bottom: 0; }
+.nba-ui .nu-table .nu-col-num { text-align: right; font-family: var(--nu-mono); font-variant-numeric: tabular-nums; }
+.nba-ui .nu-table .nu-col-name { width: 100%; max-width: 0; min-width: 160px; }
+.nba-ui .nu-table tbody tr { transition: background var(--nu-dur-1) var(--nu-ease); }
+.nba-ui .nu-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+.nba-ui .nu-table tbody tr.is-clickable { cursor: pointer; }
+.nba-ui .nu-table tbody tr.is-selected { background: var(--nu-accent-soft); box-shadow: inset 3px 0 0 var(--nba-400); }
+.nba-ui .nu-table tbody tr.is-gone { opacity: 0.38; }
+.nba-ui .nu-table tbody tr.is-gone .nu-player__name { text-decoration: line-through; text-decoration-color: var(--nu-text-3); }
+.nba-ui .nu-table--compact td { padding-top: 6px; padding-bottom: 6px; }
+@media (max-width: 767px) {
+  .nba-ui .nu-table .nu-col-opt { display: none; }
+  .nba-ui .nu-table th, .nba-ui .nu-table td { padding-left: 10px; padding-right: 10px; }
+}
+
+.nba-ui .nu-list { display: flex; flex-direction: column; background: var(--nu-s1); border: 1px solid var(--nu-line); border-radius: var(--nu-r-lg); overflow: hidden; }
+.nba-ui .nu-list--plain { background: none; border: 0; border-radius: 0; }
+.nba-ui .nu-row {
+  display: flex; align-items: center; gap: var(--nu-3); min-height: 60px; padding: 8px var(--nu-4);
+  border-bottom: 1px solid var(--nu-line); color: inherit; text-decoration: none; min-width: 0; background: none;
+  width: 100%; text-align: left; font: inherit; border-left: 0; border-right: 0; border-top: 0;
+  transition: background var(--nu-dur-1) var(--nu-ease);
+}
+.nba-ui .nu-row:last-child { border-bottom: 0; }
+.nba-ui .nu-row > .nu-player { flex: 1; }
+.nba-ui .nu-row__end { display: flex; align-items: center; gap: var(--nu-3); flex: none; text-align: right; }
+.nba-ui .nu-row__num { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-family: var(--nu-mono); font-variant-numeric: tabular-nums; }
+.nba-ui .nu-row__num b { font-size: 1rem; font-weight: 500; color: var(--nu-text); letter-spacing: -0.03em; }
+.nba-ui .nu-row__num small { font-size: var(--nu-fs-micro); color: var(--nu-text-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.nba-ui a.nu-row, .nba-ui button.nu-row, .nba-ui .nu-row.is-clickable { cursor: pointer; }
+.nba-ui a.nu-row:hover, .nba-ui button.nu-row:hover, .nba-ui .nu-row.is-clickable:hover { background: rgba(255,255,255,0.03); }
+.nba-ui a.nu-row:active, .nba-ui button.nu-row:active, .nba-ui .nu-row.is-clickable:active { background: rgba(255,255,255,0.05); }
+.nba-ui .nu-row.is-selected { background: var(--nu-accent-soft); box-shadow: inset 3px 0 0 var(--nba-400); }
+.nba-ui .nu-row:focus-visible { box-shadow: inset 0 0 0 2px var(--nba-400); border-radius: 0; }
+.nba-ui .nu-row--compact { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
+/* slot label column for lineup rows */
+.nba-ui .nu-slot { flex: none; width: 44px; display: flex; justify-content: center; }
+
+
+/* 12. Callouts, empty, skeleton, toast ------------------------------------- */
+.nba-ui .nu-callout {
+  --c: var(--nba-400); --bg: var(--nu-accent-soft);
+  display: flex; gap: var(--nu-3); align-items: flex-start; padding: 12px 14px; border-radius: var(--nu-r-md);
+  background: var(--bg); box-shadow: inset 3px 0 0 var(--c); font-size: var(--nu-fs-sm); line-height: 1.5; color: var(--nu-text-2);
+}
+.nba-ui .nu-callout b, .nba-ui .nu-callout strong { color: var(--nu-text); }
+.nba-ui .nu-callout > svg { width: 18px; height: 18px; flex: none; color: var(--c); margin-top: 1px; }
+.nba-ui .nu-callout--info { --c: var(--nu-info); --bg: var(--nu-info-soft); }
+.nba-ui .nu-callout--warn { --c: var(--nu-warn); --bg: var(--nu-warn-soft); }
+.nba-ui .nu-callout--error { --c: var(--nu-bad); --bg: var(--nu-bad-soft); }
+.nba-ui .nu-callout--success { --c: var(--nu-good); --bg: var(--nu-good-soft); }
+
+.nba-ui .nu-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--nu-2); padding: var(--nu-10) var(--nu-5); color: var(--nu-text-2); }
+.nba-ui .nu-empty .nu-ball { width: 40px; height: 40px; margin-bottom: var(--nu-2); opacity: 0.9; filter: drop-shadow(0 6px 18px rgba(247,113,31,0.35)); }
+.nba-ui .nu-empty__title { font-size: var(--nu-fs-h3); font-weight: 700; color: var(--nu-text); }
+.nba-ui .nu-empty__body { font-size: var(--nu-fs-sm); max-width: 40ch; line-height: 1.5; }
+.nba-ui .nu-empty .nu-btn { margin-top: var(--nu-3); }
+
+.nba-ui .nu-ball {
+  display: inline-block; width: 1em; height: 1em; border-radius: 50%; flex: none; vertical-align: -0.12em;
+  background:
+    radial-gradient(circle at -18% 50%, transparent 0 52%, var(--nba-ink) 52% 58%, transparent 58%),
+    radial-gradient(circle at 118% 50%, transparent 0 52%, var(--nba-ink) 52% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 47%, var(--nba-ink) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, var(--nba-ink) 47% 53%, transparent 53%),
+    radial-gradient(circle at 35% 30%, var(--nba-300), var(--nba-500) 60%, var(--nba-600));
+}
+
+.nba-ui .nu-skel {
+  display: block; border-radius: var(--nu-r-xs); min-height: 12px;
+  background: linear-gradient(90deg, var(--nu-s2) 0%, var(--nu-s3) 40%, var(--nu-s2) 80%) 0 0 / 300% 100%;
+  animation: nu-shimmer 1.4s linear infinite;
+}
+.nba-ui .nu-skel--circle { border-radius: 50%; }
+.nba-ui .nu-skel--text { height: 12px; width: 60%; }
+.nba-ui .nu-skel--title { height: 22px; width: 40%; border-radius: var(--nu-r-sm); }
+.nba-ui .nu-skel-row { display: flex; align-items: center; gap: var(--nu-3); min-height: 60px; padding: 8px var(--nu-4); border-bottom: 1px solid var(--nu-line); }
+.nba-ui .nu-skel-row:last-child { border-bottom: 0; }
+.nba-ui .nu-skel-row__text { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+
+.nba-ui .nu-toast-region {
+  position: fixed; z-index: var(--nu-z-toast); left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--nu-5) + var(--nu-safe-b)); display: flex; flex-direction: column; gap: var(--nu-2);
+  width: min(420px, calc(100vw - 32px)); pointer-events: none;
+}
+@media (max-width: 768px) { body.nba-ui.nu-has-tabbar .nu-toast-region { bottom: calc(var(--nu-tabbar-h) + var(--nu-3) + var(--nu-safe-b)); } }
+body.nba-ui.nu-has-actionbar .nu-toast-region { bottom: calc(var(--nu-tabbar-h) + 84px + var(--nu-safe-b)); }
+@media (min-width: 769px) { body.nba-ui.nu-has-actionbar .nu-toast-region { bottom: calc(96px + var(--nu-safe-b)); } }
+.nba-ui .nu-toast {
+  display: flex; align-items: center; gap: var(--nu-3); padding: 12px 14px; border-radius: var(--nu-r-md);
+  background: rgba(28,32,38,0.94); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border: 1px solid var(--nu-line-2); box-shadow: var(--nu-shadow-3); color: var(--nu-text); font-size: var(--nu-fs-sm); font-weight: 600;
+  pointer-events: auto; animation: nu-toast-in var(--nu-dur-3) var(--nu-ease-spring);
+}
+.nba-ui .nu-toast::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--nba-400); flex: none; }
+.nba-ui .nu-toast[data-tone="good"]::before { background: var(--nu-good); }
+.nba-ui .nu-toast[data-tone="bad"]::before { background: var(--nu-bad); }
+.nba-ui .nu-toast.is-leaving { opacity: 0; transform: translateY(8px); transition: opacity var(--nu-dur-2), transform var(--nu-dur-2); }
+.nba-ui .nu-toast__action { margin-left: auto; background: none; border: 0; color: var(--nba-300); font: inherit; font-weight: 700; cursor: pointer; min-height: 32px; padding: 0 4px; }
+
+
+/* 13. Sheet (bottom sheet on mobile, centered modal ≥769px) + action bar --- */
+.nba-ui .nu-sheet-backdrop {
+  position: fixed; inset: 0; z-index: var(--nu-z-sheet); background: rgba(0,0,0,0.6);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  opacity: 0; transition: opacity var(--nu-dur-3) var(--nu-ease);
+}
+.nba-ui .nu-sheet-backdrop.is-open { opacity: 1; }
+.nba-ui .nu-sheet {
+  position: fixed; z-index: calc(var(--nu-z-sheet) + 1); left: 0; right: 0; bottom: 0;
+  max-height: min(88vh, 88dvh); display: flex; flex-direction: column;
+  background: var(--nu-s2); border-radius: var(--nu-r-xl) var(--nu-r-xl) 0 0; border: 1px solid var(--nu-line-2); border-bottom: 0;
+  box-shadow: var(--nu-shadow-3); padding-bottom: var(--nu-safe-b);
+  transform: translateY(100%); transition: transform 420ms var(--nu-ease-spring); visibility: hidden;
+}
+.nba-ui .nu-sheet.is-open { transform: none; visibility: visible; }
+.nba-ui .nu-sheet:focus-visible, .nba-ui .nu-sheet:focus { outline: none; box-shadow: var(--nu-shadow-3); }
+.nba-ui .nu-sheet__grab { width: 36px; height: 5px; border-radius: 3px; background: var(--nu-line-3); margin: 8px auto 0; flex: none; }
+.nba-ui .nu-sheet__head { display: flex; align-items: center; gap: var(--nu-3); padding: var(--nu-3) var(--nu-5) var(--nu-3); border-bottom: 1px solid var(--nu-line); flex: none; }
+.nba-ui .nu-sheet__title { font-size: var(--nu-fs-h3); font-weight: 750; letter-spacing: -0.015em; flex: 1; min-width: 0; }
+.nba-ui .nu-sheet__body { padding: var(--nu-5); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
+.nba-ui .nu-sheet__foot { display: flex; gap: var(--nu-2); padding: var(--nu-3) var(--nu-5) var(--nu-4); border-top: 1px solid var(--nu-line); flex: none; }
+.nba-ui .nu-sheet__foot > .nu-btn { flex: 1; }
+@media (min-width: 769px) {
+  .nba-ui .nu-sheet {
+    left: 50%; right: auto; bottom: auto; top: 50%; width: min(560px, calc(100vw - 48px)); max-height: min(80vh, 760px);
+    border-radius: var(--nu-r-xl); border-bottom: 1px solid var(--nu-line-2); padding-bottom: 0;
+    transform: translate(-50%, -48%) scale(0.98); opacity: 0;
+    transition: transform var(--nu-dur-3) var(--nu-ease-spring), opacity var(--nu-dur-2) var(--nu-ease), visibility 0s linear var(--nu-dur-3);
+  }
+  .nba-ui .nu-sheet.is-open { transform: translate(-50%, -50%); opacity: 1; transition-delay: 0s; }
+  .nba-ui .nu-sheet--wide { width: min(880px, calc(100vw - 48px)); }
+  .nba-ui .nu-sheet__grab { display: none; }
+}
+body.nba-ui.nu-scroll-lock { overflow: hidden; }
+
+/* Sticky action bar for tool pages (Trade "Evaluate", Lineup "Apply").
+   Sits above the tab bar on mobile, floats bottom-center on desktop. */
+.nba-ui .nu-actionbar {
+  position: sticky; z-index: var(--nu-z-sticky); bottom: calc(var(--nu-3) + var(--nu-safe-b));
+  display: flex; align-items: center; gap: var(--nu-3); margin-top: var(--nu-5);
+  padding: 10px 10px 10px var(--nu-4); border-radius: var(--nu-r-lg);
+  background: rgba(21,24,28,0.88); -webkit-backdrop-filter: saturate(160%) blur(18px); backdrop-filter: saturate(160%) blur(18px);
+  border: 1px solid var(--nu-line-2); box-shadow: var(--nu-shadow-3);
+}
+.nba-ui .nu-actionbar__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nba-ui .nu-actionbar__info b { font-size: var(--nu-fs-body); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nba-ui .nu-actionbar__info span { font-size: var(--nu-fs-xs); color: var(--nu-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) {
+  body.nba-ui.nu-has-tabbar .nu-actionbar { bottom: calc(var(--nu-tabbar-h) + var(--nu-2) + var(--nu-safe-b)); }
+}
+
+
+/* 14. Motion + a11y preferences -------------------------------------------- */
+@keyframes nu-shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+@keyframes nu-spin { to { transform: rotate(360deg); } }
+@keyframes nu-pulse { 50% { opacity: 0.35; } }
+@keyframes nu-toast-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+@keyframes nu-rise { from { opacity: 0; transform: translateY(6px); } }
+/* opt-in entrance: add .nu-rise to list children; NbaUI sets --i for stagger */
+.nba-ui .nu-rise { animation: nu-rise 360ms var(--nu-ease) both; animation-delay: calc(min(var(--i, 0), 12) * 28ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nba-ui *, .nba-ui *::before, .nba-ui *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .nba-ui .nu-skel { animation: none; background: var(--nu-s3); }
+  .nba-ui .nu-btn:active, .nba-ui .nu-card--interactive:active { transform: none; }
+}
+@media (prefers-contrast: more) {
+  .nba-ui { --nu-line: rgba(255,255,255,0.2); --nu-line-2: rgba(255,255,255,0.35); --nu-text-2: #d1d5db; --nu-text-3: #b4bac4; }
+  .nba-ui .nu-page-head--court::before { display: none; }
+}
+@media (forced-colors: active) {
+  .nba-ui .nu-btn, .nba-ui .nu-chip, .nba-ui .nu-card { border: 1px solid CanvasText; }
+  .nba-ui .nu-chip[aria-pressed="true"], .nba-ui .nu-seg > button[aria-pressed="true"] { outline: 2px solid Highlight; }
+}

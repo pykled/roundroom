@@ -1,0 +1,1384 @@
+{
+ "summary": {
+  "n": 39,
+  "sleeperThumb": 32,
+  "sleeperFull": 32,
+  "espnIdMatched": 39,
+  "espn": 39,
+  "chain": 39,
+  "placeholderDups": {}
+ },
+ "sample": [
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Nikola Joki\u0107",
+   "team": "DEN",
+   "id": "1658",
+   "yahooPid": "5352",
+   "espnId": "3112335",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 54755,
+    "md5": "3c21739f"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 75511,
+    "md5": "8014cb21"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 191037,
+    "md5": "5209de1b"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7987,
+    "md5": "d24bcf95"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Victor Wembanyama",
+   "team": "SAS",
+   "id": "2577",
+   "yahooPid": "10094",
+   "espnId": "5104157",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 45835,
+    "md5": "4dc9df0d"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 63051,
+    "md5": "569e41c8"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 172579,
+    "md5": "700bb44a"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7449,
+    "md5": "56591cdf"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Luka Don\u010di\u0107",
+   "team": "LAL",
+   "id": "1970",
+   "yahooPid": "6014",
+   "espnId": "3945274",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 48239,
+    "md5": "8df40304"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 67211,
+    "md5": "bf9ff794"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 207727,
+    "md5": "ca29cd48"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7954,
+    "md5": "7b14890f"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Jalen Johnson",
+   "team": "ATL",
+   "id": "2284",
+   "yahooPid": "6562",
+   "espnId": "4701230",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 47269,
+    "md5": "8574ac82"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 64862,
+    "md5": "df134e87"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 225304,
+    "md5": "1f5d1225"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8486,
+    "md5": "fa8c5063"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Shai Gilgeous-Alexander",
+   "team": "OKC",
+   "id": "1957",
+   "yahooPid": "6022",
+   "espnId": "4278073",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 34550,
+    "md5": "0e6cbc8b"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 47200,
+    "md5": "2e2eebd8"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 195843,
+    "md5": "44d1759e"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7841,
+    "md5": "811ab4b8"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Giannis Antetokounmpo",
+   "team": "MIA",
+   "id": "1380",
+   "yahooPid": "5185",
+   "espnId": "3032977",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 44181,
+    "md5": "e27b9c0b"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 60668,
+    "md5": "4163303b"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 167814,
+    "md5": "8254f3a7"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7369,
+    "md5": "ff14e475"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Cade Cunningham",
+   "team": "DET",
+   "id": "2267",
+   "yahooPid": "6512",
+   "espnId": "4432166",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 48695,
+    "md5": "56c38176"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 68438,
+    "md5": "acabc5c5"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 266531,
+    "md5": "ad8e6a51"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 10126,
+    "md5": "8360beba"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Cooper Flagg",
+   "team": "DAL",
+   "id": "4760",
+   "yahooPid": "10468",
+   "espnId": "5041939",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 43820,
+    "md5": "67e8278d"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 59589,
+    "md5": "01cc28ee"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 162349,
+    "md5": "d9a16caa"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 6942,
+    "md5": "588aa7cd"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Alperen \u015eeng\u00fcn",
+   "team": "HOU",
+   "id": "2308",
+   "yahooPid": "6558",
+   "espnId": "4871144",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 43187,
+    "md5": "05c2d47b"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 59711,
+    "md5": "1f529cef"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 166300,
+    "md5": "e563ad05"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 6758,
+    "md5": "9973f7be"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "star",
+   "name": "Bam Adebayo",
+   "team": "MIA",
+   "id": "1846",
+   "yahooPid": "5827",
+   "espnId": "4066261",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 44664,
+    "md5": "66f5633a"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 60917,
+    "md5": "5bfb6314"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 139573,
+    "md5": "1472e430"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 6191,
+    "md5": "95b17e66"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "CJ McCollum",
+   "team": "ATL",
+   "id": "1450",
+   "yahooPid": "5161",
+   "espnId": "2490149",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 52515,
+    "md5": "99be389c"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 73050,
+    "md5": "47170098"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 212795,
+    "md5": "1f26844e"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8077,
+    "md5": "258e3d9c"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Brandin Podziemski",
+   "team": "GSW",
+   "id": "2564",
+   "yahooPid": "10115",
+   "espnId": "4709138",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 44738,
+    "md5": "2b05af97"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 61369,
+    "md5": "50e75032"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 185199,
+    "md5": "6d933894"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7866,
+    "md5": "2ec0554a"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Coby White",
+   "team": "CHA",
+   "id": "1998",
+   "yahooPid": "6169",
+   "espnId": "4395651",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 47069,
+    "md5": "5b675305"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 64834,
+    "md5": "e362a221"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 233488,
+    "md5": "9fa2278d"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9097,
+    "md5": "e2699f63"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Jalen Suggs",
+   "team": "ORL",
+   "id": "2305",
+   "yahooPid": "6516",
+   "espnId": "4432165",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 45059,
+    "md5": "7dcae905"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 63166,
+    "md5": "e9b21988"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 182937,
+    "md5": "4be08aae"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7225,
+    "md5": "a732fd9e"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Isaiah Hartenstein",
+   "team": "OKC",
+   "id": "1934",
+   "yahooPid": "5856",
+   "espnId": "4222252",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 34508,
+    "md5": "0468ec8e"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 47443,
+    "md5": "e7017a34"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 175955,
+    "md5": "add1b6a8"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7256,
+    "md5": "8c66181e"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Andrew Wiggins",
+   "team": "MIA",
+   "id": "1525",
+   "yahooPid": "5292",
+   "espnId": "3059319",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 40498,
+    "md5": "59c4f9ad"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 55884,
+    "md5": "038dff3a"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 169125,
+    "md5": "e3a51f1b"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7263,
+    "md5": "7b52b5d0"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Brandon Ingram",
+   "team": "LAC",
+   "id": "1698",
+   "yahooPid": "5601",
+   "espnId": "3913176",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 54678,
+    "md5": "6fc590b2"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 76554,
+    "md5": "58f6b6c1"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 203620,
+    "md5": "b10e7ee6"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7607,
+    "md5": "10d6578a"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Darryn Peterson",
+   "team": "UTA",
+   "id": "4882",
+   "yahooPid": "10590",
+   "espnId": "5041955",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 51890,
+    "md5": "f551eed7"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 71875,
+    "md5": "aa2b0108"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 200319,
+    "md5": "6be66973"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8247,
+    "md5": "617deae6"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "Jaden McDaniels",
+   "team": "MIN",
+   "id": "2135",
+   "yahooPid": "6420",
+   "espnId": "4431671",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 46362,
+    "md5": "6e8254d6"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 63517,
+    "md5": "6cfda689"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 174976,
+    "md5": "089a18fb"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7267,
+    "md5": "14f82873"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "role",
+   "name": "John Collins",
+   "team": "DET",
+   "id": "1809",
+   "yahooPid": "5832",
+   "espnId": "3908845",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 42866,
+    "md5": "adf3fef5"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 59572,
+    "md5": "7ef43dd8"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 187489,
+    "md5": "015761f4"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7329,
+    "md5": "3ff7bb56"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "deep",
+   "name": "Pete Nance",
+   "team": "MIL",
+   "id": "2657",
+   "yahooPid": "10168",
+   "espnId": "4397233",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 45973,
+    "md5": "05151575"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 62973,
+    "md5": "d781764d"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 171008,
+    "md5": "af7fabf8"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7562,
+    "md5": "76989431"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "deep",
+   "name": "Kennedy Chandler",
+   "team": "PHX",
+   "id": "2467",
+   "yahooPid": "6728",
+   "espnId": "4432646",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 48964,
+    "md5": "a5707761"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 67617,
+    "md5": "4b3eddc8"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 173414,
+    "md5": "612e01d0"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7077,
+    "md5": "a268ebac"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "deep",
+   "name": "Jordan Clarkson",
+   "team": "NYK",
+   "id": "1534",
+   "yahooPid": "5357",
+   "espnId": "2528426",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 48258,
+    "md5": "f0349538"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 67514,
+    "md5": "3ef20a4f"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 224571,
+    "md5": "b76f9f19"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8485,
+    "md5": "de3b9f73"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "deep",
+   "name": "Maxi Kleber",
+   "team": "LAL",
+   "id": "y5892",
+   "yahooPid": "5892",
+   "espnId": "2960236",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 238352,
+    "md5": "124f146a"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7549,
+    "md5": "9db789b6"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "deep",
+   "name": "Spencer Jones",
+   "team": "DEN",
+   "id": "2833",
+   "yahooPid": "10393",
+   "espnId": "4592427",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 44985,
+    "md5": "d3964629"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 61694,
+    "md5": "ce577f4d"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 206954,
+    "md5": "4ffd8d30"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8301,
+    "md5": "56d57e6b"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Cameron Boozer",
+   "team": "MEM",
+   "id": "4873",
+   "yahooPid": "10592",
+   "espnId": "5041935",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 44477,
+    "md5": "1394dc86"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 61745,
+    "md5": "370cedf1"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 203186,
+    "md5": "30f072e7"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8902,
+    "md5": "932b0160"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Caleb Wilson",
+   "team": "CHI",
+   "id": "4862",
+   "yahooPid": "10595",
+   "espnId": "5095151",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 48105,
+    "md5": "9da9a79c"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 66584,
+    "md5": "cf075f14"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 189926,
+    "md5": "37931bfd"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7563,
+    "md5": "97ee35f5"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Darryn Peterson",
+   "team": "UTA",
+   "id": "4882",
+   "yahooPid": "10590",
+   "espnId": "5041955",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 51890,
+    "md5": "f551eed7"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 71875,
+    "md5": "aa2b0108"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 200319,
+    "md5": "6be66973"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8247,
+    "md5": "617deae6"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "AJ Dybantsa",
+   "team": "WAS",
+   "id": "4866",
+   "yahooPid": "10599",
+   "espnId": "5142718",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 39158,
+    "md5": "9d1fce04"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 53860,
+    "md5": "c4736790"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 191069,
+    "md5": "ccce2bc3"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7304,
+    "md5": "30622714"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Darius Acuff",
+   "team": "SAC",
+   "id": "4891",
+   "yahooPid": "10582",
+   "espnId": "5142620",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 49513,
+    "md5": "3fe2d57e"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 68912,
+    "md5": "fe4430fa"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 177263,
+    "md5": "5702c287"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7140,
+    "md5": "c1e9cbb2"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Yaxel Lendeborg",
+   "team": "GSW",
+   "id": "4864",
+   "yahooPid": "10571",
+   "espnId": "5175737",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 46911,
+    "md5": "d2860335"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 64732,
+    "md5": "17ec7c65"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 230080,
+    "md5": "b9637fe6"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9471,
+    "md5": "2917671f"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Mikel Brown",
+   "team": "BKN",
+   "id": "4871",
+   "yahooPid": "10588",
+   "espnId": "5101761",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 50239,
+    "md5": "889ab76b"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 69151,
+    "md5": "bb9616ef"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 182956,
+    "md5": "eae5e035"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7616,
+    "md5": "4dd1716f"
+   }
+  },
+  {
+   "espnVia": "roster",
+   "cat": "rookie",
+   "name": "Morez Johnson",
+   "team": "DAL",
+   "id": "4885",
+   "yahooPid": "10572",
+   "espnId": "4873153",
+   "sleeperThumb": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 46125,
+    "md5": "ca632c2d"
+   },
+   "sleeperFull": {
+    "status": 200,
+    "type": "image/jpeg",
+    "bytes": 63462,
+    "md5": "27fa310c"
+   },
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 190194,
+    "md5": "6c0e6acc"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7708,
+    "md5": "7acfaad6"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "Russell Westbrook",
+   "team": "SAC",
+   "id": "y4390",
+   "yahooPid": "4390",
+   "espnId": "3468",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 286895,
+    "md5": "086012cd"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9837,
+    "md5": "5300e426"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "Jonas Valan\u010di\u016bnas",
+   "team": "DEN",
+   "id": "y4886",
+   "yahooPid": "4886",
+   "espnId": "6477",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 269119,
+    "md5": "16074e6b"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 8151,
+    "md5": "42fbf46f"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "David Roddy",
+   "team": "DEN",
+   "id": "y6713",
+   "yahooPid": "6713",
+   "espnId": "4593041",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 262845,
+    "md5": "ac0eb372"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9703,
+    "md5": "a40fc824"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "Kelly Olynyk",
+   "team": "SAS",
+   "id": "y5164",
+   "yahooPid": "5164",
+   "espnId": "2489663",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 254368,
+    "md5": "6dea9ff9"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 7948,
+    "md5": "d055069c"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "Cameron Payne",
+   "team": "PHI",
+   "id": "y5474",
+   "yahooPid": "5474",
+   "espnId": "3064230",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 226126,
+    "md5": "0c711bc9"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9500,
+    "md5": "87b66db8"
+   }
+  },
+  {
+   "espnVia": "search",
+   "cat": "yahoo-only",
+   "name": "D'Angelo Russell",
+   "team": "MEM",
+   "id": "y5433",
+   "yahooPid": "5433",
+   "espnId": "3136776",
+   "sleeperThumb": null,
+   "sleeperFull": null,
+   "espn": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 232142,
+    "md5": "2dc85e94"
+   },
+   "espnSmall": {
+    "status": 200,
+    "type": "image/png",
+    "bytes": 9200,
+    "md5": "79f97311"
+   }
+  }
+ ],
+ "logos": {
+  "ATL": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "BKN": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "BOS": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "CHA": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "CHI": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "CLE": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "DAL": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "DEN": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "DET": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "GSW": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "HOU": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "IND": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "LAC": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "LAL": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "MEM": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "MIA": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "MIL": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "MIN": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "NOP": {
+   "espn": 404,
+   "sleeper": 200
+  },
+  "NYK": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "OKC": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "ORL": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "PHI": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "PHX": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "POR": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "SAC": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "SAS": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "TOR": {
+   "espn": 200,
+   "sleeper": 200
+  },
+  "UTA": {
+   "espn": 404,
+   "sleeper": 200
+  },
+  "WAS": {
+   "espn": 200,
+   "sleeper": 200
+  }
+ },
+ "espnTeamIds": {
+  "ATL": "1",
+  "BOS": "2",
+  "BKN": "17",
+  "CHA": "30",
+  "CHI": "4",
+  "CLE": "5",
+  "DAL": "6",
+  "DEN": "7",
+  "DET": "8",
+  "GS": "9",
+  "HOU": "10",
+  "IND": "11",
+  "LAC": "12",
+  "LAL": "13",
+  "MEM": "29",
+  "MIA": "14",
+  "MIL": "15",
+  "MIN": "16",
+  "NO": "3",
+  "NY": "18",
+  "OKC": "25",
+  "ORL": "19",
+  "PHI": "20",
+  "PHX": "21",
+  "POR": "22",
+  "SAC": "23",
+  "SA": "24",
+  "TOR": "28",
+  "UTAH": "26",
+  "WSH": "27"
+ }
+}
