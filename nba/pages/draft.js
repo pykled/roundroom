@@ -12,7 +12,6 @@
   var $ = function (id) { return document.getElementById(id); };
   var LEAGUE_PREF = 'pocket-nba-league';
   var TIMER_PREF = 'pocket-nba-pick-timer';      // user's pick-timer seconds ('' = use league / default)
-  var TIMER_RUN = 'pocket-nba-pick-timer-run';   // sessionStorage: [{leagueKey, pick, startedAt}] of recent running clocks
   var FIRSTRUN_PREF = 'pocket-nba-firstrun-done';
   var SORT_PREF = 'pocket-nba-board-sort';
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -32,8 +31,9 @@
     leagueMode: null, pickerOpen: false, yahooProblem: null, support: { recos: true, kind: null, label: '' },
     // slot picker hold (no chip flash while Yahoo may still supply the slot)
     statusResolved: false, bootAt: Date.now(), maybeYahoo: false, leagueReady: true, leagueLoadAt: 0, slotHoldTimer: null,
-    // pick timer: restarts whenever the pick on the clock changes
-    timer: { pick: null, startedAt: 0, beeped: false },
+    // pick timer: restarts whenever the pick on the clock changes (unless paused).
+    // lk = league the clock belongs to; saved per league (L.clockKey).
+    timer: { lk: undefined, pick: null, startedAt: 0, pausedLeft: null, beeped: false },
     // ui
     pos: 'ALL', q: '', showTaken: false, tierMax: 0, hideOut: false, sort: 'rank', view: 'board', sheetId: null, matching: null, slotOpen: false, pulse: [],
     merged: { picks: [], unmatched: [], confirmedManual: [] }, lastYahooCount: -1
@@ -733,42 +733,109 @@
     return L.profilePickSeconds(S.profile);
   }
   function renderTimer(ci) {
-    var el = $('nd-timer'), mb = $('nd-mb-timer'); if (!el) return;
+    var el = $('nd-timer'), mb = $('nd-mb-timer'), pause = $('nd-pause'); if (!el) return;
     var yStatus = S.state.yahoo && S.state.yahoo.status;
     // Yahoo says predraft: quiet even with keepers on the board, unless the
     // user is already marking picks by hand.
     var off = S.auction || ci.done || !timerSeconds() ||
       (liveYahoo() && yStatus === 'predraft' && !S.merged.picks.some(function (p) { return p.source === 'manual'; }));
-    if (off) { el.hidden = true; mb.hidden = true; document.title = baseTitle; return; }
+    if (off) { el.hidden = true; mb.hidden = true; pause.hidden = true; document.title = baseTitle; return; }
     // Restart when the pick on the clock changes. Manual board, first pick:
     // idle until the user taps the timer (we can't know when the draft starts).
-    // A reload keeps the running clock for the same league + pick.
-    if (S.timer.pick !== ci.cur) {
-      var first = S.timer.pick === null, now = Date.now(), saved = null;
-      try { saved = JSON.parse(sessionStorage.getItem(TIMER_RUN) || 'null'); } catch (e) {}
-      S.timer.pick = ci.cur; S.timer.beeped = false;
-      S.timer.startedAt = L.restoreTimerStart(saved, S.leagueKey, ci.cur, now, timerSeconds()) ||
-        (first && !S.merged.picks.length ? 0 : now);
-      saveTimerRun();
+    // A reload / another tab keeps the clock for the same league + pick, and a
+    // paused clock stays paused across picks until Resume.
+    if (S.timer.pick !== ci.cur || S.timer.lk !== S.leagueKey) {
+      var first = S.timer.pick === null || S.timer.lk !== S.leagueKey, now = Date.now(), secs = timerSeconds();
+      var c = L.restoreClock(readClock(), S.leagueKey, ci.cur, secs, now) ||
+        (!first && L.isPaused(S.timer) ? L.advanceClock(S.timer, ci.cur, secs, now) : null) ||
+        (first && !S.merged.picks.length ? L.newClock(ci.cur) : L.advanceClock(null, ci.cur, secs, now));
+      S.timer.lk = S.leagueKey; S.timer.beeped = false;
+      setClock(c);
     }
-    var t = L.timerState(S.timer.startedAt, timerSeconds(), Date.now());
+    var t = L.clockView(S.timer, timerSeconds(), Date.now());
     el.hidden = false;
     el.className = 'nd-timer ' + t.level + (ci.onMe ? ' me' : '');
     el.querySelector('.t').textContent = t.level === 'idle' ? '▶ ' + t.text : t.text;
-    el.setAttribute('aria-label', t.level === 'idle' ? 'Start the ' + timerSeconds() + ' second pick timer' : (ci.onMe ? 'Your pick: ' : clockTeamName(ci) + ': ') + t.left + ' seconds left. Tap to restart.');
-    el.querySelector('.w').textContent = ci.onMe ? 'Your pick' : t.level === 'idle' ? 'Pick clock' : clockTeamName(ci);
+    el.setAttribute('aria-label', t.paused ? 'Pick clock paused with ' + t.left + ' seconds left. Tap to resume.'
+      : t.level === 'idle' ? 'Start the ' + timerSeconds() + ' second pick timer' : (ci.onMe ? 'Your pick: ' : clockTeamName(ci) + ': ') + t.left + ' seconds left. Tap to restart.');
+    el.querySelector('.w').textContent = t.paused ? 'Paused' : ci.onMe ? 'Your pick' : t.level === 'idle' ? 'Pick clock' : clockTeamName(ci);
+    pause.hidden = t.level === 'idle';
+    if (pause._paused !== t.paused) {
+      pause._paused = t.paused;
+      pause.innerHTML = (t.paused ? ICON_PLAY : ICON_PAUSE) + '<span class="lbl-txt">' + (t.paused ? 'Resume' : 'Pause') + '</span>';
+      pause.setAttribute('aria-label', t.paused ? 'Resume pick clock' : 'Pause pick clock');
+      pause.setAttribute('aria-pressed', String(t.paused));
+    }
     mb.hidden = !(ci.onMe && t.level !== 'idle');
     mb.className = 'nd-mb-timer nu-num ' + t.level;
-    mb.textContent = t.text;
+    mb.textContent = t.paused ? 'Paused ' + t.text : t.text;
     // Loud for me: tab title countdown + one beep/vibration at 10s.
-    document.title = ci.onMe && t.running ? '⏰ ' + t.text + ' · Your pick — ' + baseTitle : baseTitle;
+    document.title = ci.onMe && t.running ? '⏰ ' + t.text + ' · Your pick — ' + baseTitle : ci.onMe && t.paused ? 'Paused · Your pick — ' + baseTitle : baseTitle;
     if (ci.onMe && t.running && t.left <= 10 && !S.timer.beeped) { S.timer.beeped = true; alertMe(); }
   }
-  function saveTimerRun() {
-    try {
-      var saved = JSON.parse(sessionStorage.getItem(TIMER_RUN) || 'null');
-      sessionStorage.setItem(TIMER_RUN, JSON.stringify(L.rememberTimerStart(saved, S.leagueKey, S.timer.pick, S.timer.startedAt)));
-    } catch (e) {}
+  var ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg>';
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5A.8.8 0 0 0 8 5.2Z"/></svg>';
+  function readClock() { try { return localStorage.getItem(L.clockKey(S.leagueKey)); } catch (e) { return null; } }
+  function curClock() { return { pick: S.timer.pick, startedAt: S.timer.startedAt, pausedLeft: S.timer.pausedLeft }; }
+  // Adopt a clock and save it for this league (reloads + other tabs read it).
+  function setClock(c, opts) {
+    S.timer.pick = c.pick; S.timer.startedAt = c.startedAt || 0; S.timer.pausedLeft = L.isPaused(c) ? c.pausedLeft : null;
+    if (opts && opts.noSave) return;
+    try { localStorage.setItem(L.clockKey(S.leagueKey), L.serializeClock(S.timer, S.leagueKey)); } catch (e) { /* private mode: in-memory only */ }
+  }
+  function togglePause() {
+    var now = Date.now(), paused = L.isPaused(S.timer);
+    setClock(paused ? L.resumeClock(curClock(), timerSeconds(), now) : L.pauseClock(curClock(), timerSeconds(), now));
+    renderTimer(clockInfo());
+  }
+  function restartClock() {
+    S.timer.beeped = false;
+    setClock(L.resetClock(curClock(), timerSeconds(), Date.now()));
+    renderTimer(clockInfo());
+  }
+  // Another tab changed this league's clock: adopt it without re-saving.
+  function syncClockFromStorage() {
+    var ci = clockInfo(), c = L.restoreClock(readClock(), S.leagueKey, ci.cur, timerSeconds(), Date.now());
+    if (!c) return;
+    if (c.startedAt !== S.timer.startedAt) S.timer.beeped = false;
+    S.timer.lk = S.leagueKey; setClock(c, { noSave: true }); renderTimer(ci);
+  }
+
+  /* Reset menu: Reset Clock (this pick, full time) / Reset Draft (confirm with
+     the pick count, then an Undo toast). */
+  function openResetSheet() {
+    var n = L.resetDraftCount(S.state), paused = L.isPaused(S.timer), secs = timerSeconds();
+    S.resetConfirm = false;
+    $('nd-rs-clock').disabled = !secs || $('nd-timer').hidden;
+    $('nd-rs-clock-sub').textContent = !secs ? 'Pick timer is off (League Settings)' : $('nd-timer').hidden ? 'No pick on the clock' :
+      'Back to ' + fmtSecs(secs) + ' for pick #' + clockInfo().cur + (paused ? ', stays paused' : '');
+    $('nd-rs-draft').disabled = !n;
+    $('nd-rs-draft-sub').textContent = n ? 'Clears ' + n + ' recorded pick' + (n === 1 ? '' : 's') + ', back to pick 1. Keeps your slot and settings.' : 'No picks recorded on this device yet';
+    renderResetConfirm();
+    U.sheet.open('nd-reset-sheet', { initialFocus: '#nd-rs-clock:not([disabled]), #nd-rs-cancel', onClose: function () { S.resetConfirm = false; } });
+  }
+  function fmtSecs(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function renderResetConfirm() {
+    var n = L.resetDraftCount(S.state), on = !!S.resetConfirm;
+    $('nd-rs-opts').hidden = on;
+    $('nd-rs-confirm').hidden = !on;
+    if (on) {
+      $('nd-rs-confirm-txt').textContent = 'Clear all ' + n + ' recorded pick' + (n === 1 ? '' : 's') + ' and go back to pick 1?';
+      $('nd-rs-go').textContent = 'Clear ' + n + ' Pick' + (n === 1 ? '' : 's');
+    }
+  }
+  function resetDraft() {
+    var r = L.resetDraftState(S.state), prevClock = curClock(), lk = S.leagueKey;
+    if (!r.cleared) return;
+    S.state = r.state;
+    setClock(L.newClock(1)); S.timer.lk = S.leagueKey; S.timer.beeped = false; // fresh board: idle until tapped
+    save(); recompute(); render();
+    toast('Draft reset: ' + r.cleared + ' pick' + (r.cleared === 1 ? '' : 's') + ' cleared', { timeout: 6000, action: { label: 'Undo', onClick: function () {
+      if (S.leagueKey !== lk || S.state.manual.length) return; // switched league or already drafting again
+      S.state = L.undoResetDraft(S.state, r.undo);
+      setClock(prevClock);
+      save(); recompute(); render(); toast('Draft restored', { tone: 'good' });
+    } } });
   }
   var baseTitle = document.title, audioCtx = null, userGestured = false;
   document.addEventListener('pointerdown', function () { userGestured = true; }, { once: true, capture: true });
@@ -959,7 +1026,8 @@
     } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value }));
     if (!f.mySlot.disabled) S.state.slotChosen = true;
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
-    S.timer.startedAt = S.timer.startedAt ? Date.now() : 0; S.timer.beeped = false; saveTimerRun();
+    S.timer.beeped = false;
+    if (S.timer.startedAt || L.isPaused(S.timer)) setClock(L.resetClock(curClock(), timerSeconds(), Date.now())); // new pick time applies now
     U.sheet.close();
     save(); recompute(); render(); toast('League settings saved', { tone: 'good' });
   }
@@ -1204,11 +1272,14 @@
     $('nd-slot-edit').onclick = openSettings;
     $('nd-about-btn').onclick = function () { U.sheet.open('nd-about'); };
     $('nd-settings-form').addEventListener('submit', function (e) { e.preventDefault(); onSettingsSave(); });
-    $('nd-reset').onclick = function () {
-      if (!confirm('Clear every pick marked on this device for this league?')) return;
-      S.state.manual = []; S.state.overrides = {}; save(); recompute(); render();
-      U.sheet.close(); toast('Draft reset');
-    };
+    // League Settings' Reset Draft opens the same reset menu.
+    $('nd-reset').onclick = openResetSheet;
+    $('nd-reset-btn').onclick = openResetSheet;
+    $('nd-pause').onclick = togglePause;
+    $('nd-rs-clock').onclick = function () { U.sheet.close(); restartClock(); toast(L.isPaused(S.timer) ? 'Clock reset (still paused)' : 'Clock reset'); };
+    $('nd-rs-draft').onclick = function () { S.resetConfirm = true; renderResetConfirm(); $('nd-rs-back').focus(); };
+    $('nd-rs-back').onclick = function () { S.resetConfirm = false; renderResetConfirm(); $('nd-rs-draft').focus(); };
+    $('nd-rs-go').onclick = function () { U.sheet.close(); resetDraft(); };
     $('nd-league').onchange = function () {
       chooseLeague(this.value || null);
     };
@@ -1225,7 +1296,8 @@
       var k = e.detail.leagueKey || '';
       if ((k || null) !== S.leagueKey || S.leagueMode === 'pick') chooseLeague(k || null);
     });
-    $('nd-timer').onclick = function () { S.timer.startedAt = Date.now(); S.timer.beeped = false; saveTimerRun(); renderTimer(clockInfo()); };
+    // Idle: start. Paused: resume. Running: restart (as before).
+    $('nd-timer').onclick = function () { if (L.isPaused(S.timer)) togglePause(); else restartClock(); };
     $('nd-fr-manual').onclick = function () { dismissFirstRun(); toast('Manual board: tap Draft as picks happen'); };
     $('nd-fr-close').onclick = function () { dismissFirstRun(); };
     $('nd-fr-connect').onclick = function (e) {
@@ -1247,6 +1319,7 @@
     // Another tab drafting the same league → pick it up.
     window.addEventListener('storage', function (e) {
       if (e.key === L.storageKey(S.state.leagueKey)) { load(S.state.leagueKey, S.state.settings); recompute(); render(); }
+      else if (e.key === L.clockKey(S.leagueKey)) syncClockFromStorage();
     });
     // Sticky offsets follow the real nav / clock heights.
     var setOffsets = function () {

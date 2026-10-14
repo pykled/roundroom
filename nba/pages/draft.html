@@ -104,6 +104,14 @@
     <div class="nd-ticker" id="nd-ticker" aria-hidden="true"></div>
     <div class="nd-clock__ctl">
       <button id="nd-timer" class="nd-timer" type="button" hidden><span class="w"></span><span class="t">1:30</span></button>
+      <button id="nd-pause" class="nu-btn nu-btn--sm nd-pause" type="button" aria-label="Pause pick clock" aria-pressed="false" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg><span class="lbl-txt">Pause</span>
+      </button>
+    </div>
+    <div class="nd-clock__ctl2">
+      <button id="nd-reset-btn" class="nu-btn nu-btn--sm nu-btn--ghost nd-resetbtn" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl-txt">Reset</span>
+      </button>
       <button id="nd-undo" class="nu-btn nu-btn--sm nd-undo" type="button" aria-label="Undo last pick" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg><span class="lbl-txt">Undo</span>
       </button>
@@ -223,6 +231,28 @@
   </form>
 </div>
 
+<!-- Reset menu: clock or whole draft (draft needs a confirm step) -->
+<div class="nu-sheet nd-rsheet" id="nd-reset-sheet" role="dialog" aria-modal="true" aria-labelledby="nd-rs-h" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="nd-rs-h">Reset</h2>
+    <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="nu-sheet__body">
+    <div class="nd-rs-opts" id="nd-rs-opts">
+      <button type="button" class="nd-rs-opt" id="nd-rs-clock"><span class="nd-rs-opt__t">Reset Clock</span><span class="nd-rs-opt__s" id="nd-rs-clock-sub"></span></button>
+      <button type="button" class="nd-rs-opt nd-rs-opt--danger" id="nd-rs-draft"><span class="nd-rs-opt__t">Reset Draft</span><span class="nd-rs-opt__s" id="nd-rs-draft-sub"></span></button>
+      <button type="button" class="nu-btn nu-btn--ghost nu-btn--block" id="nd-rs-cancel" data-nu-close>Cancel</button>
+    </div>
+    <div class="nd-rs-confirm" id="nd-rs-confirm" role="alertdialog" aria-labelledby="nd-rs-confirm-txt" hidden>
+      <p class="nd-rs-confirm__txt" id="nd-rs-confirm-txt"></p>
+      <p class="nu-hint">Your draft slot, league settings and other leagues’ boards stay as they are.</p>
+      <div class="nd-rs-confirm__btns">
+        <button type="button" class="nu-btn" id="nd-rs-back">Cancel</button>
+        <button type="button" class="nu-btn nu-btn--danger" id="nd-rs-go">Clear Picks</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- How it works -->
 <div class="nu-sheet" id="nd-about" role="dialog" aria-modal="true" aria-labelledby="nd-about-h" hidden>
   <div class="nu-sheet__grab" aria-hidden="true"></div>
@@ -233,7 +263,7 @@
       <li><span><b>Set your draft slot.</b> Tap <b>League</b> and enter the number of teams and where you pick. With Yahoo connected, your league fills this in for you.</span></li>
       <li><span><b>Tap every pick.</b> When anyone takes a player, find him (search or the position chips) and tap <b>Draft</b>. Tapped the wrong one? <b>Undo</b> takes back the last pick.</span></li>
       <li><span><b>Yahoo live sync or manual.</b> Connected to Yahoo, picks fill in by themselves every few seconds (read-only: Pocket can’t draft for you). Manual board: you tap each pick, and it’s saved on this device.</span></li>
-      <li><span><b>Watch the clock bar.</b> It shows the round, the pick, who’s up and how many picks until yours. It turns orange when you’re on the clock. Yahoo’s draft room is the official timer.</span></li>
+      <li><span><b>Watch the clock bar.</b> It shows the round, the pick, who’s up and how many picks until yours. It turns orange when you’re on the clock. <b>Pause</b> stops the pick timer (picks you mark stay paused until <b>Resume</b>); <b>Reset</b> restarts the timer or clears the draft. Yahoo’s draft room is the official timer.</span></li>
       <li><span><b>Use the top pick card.</b> It suggests the best player for your open lineup spots, ranked by his expected best game of the week, the only game High Score counts. Tap a name for details.</span></li>
     </ol>
     <p class="nu-hint nd-about-foot">Values use your league’s scoring and roster slots. Players drafted by anyone leave the board. Shortcuts: <span class="nu-kbd">/</span> search · <span class="nu-kbd">c</span> cheat sheet · <span class="nu-kbd">⌘Z</span> undo.</p>

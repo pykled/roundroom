@@ -90,7 +90,7 @@
 /* ── Draft clock (sticky) ─────────────────────────────────────────────── */
 .nd-page .nd-clock {
   position: sticky; top: var(--nd-nav-h); z-index: 30;
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "num otc ctl" "num tl ctl";
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "num otc ctl ctl2" "num tl ctl ctl2";
   align-items: center; column-gap: var(--nu-4); row-gap: 6px;
   margin: 0 0 var(--nd-gap); padding: 10px 10px 10px 16px; border-radius: var(--nu-r-lg);
   background: rgba(15,17,20,0.86); -webkit-backdrop-filter: saturate(160%) blur(18px); backdrop-filter: saturate(160%) blur(18px);
@@ -111,6 +111,24 @@
 .nd-page .nd-clock.mine .nd-otc__who { color: var(--nba-300); }
 .nd-page .nd-clock__ctl { grid-area: ctl; display: flex; align-items: center; gap: var(--nu-2); }
 .nd-page .nd-undo svg { width: 17px; height: 17px; }
+.nd-page .nd-clock__ctl2 { grid-area: ctl2; display: flex; align-items: center; gap: var(--nu-2); }
+.nd-page .nd-pause, .nd-page .nd-resetbtn { min-height: 44px; gap: 6px; }
+.nd-page .nd-pause { min-width: 104px; }
+.nd-page .nd-pause svg, .nd-page .nd-resetbtn svg { width: 16px; height: 16px; flex: none; }
+.nd-page .nd-pause[aria-pressed="true"] { border-color: var(--nu-accent-line); background: var(--nu-accent-soft); color: var(--nba-300); }
+.nd-page .nd-resetbtn { color: var(--nu-text-2); }
+
+/* reset menu */
+.nd-page .nd-rs-opts { display: grid; gap: var(--nu-2); }
+.nd-page .nd-rs-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 56px; padding: 10px 14px; text-align: left; border-radius: var(--nu-r-md); border: 1px solid var(--nu-line-2); background: var(--nu-s2); color: var(--nu-text); cursor: pointer; font: inherit; }
+.nd-page .nd-rs-opt:hover:not(:disabled) { border-color: var(--nu-line-3); }
+.nd-page .nd-rs-opt:disabled { opacity: 0.5; cursor: not-allowed; }
+.nd-page .nd-rs-opt__t { font-weight: 700; }
+.nd-page .nd-rs-opt__s { font-size: var(--nu-fs-sm); color: var(--nu-text-2); }
+.nd-page .nd-rs-opt--danger .nd-rs-opt__t { color: var(--nu-bad); }
+.nd-page .nd-rs-confirm__txt { font-weight: 700; margin: 0 0 var(--nu-2); }
+.nd-page .nd-rs-confirm__btns { display: flex; gap: var(--nu-2); margin-top: var(--nu-4); }
+.nd-page .nd-rs-confirm__btns > .nu-btn { flex: 1; min-height: 44px; }
 
 /* timeline: one dot per upcoming pick, my picks as labelled pills */
 .nd-page .nd-ticker { grid-area: tl; min-width: 0; overflow: hidden; }
@@ -132,6 +150,10 @@
 .nd-page .nd-timer.me .t { font-size: 22px; color: var(--nba-300); }
 .nd-page .nd-timer.me.urgent { border-color: var(--nu-bad); background: var(--nu-bad-soft); animation: nd-urgent 1s steps(2, start) infinite; }
 .nd-page .nd-timer.me.urgent .t, .nd-page .nd-timer.me.expired .t { color: var(--nu-bad); }
+.nd-page .nd-timer.paused { border-style: dashed; }
+.nd-page .nd-timer.paused .w { color: var(--nba-300); }
+.nd-page .nd-timer.paused .t { color: var(--nu-text-3); }
+.nd-page .nd-mb-timer.paused { color: var(--nu-text-3); font-size: 15px; }
 @keyframes nd-urgent { 50% { background: rgba(248,113,113,0.28); } }
 
 /* ── Layout ───────────────────────────────────────────────────────────── */
@@ -470,7 +492,7 @@
   .nd-page .nd-setup__opts { grid-template-columns: 1fr; gap: var(--nu-3); }
   .nd-page .nd-setup__opt + .nd-setup__opt { padding-left: 0; border-left: 0; padding-top: var(--nu-3); border-top: 1px solid var(--nu-line); }
 
-  .nd-page .nd-clock { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "num otc ctl" "tl tl tl"; padding: 8px 8px 8px 12px; column-gap: 12px; margin-left: -6px; margin-right: -6px; }
+  .nd-page .nd-clock { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "num otc ctl" "tl tl ctl2"; padding: 8px 8px 8px 12px; column-gap: 12px; margin-left: -6px; margin-right: -6px; }
   .nd-page .nd-clock__num { gap: 10px; padding-right: 12px; }
   .nd-page .nd-clock__big { font-size: 22px; }
   .nd-page .nd-otc { flex-direction: column; align-items: flex-start; gap: 1px; }
@@ -486,6 +508,12 @@
   .nd-page .nd-degraded .nu-btn { margin-left: 30px; }
   .nd-page .nd-timer { min-width: 60px; padding: 0 6px; }
   .nd-page .nd-timer .w { display: none; }
+  .nd-page .nd-timer.paused .w { display: block; }
+  .nd-page .nd-pause { min-width: 0; width: 44px; padding: 0; }
+  .nd-page .nd-pause .lbl-txt { display: none; }
+  /* row 2 on phones: timeline, then Reset + Undo (36px visual, 44px hit area) */
+  .nd-page .nd-clock__ctl2 .nu-btn { min-height: 36px; }
+  .nd-page .nd-resetbtn { padding: 0 10px; }
   .nd-page .nd-timer.me { min-width: 70px; }
   .nd-page .nd-timer.me .t { font-size: 18px; }
   .nd-page .nd-undo { width: 40px; padding: 0; }

@@ -921,6 +921,88 @@
   }
   function fmtClock(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
+  /* ------------------------------------------- pick clock: pause + reset */
+  // One clock per league board: { pick, startedAt, pausedLeft }. pausedLeft
+  // (ms) set = paused; startedAt 0 and not paused = idle (tap to start).
+  // Saved in localStorage per league so a reload, or another tab on the same
+  // board, sees the same clock (paused stays paused, never silently resumes).
+  var CLOCK_PREFIX = 'pocket-nba-clock:';
+  function clockKey(leagueKey) { return CLOCK_PREFIX + (leagueKey || 'manual'); }
+  function newClock(pick) { return { pick: pick, startedAt: 0, pausedLeft: null }; }
+  function isPaused(c) { return !!c && typeof c.pausedLeft === 'number' && isFinite(c.pausedLeft); }
+  function clockLeftMs(c, seconds, now) {
+    var full = normalizeTimerSeconds(seconds) * 1000;
+    if (!c) return full;
+    if (isPaused(c)) return Math.max(0, Math.min(full, c.pausedLeft));
+    if (!c.startedAt) return full;
+    return Math.max(0, Math.min(full, c.startedAt + full - now));
+  }
+  // Freeze the time left (an idle clock pauses at the full pick time).
+  function pauseClock(c, seconds, now) {
+    if (isPaused(c)) return c;
+    return { pick: c ? c.pick : null, startedAt: 0, pausedLeft: clockLeftMs(c, seconds, now) };
+  }
+  // Run on from where it was paused.
+  function resumeClock(c, seconds, now) {
+    if (!isPaused(c)) return c;
+    var full = normalizeTimerSeconds(seconds) * 1000;
+    return { pick: c.pick, startedAt: now - (full - clockLeftMs(c, seconds, now)), pausedLeft: null };
+  }
+  // Full pick time again. Paused stays paused (at the full time); else runs from now.
+  function resetClock(c, seconds, now) {
+    if (isPaused(c)) return { pick: c.pick, startedAt: 0, pausedLeft: normalizeTimerSeconds(seconds) * 1000 };
+    return { pick: c ? c.pick : null, startedAt: now, pausedLeft: null };
+  }
+  // The pick on the clock changed. A paused clock stays paused (full time for
+  // the new pick, so recording picks while paused never starts the clock);
+  // otherwise the new pick's clock starts now.
+  function advanceClock(c, pick, seconds, now) {
+    if (c && c.pick === pick) return c;
+    if (isPaused(c)) return { pick: pick, startedAt: 0, pausedLeft: normalizeTimerSeconds(seconds) * 1000 };
+    return { pick: pick, startedAt: now, pausedLeft: null };
+  }
+  // timerState plus the paused state: { paused, running, left, level, text }.
+  function clockView(c, seconds, now) {
+    if (isPaused(c) && normalizeTimerSeconds(seconds)) {
+      var left = Math.ceil(clockLeftMs(c, seconds, now) / 1000);
+      return { paused: true, running: false, left: left, level: 'paused', text: fmtClock(left) };
+    }
+    return Object.assign({ paused: false }, timerState(c ? c.startedAt : 0, seconds, now));
+  }
+  function serializeClock(c, leagueKey) {
+    return JSON.stringify({ v: 1, leagueKey: leagueKey || null, pick: c.pick, startedAt: c.startedAt || 0, pausedLeft: isPaused(c) ? Math.max(0, Math.round(c.pausedLeft)) : null });
+  }
+  // Clock for `pick` from a saved record, or null (caller starts / idles it).
+  // Paused: same pick keeps its time left; another pick (recorded while paused,
+  // here or in another tab) is paused at the full time. Running: same pick
+  // only, and only while plausible (restoreTimerStart's stale rule).
+  function restoreClock(raw, leagueKey, pick, seconds, now) {
+    var o = raw;
+    if (typeof raw === 'string') { try { o = JSON.parse(raw); } catch (e) { return null; } }
+    if (!o || typeof o !== 'object' || o.v !== 1 || (o.leagueKey || null) !== (leagueKey || null)) return null;
+    if (isPaused(o)) {
+      if (o.pick === pick) return { pick: pick, startedAt: 0, pausedLeft: clockLeftMs(o, seconds, now) };
+      return { pick: pick, startedAt: 0, pausedLeft: normalizeTimerSeconds(seconds) * 1000 };
+    }
+    if (o.pick !== pick) return null;
+    if (!o.startedAt) return newClock(pick);
+    var t = restoreTimerStart({ leagueKey: leagueKey || null, pick: pick, startedAt: o.startedAt }, leagueKey, pick, now, seconds);
+    return t ? { pick: pick, startedAt: t, pausedLeft: null } : null;
+  }
+
+  /* Reset Draft: clears the picks marked on this device (and Yahoo-match
+     overrides, as the old reset did) for this league only. Settings, slot,
+     Yahoo picks and the league key stay. { state, cleared, undo }. */
+  function resetDraftCount(st) { return st && Array.isArray(st.manual) ? st.manual.length : 0; }
+  function resetDraftState(st, now) {
+    var undo = { manual: (st.manual || []).slice(), overrides: Object.assign({}, st.overrides || {}) };
+    return { state: Object.assign({}, st, { manual: [], overrides: {}, updatedAt: now || Date.now() }), cleared: undo.manual.length, undo: undo };
+  }
+  function undoResetDraft(st, undo, now) {
+    if (!undo) return st;
+    return Object.assign({}, st, { manual: undo.manual.slice(), overrides: Object.assign({}, undo.overrides), updatedAt: now || Date.now() });
+  }
+
   /* ----------------------------------------------------- yahoo league map */
 
   // Yahoo roster_positions → settings.slots/bench. Accepts [{position,count}],
@@ -1149,6 +1231,9 @@
     leagueChoice: leagueChoice, leagueSupport: leagueSupport, leagueSummary: leagueSummary, scoringLabel: scoringLabel, yahooProblem: yahooProblem,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
+    clockKey: clockKey, newClock: newClock, isPaused: isPaused, clockLeftMs: clockLeftMs, pauseClock: pauseClock, resumeClock: resumeClock,
+    resetClock: resetClock, advanceClock: advanceClock, clockView: clockView, serializeClock: serializeClock, restoreClock: restoreClock,
+    resetDraftCount: resetDraftCount, resetDraftState: resetDraftState, undoResetDraft: undoResetDraft,
     probGone: probGone, mktKey: mktKey,
     storageKey: storageKey, emptyState: emptyState, serializeState: serializeState, deserializeState: deserializeState,
     pollDelay: pollDelay, agoText: agoText, normName: normName, matchesQuery: matchesQuery, matchesPos: matchesPos
