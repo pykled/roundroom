@@ -55,6 +55,10 @@ const HALIMSANITY = {
   playoffTeams: 6,
   maxAddsPerWeek: 10,
   tradeEnd: '2027-03-04',
+  // L1 additions (league Settings pages, 2026-10-13): waiver + trade rules.
+  maxAddsPerSeason: null, // no season cap
+  waivers: { type: 'continual-rolling', days: 1, postDraft: 'waivers', freeAgentAdds: 'immediate', ilTakesInjuredDirectly: true },
+  trades: { review: 'commissioner', protestDays: 2, draftPickTrades: false, maxTrades: null },
 };
 
 // Yahoo High Score defaults, for any league without a stored profile.
@@ -75,6 +79,10 @@ const HIGH_SCORE_DEFAULT = {
   playoffTeams: 0,
   maxAddsPerWeek: null,
   tradeEnd: null,
+  // Yahoo defaults (SLN8828 / SLN6811): continuous waivers, 2-day clearing.
+  maxAddsPerSeason: null,
+  waivers: { type: 'continual-rolling', days: 2, postDraft: 'waivers', freeAgentAdds: 'immediate', ilTakesInjuredDirectly: true },
+  trades: { review: 'commissioner', protestDays: 2, draftPickTrades: false, maxTrades: null },
 };
 
 const PROFILES = { 242808: HALIMSANITY };

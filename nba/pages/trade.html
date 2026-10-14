@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA High Score Trade Calculator | Pocket</title>
+<meta name="description" content="Trade calculator for Yahoo High Score fantasy basketball. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
+<link rel="canonical" href="https://pocketff.com/nba/trade">
+<meta name="theme-color" content="#000000">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="NBA High Score Trade Calculator | Pocket">
+<meta property="og:description" content="Accept, counter or decline: trade value measured on your High Score lineup, not a generic points chart.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/nba/trade">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<script defer src="/shared/nav.js"></script>
+<style>
+/* Shared tokens, nav, buttons, page head and footer come from /shared/styles.css.
+   This block holds only the NBA trade calculator's own widgets. */
+:root {
+  --g: #fb923c; --f: #38bdf8;
+  --g-bg: rgba(251,146,60,.14); --f-bg: rgba(56,189,248,.14);
+  --give: #f87171; --give-bg: rgba(239,68,68,.10); --give-bd: rgba(239,68,68,.45);
+  --get: #34d399; --get-bg: rgba(16,185,129,.10); --get-bd: rgba(16,185,129,.45);
+  --vbar-h: 64px;
+}
+#app { max-width: 1180px; width: 100%; padding-top: var(--space-5); padding-bottom: calc(var(--vbar-h) + 24px); }
+.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
+.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
+.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
+
+.nt-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--g); margin-bottom: 0.35rem; }
+.nt-head-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.nt-head-ctl select, .nt-select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.6rem; min-height: 40px; max-width: 100%; }
+.nt-connect { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0 0.85rem; border-radius: var(--radius-pill); border: 1px solid rgba(124,58,237,.45); background: rgba(124,58,237,.12); color: #c4b5fd; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.nt-connect .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.7rem; font-weight: 800; }
+.nt-mode { font-size: 0.72rem; color: var(--text-secondary); }
+
+.nt-banner { display: flex; gap: var(--space-3); align-items: flex-start; padding: 0.7rem 0.9rem; margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
+.nt-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
+
+/* layout */
+.nt-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: var(--space-5); align-items: start; }
+.nt-side { position: sticky; top: calc(var(--nav-h, 56px) + 12px); display: flex; flex-direction: column; gap: var(--space-4); }
+.nt-pick-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: start; }
+
+/* panels */
+.nt-panel { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); overflow: hidden; }
+.nt-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0.75rem 0.9rem 0.6rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.nt-panel-head h2 { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+.nt-panel-head .dot { width: 8px; height: 8px; border-radius: 50%; }
+.nt-panel.give .dot { background: var(--give); }
+.nt-panel.get .dot { background: var(--get); }
+.nt-panel-head .sub { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+.nt-panel-tools { display: flex; gap: var(--space-2); padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.nt-panel-tools .nt-select { flex: 1; min-width: 0; }
+.nt-search-wrap { position: relative; flex: 1; min-width: 160px; }
+.nt-search { width: 100%; min-height: 40px; padding: 0 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font-size: 16px; font-family: inherit; }
+.nt-search:focus { outline: none; border-color: var(--border-bright); box-shadow: var(--shadow-focus); }
+.nt-results { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: var(--z-dropdown); background: #161616; border: 1px solid var(--border-bright); border-radius: var(--radius-md); box-shadow: var(--shadow-card); max-height: 300px; overflow-y: auto; }
+.nt-results button { display: flex; width: 100%; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0 0.75rem; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text-primary); font: inherit; font-size: 0.82rem; text-align: left; cursor: pointer; }
+.nt-results button:hover, .nt-results button:focus { background: var(--bg-hover); outline: none; }
+.nt-results .v { margin-left: auto; font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.74rem; }
+.nt-small-btn { min-height: 40px; padding: 0 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.nt-small-btn:hover { color: var(--text-primary); border-color: var(--border-bright); }
+.nt-small-btn[aria-pressed="true"] { color: var(--text-primary); background: var(--accent-glow); border-color: var(--border-bright); }
+
+/* player rows */
+.nt-list { list-style: none; margin: 0; padding: 0; }
+.nt-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
+.nt-row:last-child { border-bottom: none; }
+.nt-row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.6rem; min-height: 52px; padding: 0.35rem 0.9rem; background: none; border: none; color: inherit; font: inherit; text-align: left; cursor: pointer; position: relative; }
+.nt-row-main:hover { background: var(--bg-hover); }
+.nt-row-main:focus-visible { outline: 2px solid var(--border-bright); outline-offset: -2px; }
+.nt-check { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border-bright); flex-shrink: 0; display: grid; place-items: center; font-size: 0.7rem; font-weight: 800; color: transparent; transition: background .12s, border-color .12s; }
+.nt-row.on .nt-row-main { background: var(--sel-bg); }
+.nt-row.on .nt-check { background: var(--sel); border-color: var(--sel); color: #000; }
+.nt-panel.give { --sel: var(--give); --sel-bg: var(--give-bg); }
+.nt-panel.get { --sel: var(--get); --sel-bg: var(--get-bg); }
+.nt-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.nt-name { font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-meta { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
+.nt-meta .tm { font-family: var(--font-mono); }
+.pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
+.pp.G { background: var(--g-bg); color: var(--g); }
+.pp.F { background: var(--f-bg); color: var(--f); }
+.pp.C { background: rgba(167,139,250,.14); color: #a78bfa; }
+.nt-rules { margin-top: 0.7rem; font-size: 0.74rem; line-height: 1.45; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--text-secondary); }
+.nt-rules b { color: var(--text-body); font-weight: 600; }
+.nt-rules ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+.nt-rules.closed { border-color: rgba(248,113,113,.45); color: #fecaca; }
+.nt-setline { margin: 0.6rem 0 0; font-size: 0.68rem; color: var(--text-muted); line-height: 1.45; }
+.inj { font-size: 0.58rem; font-weight: 800; letter-spacing: .04em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; background: rgba(245,158,11,.15); color: #fbbf24; }
+.inj.OUT { background: rgba(239,68,68,.15); color: #f87171; }
+.nt-val { flex-shrink: 0; text-align: right; font-family: var(--font-mono); }
+.nt-val b { display: block; font-size: 0.9rem; font-weight: 500; }
+.nt-val span { font-size: 0.58rem; color: var(--text-muted); letter-spacing: .05em; text-transform: uppercase; }
+.nt-x { flex-shrink: 0; width: 44px; background: none; border: none; border-left: 1px solid var(--border); color: var(--text-muted); font-size: 1.05rem; cursor: pointer; }
+.nt-x:hover { color: var(--danger); }
+.nt-row.unmatched .nt-row-main { cursor: default; opacity: .55; }
+.nt-empty { padding: 1.4rem 0.9rem; text-align: center; color: var(--text-secondary); font-size: var(--fs-sm); line-height: 1.55; }
+.nt-empty b { color: var(--text-primary); display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.nt-empty .btn-secondary { margin-top: 0.75rem; min-height: 40px; }
+
+/* verdict card */
+.nt-verdict { border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 1rem; background: var(--bg-card); position: relative; overflow: hidden; }
+.nt-verdict.good { background: radial-gradient(120% 120% at 0% 0%, rgba(16,185,129,.12), transparent 60%), var(--bg-card); border-color: rgba(16,185,129,.4); }
+.nt-verdict.warn { background: radial-gradient(120% 120% at 0% 0%, rgba(251,191,36,.10), transparent 60%), var(--bg-card); border-color: rgba(251,191,36,.35); }
+.nt-verdict.bad { background: radial-gradient(120% 120% at 0% 0%, rgba(239,68,68,.12), transparent 60%), var(--bg-card); border-color: rgba(239,68,68,.4); }
+.nt-verdict.busy::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); animation: nt-load 1s linear infinite; }
+@keyframes nt-load { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.nt-v-top { display: flex; align-items: center; gap: 0.6rem; }
+.nt-badge { font-size: 0.72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 0.3rem 0.65rem; border-radius: var(--radius-pill); }
+.good .nt-badge { background: var(--success); color: #000; }
+.warn .nt-badge { background: var(--gold); color: #000; }
+.bad .nt-badge { background: var(--danger); color: #fff; }
+.nt-v-label { font-size: 0.66rem; color: var(--text-muted); letter-spacing: var(--tracking-label); text-transform: uppercase; margin-left: auto; }
+.nt-headline { font-size: 0.98rem; font-weight: 700; line-height: 1.35; margin: 0.7rem 0 0.8rem; letter-spacing: -0.01em; }
+.nt-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.nt-stat { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.6rem 0.7rem; background: rgba(0,0,0,.25); min-width: 0; }
+.nt-stat .who { font-size: 0.62rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-stat .big { font-family: var(--font-mono); font-size: 1.45rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; margin-top: 0.2rem; }
+.nt-stat .big small { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0; margin-left: 0.15rem; }
+.nt-stat .rng, .nt-stat .ros { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.pos { color: #6ee7b7; } .neg { color: #fca5a5; }
+.nt-likely { font-size: 0.74rem; color: var(--text-body); margin-top: 0.6rem; }
+.nt-why { margin: 0.8rem 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+.nt-why li { font-size: 0.78rem; line-height: 1.45; color: var(--text-body); padding-left: 1rem; position: relative; }
+.nt-why li::before { content: ''; position: absolute; left: 0.2rem; top: 0.55em; width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+.nt-note { margin-top: 0.7rem; font-size: 0.74rem; line-height: 1.45; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.25); color: #bae6fd; }
+.nt-v-empty { text-align: center; padding: 0.8rem 0.2rem; color: var(--text-secondary); font-size: var(--fs-sm); }
+.nt-v-empty b { display: block; color: var(--text-primary); font-size: 0.95rem; margin-bottom: 0.25rem; }
+
+/* lineup diff */
+.nt-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); padding: 0.8rem 0.9rem; }
+.nt-card h3 { font-size: 0.66rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin: 0 0 0.5rem; display: flex; justify-content: space-between; }
+.nt-lu { width: 100%; border-collapse: collapse; font-size: 0.78rem; table-layout: fixed; }
+.nt-lu th { font-size: 0.6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); text-align: left; padding: 0 0 0.3rem; }
+.nt-lu td { padding: 0.36rem 0.3rem 0.36rem 0; border-top: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-lu td.slot { width: 44px; font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-secondary); }
+.nt-lu th:first-child { width: 44px; }
+.nt-lu td .v { font-family: var(--font-mono); color: var(--text-muted); font-size: 0.68rem; margin-left: 0.3rem; }
+.nt-lu tr.chg td { background: rgba(255,255,255,.03); }
+.nt-lu tr.chg td.after { color: #6ee7b7; font-weight: 600; }
+.nt-lu tr.chg td.before { color: var(--text-secondary); text-decoration: line-through; text-decoration-color: rgba(248,113,113,.6); }
+.nt-lu .repl { font-style: italic; color: var(--text-muted); }
+.nt-bench { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.45rem; line-height: 1.5; }
+
+/* week strip */
+.nt-weeks { display: flex; align-items: center; gap: 3px; height: 72px; position: relative; }
+.nt-weeks::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--border-bright); }
+.nt-wk { flex: 1; height: 100%; position: relative; min-width: 0; }
+.nt-wk i { position: absolute; left: 1px; right: 1px; border-radius: 2px; }
+.nt-wk i.up { bottom: 50%; background: rgba(16,185,129,.75); }
+.nt-wk i.dn { top: 50%; background: rgba(239,68,68,.7); }
+.nt-wk.po::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; border-radius: 2px; background: var(--gold); }
+.nt-wk-axis { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); margin-top: 0.6rem; }
+.nt-legend { font-size: 0.66rem; color: var(--text-muted); margin-top: 0.35rem; }
+.nt-legend .po { display: inline-block; width: 10px; height: 3px; border-radius: 2px; background: var(--gold); vertical-align: middle; margin-right: 0.25rem; }
+
+.nt-method { font-size: 0.74rem; line-height: 1.6; color: var(--text-secondary); margin-top: var(--space-5); max-width: 760px; }
+.nt-method b { color: var(--text-body); }
+
+/* bottom verdict bar (phones) */
+.nt-vbar { display: none; }
+
+@media (max-width: 960px) {
+  .nt-grid { grid-template-columns: minmax(0, 1fr); }
+  .nt-side { position: static; }
+}
+@media (max-width: 720px) {
+  .nt-pick-cols { grid-template-columns: minmax(0, 1fr); }
+  .page-head { align-items: flex-start; }
+  .nt-head-ctl { width: 100%; }
+  .nt-head-ctl select { flex: 1; min-width: 0; }
+  .nt-vbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; height: var(--vbar-h); padding: 0 1rem calc(env(safe-area-inset-bottom)); align-items: center; gap: 0.7rem; background: rgba(10,10,10,.88); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); border-top: 1px solid var(--border-bright); transform: translateY(110%); transition: transform .28s cubic-bezier(.32,.72,0,1); }
+  .nt-vbar.show { transform: none; }
+  .nt-vbar .nt-badge { flex-shrink: 0; }
+  .nt-vbar .txt { min-width: 0; flex: 1; font-size: 0.74rem; color: var(--text-body); line-height: 1.3; }
+  .nt-vbar .txt b { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; color: var(--text-primary); display: block; }
+  .nt-vbar.good .nt-badge { background: var(--success); color: #000; }
+  .nt-vbar.warn .nt-badge { background: var(--gold); color: #000; }
+  .nt-vbar.bad .nt-badge { background: var(--danger); color: #fff; }
+  .nt-vbar .btn-secondary { min-height: 40px; flex-shrink: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nt-vbar { transition: none; }
+  .nt-verdict.busy::after { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) { .nt-vbar { background: #0a0a0a; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+</style>
+</head>
+<body class="sport-nba">
+<nav id="rr-nav">
+  <a href="/nba" class="rr-logo">Pocket</a>
+  <div class="sport-switch" id="rr-sport-switch" aria-label="Sport">
+    <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
+  </div>
+  <div class="rr-links">
+    <a href="/nba" class="rr-link">Draft board</a>
+    <a href="/nba/lineup" class="rr-link">Lineup</a>
+    <a href="/nba/trade" class="rr-link active" aria-current="page">Trade</a>
+    <a href="/nba/waivers" class="rr-link">Waivers</a>
+  </div>
+  <div class="rr-auth">
+    <div id="user-btn-mount"></div>
+    <button id="rr-sign-in" hidden>Sign In</button>
+  </div>
+  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
+</nav>
+
+<div id="app">
+  <header class="page-head">
+    <div class="page-head-text">
+      <p class="nt-eyebrow">NBA · HALIMSANITY 26-27 · High Score</p>
+      <h1 class="page-title">Trade calculator</h1>
+      <p class="page-sub">Scores a trade by what it does to your best nine-man lineup (PG, SG, G, SF, PF, F, C, 2 UTIL) each remaining matchup week, under your league's scoring, not by adding up points.</p>
+    </div>
+    <div class="nt-head-ctl">
+      <a id="nt-connect" class="nt-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
+      <select id="nt-league" aria-label="Yahoo league" hidden></select>
+    </div>
+  </header>
+
+  <div id="nt-banner" class="nt-banner" role="alert" hidden></div>
+
+  <div class="nt-grid">
+    <div class="nt-main">
+      <div class="nt-pick-cols">
+        <section class="nt-panel give" aria-labelledby="nt-give-h">
+          <div class="nt-panel-head">
+            <h2 id="nt-give-h"><span class="dot" aria-hidden="true"></span>You give <span class="sub" id="nt-give-count"></span></h2>
+            <button type="button" class="nt-small-btn" id="nt-edit-roster" aria-pressed="false" hidden>Edit roster</button>
+          </div>
+          <div class="nt-panel-tools" id="nt-my-tools" hidden>
+            <div class="nt-search-wrap">
+              <input class="nt-search" id="nt-my-search" type="search" placeholder="Add your players" autocomplete="off" aria-label="Add a player to your roster" aria-controls="nt-my-results">
+              <div class="nt-results" id="nt-my-results" role="listbox" hidden></div>
+            </div>
+            <button type="button" class="nt-small-btn" id="nt-import">Import from draft</button>
+          </div>
+          <ul class="nt-list" id="nt-my-list" aria-label="Your roster: tap to give"></ul>
+        </section>
+
+        <section class="nt-panel get" aria-labelledby="nt-get-h">
+          <div class="nt-panel-head">
+            <h2 id="nt-get-h"><span class="dot" aria-hidden="true"></span>You get <span class="sub" id="nt-get-count"></span></h2>
+          </div>
+          <div class="nt-panel-tools" id="nt-partner-tools" hidden>
+            <select class="nt-select" id="nt-partner" aria-label="Trade partner"></select>
+          </div>
+          <div class="nt-panel-tools" id="nt-get-tools">
+            <div class="nt-search-wrap">
+              <input class="nt-search" id="nt-get-search" type="search" placeholder="Search any player to get" autocomplete="off" aria-label="Search a player to get" aria-controls="nt-get-results">
+              <div class="nt-results" id="nt-get-results" role="listbox" hidden></div>
+            </div>
+          </div>
+          <ul class="nt-list" id="nt-get-list" aria-label="Players you get"></ul>
+        </section>
+      </div>
+    </div>
+
+    <aside class="nt-side" aria-label="Trade verdict">
+      <section id="nt-verdict" class="nt-verdict" aria-live="polite"></section>
+      <section class="nt-card" id="nt-lineup-card" hidden>
+        <h3><span>Your lineup, typical week</span><span id="nt-lu-delta"></span></h3>
+        <table class="nt-lu" id="nt-lu"></table>
+        <div class="nt-bench" id="nt-bench"></div>
+      </section>
+      <section class="nt-card" id="nt-weeks-card" hidden>
+        <h3><span>Your change by week</span><span id="nt-weeks-sum"></span></h3>
+        <div class="nt-weeks" id="nt-weeks" role="img"></div>
+        <div class="nt-wk-axis" id="nt-wk-axis"></div>
+        <div class="nt-legend" id="nt-legend"></div>
+      </section>
+    </aside>
+  </div>
+
+  <p class="nt-method"><b>How it works.</b> Each player is worth what he adds to your best lineup over your league's starting slots each remaining matchup week (14-day weeks included): his expected best game given that week's games and injury outlook, minus the lineup without him. Players who would sit behind your starters count as bench depth, a share above waiver level that grows with the number of starters it covers (nine starters: 18% for the first bench player). An empty roster spot, or a slot nobody on your roster can play, is filled at waiver replacement level, so 2-for-1 deals count the drop or the freed spot. Out players can sit in IL without forcing a drop. Playoff weeks (20-22) weigh 1.5×. The other team's side is scored the same way to judge whether they'd accept; without their roster, a typical mid-draft roster stands in.</p>
+</div>
+
+<div class="nt-vbar" id="nt-vbar" aria-hidden="true">
+  <span class="nt-badge" id="nt-vbar-badge"></span>
+  <span class="txt" id="nt-vbar-txt"></span>
+  <button type="button" class="btn-secondary" id="nt-vbar-btn">Details</button>
+</div>
+
+<footer class="rr-footer">
+  <div class="rr-footer-inner">
+    <span class="rr-footer-brand">© 2026 Pocket</span>
+    <nav class="rr-footer-links" aria-label="Footer">
+      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
+      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
+      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
+    </nav>
+  </div>
+</footer>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="/nba/pages/trade-logic.js"></script>
+<script src="/nba/pages/trade.js"></script>
+</body>
+</html>
