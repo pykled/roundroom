@@ -7,7 +7,8 @@
   var L = window.NbaDraft;
   var $ = function (id) { return document.getElementById(id); };
   var LEAGUE_PREF = 'pocket-nba-league';
-  var TIMER_PREF = 'pocket-nba-pick-timer';     // user's pick-timer seconds ('' = use league / default)
+  var TIMER_PREF = 'pocket-nba-pick-timer';
+  var TIMER_RUN = 'pocket-nba-pick-timer-run';  // sessionStorage: [{leagueKey, pick, startedAt}] of recent running clocks     // user's pick-timer seconds ('' = use league / default)
   var FIRSTRUN_PREF = 'pocket-nba-firstrun-done';
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -406,14 +407,21 @@
   function renderTimer(ci) {
     var el = $('nd-timer'); if (!el) return;
     var yStatus = S.state.yahoo && S.state.yahoo.status;
-    var off = S.auction || ci.done || !timerSeconds() || (liveYahoo() && yStatus === 'predraft' && !S.merged.picks.length);
+    // Yahoo says predraft: quiet even with keepers on the board, unless the
+    // user is already marking picks by hand.
+    var off = S.auction || ci.done || !timerSeconds() ||
+      (liveYahoo() && yStatus === 'predraft' && !S.merged.picks.some(function (p) { return p.source === 'manual'; }));
     if (off) { el.hidden = true; document.title = baseTitle; return; }
     // Restart when the pick on the clock changes. Manual board, first pick:
     // idle until the user taps the timer (we can't know when the draft starts).
+    // A reload keeps the running clock for the same league + pick.
     if (S.timer.pick !== ci.cur) {
-      var first = S.timer.pick === null;
+      var first = S.timer.pick === null, now = Date.now(), saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem(TIMER_RUN) || 'null'); } catch (e) {}
       S.timer.pick = ci.cur; S.timer.beeped = false;
-      S.timer.startedAt = first && !S.merged.picks.length ? 0 : Date.now();
+      S.timer.startedAt = L.restoreTimerStart(saved, S.leagueKey, ci.cur, now, timerSeconds()) ||
+        (first && !S.merged.picks.length ? 0 : now);
+      saveTimerRun();
     }
     var t = L.timerState(S.timer.startedAt, timerSeconds(), Date.now());
     el.hidden = false;
@@ -424,6 +432,12 @@
     // Loud for me: tab title countdown + one beep/vibration at 10s.
     document.title = ci.onMe && t.running ? '⏰ ' + t.text + ' · Your pick — ' + baseTitle : baseTitle;
     if (ci.onMe && t.running && t.left <= 10 && !S.timer.beeped) { S.timer.beeped = true; alertMe(); }
+  }
+  function saveTimerRun() {
+    try {
+      var saved = JSON.parse(sessionStorage.getItem(TIMER_RUN) || 'null');
+      sessionStorage.setItem(TIMER_RUN, JSON.stringify(L.rememberTimerStart(saved, S.leagueKey, S.timer.pick, S.timer.startedAt)));
+    } catch (e) {}
   }
   var baseTitle = document.title, audioCtx = null, userGestured = false;
   document.addEventListener('pointerdown', function () { userGestured = true; }, { once: true, capture: true });
@@ -544,7 +558,7 @@
     var f = $('nd-settings-form');
     S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: { G: f.G.value, F: f.F.value, UTIL: f.UTIL.value }, bench: f.bench.value });
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
-    S.timer.startedAt = S.timer.startedAt ? Date.now() : 0; S.timer.beeped = false;
+    S.timer.startedAt = S.timer.startedAt ? Date.now() : 0; S.timer.beeped = false; saveTimerRun();
     save(); recompute(); render(); toast('League settings saved');
   }
 
@@ -613,10 +627,10 @@
   function schedulePoll() {
     stopPolling();
     if (!S.connected || !S.leagueKey || S.auction) return;
-    var d = L.pollDelay(S.failures);
-    S.nextPollAt = Date.now() + d;
-    if (document.hidden) return; // resumes on visibilitychange
-    S.pollTimer = setTimeout(function () { poll(false); }, d);
+    var plan = L.pollPlan(document.hidden, S.state.yahoo && S.state.yahoo.status, S.failures);
+    S.nextPollAt = Date.now() + plan.delay;
+    if (!plan.run) return; // resumes on visibilitychange
+    S.pollTimer = setTimeout(function () { poll(true); }, plan.delay);
   }
   var inflight = false;
   function poll(force) {
@@ -696,7 +710,7 @@
       $('nd-league').value = k;
       if ((k || null) !== S.leagueKey) selectLeague(k || null);
     });
-    $('nd-timer').onclick = function () { S.timer.startedAt = Date.now(); S.timer.beeped = false; renderTimer(clockInfo()); };
+    $('nd-timer').onclick = function () { S.timer.startedAt = Date.now(); S.timer.beeped = false; saveTimerRun(); renderTimer(clockInfo()); };
     $('nd-fr-manual').onclick = function () { dismissFirstRun(); toast('Manual board: tap Draft as picks happen'); };
     $('nd-fr-connect').onclick = function (e) {
       if (S.signedOut && window.Clerk && window.Clerk.openSignIn) { e.preventDefault(); window.Clerk.openSignIn({ redirectUrl: '/nba/auth/login' }); }
@@ -707,7 +721,7 @@
       if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('nd-search').focus(); }
     });
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) stopPolling(); else if (S.connected && S.leagueKey) poll(true);
+      if (document.hidden) schedulePoll(); else if (S.connected && S.leagueKey) poll(true);
     });
     // "updated Ns ago" + retry countdown tick
     setInterval(function () { if (S.connected && S.leagueKey) renderSync(); renderTimer(clockInfo()); }, 1000);

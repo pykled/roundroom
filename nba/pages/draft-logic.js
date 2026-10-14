@@ -392,7 +392,8 @@
     if (!yahoo || !Array.isArray(yahoo.order)) return [];
     var seenPick = {};
     (yahoo.picks || []).forEach(function (p) { if (p && p.pick) seenPick[p.pick] = 1; });
-    return yahoo.order.filter(function (o) { return o && o.pick > 0 && !seenPick[o.pick]; })
+    // seenPick also drops a slot Yahoo listed twice.
+    return yahoo.order.filter(function (o) { return o && o.pick > 0 && !seenPick[o.pick] && (seenPick[o.pick] = 1); })
       .slice().sort(function (a, b) { return a.pick - b.pick; });
   }
 
@@ -454,6 +455,28 @@
     if (left <= 0) return { running: true, left: 0, level: 'expired', text: '0:00' };
     var level = left <= 10 ? 'urgent' : left <= Math.max(15, Math.round(seconds / 3)) ? 'warn' : 'ok';
     return { running: true, left: left, level: level, text: fmtClock(left) };
+  }
+  // Start time for the clock on `pick` after a reload: the saved one when it
+  // is for the same league + pick and still plausible, else null (start now).
+  // `saved` is one {leagueKey, pick, startedAt} or a list of them (a reload
+  // briefly renders the local board first, so several picks get recorded).
+  function restoreTimerStart(saved, leagueKey, pick, now, seconds) {
+    var list = Array.isArray(saved) ? saved : saved ? [saved] : [];
+    var hit = null;
+    list.forEach(function (e) { if (e && e.leagueKey === (leagueKey || null) && e.pick === pick) hit = e; });
+    if (!hit) return null;
+    var t = Number(hit.startedAt);
+    if (!isFinite(t) || t <= 0 || t > now) return null;
+    // Older than the pick time plus a grace minute → stale (draft paused / left open).
+    return now - t <= (normalizeTimerSeconds(seconds) + 60) * 1000 ? t : null;
+  }
+  // Add/replace the running clock for (leagueKey, pick); keeps the newest few.
+  function rememberTimerStart(saved, leagueKey, pick, startedAt) {
+    var list = (Array.isArray(saved) ? saved : saved ? [saved] : []).filter(function (e) {
+      return e && !(e.leagueKey === (leagueKey || null) && e.pick === pick);
+    });
+    if (startedAt > 0) list.push({ leagueKey: leagueKey || null, pick: pick, startedAt: startedAt });
+    return list.slice(-4);
   }
   function fmtClock(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
@@ -541,6 +564,16 @@
     if (!failures) return POLL_MS;
     return Math.min(30000, POLL_MS * Math.pow(2, failures));
   }
+  // Hidden tab: during a live Yahoo draft keep polling (slower) so the "your
+  // pick" title countdown / beep still fires while the user sits in Yahoo's
+  // draft room; otherwise pause until the tab is visible again.
+  var HIDDEN_POLL_MS = 10000;
+  function pollPlan(hidden, yahooStatus, failures) {
+    var d = pollDelay(failures);
+    if (!hidden) return { run: true, delay: d };
+    if (yahooStatus !== 'drafting') return { run: false, delay: d };
+    return { run: true, delay: Math.max(d, HIDDEN_POLL_MS) };
+  }
 
   function agoText(ms) {
     if (ms == null || !isFinite(ms) || ms < 0) return 'just now';
@@ -580,7 +613,8 @@
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings,
     mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
-    DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState,
+    DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
+    rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
     storageKey: storageKey, emptyState: emptyState, serializeState: serializeState, deserializeState: deserializeState,
     pollDelay: pollDelay, agoText: agoText, normName: normName, matchesQuery: matchesQuery, matchesPos: matchesPos
   };

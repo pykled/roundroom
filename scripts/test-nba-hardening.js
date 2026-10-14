@@ -454,6 +454,43 @@ async function freePort() {
       getTeams: async () => [], getDraftResults: async () => ({ picks: [] }),
     } }).then(r => assert.deepStrictEqual(r.leagues[0].settings.extra, { uses_faab: '1' }));
   });
+  await test('pollPlan: hidden tab keeps polling (≥10s) only during a live draft', () => {
+    assert.deepStrictEqual(L.pollPlan(false, 'predraft', 0), { run: true, delay: 4000 });
+    assert.deepStrictEqual(L.pollPlan(true, 'drafting', 0), { run: true, delay: L.HIDDEN_POLL_MS });
+    assert.deepStrictEqual(L.pollPlan(true, 'drafting', 3), { run: true, delay: 30000 });
+    assert.strictEqual(L.pollPlan(true, 'predraft', 0).run, false);
+    assert.strictEqual(L.pollPlan(true, 'postdraft', 0).run, false);
+    assert.strictEqual(L.pollPlan(true, undefined, 0).run, false);
+    const js = fs.readFileSync(path.join(ROOT, 'nba/pages/draft.js'), 'utf8');
+    assert.match(js, /L\.pollPlan\(document\.hidden/);
+    assert.ok(!/if \(document\.hidden\) stopPolling\(\)/.test(js), 'hiding the tab must not stop a live draft poll');
+  });
+  await test('restoreTimerStart: reload keeps the clock for the same league + pick only', () => {
+    const now = 1e12, saved = { leagueKey: 'L1', pick: 7, startedAt: now - 20000 };
+    assert.strictEqual(L.restoreTimerStart(saved, 'L1', 7, now, 60), now - 20000);
+    assert.strictEqual(L.restoreTimerStart(saved, 'L1', 8, now, 60), null, 'other pick');
+    assert.strictEqual(L.restoreTimerStart(saved, 'L2', 7, now, 60), null, 'other league');
+    assert.strictEqual(L.restoreTimerStart({ ...saved, startedAt: now - 200000 }, 'L1', 7, now, 60), null, 'stale');
+    assert.strictEqual(L.restoreTimerStart({ ...saved, startedAt: now + 5000 }, 'L1', 7, now, 60), null, 'future');
+    assert.strictEqual(L.restoreTimerStart({ leagueKey: null, pick: 3, startedAt: now - 1 }, null, 3, now, 60), now - 1, 'manual board');
+    assert.strictEqual(L.restoreTimerStart(null, 'L1', 7, now, 60), null);
+    // A reload first renders the local board (another pick), then Yahoo's: the
+    // transient entry must not erase the real one.
+    let list = L.rememberTimerStart(null, 'L1', 7, now - 20000);
+    list = L.rememberTimerStart(list, 'L1', 1, now - 5);
+    assert.strictEqual(L.restoreTimerStart(list, 'L1', 7, now, 60), now - 20000);
+    list = L.rememberTimerStart(list, 'L1', 7, now - 3000);
+    assert.strictEqual(L.restoreTimerStart(list, 'L1', 7, now, 60), now - 3000, 'replaced');
+    assert.strictEqual(L.rememberTimerStart(list, 'L1', 2, 0).length, 2, 'idle clocks are not stored');
+    for (let p = 10; p < 20; p++) list = L.rememberTimerStart(list, 'L1', p, now);
+    assert.strictEqual(list.length, 4, 'bounded');
+  });
+  await test('openSlots: a slot Yahoo lists twice counts once', () => {
+    const y = { status: 'drafting', picks: [], order: [{ pick: 1, team_key: T(1) }, { pick: 1, team_key: T(1) }, { pick: 2, team_key: T(2) }] };
+    assert.deepStrictEqual(L.openSlots(y).map(o => o.pick), [1, 2]);
+    assert.strictEqual(L.yahooClock(y, T(1), 0).myAfter, null);
+  });
+
   console.log('server.js (spawned real server)');
   await test('real server: players gzip + ETag/304, GET logout 405, no secret in stdout', async () => {
     const env = { ...process.env, ...ENV, DATABASE_URL: '' };
