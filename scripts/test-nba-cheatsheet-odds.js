@@ -158,6 +158,17 @@ t('every listed player is in the right band; take/fallback ≥75%, could 25-75%,
     ok(!r.range || r.range.lo <= r.range.hi, 'range');
   });
 });
+t('Out / IR players are never the Target or fallback; Rest DTD tags do not block', () => {
+  const ps = marketPool(), st = Object.assign({}, LP, { mySlot: 6 });
+  const base = L.cheatSheet({ available: ps, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [] });
+  const victim = base.rounds[3].take.player;
+  const hurt = ps.map(p => p === victim ? Object.assign({}, p, { injury: 'Out', injuryBody: 'Foot' }) : p);
+  const cs = L.cheatSheet({ available: hurt, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [] });
+  cs.rounds.forEach(r => [r.take].concat(r.fallback).filter(Boolean).forEach(x => ok(x.player.id !== victim.id, 'Out player targeted at ' + r.pick)));
+  const rest = ps.map(p => p === victim ? Object.assign({}, p, { injury: 'DTD', injuryBody: 'Rest' }) : p);
+  const cs2 = L.cheatSheet({ available: rest, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [] });
+  eq(cs2.rounds[3].take.player.id, victim.id);
+});
 t('value guy the market sleeps on (ADP 40): Don\'t Reach at #6 and #19, the target at #30', () => {
   const ps = marketPool(), st = Object.assign({}, LP, { mySlot: 6 });
   const cs = L.cheatSheet({ available: ps, settings: st, cur: 1, myPicks: L.myPicksSnake(st, 1), roster: [] });

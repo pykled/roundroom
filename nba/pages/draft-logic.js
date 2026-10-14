@@ -762,9 +762,12 @@
         var mk = mktKey(p);
         if (q >= 0.2 && q <= 0.8 && mk < 1e6) { lo = lo == null ? mk : Math.min(lo, mk); hi = hi == null ? mk : Math.max(hi, mk); }
       });
-      var nowOnly = likely.filter(function (r) { return !next || r.pNext < WAIT; });
+      // Out / IR / suspended players are never the Target (the board's pick
+      // recommendation discounts them too); they still show as Could Fall / Likely Gone.
+      var healthy = likely.filter(function (r) { return injuryFactor(draftInjury(r.player)) >= 0.7; });
+      var nowOnly = healthy.filter(function (r) { return !next || r.pNext < WAIT; });
       // Back-to-back turns (or nothing that won't last): plain best-available.
-      var pool = nowOnly.length ? nowOnly : likely;
+      var pool = nowOnly.length ? nowOnly : healthy;
       var take = pool[0] || null;
       if (take) planned.add(take.player);
       var cut = take ? take.vi : scan.length;
