@@ -1,0 +1,46 @@
+# NBA market ADP spike (2026-10-13, for the Wed 2026-10-14 8pm PT draft)
+
+Goal: free, programmatic 2026-27 ADP so the board can show "market ADP" + a reach/value flag. All URLs below were hit on 2026-10-13 (curl, 1 req/sec, UA `PocketNBA-research`). No Yahoo login, no tokens used.
+
+## Ranked recommendation (best first)
+
+| # | Source | Status | Rows | Format fit | Freshness | Risk |
+|---|---|---|---|---|---|---|
+| 1 | **ESPN fantasy API** (`kona_player_info`, unauth) | 200, works | 133 real ADPs in top 300 (rest = 140 floor) | ESPN default = H2H points/cat mix, 10-team-ish; **not High Score** | `ownership.date` = 2026-10-13 (live draft data) | Unofficial API, no SLA/ToS grant; 12 MB payload; cache it |
+| 2 | **Sleeper** `api.sleeper.com/projections/nba/2026` field `stats.adp_std` | 200, works | 935 non-999, 345 with a team and ADP<300 | Sleeper drafts (mixed formats, skews points/dynasty crowd) | `last_modified` 2026-10-11/12 | Undocumented; same host Pocket already uses; ADP kept on retired players (drop team-less) |
+| 3 | **FantasyPros** `fantasypros.com/nba/adp/overall.php` (HTML table) | 200 logged-out, 2026-27 title | 201 rows, 171 with a Yahoo ADP | **Only source with a Yahoo ADP column** (best match for a Yahoo draft) + ESPN col + AVG | page says 2026-27; no timestamp | robots.txt does NOT disallow `/nba/adp/` (disallows `/api/ /json/ /nba/ranker/`), `Crawl-delay: 5`; site ToS likely prohibits scraping (not verified) → **opt-in only** (`--fantasypros`), one request, never at draft-time polling |
+| 4 | Yahoo `draft_analysis` (OAuth API) | not tested (rule: no tokens) | – | Exact market (Yahoo) | live | needs Pocket's existing token; see below |
+| – | Underdog best-ball ADP | `api.underdogfantasy.com/beta/v6/best_ball_adp?sport_id=NBA` 404; no public NBA ADP found | – | best-ball ≠ our league | – | skip |
+
+Not usable: Yahoo public Draft Analysis page (SPA shell; data via disallowed XHR), BasketballMonster (`/adp.aspx` 302 to login; robots allows all but ADP is member content), Hashtag Basketball (page title still "Rankings 2025-26", 1.8 MB HTML, rankings not ADP; robots only blocks SemRush; didn't scrape), NBA Fantasy `fantasy.nba.com` (connection refused from this host), RotoWire draft-kit (200, 2026-27 kit page, but ADP is not in static HTML and ToS; skipped), GitHub (one stale 2022 repo; no 2026-27 ADP dataset found).
+
+## Evidence
+
+**ESPN.** `GET https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/2027/segments/0/leaguedefaults/3?view=kona_player_info` → 200 JSON `{players:[{id, player:{fullName, proTeamId, defaultPositionId, eligibleSlots, ownership:{averageDraftPosition, averageDraftPositionPercentChange, percentOwned, date}, draftRanksByRankType:{STANDARD:{rank},ROTO:{rank}}, stats:[…]}}]}`. Bare call returns 50 alphabetical players; add header `X-Fantasy-Filter: {"players":{"limit":300,"sortDraftRanks":{"sortPriority":100,"sortAsc":true,"value":"STANDARD"},"filterStatus":{"value":["FREEAGENT","WAIVERS","ONTEAM"]}}}` → 300 players ranked by ESPN's own draft rank (12.4 MB, mostly game-log `stats`). `season=2027` = 2026-27 (2026 returns last year's). `averageDraftPosition` ≈ 140 is a floor for undrafted players, so we drop ≥135. Top: Jokic 1.43, SGA 3.05, Luka 3.57, Wemby 3.07, Giannis 5.73. `proTeamId` map is in the script (verified on 5 players). No rate-limit seen at 1 req/s; `draftAuctionValue` exists but is 0 for non-auction defaults.
+
+**Sleeper.** `GET https://api.sleeper.com/projections/nba/2026?season_type=regular` → 2125 rows, `company:"rotowire"`, `stats:{adp_std, adp_dynasty, …}`, `player:{first_name,last_name,team,fantasy_positions}`. `adp_std` 999 = unranked. Jokic 2.5, Wemby 1.3, Luka 3.2, SGA 4.1, Giannis 7.3. (Needs no auth; ~1.5 MB.) The `position[]=` query param is ignored. `api.sleeper.app/v1/players/nba` has no ADP field (it has `espn_id`, `yahoo_id`: useful for id-joins).
+
+**FantasyPros.** Table `#data`: `Rank | Player (TEAM - POS,POS) | Yahoo | ESPN | AVG`, e.g. `Jokic DEN-C 1/1/1.0`, `Giannis MIA-PF,C Yahoo 6, ESPN 5`. Integer ADPs (Yahoo col) for ~171 players; 30 rows have a blank Yahoo cell.
+
+**Yahoo API (docs-only, unverified by me).** Resource `draft_analysis` is a player sub-resource: `GET https://fantasysports.yahooapis.com/fantasy/v2/league/{game_key}.l.242808/players;player_keys={game_key}.p.{id},…/draft_analysis` (also `/players;sort=AR…`/`stats` collections) returns `<draft_analysis><average_pick/><average_round/><average_cost/><percent_drafted/></draft_analysis>`. Needs the existing OAuth (`fspt-r`) token, so it works for any logged-in league member with the 2026-27 game_key; pre-draft values exist because Yahoo's public page already shows ADP pre-draft, but whether the API returns non-empty values before draft day is unverified. Do this inside Stream G's authenticated client (`nba/yahoo`), not in this script. The logged-out HTML page `https://basketball.fantasysports.yahoo.com/nba/draftanalysis` returns 200 but is an SPA shell (`sortKey = 'average_pick'`; table fetched via XHR; robots disallows `/_xhr/`, `/api/`, `/_td_api/`, and lists `anthropic-ai` as disallowed) → not scrapeable; FantasyPros' Yahoo column is the public proxy.
+
+## Prototype
+
+`node scripts/nba-adp-fetch.js [--fantasypros] [--no-cache] [--out path]` → `data/nba/adp.json`: `[{name, team, pos:[..], adp, source, asOf}]` (flat, one row per source per player; sources `espn`, `sleeper`, `fantasypros-yahoo`). 3 h disk cache in `data/nba/adp-cache/`, ≥1.1 s between requests, stale cache fallback per source, always exit 0 (empty `[]` if everything is blocked). Offline test: `node scripts/test-nba-adp.js` (fixture `data/nba/adp-sample.json`). Run it as a cron/pre-draft step; do not call it from the request path. `data/nba/adp.json` and the cache dir are generated: do not commit.
+
+## Name-matching dry run (`matchReport`, via `nba/model` `normalizeName`, vs 650 model players)
+- espn **133/133 (100%)**, fantasypros-yahoo **171/171 (100%)**, sleeper **281/281 (100%)** once team-less rows are dropped (before that 281/345 = 81.4%; all 64 misses were retired/unsigned players such as Spencer Hawes, Trevor Ariza, Lonzo Ball with no team).
+- Zero ambiguous matches. Unmatched list is empty after filtering. (Risk: the FA/unsigned stars with null team, e.g. Chris Paul/Westbrook/D'Angelo Russell, are dropped; if they sign, they appear next refresh.)
+- Rank agreement: Pearson on rank vs ESPN ADP rank = 0.78 over 133 players. Biggest model-vs-market gaps (adpRank − modelRank): model higher (value) Cedric Coward +80, Ryan Rollins +62, Derik Queen +51, Jeremiah Fears +50; model lower (market reaches/model skeptical) Nikola Vucevic −137, Fred VanVleet −95, Julian Champagnie −93, Tobias Harris −72, Naz Reid −71, Sabonis −70. Anthony Edwards 6 vs model 20, Tatum 9 vs 25 (the High Score model discounts high-volume/low-ceiling-game players; this is exactly what the flag should surface, not "fix").
+
+## Blending design (board)
+1. **Market rank per source:** sort each source by ADP and take the ordinal (ties by name), so sources on different scales compare. `adpRank = round(weighted median)` of available source ranks.
+2. **Weights** (league 242808 is Yahoo): `fantasypros-yahoo 0.5` (if enabled), `espn 0.3`, `sleeper 0.2`; renormalize over sources that list the player. If FantasyPros is off: espn 0.6, sleeper 0.4. Use the weighted **median** (not mean) with ≥3 sources, mean with 2, and the single value with 1 flagged `thin`.
+3. **Disagreement:** `spread = max(rank) − min(rank)`. If `spread > max(20, 0.25·adpRank)` set `contested:true`, widen the neutral band, and show the range ("ADP 14–31") instead of one number. Players missing from every source (undrafted by market, ADP>~135) get `adpRank=null` → no flag, never treated as "very late".
+4. **Delta:** `adpDelta = adpRank − modelRank`. Positive = model likes him more than the market (**value**); negative = market likes him more (**reach** if you take him at his ADP).
+5. **Labels** (band scales with rank since early picks are tight): `band = max(3, 0.15·modelRank)`. `adpDelta ≥ 2·band` "Strong value"; `≥ band` "Value"; `≤ −2·band` "Big reach"; `≤ −band` "Reach"; else none. Suppress flags if `contested`, if the player is injured/outForSeason (market ADP is stale-prone), or if sources are older than 48 h.
+6. **Live use during the draft:** the useful number is the pick-vs-ADP gap: `slotsUntilMarketTakesHim = adpRank − currentPick`. A "value" player with `adpRank` > the user's next pick (90 s clock, 12-team snake) can wait a round; one whose `adpRank` < next pick will likely be gone: take now. Never override the model's value ordering with ADP; it is a tiebreaker/context column only.
+7. **Format caveat to show in UI:** ESPN/Sleeper ADP come from category/standard-points crowds, FantasyPros' Yahoo ADP from Yahoo default drafts; none is High Score + REB1.2/AST1.5/DD+5 scoring. Label as "market ADP (generic)".
+
+## Risks
+Unofficial endpoints can change or rate-limit; FantasyPros ToS unverified (keep opt-in); ADP counts only top ~133–345 per source; ESPN payload is large; Sleeper `adp_*` semantics (std vs dynasty) undocumented; Yahoo `draft_analysis` pre-draft availability unverified; draft is <24h away, so injury/news churn can stale ADP within hours (cache TTL 3 h).
