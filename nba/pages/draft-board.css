@@ -41,6 +41,20 @@
 .nd-page .nd-sync[data-state="error"] { color: #fde68a; border-color: rgba(251,191,36,0.3); }
 .nd-page .nd-sync[data-state="error"] .nd-dot { background: var(--nu-warn); }
 .nd-page .nd-ago { color: var(--nu-text-3); font-weight: 500; }
+/* "Which pick are you?" draft-slot chooser (manual / not-yet-synced boards) */
+.nd-page .nd-slotpick { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nu-2) var(--nu-3); margin-bottom: var(--nu-3); padding: var(--nu-3); border: 1px solid var(--nu-line); border-radius: var(--nu-r-md); background: var(--nu-s1); font-size: var(--nu-fs-sm); color: var(--nu-text-2); min-width: 0; }
+.nd-page .nd-slotpick[hidden] { display: none; }
+.nd-page .nd-slotpick[data-mode="pick"] { border-color: var(--nu-accent-line); background: linear-gradient(180deg, var(--nu-accent-soft), transparent 70%), var(--nu-s1); }
+.nd-page .nd-slotpick[data-mode="chosen"], .nd-page .nd-slotpick[data-mode="yahoo"] { padding: 0 0 0 var(--nu-3); justify-content: space-between; }
+.nd-page .nd-slotpick[data-mode="yahoo"] { min-height: 44px; }
+.nd-page .nd-slotpick__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--nu-2); width: 100%; }
+.nd-page .nd-slotpick__q { color: var(--nu-text); font-weight: 700; font-size: var(--nu-fs-body); }
+.nd-page .nd-slotpick__chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.nd-page .nd-slotpick__chip { min-width: var(--nu-tap); min-height: var(--nu-tap); padding: 0 10px; justify-content: center; font-size: var(--nu-fs-body); }
+.nd-page .nd-slotpick__chip::after { inset: 0; }
+.nd-page .nd-slotpick__txt { min-width: 0; }
+.nd-page .nd-slotpick__txt b { color: var(--nu-text); font-weight: 700; }
+.nd-page .nd-slotpick__change { min-height: var(--nu-tap); border: 0; border-left: 1px solid var(--nu-line); border-radius: 0 var(--nu-r-md) var(--nu-r-md) 0; }
 @keyframes nd-ping { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); } 70% { box-shadow: 0 0 0 6px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
 
 .nd-page .nd-banner { margin-bottom: var(--nu-3); }
@@ -507,7 +521,7 @@
   .nd-page .nd-clock, .nd-page .nd-minibar { background: var(--nu-s2); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media print {
-  .nd-page #rr-nav, .nd-page .nu-tabbar, .nd-page .nd-head, .nd-page .nd-status, .nd-page .nd-banner, .nd-page .nd-setup, .nd-page .nd-clock, .nd-page #nd-boardview, .nd-page .nd-side, .nd-page .nd-minibar, .nd-page .nd-about-seo, .nd-page .rr-footer, .nd-page .nu-toast-region, .nd-page .nd-cheat-head .nu-btn { display: none !important; }
+  .nd-page #rr-nav, .nd-page .nu-tabbar, .nd-page .nd-head, .nd-page .nd-status, .nd-page .nd-slotpick, .nd-page .nd-banner, .nd-page .nd-setup, .nd-page .nd-clock, .nd-page #nd-boardview, .nd-page .nd-side, .nd-page .nd-minibar, .nd-page .nd-about-seo, .nd-page .rr-footer, .nd-page .nu-toast-region, .nd-page .nd-cheat-head .nu-btn { display: none !important; }
   body.nd-page, .nd-page .nd-shell { background: #fff !important; color: #000 !important; padding: 0 !important; }
   .nd-page .nd-grid { display: block; }
   .nd-page .nd-cheat { display: block !important; color: #000; }

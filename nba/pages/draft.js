@@ -31,7 +31,7 @@
     // pick timer: restarts whenever the pick on the clock changes
     timer: { pick: null, startedAt: 0, beeped: false },
     // ui
-    pos: 'ALL', q: '', showTaken: false, tierMax: 0, hideOut: false, sort: 'rank', view: 'board', sheetId: null, matching: null, pulse: [],
+    pos: 'ALL', q: '', showTaken: false, tierMax: 0, hideOut: false, sort: 'rank', view: 'board', sheetId: null, matching: null, slotOpen: false, pulse: [],
     merged: { picks: [], unmatched: [], confirmedManual: [] }, lastYahooCount: -1
   };
   try { var sp = localStorage.getItem(SORT_PREF); if (sp) S.sort = sp; } catch (e) {}
@@ -232,7 +232,7 @@
   }
   function render() {
     snapshot();
-    renderHead(); renderFirstRun(); renderClock(); renderPulse(); renderReco(); renderWarns(); renderFilters(); renderBoard();
+    renderHead(); renderSlotPick(); renderFirstRun(); renderClock(); renderPulse(); renderReco(); renderWarns(); renderFilters(); renderBoard();
     renderRoster(); renderPicks(); renderReview(); renderSync(); renderMinibar();
     if (S.view === 'cheat') renderCheat();
     if (S.sheetId) renderSheet();
@@ -243,6 +243,34 @@
     $('nd-eyebrow').textContent = leagueName() + ' · Yahoo High Score';
     $('nd-sub').innerHTML = '<span class="nd-status__lg">' + esc(leagueName()) + ' · </span><b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
       '<span class="nd-status__more"> · ' + esc(L.starterCount(st)) + ' starters + ' + esc(st.bench) + ' BN' + (st.il ? ' + ' + esc(st.il) + ' IL' : '') + '</span>';
+  }
+
+  /* "Which pick are you?" Chips 1..teams while Yahoo hasn't given the slot;
+     one line + Change once chosen; the synced slot once Yahoo knows it. */
+  function slotKnownFromYahoo() {
+    return L.yahooSlotKnown({ live: liveYahoo(), myTeamKey: S.myTeamKey, teams: S.teams, settings: S.state.settings, yahoo: S.state.yahoo, picks: S.merged.picks });
+  }
+  function renderSlotPick() {
+    var el = $('nd-slotpick'), v = L.slotPickerView(V.st, { yahooKnown: slotKnownFromYahoo(), chosen: S.state.slotChosen, open: S.slotOpen });
+    el.hidden = false;
+    el.setAttribute('data-mode', v.mode);
+    if (v.mode === 'pick') {
+      el.innerHTML = '<div class="nd-slotpick__head"><span class="nd-slotpick__q">Which pick are you?</span><span class="nu-hint">Your spot in round 1 of ' + esc(v.teams) + '</span></div>' +
+        '<div class="nd-slotpick__chips" role="group" aria-label="Draft slot">' + v.chips.map(function (n) {
+          return '<button type="button" class="nu-chip nd-slotpick__chip nu-num" data-act="slot" data-slot="' + n + '" aria-pressed="' + (S.state.slotChosen && n === v.slot) + '" aria-label="Pick ' + n + ' of ' + v.teams + '">' + n + '</button>';
+        }).join('') + '</div>';
+    } else {
+      el.innerHTML = '<span class="nd-slotpick__txt">' + (v.mode === 'yahoo' ? 'Your pick: ' : 'You pick ') + '<b>#' + esc(v.slot) + '</b> of ' + esc(v.teams) +
+        (v.mode === 'yahoo' ? ' <span class="nu-hint">· synced from Yahoo</span>' : '') + '</span>' +
+        (v.mode === 'chosen' ? '<button type="button" class="nu-btn nu-btn--sm nd-slotpick__change" data-act="slot-change" aria-label="Change draft slot (now pick ' + esc(v.slot) + ')">Change</button>' : '');
+    }
+  }
+  function chooseSlot(n) {
+    if (slotKnownFromYahoo()) return;
+    S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: n }));
+    S.state.slotChosen = true; S.slotOpen = false;
+    save(); recompute(); render();
+    toast('You pick #' + S.state.settings.mySlot + ' of ' + S.state.settings.teams, { tone: 'good' });
   }
 
   // Top-40 supply per slot + "run" detection from the last round of picks.
@@ -906,6 +934,7 @@
       S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value, rounds: f.rounds.value });
       S.state.settingsSource = 'user';
     } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value }));
+    if (!f.mySlot.disabled) S.state.slotChosen = true;
     try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
     S.timer.startedAt = S.timer.startedAt ? Date.now() : 0; S.timer.beeped = false; saveTimerRun();
     U.sheet.close();
@@ -1037,6 +1066,8 @@
         renderFilters(); renderBoard();
       }
       else if (act === 'print') { window.print(); }
+      else if (act === 'slot') { chooseSlot(parseInt(b.getAttribute('data-slot'), 10)); }
+      else if (act === 'slot-change') { S.slotOpen = true; renderSlotPick(); var c = document.querySelector('#nd-slotpick [aria-pressed="true"]'); if (c) c.focus(); }
     });
     $('nd-undo').onclick = undo;
     $('nd-search').addEventListener('input', function (e) { S.q = e.target.value; renderBoard(); });

@@ -914,12 +914,36 @@
     return normalizeSettings(s);
   }
 
+  /* Has Yahoo told us where I pick? Live (connected, non-auction) leagues only:
+     my team's draft_position, my team_key in Yahoo's published pick order, or
+     a Yahoo pick already credited to me. */
+  function yahooSlotKnown(o) {
+    o = o || {};
+    if (!o.live || !o.myTeamKey) return false;
+    var n = (o.settings && o.settings.teams) || 0;
+    var mine = (o.teams || []).filter(function (t) { return t && t.team_key === o.myTeamKey; })[0];
+    var dp = mine && parseInt(mine.draft_position, 10);
+    if (dp >= 1 && (!n || dp <= n)) return true;
+    if (o.yahoo && Array.isArray(o.yahoo.order) && o.yahoo.order.some(function (x) { return x && x.team_key === o.myTeamKey; })) return true;
+    return (o.picks || []).some(function (p) { return p && p.source === 'yahoo' && p.mine; });
+  }
+
+  /* "Which pick are you?" control. mode: 'yahoo' = synced (no chips), 'pick' =
+     chips open, 'chosen' = collapsed with a Change button. chips = 1..teams. */
+  function slotPickerView(settings, o) {
+    o = o || {};
+    var st = normalizeSettings(settings), chips = [];
+    for (var i = 1; i <= st.teams; i++) chips.push(i);
+    var mode = o.yahooKnown ? 'yahoo' : (o.chosen && !o.open ? 'chosen' : 'pick');
+    return { mode: mode, slot: st.mySlot, teams: st.teams, chips: mode === 'pick' ? chips : [] };
+  }
+
   /* --------------------------------------------------------- persistence */
 
   function storageKey(leagueKey) { return STORAGE_PREFIX + (leagueKey || 'manual'); }
 
   function emptyState(leagueKey, settings) {
-    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), settingsSource: null, manual: [], overrides: {}, yahoo: null, updatedAt: 0 };
+    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), settingsSource: null, slotChosen: false, manual: [], overrides: {}, yahoo: null, updatedAt: 0 };
   }
 
   function serializeState(st) {
@@ -928,6 +952,7 @@
       leagueKey: st.leagueKey || null,
       settings: normalizeSettings(st.settings),
       settingsSource: st.settingsSource || null,
+      slotChosen: !!st.slotChosen,
       manual: (st.manual || []).filter(function (m) { return m && m.playerId != null; })
         .map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name || undefined }; }),
       overrides: st.overrides || {},
@@ -950,6 +975,7 @@
       settings: normalizeSettings(o.settings || defaults),
       // 'user' = edited in the League dialog (kept); anything else follows the league profile / Yahoo.
       settingsSource: o.settingsSource === 'user' ? 'user' : null,
+      slotChosen: o.slotChosen === true,
       manual: Array.isArray(o.manual) ? o.manual.filter(function (m) { return m && m.playerId != null; }).map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name }; }) : [],
       overrides: o.overrides && typeof o.overrides === 'object' ? o.overrides : {},
       yahoo: o.yahoo && Array.isArray(o.yahoo.picks) ? o.yahoo : null,
@@ -1026,7 +1052,7 @@
     injuryFactor: injuryFactor, injuryShort: injuryShort,
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,
     cheatSheet: cheatSheet, myPicksSnake: myPicksSnake,
-    mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo,
+    mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, slotPickerView: slotPickerView,
     openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
     rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
