@@ -26,8 +26,8 @@ For each week, the replacement level is 0.9 × the **3rd best** `hsByWeek[w]` am
 - Partner roster unknown (manual mode): a **typical partner** stands in. The board is drafted in rank order (my players excluded), the middle snake slot takes its 10 picks, and the players I'd get replace its last rounds. This is flagged `them.estimated`.
 - **Fair band** = max(1, 0.75% of my weekly lineup total), about 2.5 points/week for a typical team.
   - **Accept**: my Δ/wk ≥ band.
-  - **Counter**: |my Δ| < band, or I lose more than the band while they gain ≥ 2× band (there is room to ask for more).
-  - **Decline**: anything else.
+  - **Counter**: |my Δ| < band, or I lose between 1 and 3 bands while they gain ≥ 1 band (a small add can close the gap).
+  - **Decline**: anything else, including any loss beyond 3 bands however much they gain (Checker E, 2026-10-13: the old "they gain ≥ 2× band → Counter" rule made almost every lopsided loss read Counter).
 - Partner acceptance uses the band computed on their own team: `likely` if their Δ ≥ −band, `maybe` down to −3× band, `unlikely` below that.
 - **Ranges**: each traded player's ROS value is perturbed by its uncertainty `u` on its own. `u` = 0.10, +0.10 if projection-only or rookie, +0.08 if injured, +0.05 if under 20 sample games, capped at 0.35. The resulting changes in the delta combine in quadrature (independent errors). The range is Δ ± that. It is deterministic; no simulation.
 - Output per week (`weeks[]`): my Δ, their Δ, games in vs out, replacement level, weight. The UI draws heavy vs light weeks from this.

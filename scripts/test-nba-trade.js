@@ -218,7 +218,15 @@ t('verdict bands: lopsided win → Accept / unlikely, wash → Counter', () => {
   const win = ev({ myRoster: ids(A), partnerRoster: ids(B), give: [A[9].id], get: [B[0].id] });
   eq(win.verdict, 'Accept'); eq(win.them.likely, 'unlikely');
   const lose = ev({ myRoster: ids(A), partnerRoster: ids(B), give: [A[0].id], get: [B[9].id] });
-  eq(lose.verdict, 'Counter', 'they gain big → room to counter');
+  // Checker E: a 1st-rounder for a 10th-rounder used to read 'Counter' because they gain big.
+  eq(lose.verdict, 'Decline', 'lopsided loss is a Decline however much they gain');
+  ok(lose.you.perWeek <= -3 * lose.meta.fairBand, 'the loss really is beyond 3 bands');
+  const giveAway = ev({ myRoster: ids(A), partnerRoster: ids(B), give: [A[0].id], get: [] });
+  eq(giveAway.verdict, 'Decline', 'giving a starter for nothing');
+  // boundaries (band 2.5): wash, modest loss they profit from, big loss, loss nobody gains from
+  eq(T.verdictFor(2.5, -2.5, 2.5), 'Accept'); eq(T.verdictFor(2.4, 0, 2.5), 'Counter');
+  eq(T.verdictFor(-5, 5, 2.5), 'Counter'); eq(T.verdictFor(-5, 1, 2.5), 'Decline');
+  eq(T.verdictFor(-7.5, 30, 2.5), 'Decline'); eq(T.verdictFor(-7.4, 7.4, 2.5), 'Counter');
   // two near-identical F starters swapped
   const x = P(960, 'F', 50), y = P(961, 'F', 50.1);
   const wash = T.evaluateTrade({ players: [...base, x, y], currentWeek: 1, myRoster: ids(A).slice(0, 9).concat(x.id), partnerRoster: ids(B).slice(0, 9).concat(y.id), give: [x.id], get: [y.id] });

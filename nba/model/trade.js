@@ -20,6 +20,7 @@ const REPL_DISCOUNT = 0.9;    // waiver adds aren't free: one claim, uncertain r
 const PLAYOFF_WEIGHT = 1.5;   // only when the league gives a playoff start week
 const FAIR_BAND = 0.0075;     // |Δ| under this share of the weekly lineup = a wash
 const MAX_DROP_CANDIDATES = 20;
+const COUNTER_BANDS = 3;     // a loss beyond 3 fair bands is a Decline, however much they gain
 
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const r1 = x => Math.round(num(x) * 10) / 10;
@@ -234,6 +235,14 @@ function estimatePartner(players, mine, getIds, st) {
   return getIds.concat(picks.slice(0, Math.max(0, st.rosterSize - getIds.length)));
 }
 
+// Accept a clear gain; Counter a wash, or a modest loss when they gain (an add
+// can close the gap); Decline a loss past COUNTER_BANDS however much they gain.
+function verdictFor(youPW, themPW, band) {
+  if (youPW >= band) return 'Accept';
+  if (youPW > -band) return 'Counter';
+  return youPW > -COUNTER_BANDS * band && themPW >= band ? 'Counter' : 'Decline';
+}
+
 function likelihood(perWeek, band) {
   if (perWeek >= -band) return 'likely';
   if (perWeek > -3 * band) return 'maybe';
@@ -285,11 +294,7 @@ function evaluateTrade(input = {}) {
   const youPW = you.delta / wSum, themPW = them.delta / wSum;
   const likely = likelihood(themPW, Math.max(1, FAIR_BAND * them.before.total / wSum));
 
-  let verdict;
-  if (!give.length && !get.length) verdict = null;
-  else if (youPW >= band) verdict = 'Accept';
-  else if (youPW > -band) verdict = 'Counter';
-  else verdict = themPW >= 2 * band ? 'Counter' : 'Decline';
+  const verdict = give.length || get.length ? verdictFor(youPW, themPW, band) : null;
 
   // Per-player marginal value for MY team (and theirs): roster with vs without.
   const marginal = (base, p, cap, adding) => {
@@ -396,7 +401,7 @@ function headline(r) {
   const take = { likely: 'they should accept', maybe: 'they might accept', unlikely: 'they will probably say no' }[r.them.likely];
   if (r.verdict === 'Accept') return `${s(r.you.perWeek)}/wk for you; ${s(r.them.perWeek)}/wk for ${who}, so ${take}.`;
   if (r.verdict === 'Decline') return `Costs you ${Math.abs(r.you.perWeek).toFixed(1)}/wk. Decline unless they add more.`;
-  if (r.you.perWeek <= -r.meta.fairBand) return `You lose ${Math.abs(r.you.perWeek).toFixed(1)}/wk but they gain ${r.them.perWeek.toFixed(1)}/wk, so there is room to ask for more.`;
+  if (r.you.perWeek <= -r.meta.fairBand) return `You lose ${Math.abs(r.you.perWeek).toFixed(1)}/wk and they gain ${r.them.perWeek.toFixed(1)}/wk. Ask them to add a piece.`;
   return `Close to even (${s(r.you.perWeek)}/wk). Ask for a small add.`;
 }
 
@@ -447,4 +452,4 @@ function whyBullets(r, E) {
   return out.slice(0, 7);
 }
 
-module.exports = { evaluateTrade, bestLineup, replacementLevel, scheduleWeeks, normSettings, estimatePartner, uncertainty, createEvaluator, BENCH_SHARE, REPL_RANK };
+module.exports = { evaluateTrade, verdictFor, bestLineup, replacementLevel, scheduleWeeks, normSettings, estimatePartner, uncertainty, createEvaluator, BENCH_SHARE, REPL_RANK };
