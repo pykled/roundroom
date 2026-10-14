@@ -8,7 +8,16 @@ const path = require('path');
 const assert = require('assert');
 const express = require('express');
 const ROOT = path.join(__dirname, '..');
-const W = require(path.join(ROOT, 'nba/model/waivers'));
+const W0 = require(path.join(ROOT, 'nba/model/waivers'));
+const LP = require(path.join(ROOT, 'nba/league-profile'));
+const RS = require(path.join(ROOT, 'nba/model/roster-slots'));
+// The synthetic engine checks encode Yahoo's High Score defaults (6 starters,
+// 10-man roster, no IL, no add limit); the default profile is 242808, so they
+// pin the High Score profile. 242808 checks (9 slots, IL 2, 10 adds/week,
+// waiver priority) follow in their own section.
+const HS = LP.highScoreDefaultProfile();
+const HL = LP.defaultProfile();
+const W = { ...W0, analyzeWaivers: o => W0.analyzeWaivers({ profile: HS, ...o }) };
 const St = require(path.join(ROOT, 'nba/model/stats'));
 const waiversRoutes = require(path.join(ROOT, 'nba/routes/waivers'));
 const createNbaRouter = require(path.join(ROOT, 'nba/router'));
@@ -44,6 +53,7 @@ function allNumbersFinite(obj, where = 'root') {
   if (typeof obj === 'number') { if (!Number.isFinite(obj)) throw new Error('non-finite number at ' + where); return; }
   if (obj && typeof obj === 'object') for (const [k, v] of Object.entries(obj)) allNumbersFinite(v, where + '.' + k);
 }
+function near(a, b, tol, msg) { assert.ok(Math.abs(a - b) <= tol, `${msg || 'near'}: ${a} vs ${b}`); }
 function seeded(seed) { const r = St.seededRng(seed); return r; }
 
 // ---------------------------------------------------------------- engine
@@ -113,7 +123,7 @@ test('drop candidate = lowest marginal player; swap gain matches recomputation',
   for (let i = 1; i < r.dropCandidates.length; i++) assert.ok(r.dropCandidates[i - 1].dropCost <= r.dropCandidates[i].dropCost, 'sorted ascending');
   const t = r.targets[0];
   assert.strictEqual(t.drop.id, '10');
-  const wv = (ps, w) => W.rosterWeekValue(ps, w);
+  const wv = (ps, w) => W.rosterWeekValue(ps, w, W.ctxFor(HS));
   const base = wv(roster, 1) + W.WEEK_DISCOUNT * wv(roster, 2);
   const swapped = roster.filter(p => p.id !== '10').concat(fa);
   const net = wv(swapped, 1) + W.WEEK_DISCOUNT * wv(swapped, 2) - base;
@@ -520,6 +530,176 @@ test('GET /api/nba/waivers: IL-slot player opens a spot (route reads selected_po
     assert.ok(j.targets.every(t => t.drop == null));
     assert.strictEqual(j.dropCandidates.find(d => d.name === 'Roster 10').ilSlot, true);
   } finally { await s.close(); }
+});
+
+// ---------------------------------------------------------------- league 242808
+// Yahoo-eligibility player for the 242808 profile.
+function ymk(id, pos, mean, games, extra = {}) {
+  const p = mk(id, [], mean, games, extra);
+  p.pos = pos; p.yahooPos = pos; p.yahooElig = [...RS.eligFor({ pos }, HL)];
+  delete p.elig;
+  return p;
+}
+const POS9 = [['PG'], ['SG'], ['PG', 'SG'], ['SF'], ['PF'], ['SF', 'PF'], ['C'], ['PF', 'C'], ['SG', 'SF']];
+// 14 active players (no C-only), descending talent.
+function hlRoster() {
+  return Array.from({ length: 14 }, (_, i) => ymk(300 + i, POS9[i % 6], 52 - i * 2, 3));
+}
+const W8 = o => W0.analyzeWaivers({ profile: HL, ...o });
+
+test('242808: lineup uses the 9 profile slots; a C-only free agent fills the C hole (and can\'t play F)', () => {
+  const roster = hlRoster();
+  const big = ymk(900, ['C'], 30, 3);
+  const r = W8({ roster, pool: [big], startWeek: 1, horizon: 1 });
+  eq9(r.slots, ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL']);
+  assert.strictEqual(r.lineup.starters.length, 8, 'no C on the roster: C slot open');
+  assert.ok(!r.lineup.starters.some(x => x.slot === 'C'));
+  assert.strictEqual(r.rosterSize, 14);
+  assert.strictEqual(r.openSpots, 0);
+  const t = r.targets[0];
+  assert.strictEqual(t.id, '900');
+  assert.ok(t.netGain > 20, 'C fills an empty starting slot: ' + t.netGain);
+  assert.deepStrictEqual(t.elig, ['C']);
+});
+function eq9(a, b) { assert.deepStrictEqual(a, b); }
+
+test('242808: IL — Out players take the 2 IL slots (manual mode) and free active spots', () => {
+  const roster = hlRoster().slice(0, 12).concat([ymk(400, ['PG'], 45, 3, { injury: 'Out' }), ymk(401, ['C'], 44, 3, { injury: 'Out' }), ymk(402, ['SF'], 20, 3)]);
+  const r = W8({ roster, pool: [ymk(901, ['SG'], 28, 4)], startWeek: 1, horizon: 1 });
+  assert.strictEqual(r.ilSlots, 2);
+  assert.deepStrictEqual(r.ilIds.sort(), ['400', '401']);
+  assert.ok(r.ilAuto);
+  assert.strictEqual(r.openSpots, 1, '15 players − 2 IL = 13 active of 14');
+  assert.strictEqual(r.dropCandidates.find(d => d.id === '400').ilSlot, true, 'IL players flagged');
+  assert.ok(r.targets.every(t => !t.drop || !['400', '401'].includes(t.drop.id)), 'an IL player is never the drop half');
+  // Yahoo mode passes ilIds explicitly: auto IL is off.
+  const y = W8({ roster, pool: [], startWeek: 1, horizon: 1, ilIds: [] });
+  assert.strictEqual(y.ilAuto, false);
+  assert.strictEqual(y.openSpots, 0);
+});
+
+test('242808: weekly add budget from the profile (10); no adds left → no moves suggested', () => {
+  const roster = hlRoster();
+  const pool = [ymk(902, ['C'], 40, 4), ymk(903, ['C'], 38, 4), ymk(904, ['PF', 'C'], 37, 4)];
+  const fresh = W8({ roster, pool, startWeek: 1, horizon: 1, addsUsed: 0 });
+  assert.deepStrictEqual([fresh.adds.max, fresh.adds.used, fresh.adds.left], [10, 0, 10]);
+  assert.strictEqual(fresh.adds.seasonMax, null, 'no season cap');
+  assert.ok(fresh.pairs.length >= 1);
+  const two = W8({ roster, pool, startWeek: 1, horizon: 1, addsUsed: 9 });
+  assert.strictEqual(two.adds.left, 1);
+  assert.ok(two.pairs.length <= 1, 'pairs capped by adds left');
+  const none = W8({ roster, pool, startWeek: 1, horizon: 1, addsUsed: 10 });
+  assert.strictEqual(none.adds.left, 0);
+  assert.strictEqual(none.pairs.length, 0);
+  assert.ok(none.targets.every(t => t.advice === 'no-adds-left'));
+  const unknown = W8({ roster, pool, startWeek: 1, horizon: 1 });
+  assert.strictEqual(unknown.adds.known, false);
+  assert.strictEqual(unknown.adds.left, 10);
+  const hs = W0.analyzeWaivers({ profile: HS, roster: baseRoster(), pool: [mk(950, ['G'], 30, 4)], startWeek: 1 });
+  assert.strictEqual(hs.adds.max, null, 'High Score defaults: no limit in the profile');
+});
+
+test('242808: waiver-priority cost is monotone, zero when last, and only charged on W claims', () => {
+  const T = HL.teams;
+  let prev = Infinity;
+  for (let p = 1; p <= T; p++) {
+    const c = W0.priorityCost(p, T, 1);
+    assert.ok(c >= 0 && c <= prev + 1e-12, `non-increasing at ${p}: ${c} vs ${prev}`);
+    prev = c;
+  }
+  assert.strictEqual(W0.priorityCost(T, T, 1), 0);
+  assert.ok(W0.priorityCost(1, T, 1) > W0.priorityCost(2, T, 1));
+  assert.ok(W0.priorityCost(1, T, 2) > W0.priorityCost(1, T, 1), 'longer horizon → more option value (same units as netGain)');
+  assert.strictEqual(W0.priorityCost(null, T, 1), 0);
+  // Tunable: a bigger breakout lift raises the cost proportionally.
+  near(W0.priorityCost(1, T, 1, { lift: 12 }), 2 * W0.priorityCost(1, T, 1), 1e-9);
+  // A marginal streamer on waivers: claim at #12 (free), save priority at #1.
+  const roster = hlRoster();
+  const streamer = ymk(905, ['C'], 24, 3);
+  const twinFA = ymk(906, ['C'], 24, 3);
+  const at1 = W8({ roster, pool: [streamer, twinFA], startWeek: 1, horizon: 1, waiverIds: ['905'], priority: 1 });
+  const s1 = at1.targets.find(t => t.id === '905'), f1 = at1.targets.find(t => t.id === '906');
+  assert.strictEqual(s1.status, 'W');
+  assert.strictEqual(f1.status, 'FA');
+  assert.strictEqual(f1.priorityCost, 0, 'free agents cost no priority');
+  near(s1.claimNet, s1.netGain - s1.priorityCost, 0.11);
+  assert.ok(s1.priorityCost > 5);
+  assert.strictEqual(at1.targets[0].id, '906', 'the FA twin ranks first once priority is priced');
+  const atLast = W8({ roster, pool: [streamer], startWeek: 1, horizon: 1, waiverIds: ['905'], priority: 12 });
+  assert.strictEqual(atLast.targets[0].priorityCost, 0);
+  assert.strictEqual(atLast.targets[0].advice, 'claim');
+  const marginal = ymk(907, ['PG'], 33, 3);
+  const m1 = W8({ roster, pool: [marginal], startWeek: 1, horizon: 1, waiverIds: ['907'], priority: 1 }).targets[0];
+  if (m1.netGain > 0.05 && m1.netGain < m1.priorityCost) assert.strictEqual(m1.advice, 'save-priority');
+  const breakout = ymk(908, ['C'], 60, 4);
+  assert.strictEqual(W8({ roster, pool: [breakout], startWeek: 1, horizon: 1, waiverIds: ['908'], priority: 1 }).targets[0].advice, 'claim');
+  assert.ok(at1.priority.note.includes('#1 of 12'));
+  assert.ok(at1.waiverRules.notes.some(n => /waivers for 1 day/.test(n)));
+});
+
+test('242808: a waiver claim clears tomorrow (misses today\'s game); a free agent plays today', () => {
+  const roster = hlRoster();
+  const w = ymk(909, ['C'], 40, 4, { team: 'AAA' }), f = ymk(910, ['C'], 40, 4, { team: 'AAA' });
+  const midWeek = { week: 1, played: { AAA: 1 }, playedToday: { AAA: 2 } };
+  const r = W8({ roster, pool: [w, f], startWeek: 1, horizon: 1, midWeek, waiverIds: ['909'] });
+  const tw = r.targets.find(t => t.id === '909'), tf = r.targets.find(t => t.id === '910');
+  assert.strictEqual(tf.gamesLeft, 3);
+  assert.strictEqual(tw.gamesLeft, 2);
+  assert.ok(tw.netGain < tf.netGain);
+});
+
+test('242808: 14-day matchup weeks — midWeekProfile counts real games inside the window', () => {
+  const td = require(path.join(ROOT, 'nba/routes/league-context')).teamDates();
+  const mw = waiversRoutes.midWeekProfile(HL, td, new Date('2026-12-08T18:00:00Z'));
+  assert.strictEqual(mw.week, 7);
+  const s = RS.dayNum('2026-11-30'), today = RS.dayNum('2026-12-08');
+  for (const t of ['DEN', 'BOS', 'LAL']) {
+    assert.strictEqual(mw.played[t], td[t].filter(d => d >= s && d < today).length);
+    assert.ok(mw.playedToday[t] >= mw.played[t]);
+  }
+  assert.strictEqual(waiversRoutes.midWeekProfile(HL, td, new Date('2026-11-30T18:00:00Z')), null, 'first day of the week: nothing played yet');
+  // Engine on week 7 (14 days): games and value come from that week's board numbers.
+  const p = ymk(911, ['C'], 40, [3, 3, 3, 3, 3]);
+  p.gamesByWeek[7] = 7; p.hsByWeek[7] = 55;
+  const r = W8({ roster: hlRoster(), pool: [p], startWeek: 7, horizon: 1, weeks: [7, 8] });
+  assert.deepStrictEqual(r.weeks, [7]);
+  assert.deepStrictEqual(r.targets[0].gamesByWeek, [7]);
+});
+
+test('242808: profile swap — same roster under High Score defaults gets 6 slots', () => {
+  const roster = baseRoster();
+  const a = W0.analyzeWaivers({ profile: HS, roster, pool: [mk(951, ['F'], 30, 4)], startWeek: 1 });
+  const b = W8({ roster, pool: [mk(951, ['F'], 30, 4)], startWeek: 1 });
+  assert.deepStrictEqual(a.slots, ['G', 'G', 'FC', 'FC', 'FC', 'UTIL']);
+  assert.strictEqual(b.slots.length, 9);
+  assert.strictEqual(a.rosterSize, 10);
+  assert.strictEqual(b.rosterSize, 14);
+  allNumbersFinite(a); allNumbersFinite(b);
+});
+
+test('routes 242808: manual default league = 242808; priority/adds validated; Yahoo team state adapter', async () => {
+  const players = hlRoster().concat([ymk(920, ['C'], 35, 4, { name: 'Fill C' })]);
+  players.forEach(p => { p.name = p.name || 'P' + p.id; });
+  const { r } = mkRouter({ deps: { loadModel: () => fakeModel(players), modelPlayers: async () => ({ players, currentWeek: 1 }) } });
+  const s = await serve(r);
+  try {
+    const post = body => fetch(s.base + '/api/nba/waivers/manual', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const ok = await (await post({ roster: hlRoster().map(p => p.id), priority: 1, addsUsed: 3, waivers: ['920'] })).json();
+    assert.deepStrictEqual(ok.profile.slotList, ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL']);
+    assert.deepStrictEqual([ok.adds.max, ok.adds.left], [10, 7]);
+    assert.strictEqual(ok.priority.position, 1);
+    assert.strictEqual(ok.targets.find(t => t.id === '920').status, 'W');
+    assert.strictEqual(ok.weekDates['7'].days, 14);
+    assert.strictEqual((await post({ roster: ['300'], priority: 0 })).status, 400);
+    assert.strictEqual((await post({ roster: ['300'], addsUsed: -1 })).status, 400);
+    assert.strictEqual((await post({ roster: ['300'], league_id: '../x' })).status, 400);
+    const hs = await (await post({ roster: ['300'], league_id: 'hs' })).json();
+    assert.strictEqual(hs.slots.length, 6);
+  } finally { await s.close(); }
+  const raw = { fantasy_content: { team: [[{ team_key: '466.l.242808.t.3' }, { waiver_priority: 4 }, { roster_adds: { coverage_type: 'week', coverage_value: 2, value: '3' } }]] } };
+  const st = await waiversRoutes.teamWaiverState({ request: async () => raw }, '466.l.242808.t.3');
+  assert.deepStrictEqual(st, { priority: 4, addsUsed: 3 });
+  assert.deepStrictEqual(await waiversRoutes.teamWaiverState({}, 'x'), { priority: null, addsUsed: null });
 });
 
 test('mounted via nba/router.js: page + manual route reachable', async () => {

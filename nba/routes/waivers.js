@@ -1,15 +1,20 @@
 // Pocket NBA waivers / streaming API (stream F). Mounted with one line in nba/router.js:
 //   router.use(require('./routes/waivers')({ auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers, log }));
 //
-//   GET  /api/nba/waivers?league_key=&team_key=&weeks=1|2|4[&week=]   (Clerk auth; Yahoo-first)
-//   POST /api/nba/waivers/manual { roster:[ids], pool?:[ids], exclude?:[ids], weeks?, week?, rosterSize? }
+//   GET  /api/nba/waivers?league_key=&team_key=&weeks=1|2|4[&week=][&priority=][&adds_used=]   (Clerk auth; Yahoo-first)
+//   POST /api/nba/waivers/manual { roster:[ids], pool?:[ids], exclude?:[ids], waivers?:[ids], weeks?, week?,
+//        rosterSize?, priority?, addsUsed?, league_id? }
 //        (public, rate limited, 16 KB body cap; no pool → every model player not on the roster)
+// League profile (L1): league_key / league_id (default 242808) picks the profile:
+// board scoring, matchup weeks, slots, IL, max adds per week, waiver rules.
 // Method: docs/nba-waivers.md. Engine: nba/model/waivers.js.
 'use strict';
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const W = require('../model/waivers');
+const LC = require('./league-context');
+const R = require('../model/roster-slots');
 
 const LEAGUE_KEY_RE = /^\d+\.l\.\d+$/;
 const TEAM_KEY_RE = /^\d+\.l\.\d+\.t\.\d+$/;
@@ -73,8 +78,12 @@ function waiverRules(league) {
   };
 }
 
-function weekDates(data, league) {
+function weekDates(data, league, profile, profileId) {
   const out = {};
+  if (profileId && profile) {
+    for (const w of profile.weeks || []) out[w.week] = { start: w.start, end: w.end, days: w.days };
+    return out;
+  }
   if (data && data.proj && data.proj.weeks) for (const [w, d] of Object.entries(data.proj.weeks)) if (Array.isArray(d)) out[w] = { start: d[0], end: d[1] };
   if (league && Array.isArray(league.weeks)) for (const w of league.weeks) if (w && w.week != null) out[w.week] = { start: w.start, end: w.end };
   return out;
@@ -119,6 +128,41 @@ function midWeekFrom(data, nowDate = new Date()) {
   return { week, played, source: fresh ? 'logs' : 'estimate' };
 }
 
+// Profile matchup week containing today (ET) and each team's games already played
+// in it, from the real schedule (imputed NBA Cup games included). `played`
+// counts days before today (an FA added now still gets today's game);
+// `playedToday` counts through today (a waiver claim clears tomorrow).
+function midWeekProfile(profile, teamDates, nowDate = new Date()) {
+  if (!teamDates) return null;
+  const today = R.dayNum(LC.todayEt(nowDate));
+  const w = (profile.weeks || []).find(x => today > R.dayNum(x.start) && today <= R.dayNum(x.end));
+  if (!w) return null;
+  const s = R.dayNum(w.start);
+  const played = {}, playedToday = {};
+  for (const [t, days] of Object.entries(teamDates)) {
+    played[t] = days.filter(d => d >= s && d < today).length;
+    playedToday[t] = days.filter(d => d >= s && d <= today).length;
+  }
+  return { week: w.week, played, playedToday, source: 'schedule' };
+}
+
+// Thin local adapter (A's parser drops these team fields): waiver priority and
+// this week's adds from the raw team resource. Scans rather than depends on the
+// exact nesting. { priority: number|null, addsUsed: number|null }
+async function teamWaiverState(client, teamKey) {
+  if (!client || typeof client.request !== 'function') return { priority: null, addsUsed: null };
+  const json = await client.request(`team/${encodeURIComponent(teamKey)}`);
+  let priority = null, addsUsed = null;
+  (function walk(x) {
+    if (!x || typeof x !== 'object') return;
+    if (x.waiver_priority != null && priority == null && Number.isFinite(Number(x.waiver_priority))) priority = Number(x.waiver_priority);
+    const ra = x.roster_adds;
+    if (ra && typeof ra === 'object' && String(ra.coverage_type) === 'week' && addsUsed == null && Number.isFinite(Number(ra.value))) addsUsed = Number(ra.value);
+    for (const v of Object.values(x)) walk(v);
+  })(json);
+  return { priority, addsUsed };
+}
+
 module.exports = function waiversRoutes({
   auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers,
   loadData = defaultLoadData, log = console, rate = RATE, now, env = process.env,
@@ -136,22 +180,25 @@ module.exports = function waiversRoutes({
   const limited = createRateLimiter(rate, now);
   const userId = req => (getAuth(req) || {}).userId || null;
 
-  async function board() {
+  async function board(lc) {
     const model = loadModel();
     if (!model || model.stub) { const e = new Error('NBA model not available'); e.status = 503; throw e; }
-    const b = modelPlayers ? await modelPlayers(null) : await apiCached('nba:players:default', 10 * 60 * 1000, () => model.getPlayers({}));
+    const b = modelPlayers ? await modelPlayers(null, lc.profileId || undefined) : await apiCached('nba:players:default', 10 * 60 * 1000, () => model.getPlayers({}));
     return { model, b };
   }
 
-  function analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds }) {
+  function analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds, lc, waiverIds, priority, addsUsed }) {
     const ids = [...roster, ...pool].map(p => String(p.id));
     const roles = W.roleSignalsFromData(data, ids);
     const startWeek = week || b.currentWeek || b.week || undefined;
-    const midWeek = midWeekFrom(data, now ? new Date(now()) : new Date());
-    const out = W.analyzeWaivers({ roster, pool, horizon, startWeek, roles, rosterSize, ilIds, midWeek });
+    const nowD = now ? new Date(now()) : new Date();
+    const midWeek = lc.profileId ? midWeekProfile(lc.profile, LC.teamDates(() => data), nowD) : midWeekFrom(data, nowD);
+    const out = W.analyzeWaivers({ roster, pool, horizon, startWeek, roles, rosterSize, ilIds, midWeek, profile: lc.profile, waiverIds, priority, addsUsed });
     if (out.midWeek && midWeek) out.midWeek.source = midWeek.source;
+    out.profile = LC.profileSummary(lc.profile, lc.profileId);
     return out;
   }
+  const intIn = (v, lo, hi) => { if (v == null || v === '') return undefined; const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : null; };
 
   router.get('/api/nba/waivers', auth, wrap(async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');
@@ -164,9 +211,13 @@ module.exports = function waiversRoutes({
     if (horizon == null) return res.status(400).json({ error: 'weeks must be 1, 2 or 4' });
     const week = parseWeek(req.query.week);
     if (week === null) return res.status(400).json({ error: 'Invalid week' });
+    const qPriority = intIn(req.query.priority, 1, 20);
+    const qAdds = intIn(req.query.adds_used, 0, 99);
+    if (qPriority === null || qAdds === null) return res.status(400).json({ error: 'Invalid priority or adds_used' });
+    const lc = LC.profileFor({ leagueKey: lk });
 
     let model, b;
-    try { ({ model, b } = await board()); } catch (err) {
+    try { ({ model, b } = await board(lc)); } catch (err) {
       if (err.status !== 503) log.error('[nba] waivers model:', err.message);
       return res.status(503).json({ error: 'NBA player data unavailable' });
     }
@@ -185,7 +236,9 @@ module.exports = function waiversRoutes({
         }
         let league = null;
         try { league = await c.getLeague(lk); } catch (e) { if (e && e.code === 'not_connected') throw e; }
-        return { roster: roster.players || [], fas, league };
+        let state = { priority: null, addsUsed: null };
+        try { state = await teamWaiverState(c, tk); } catch (e) { if (e && e.code === 'not_connected') throw e; }
+        return { roster: roster.players || [], fas, league, state };
       });
     } catch (err) { return sendYahooError(res, err, uid); }
 
@@ -215,13 +268,19 @@ module.exports = function waiversRoutes({
       if (yp.waiver) waiverIds.push(String(m.player.id));
     }
     const data = loadData();
-    const rosterSize = rosterSizeFrom(y.league) || Math.max(10, roster.length - ilIds.length);
-    const out = analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds });
-    const onWaivers = new Set(waiverIds);
-    for (const t of out.targets) t.onWaivers = onWaivers.has(t.id);
+    const rosterSize = rosterSizeFrom(y.league) || Math.max(R.activeSpots(lc.profile), roster.length - ilIds.length);
+    // Yahoo league settings win over the stored profile for the add limit.
+    const yr = waiverRules(y.league);
+    if (yr.max_weekly_adds != null && Number.isFinite(Number(yr.max_weekly_adds)) && Number(yr.max_weekly_adds) > 0) lc.profile.maxAddsPerWeek = Number(yr.max_weekly_adds);
+    const st = y.state || {};
+    const priority = qPriority ?? st.priority ?? undefined;
+    const addsUsed = qAdds ?? st.addsUsed ?? undefined;
+    const out = analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds, lc, waiverIds, priority, addsUsed });
+    out.priority.source = qPriority != null ? 'input' : st.priority != null ? 'yahoo' : null;
+    out.adds.source = qAdds != null ? 'input' : st.addsUsed != null ? 'yahoo' : null;
     res.json({
       mode: 'yahoo', league_key: lk, team_key: tk, asOf: b.asOf || null,
-      rules: waiverRules(y.league), weekDates: weekDates(data, y.league),
+      rules: yr, weekDates: weekDates(data, y.league, lc.profile, lc.profileId),
       freeAgentCount: pool.length, unmatched, ...out,
     });
   }));
@@ -257,9 +316,17 @@ module.exports = function waiversRoutes({
     if (week === null) return res.status(400).json({ error: 'Invalid week' });
     const rs = body.rosterSize == null ? null : Number(body.rosterSize);
     if (rs != null && !(Number.isInteger(rs) && rs >= 6 && rs <= 20)) return res.status(400).json({ error: 'rosterSize must be 6-20' });
+    const lid = body.league_id == null || body.league_id === '' ? null : String(body.league_id);
+    if (lid != null && !/^(\d{1,10}|hs)$/.test(lid)) return res.status(400).json({ error: 'Invalid league_id' });
+    const lc = LC.profileFor({ leagueId: lid });
+    const priority = intIn(body.priority, 1, 20);
+    const addsUsed = intIn(body.addsUsed, 0, 99);
+    if (priority === null || addsUsed === null) return res.status(400).json({ error: 'Invalid priority or addsUsed' });
+    let waiverIds;
+    try { waiverIds = ids(body.waivers, MAX_POOL, 'waivers'); } catch (err) { return res.status(400).json({ error: err.message }); }
 
     let b;
-    try { ({ b } = await board()); } catch (err) {
+    try { ({ b } = await board(lc)); } catch (err) {
       if (err.status !== 503) log.error('[nba] waivers model:', err.message);
       return res.status(503).json({ error: 'NBA player data unavailable' });
     }
@@ -272,8 +339,8 @@ module.exports = function waiversRoutes({
       ? poolIds.map(id => byId.get(id) || (unknown.push(id), null)).filter(p => p && !inRoster.has(String(p.id)))
       : b.players.filter(p => !inRoster.has(String(p.id)) && !excl.has(String(p.id)));
     const data = loadData();
-    const out = analyze({ roster, pool, b, horizon, week, rosterSize: rs || Math.max(10, roster.length), data });
-    res.json({ mode: 'manual', asOf: b.asOf || null, weekDates: weekDates(data, null), freeAgentCount: pool.length, unknown, ...out });
+    const out = analyze({ roster, pool, b, horizon, week, rosterSize: rs || R.activeSpots(lc.profile), data, lc, waiverIds, priority, addsUsed });
+    res.json({ mode: 'manual', asOf: b.asOf || null, weekDates: weekDates(data, null, lc.profile, lc.profileId), freeAgentCount: pool.length, unknown, ...out });
   }));
 
   // Body-parser failures on the manual route → JSON, not the site's HTML error page.
@@ -290,3 +357,5 @@ module.exports.createRateLimiter = createRateLimiter;
 module.exports.rosterSizeFrom = rosterSizeFrom;
 module.exports.waiverRules = waiverRules;
 module.exports.midWeekFrom = midWeekFrom;
+module.exports.midWeekProfile = midWeekProfile;
+module.exports.teamWaiverState = teamWaiverState;
