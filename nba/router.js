@@ -504,6 +504,7 @@ function createNbaRouter({
   });
 
   router.use(require('./routes/lineup')({ auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError, log }));
+  router.use(require('./routes/trade')({ auth, getAuth, apiCached, modelPlayers, matcher, clientFor, sendYahooError, env, log }));
   return router;
 }
 
