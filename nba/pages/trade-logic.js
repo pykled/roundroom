@@ -154,7 +154,8 @@
     var who = partnerName || 'they';
     var y = Number(r.you.perWeek) || 0, t = Number(r.them.perWeek) || 0;
     var you = Math.abs(y) < 0.05 ? 'barely changes your lineup' : (y > 0 ? 'adds ' : 'costs you ') + Math.abs(y).toFixed(1) + ' points a week';
-    var them = Math.abs(t) < 0.05 ? who + ' break even' : who + (t > 0 ? ' gain ' : ' lose ') + Math.abs(t).toFixed(1);
+    var plural = who === 'they';
+    var them = Math.abs(t) < 0.05 ? who + (plural ? ' break even' : ' breaks even') : who + (t > 0 ? (plural ? ' gain ' : ' gains ') : (plural ? ' lose ' : ' loses ')) + Math.abs(t).toFixed(1);
     var lead = r.verdict === 'Accept' ? 'Take it. ' : r.verdict === 'Decline' ? 'Pass. ' : 'Close. ';
     var s = lead + 'It ' + you + ', and ' + them + '.';
     return s.charAt(0).toUpperCase() + s.slice(1);

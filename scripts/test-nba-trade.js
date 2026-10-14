@@ -359,7 +359,7 @@ t('trade-logic (P4 view): fairness, one-liner, range axis, why, lineup rows, rul
   ok(f.pos < 0.5 && f.pos > 0, 'leans to them'); eq(f.label, 'Leans their way');
   eq(L.fairness({ ...r, you: { ...r.you, perWeek: 40 }, them: { ...r.them, perWeek: -40 } }).pos, 1);
   eq(L.fairness({ ...r, you: { ...r.you, perWeek: 1 }, them: { ...r.them, perWeek: 0.5 } }).label, 'Even');
-  ok(/^Close\. It costs you 1\.3 points a week, and a typical team gain 2\.5\.$/.test(L.oneLiner(r, 'a typical team')), L.oneLiner(r, 'a typical team'));
+  ok(/^Close\. It costs you 1\.3 points a week, and a typical team gains 2\.5\.$/.test(L.oneLiner(r, 'a typical team')), L.oneLiner(r, 'a typical team'));
   const ax = L.rangeAxis(r); eq(ax.max, 20); eq(ax.at(0), 50); eq(ax.at(-20), 0); eq(ax.at(20), 100);
   const why = L.whyItems(r, { i: { id: 'i', name: 'Inj', injury: 'Out', hsValue: 40, hsByWeek: { 1: 0, 2: 0, 3: 30, 4: 40 } } });
   eq(why[0].tone, 'good'); eq(why[1].tone, 'bad');
