@@ -316,6 +316,7 @@ function createNbaRouter({
     } catch (err) { sendYahooError(res, err, uid); }
   });
 
+  router.use(require('./routes/trade')({ auth, getAuth, apiCached, modelPlayers, matcher, clientFor, sendYahooError, env, log }));
   return router;
 }
 
