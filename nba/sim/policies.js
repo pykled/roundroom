@@ -2,10 +2,11 @@
 //
 // recommend(roster, available, ctx) — "VORP-per-need" (value over next
 // available, per open need):
-//   gain(c)  = mean over a week sample of [best lineup(roster + c) − best lineup(roster)]
-//              (exact slot assignment on each week's E[best game]; the sample
-//              includes both 14-day weeks; bench players count only when they
-//              would start in some week, i.e. schedule/game-count depth)
+//   gain(c)  = mean over ALL matchup weeks of [best lineup(roster + c) − best lineup(roster)]
+//              (exact slot assignment on each week's E[best game], 14-day weeks
+//              included; bench players count only when they would start in some
+//              week, i.e. schedule/game-count depth). Screened on the season-average
+//              week first, top candidates refined exactly.
 //   next(c)  = best such gain among players of c's position group still likely
 //              available at my next pick (pool minus the next N consensus picks,
 //              N = picks until my next turn)
@@ -22,7 +23,6 @@
   else root.NbaSimPolicies = factory(root.NbaSimLineup);
 })(typeof self !== 'undefined' ? self : this, function (Lineup) {
   'use strict';
-  const WEEK_SAMPLE = [0, 3, 6, 9, 12, 16, 19];
 
   function lineupValue(idxs, players, lay, w) {
     const vals = new Float64Array(idxs.length), masks = new Int32Array(idxs.length);
@@ -44,17 +44,23 @@
     return g.length ? g : ['U'];
   }
 
-  // ctx = { players, layout, picksUntilNext, consensus?: Float64Array (lower = earlier), alpha, weeks }
+  // ctx = { players, layout, picksUntilNext, consensus?: Float64Array (lower = earlier), alpha, refine }
+  // Two-stage for speed: every candidate is screened on the season-average week
+  // (exact for starter value), then the top `refine` (default 10) plus the 4 best
+  // by value are re-scored exactly over ALL matchup weeks (adds schedule depth).
   function recommend(roster, available, ctx) {
     const players = ctx.players, lay = ctx.layout;
-    const weeks = ctx.weeks || WEEK_SAMPLE.filter(w => w < (players[0] ? players[0].weekEV.length : 0));
+    const W = players[0] ? players[0].weekEV.length : 0;
     const alpha = ctx.alpha != null ? ctx.alpha : 0.5;
-    const base = weeks.map(w => lineupValue(roster, players, lay, w));
-    const gainOf = i => {
+    const baseAvg = lineupValue(roster, players, lay, null);
+    let baseWeeks = null;
+    const gainAvg = i => lineupValue(roster.concat(i), players, lay, null) - baseAvg;
+    const gainFull = i => {
+      if (!baseWeeks) baseWeeks = Array.from({ length: W }, (_, w) => lineupValue(roster, players, lay, w));
       const r = roster.concat(i);
       let s = 0;
-      for (let k = 0; k < weeks.length; k++) s += lineupValue(r, players, lay, weeks[k]) - base[k];
-      return s / weeks.length;
+      for (let w = 0; w < W; w++) s += lineupValue(r, players, lay, w) - baseWeeks[w];
+      return s / W;
     };
     const all = available.slice().sort((a, b) => players[b].value - players[a].value);
     const live = all.filter(i => players[i].value > 0);
@@ -73,19 +79,23 @@
     const next = {};
     for (const g of ['C', 'G', 'F', 'U']) {
       const top = later.filter(i => groupsOf(players[i], lay).includes(g)).slice(0, 2);
-      next[g] = top.length ? Math.max(...top.map(gainOf)) : 0;
+      next[g] = top.length ? Math.max(...top.map(gainAvg)) : 0;
     }
     const out = [];
     for (const i of cands) {
-      const gain = gainOf(i);
+      const gain = gainAvg(i);
       const nx = Math.max(...groupsOf(players[i], lay).map(g => next[g]));
       out.push({ idx: i, player: players[i], gain, next: nx, score: gain - alpha * nx + 1e-3 * players[i].value });
     }
-    // No candidate improves any sampled week's lineup (starters + schedule depth
-    // saturated): fall back to best available value for the bench.
-    const maxGain = out.reduce((m, r) => Math.max(m, r.gain), 0);
-    if (maxGain < 0.05) out.sort((a, b) => players[b.idx].value - players[a.idx].value);
-    else out.sort((a, b) => b.score - a.score || players[b.idx].value - players[a.idx].value);
+    out.sort((a, b) => b.score - a.score);
+    const K = ctx.refine != null ? ctx.refine : 10;
+    const refine = new Set(out.slice(0, K));
+    out.slice().sort((a, b) => b.player.value - a.player.value).slice(0, 4).forEach(r => refine.add(r));
+    for (const r of refine) { r.gain = gainFull(r.idx); r.score = r.gain - alpha * r.next + 1e-3 * r.player.value; r.refined = true; }
+    // Unrefined candidates keep their screening score but rank below refined ones.
+    const maxGain = out.reduce((m, r) => (r.refined ? Math.max(m, r.gain) : m), 0);
+    if (maxGain < 0.05) out.sort((a, b) => (b.refined - a.refined) || b.player.value - a.player.value);
+    else out.sort((a, b) => (b.refined - a.refined) || b.score - a.score);
     return out;
   }
 
@@ -158,5 +168,5 @@
     throw new Error('unknown policy ' + policy);
   }
 
-  return { recommend, choose, groupsOf, lineupValue, WEEK_SAMPLE };
+  return { recommend, choose, groupsOf, lineupValue };
 });
