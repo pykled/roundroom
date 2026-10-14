@@ -19,6 +19,35 @@ function authorizeUrl({ redirectUri, state }, env = process.env) {
   return `${AUTHORIZE_URL}?${q}`;
 }
 
+// OAuth error code from a token-endpoint body. Yahoo usually sends RFC 6749
+// {"error":"invalid_grant"}, but has also been seen sending
+// {"error":{"error":"…","description":"…"}}. Only well-formed codes are kept
+// (never free text, which could echo request values). A bare 401 with no code
+// is a rejected client credential (RFC 6749 §5.2), i.e. invalid_client.
+const CODE_RE = /^[a-z_]{3,40}$/;
+function errorCode(data, status) {
+  let c = data && data.error;
+  if (c && typeof c === 'object') c = c.error || c.code || null;
+  if (typeof c === 'string' && CODE_RE.test(c)) return c;
+  return status === 401 ? 'invalid_client' : null;
+}
+
+// Classify a failure from Yahoo (token endpoint or API) for the router:
+//   'revoked'       — this user's refresh token is dead (invalid_grant): drop
+//                     their tokens and ask them to reconnect.
+//   'misconfigured' — our app credentials are bad (invalid_client etc.): keep
+//                     every user's tokens; it is a server problem.
+//   'not_connected' — no tokens stored.
+//   'transient'     — anything else (network, 5xx, throttling).
+const CONFIG_CODES = new Set(['invalid_client', 'unauthorized_client', 'unsupported_grant_type', 'invalid_scope']);
+function classifyError(err) {
+  const code = err && err.code;
+  if (code === 'not_connected') return 'not_connected';
+  if (code === 'invalid_grant') return 'revoked';
+  if (CONFIG_CODES.has(code)) return 'misconfigured';
+  return 'transient';
+}
+
 // POST to get_token with HTTP Basic client auth. Returns the token set with an
 // absolute expires_at (ms). Errors never include the response body verbatim,
 // which can echo the code/refresh token.
@@ -36,9 +65,11 @@ async function tokenRequest(params, { env = process.env, fetchImpl = fetch } = {
   let data = null;
   try { data = await res.json(); } catch { /* non-JSON error page */ }
   if (!res.ok || !data || !data.access_token) {
-    const err = new Error(`Yahoo token endpoint ${res.status}${data && data.error ? ` (${data.error})` : ''}`);
+    const code = errorCode(data, res.status);
+    const err = new Error(`Yahoo token endpoint ${res.status}${code ? ` (${code})` : ''}`);
     err.status = res.status;
-    err.code = data && data.error;
+    err.code = code;
+    err.source = 'token';
     throw err;
   }
   return {
@@ -58,4 +89,4 @@ function refreshTokens(refreshToken, { redirectUri = 'oob', ...opts } = {}) {
   return tokenRequest({ grant_type: 'refresh_token', refresh_token: refreshToken, redirect_uri: redirectUri }, opts);
 }
 
-module.exports = { AUTHORIZE_URL, TOKEN_URL, SCOPE, isConfigured, authorizeUrl, exchangeCode, refreshTokens };
+module.exports = { AUTHORIZE_URL, TOKEN_URL, SCOPE, isConfigured, authorizeUrl, exchangeCode, refreshTokens, errorCode, classifyError };

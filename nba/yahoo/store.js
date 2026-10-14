@@ -3,8 +3,9 @@
 // Without a DB (local dev) it falls back to process memory.
 const { encryptTokens, decryptTokens } = require('./crypto');
 
-function createTokenStore({ db, env = process.env } = {}) {
+function createTokenStore({ db, env = process.env, log = console } = {}) {
   const mem = new Map(); // clerkUserId -> { guid, blob }
+  let warnedDecrypt = false;
 
   async function get(clerkUserId) {
     let row = null;
@@ -15,7 +16,12 @@ function createTokenStore({ db, env = process.env } = {}) {
       row = mem.get(clerkUserId) || null;
     }
     if (!row) return null;
-    try { return decryptTokens(row.blob, env); } catch { return null; } // key rotated / corrupt → treat as disconnected
+    // Key rotated / corrupt → treat as disconnected, but keep the row (a key
+    // restored later makes it readable again; a reconnect overwrites it).
+    try { return decryptTokens(row.blob, env); } catch {
+      if (!warnedDecrypt) { warnedDecrypt = true; log.warn('[nba] token blob could not be decrypted (NBA_TOKEN_KEY / YAHOO_CLIENT_SECRET changed?)'); }
+      return null;
+    }
   }
 
   async function save(clerkUserId, tokens) {

@@ -58,6 +58,14 @@ async function migrate() {
       token_blob TEXT NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    -- Pocket NBA: single-use OAuth state nonces (nba/yahoo/nonces.js), so an
+    -- in-flight Yahoo login survives a restart / another instance. Rows live
+    -- 10 minutes; expired ones are swept on the next login.
+    CREATE TABLE IF NOT EXISTS nba_oauth_nonces (
+      nonce TEXT PRIMARY KEY,
+      clerk_user_id TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL
+    );
   `);
   console.log('DB migrations applied');
 }
