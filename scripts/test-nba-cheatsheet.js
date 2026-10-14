@@ -149,6 +149,18 @@ ok(md.includes('DRAFT: Wed Oct 14 8pm PT'), 'markdown has draft header');
   run(path.join(tmp, 'v'), ['--from-json', path.join(tmp, 'valued.json')]);
   const v = JSON.parse(fs.readFileSync(path.join(tmp, 'v', 'nba-cheatsheet.html'), 'utf8').match(/id="data">([\s\S]*?)<\/script>/)[1]);
   ok(v.players[0].v === 100 && /^profile/.test(v.meta.valueSource), 'profile-valued JSON passes through untouched');
+  // integrated board: Yahoo eligibility wins over Sleeper pos (C-only never F), rounds follow the profile
+  const yv = { profile: { leagueId: '242808' }, players: [
+    { id: 'a', name: 'Big Only', team: 'X', pos: ['PF', 'C'], elig: ['F', 'UTIL'], yahooPos: ['C'], yahooElig: ['C', 'UTIL'], eligConfidence: 'yahoo', hsValue: 50, mean: 40, sd: 9, ceiling: 60, floor: 30, games: 3.5 },
+    { id: 'b', name: 'Wing Two', team: 'Y', pos: ['SF'], elig: ['F', 'UTIL'], yahooPos: ['SG', 'SF'], yahooElig: ['SG', 'G', 'SF', 'F', 'UTIL'], eligConfidence: 'yahoo', hsValue: 45, mean: 35, sd: 9, ceiling: 55, floor: 25, games: 3.5 }] };
+  fs.writeFileSync(path.join(tmp, 'yv.json'), JSON.stringify(yv));
+  run(path.join(tmp, 'y'), ['--from-json', path.join(tmp, 'yv.json')]);
+  const yd = JSON.parse(fs.readFileSync(path.join(tmp, 'y', 'nba-cheatsheet.html'), 'utf8').match(/id="data">([\s\S]*?)<\/script>/)[1]);
+  const big = yd.players.find(p => p.n === 'Big Only'), wing = yd.players.find(p => p.n === 'Wing Two');
+  ok(big.e.indexOf('F') < 0 && big.e.indexOf('PF') < 0 && big.e.indexOf('C') >= 0 && big.p === 'C', 'Yahoo C-only stays C-only: ' + JSON.stringify(big.e));
+  ok(wing.e.indexOf('SG') >= 0 && wing.p === 'SG/SF', 'Yahoo SG,SF eligibility used: ' + JSON.stringify(wing.e));
+  ok(yd.meta.rounds === 14 && yd.meta.eligSource === 'yahoo', 'meta rounds/eligSource ' + yd.meta.rounds + ' ' + yd.meta.eligSource);
+
   // bad flag fails loudly
   let bad = false;
   try { execFileSync(process.execPath, [SCRIPT, '--nope'], { stdio: 'pipe' }); } catch { bad = true; }

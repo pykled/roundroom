@@ -68,7 +68,9 @@ async function loadBoard(o) {
   }
   const model = require('../nba/model');
   if (profile) {
-    const res = await model.getPlayers({ profile, leagueId: o.profile });
+    let res = await model.getPlayers({ profile, leagueId: o.profile });
+    // Same rows as /api/nba/players?profile= (Yahoo-only players included).
+    try { res = require('../nba/model/enrich').enrichPlayers(res); } catch { /* adapter optional */ }
     if (res && res.profile && res.players && res.players.length) {
       return { list: fromValued(res.players), valueSource: `profile (nba/league-profile ${o.profile})`, asOf: res.asOf, weights, fixture };
     }
@@ -79,12 +81,17 @@ async function loadBoard(o) {
 
 function fromValued(players) {
   const list = players.map(p => ({
-    id: String(p.id), name: p.name, team: p.team, pos: p.pos || [],
-    elig: p.elig && p.elig.includes('PG') ? p.elig : L.eligibility(p.pos || []),
+    // Yahoo-first: Yahoo positions/eligibility when the model has them (H1),
+    // else the profile-shaped elig, else Sleeper positions mapped (low confidence).
+    id: String(p.id), name: p.name, team: p.team,
+    pos: Array.isArray(p.yahooPos) && p.yahooPos.length ? p.yahooPos : p.pos || [],
+    elig: Array.isArray(p.yahooElig) && p.yahooElig.length ? p.yahooElig : p.elig && p.elig.includes('PG') ? p.elig : L.eligibility(p.pos || []),
+    eligYahoo: Array.isArray(p.yahooElig) && p.yahooElig.length > 0 && (p.eligConfidence == null || p.eligConfidence === 'yahoo'),
     injury: p.injury || null, outForSeason: !!p.outForSeason,
     mean: p.mean, sd: p.sd, ceiling: p.ceiling, floor: p.floor, value: p.hsValue != null ? p.hsValue : p.value,
     games: p.games, source: p.source,
   }));
+  fromValued.yahooShare = list.length ? list.filter(p => p.eligYahoo).length / list.length : 0;
   return L.finish(list);
 }
 
@@ -143,6 +150,8 @@ async function main() {
   const meta = {
     profile: o.profile, weights: b.weights, valueSource: b.valueSource, asOf: b.asOf || null,
     generatedAt: new Date().toISOString(), count: players.length, tdAlsoCountsDD: o.tdAlsoDD,
+    rounds: (() => { try { const pr = require('../nba/league-profile').getProfile(o.profile); return (pr && pr.draft && pr.draft.rounds) || 14; } catch { return 14; } })(),
+    eligSource: b.valueSource.startsWith('profile') && fromValued.yahooShare > 0.5 ? 'yahoo' : 'sleeper',
   };
   meta.scoringText = scoringText(b.weights);
   fs.mkdirSync(o.out, { recursive: true });
@@ -327,7 +336,7 @@ select{min-height:36px;border-radius:8px;border:1px solid var(--line);background
 var fold = /*FOLD*/;
 var D = JSON.parse(document.getElementById("data").textContent);
 var P = D.players, M = D.meta;
-var TEAMS = 12, PICKS_PER = TEAMS;
+var TEAMS = 12, PICKS_PER = TEAMS, ROUNDS = M.rounds || 14;
 var SLOTS = ["PG","SG","G","SF","PF","F","C","UTIL"];
 var STARTERS = ["PG","SG","G","SF","PF","F","C","UTIL","UTIL"];
 var byId = {};
@@ -427,7 +436,7 @@ function openSlotsList(a){
 function nextPicks(count){
   var out = [];
   if (!S.mypos) return out;
-  for (var n = S.log.length + 1; out.length < count && n <= 16 * TEAMS; n++) {
+  for (var n = S.log.length + 1; out.length < count && n <= ROUNDS * TEAMS; n++) {
     var round = Math.ceil(n / TEAMS), idx = (n - 1) % TEAMS + 1;
     var pos = round % 2 ? idx : TEAMS + 1 - idx;
     if (pos === S.mypos) out.push(n);
@@ -490,7 +499,7 @@ function renderSlots(){
 function renderRounds(){
   var round = Math.floor(S.log.length / PICKS_PER) + 1;
   var h = ["<thead><tr><th>Rd</th>" + SLOTS.map(function(s){ return "<th>" + s + "</th>"; }).join("") + "</tr></thead><tbody>"];
-  for (var r = 1; r <= 16; r++) {
+  for (var r = 1; r <= ROUNDS; r++) {
     var lo = (r - 1) * PICKS_PER + 1, hi = r * PICKS_PER;
     h.push('<tr class="' + (r === round ? "cur" : "") + '"><td>' + r + "</td>");
     SLOTS.forEach(function(s){
@@ -515,7 +524,7 @@ function renderRounds(){
 function renderStatus(){
   var n = S.log.length + 1;
   var round = Math.ceil(n / PICKS_PER);
-  $("pickinfo").textContent = n > 16 * PICKS_PER ? "Draft complete" : "Pick " + n + " · Round " + round;
+  $("pickinfo").textContent = n > ROUNDS * PICKS_PER ? "Draft complete" : "Pick " + n + " · Round " + round;
   $("undo").disabled = !S.log.length;
   $("undo").textContent = S.log.length ? "Undo (" + S.log.length + ")" : "Undo";
 }
@@ -586,7 +595,7 @@ function goTab(t){ setTab(t); window.scrollTo(0, 0); }
   });
   var foot = '<b>' + esc(document.querySelector(".banner").textContent) + '</b><br>Scoring: ' + esc(M.scoringText) +
     '<br>values: ' + esc(M.valueSource) + '<br>generated <span id="gen">' + esc(M.generatedAt) + '</span> · data as-of ' + esc(M.asOf || "unknown") + " · " + P.length + " players" +
-    '<br>Scoring-weight values are projections, not guarantees. Eligibility derived from Sleeper positions (low confidence) until Yahoo positions are known; check the Yahoo draft room for exact slots. TD games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the DD bonus (unverified assumption).";
+    '<br>Scoring-weight values are projections, not guarantees. ' + (M.eligSource === 'yahoo' ? 'Positions/eligibility from the Yahoo league snapshot.' : 'Eligibility derived from Sleeper positions (low confidence) until Yahoo positions are known; check the Yahoo draft room for exact slots.') + ' ' + ROUNDS + ' draft rounds (Yahoo does not draft IL). TD games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the DD bonus (unverified assumption).";
   $("foot").innerHTML = foot;
   recompute();
   setTab("board");
