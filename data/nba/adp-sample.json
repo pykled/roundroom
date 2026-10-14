@@ -1,0 +1,1194 @@
+{
+ "_note": "trimmed real payloads captured 2026-10-13 for offline parser tests",
+ "espn": {
+  "players": [
+   {
+    "id": 3112335,
+    "player": {
+     "fullName": "Nikola Jokic",
+     "proTeamId": 7,
+     "eligibleSlots": [
+      4,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 1.43,
+      "percentOwned": 99.92
+     }
+    }
+   },
+   {
+    "id": 4278073,
+    "player": {
+     "fullName": "Shai Gilgeous-Alexander",
+     "proTeamId": 25,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 3.05,
+      "percentOwned": 99.92
+     }
+    }
+   },
+   {
+    "id": 3945274,
+    "player": {
+     "fullName": "Luka Doncic",
+     "proTeamId": 13,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 3.57,
+      "percentOwned": 99.9
+     }
+    }
+   },
+   {
+    "id": 5104157,
+    "player": {
+     "fullName": "Victor Wembanyama",
+     "proTeamId": 24,
+     "eligibleSlots": [
+      4,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 3.07,
+      "percentOwned": 99.93
+     }
+    }
+   },
+   {
+    "id": 3032977,
+    "player": {
+     "fullName": "Giannis Antetokounmpo",
+     "proTeamId": 14,
+     "eligibleSlots": [
+      3,
+      4,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 5.73,
+      "percentOwned": 99.86
+     }
+    }
+   },
+   {
+    "id": 4701230,
+    "player": {
+     "fullName": "Jalen Johnson",
+     "proTeamId": 1,
+     "eligibleSlots": [
+      3,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 8.76,
+      "percentOwned": 99.13
+     }
+    }
+   },
+   {
+    "id": 4432166,
+    "player": {
+     "fullName": "Cade Cunningham",
+     "proTeamId": 8,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 8.07,
+      "percentOwned": 99.86
+     }
+    }
+   },
+   {
+    "id": 4594268,
+    "player": {
+     "fullName": "Anthony Edwards",
+     "proTeamId": 16,
+     "eligibleSlots": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 7.26,
+      "percentOwned": 99.9
+     }
+    }
+   },
+   {
+    "id": 4065648,
+    "player": {
+     "fullName": "Jayson Tatum",
+     "proTeamId": 2,
+     "eligibleSlots": [
+      2,
+      3,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 9.11,
+      "percentOwned": 99.83
+     }
+    }
+   },
+   {
+    "id": 3908809,
+    "player": {
+     "fullName": "Donovan Mitchell",
+     "proTeamId": 5,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 11.29,
+      "percentOwned": 99.87
+     }
+    }
+   },
+   {
+    "id": 5041939,
+    "player": {
+     "fullName": "Cooper Flagg",
+     "proTeamId": 6,
+     "eligibleSlots": [
+      2,
+      3,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 12.3,
+      "percentOwned": 99.82
+     }
+    }
+   },
+   {
+    "id": 3155942,
+    "player": {
+     "fullName": "Domantas Sabonis",
+     "proTeamId": 23,
+     "eligibleSlots": [
+      3,
+      4,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 18.22,
+      "percentOwned": 98.41
+     }
+    }
+   },
+   {
+    "id": 4431678,
+    "player": {
+     "fullName": "Tyrese Maxey",
+     "proTeamId": 20,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 13.4,
+      "percentOwned": 99.85
+     }
+    }
+   },
+   {
+    "id": 4432816,
+    "player": {
+     "fullName": "LaMelo Ball",
+     "proTeamId": 16,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 17.99,
+      "percentOwned": 99.58
+     }
+    }
+   },
+   {
+    "id": 3934672,
+    "player": {
+     "fullName": "Jalen Brunson",
+     "proTeamId": 18,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 14.35,
+      "percentOwned": 99.83
+     }
+    }
+   },
+   {
+    "id": 4277905,
+    "player": {
+     "fullName": "Trae Young",
+     "proTeamId": 27,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 22.87,
+      "percentOwned": 98.29
+     }
+    }
+   },
+   {
+    "id": 4433134,
+    "player": {
+     "fullName": "Scottie Barnes",
+     "proTeamId": 28,
+     "eligibleSlots": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 16.77,
+      "percentOwned": 99.61
+     }
+    }
+   },
+   {
+    "id": 4871145,
+    "player": {
+     "fullName": "Josh Giddey",
+     "proTeamId": 4,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 23.68,
+      "percentOwned": 97.95
+     }
+    }
+   },
+   {
+    "id": 4684740,
+    "player": {
+     "fullName": "Amen Thompson",
+     "proTeamId": 10,
+     "eligibleSlots": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 21.15,
+      "percentOwned": 99.62
+     }
+    }
+   },
+   {
+    "id": 3136193,
+    "player": {
+     "fullName": "Devin Booker",
+     "proTeamId": 21,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 22.59,
+      "percentOwned": 99.76
+     }
+    }
+   },
+   {
+    "id": 4396993,
+    "player": {
+     "fullName": "Tyrese Haliburton",
+     "proTeamId": 11,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 19.94,
+      "percentOwned": 96.31
+     }
+    }
+   },
+   {
+    "id": 4871144,
+    "player": {
+     "fullName": "Alperen Sengun",
+     "proTeamId": 10,
+     "eligibleSlots": [
+      4,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 24.49,
+      "percentOwned": 98.73
+     }
+    }
+   },
+   {
+    "id": 3202,
+    "player": {
+     "fullName": "Kevin Durant",
+     "proTeamId": 10,
+     "eligibleSlots": [
+      2,
+      3,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 21.21,
+      "percentOwned": 99.82
+     }
+    }
+   },
+   {
+    "id": 3136195,
+    "player": {
+     "fullName": "Karl-Anthony Towns",
+     "proTeamId": 18,
+     "eligibleSlots": [
+      4,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 21.5,
+      "percentOwned": 99.86
+     }
+    }
+   },
+   {
+    "id": 3992,
+    "player": {
+     "fullName": "James Harden",
+     "proTeamId": 5,
+     "eligibleSlots": [
+      0,
+      1,
+      5,
+      7,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 29.68,
+      "percentOwned": 99.46
+     }
+    }
+   },
+   {
+    "id": 3149673,
+    "player": {
+     "fullName": "Pascal Siakam",
+     "proTeamId": 11,
+     "eligibleSlots": [
+      3,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 30.63,
+      "percentOwned": 99.04
+     }
+    }
+   },
+   {
+    "id": 4433621,
+    "player": {
+     "fullName": "Jalen Duren",
+     "proTeamId": 8,
+     "eligibleSlots": [
+      4,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 32.8,
+      "percentOwned": 95.26
+     }
+    }
+   },
+   {
+    "id": 3936299,
+    "player": {
+     "fullName": "Jamal Murray",
+     "proTeamId": 7,
+     "eligibleSlots": [
+      0,
+      5,
+      8,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 31.48,
+      "percentOwned": 98.98
+     }
+    }
+   },
+   {
+    "id": 6583,
+    "player": {
+     "fullName": "Anthony Davis",
+     "proTeamId": 27,
+     "eligibleSlots": [
+      3,
+      4,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 31.06,
+      "percentOwned": 98.76
+     }
+    }
+   },
+   {
+    "id": 4683021,
+    "player": {
+     "fullName": "Deni Avdija",
+     "proTeamId": 22,
+     "eligibleSlots": [
+      2,
+      3,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+     ],
+     "ownership": {
+      "averageDraftPosition": 34.04,
+      "percentOwned": 95.55
+     }
+    }
+   },
+   {
+    "player": {
+     "fullName": "Floor Guy",
+     "proTeamId": 7,
+     "eligibleSlots": [
+      0
+     ],
+     "ownership": {
+      "averageDraftPosition": 140
+     }
+    }
+   }
+  ]
+ },
+ "sleeper": [
+  {
+   "stats": {
+    "adp_std": 24.8,
+    "adp_dynasty": 70.2
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Stephen",
+    "last_name": "Curry",
+    "team": "GSW",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 36.4,
+    "adp_dynasty": 89.1
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "James",
+    "last_name": "Harden",
+    "team": "CLE",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 15.3,
+    "adp_dynasty": 54.3
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Anthony",
+    "last_name": "Davis",
+    "team": "WAS",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 43.3,
+    "adp_dynasty": 73.3
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Kawhi",
+    "last_name": "Leonard",
+    "team": "TOR",
+    "team_abbr": null,
+    "position": "SF",
+    "fantasy_positions": [
+     "SF",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 54.3,
+    "adp_dynasty": 157.3
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "LeBron",
+    "last_name": "James",
+    "team": "PHI",
+    "team_abbr": null,
+    "position": "PF",
+    "fantasy_positions": [
+     "PF",
+     "PG",
+     "SF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 7.3,
+    "adp_dynasty": 18.3
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Giannis",
+    "last_name": "Antetokounmpo",
+    "team": "MIA",
+    "team_abbr": null,
+    "position": "PF",
+    "fantasy_positions": [
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 26.5,
+    "adp_dynasty": 68.8
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Kevin",
+    "last_name": "Durant",
+    "team": "HOU",
+    "team_abbr": null,
+    "position": "SF",
+    "fantasy_positions": [
+     "PF",
+     "SF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 56.2,
+    "adp_dynasty": 87.5
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Joel",
+    "last_name": "Embiid",
+    "team": "PHI",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 9.5,
+    "adp_dynasty": 32.8
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Karl-Anthony",
+    "last_name": "Towns",
+    "team": "NYK",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 18.7,
+    "adp_dynasty": 34.4
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Devin",
+    "last_name": "Booker",
+    "team": "PHX",
+    "team_abbr": null,
+    "position": "SG",
+    "fantasy_positions": [
+     "PG",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 2.5,
+    "adp_dynasty": 4.8
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Nikola",
+    "last_name": "Jokić",
+    "team": "DEN",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 41.8,
+    "adp_dynasty": 59.2
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Ivica",
+    "last_name": "Zubac",
+    "team": "IND",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 31.7,
+    "adp_dynasty": 46.4
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Jaylen",
+    "last_name": "Brown",
+    "team": "PHI",
+    "team_abbr": null,
+    "position": "SF",
+    "fantasy_positions": [
+     "PF",
+     "SF",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 46.6,
+    "adp_dynasty": 94.6
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Pascal",
+    "last_name": "Siakam",
+    "team": "IND",
+    "team_abbr": null,
+    "position": "PF",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 27.5,
+    "adp_dynasty": 67.8
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Domantas",
+    "last_name": "Sabonis",
+    "team": "SAC",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 30.7,
+    "adp_dynasty": 29.4
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Jamal",
+    "last_name": "Murray",
+    "team": "DEN",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 51.6,
+    "adp_dynasty": 45.6
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Lauri",
+    "last_name": "Markkanen",
+    "team": "UTA",
+    "team_abbr": null,
+    "position": "PF",
+    "fantasy_positions": [
+     "PF",
+     "SF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 11.1,
+    "adp_dynasty": 10.7
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Jayson",
+    "last_name": "Tatum",
+    "team": "BOS",
+    "team_abbr": null,
+    "position": "SF",
+    "fantasy_positions": [
+     "PF",
+     "SF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 49.3,
+    "adp_dynasty": 81.3
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Derrick",
+    "last_name": "White",
+    "team": "BOS",
+    "team_abbr": null,
+    "position": "SG",
+    "fantasy_positions": [
+     "PG",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 59.1,
+    "adp_dynasty": 65.7
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "OG",
+    "last_name": "Anunoby",
+    "team": "NYK",
+    "team_abbr": null,
+    "position": "PF",
+    "fantasy_positions": [
+     "PF",
+     "SF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 12,
+    "adp_dynasty": 24
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Donovan",
+    "last_name": "Mitchell",
+    "team": "CLE",
+    "team_abbr": null,
+    "position": "SG",
+    "fantasy_positions": [
+     "PG",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 35.7,
+    "adp_dynasty": 48.4
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Bam",
+    "last_name": "Adebayo",
+    "team": "MIA",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 52,
+    "adp_dynasty": 77
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "De'Aaron",
+    "last_name": "Fox",
+    "team": "SAS",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 40.4,
+    "adp_dynasty": 43.1
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Jaren",
+    "last_name": "Jackson",
+    "team": "UTA",
+    "team_abbr": null,
+    "position": "C",
+    "fantasy_positions": [
+     "C",
+     "PF"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 21.7,
+    "adp_dynasty": 55.4
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Trae",
+    "last_name": "Young",
+    "team": "WAS",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 4.1,
+    "adp_dynasty": 2.7
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Shai",
+    "last_name": "Gilgeous-Alexander",
+    "team": "OKC",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 22.8,
+    "adp_dynasty": 44.2
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Jalen",
+    "last_name": "Brunson",
+    "team": "NYK",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 3.2,
+    "adp_dynasty": 3.5
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Luka",
+    "last_name": "Dončić",
+    "team": "LAL",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 55,
+    "adp_dynasty": 40
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Darius",
+    "last_name": "Garland",
+    "team": "LAC",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 47.6,
+    "adp_dynasty": 85.6
+   },
+   "season": "2026",
+   "player": {
+    "first_name": "Ja",
+    "last_name": "Morant",
+    "team": "POR",
+    "team_abbr": null,
+    "position": "PG",
+    "fantasy_positions": [
+     "PG",
+     "SG"
+    ]
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 999
+   },
+   "player": {
+    "first_name": "No",
+    "last_name": "Rank",
+    "team": "LAL"
+   }
+  },
+  {
+   "stats": {
+    "adp_std": 200
+   },
+   "player": {
+    "first_name": "Retired",
+    "last_name": "Guy",
+    "team": null
+   }
+  }
+ ],
+ "fantasyprosHtml": "<table><tbody><tbody>\n                            <tr><td>1</td>\n<td class=\"player-label\"><a href=\"/nba/adp/nikola-jokic.php\" class=\"player-name fp-player-link fp-id-2918\" fp-player-name=\"Nikola Jokic\">Nikola Jokic</a> <small>(DEN - C)</small></td>\n<td>1</td>\n<td>1</td>\n<td>1.0</td>\n<tr><td>2</td>\n<td class=\"player-label\"><a href=\"/nba/adp/victor-wembanyama.php\" class=\"player-name fp-player-link fp-id-5971\" fp-player-name=\"Victor Wembanyama\">Victor Wembanyama</a> <small>(SAS - C)</small></td>\n<td>2</td>\n<td>2</td>\n<td>2.0</td>\n<tr><td>3</td>\n<td class=\"player-label\"><a href=\"/nba/adp/luka-doncic.php\" class=\"player-name fp-player-link fp-id-3469\" fp-player-name=\"Luka Doncic\">Luka Doncic</a> <small>(LAL - PG,SG)</small></td>\n<td>3</td>\n<td>4</td>\n<td>3.5</td>\n<tr><td>4</td>\n<td class=\"player-label\"><a href=\"/nba/adp/shai-gilgeous-alexander.php\" class=\"player-name fp-player-link fp-id-3485\" fp-player-name=\"Shai Gilgeous-Alexander\">Shai Gilgeous-Alexander</a> <small>(OKC - PG)</small></td>\n<td>4</td>\n<td>3</td>\n<td>3.5</td>\n<tr><td>5</td>\n<td class=\"player-label\"><a href=\"/nba/adp/giannis-antetokounmpo.php\" class=\"player-name fp-player-link fp-id-2803\" fp-player-name=\"Giannis Antetokounmpo\">Giannis Antetokounmpo</a> <small>(MIA - PF,C)</small></td>\n<td>6</td>\n<td>5</td>\n<td>5.5</td>\n<tr><td>6</td>\n<td class=\"player-label\"><a href=\"/nba/adp/cade-cunningham.php\" class=\"player-name fp-player-link fp-id-5315\" fp-player-name=\"Cade Cunningham\">Cade Cunningham</a> <small>(DET - PG,SG)</small></td>\n<td>5</td>\n<td>7</td>\n<td>6.0</td>\n<tr><td>7</td>\n<td class=\"player-label\"><a href=\"/nba/adp/anthony-edwards.php\" class=\"player-name fp-player-link fp-id-5089\" fp-player-name=\"Anthony Edwards\">Anthony Edwards</a> <small>(MIN - PG,SF,SG)</small></td>\n<td>7</td>\n<td>6</td>\n<td>6.5</td>\n<tr><td>8</td>\n<td class=\"player-label\"><a href=\"/nba/adp/jayson-tatum.php\" class=\"player-name fp-player-link fp-id-3316\" fp-player-name=\"Jayson Tatum\">Jayson Tatum</a> <small>(BOS - SF,PF)</small></td>\n<td>8</td>\n<td>9</td>\n<td>8.5</td>\n<tr><td>9</td>\n<td class=\"player-label\"><a href=\"/nba/adp/jalen-johnson-f-f.php\" class=\"player-name fp-player-link fp-id-5353\" fp-player-name=\"Jalen Johnson\">Jalen Johnson</a> <small>(ATL - PF,SF)</small></td>\n<td>11</td>\n<td>8</td>\n<td>9.5</td>\n<tr><td>10</td>\n<td class=\"player-label\"><a href=\"/nba/adp/tyrese-maxey.php\" class=\"player-name fp-player-link fp-id-5146\" fp-player-name=\"Tyrese Maxey\">Tyrese Maxey</a> <small>(PHI - PG,SG)</small></td>\n<td>9</td>\n<td>12</td>\n<td>10.5</td>\n<tr><td>11</td>\n<td class=\"player-label\"><a href=\"/nba/adp/cooper-flagg.php\" class=\"player-name fp-player-link fp-id-6306\" fp-player-name=\"Cooper Flagg\">Cooper Flagg</a> <small>(DAL - PF,SF,SG)</small></td>\n<td>10</td>\n<td>11</td>\n<td>10.5</td>\n<tr><td>12</td>\n<td class=\"player-label\"><a href=\"/nba/adp/donovan-mitchell.php\" class=\"player-name fp-player-link fp-id-3326\" fp-player-name=\"Donovan Mitchell\">Donovan Mitchell</a> <small>(CLE - PG,SG)</small></td>\n<td>13</td>\n<td>10</td>\n<td>11.5</td>\n<tr><td>13</td>\n<td class=\"player-label\"><a href=\"/nba/adp/scottie-barnes.php\" class=\"player-name fp-player-link fp-id-5318\" fp-player-name=\"Scottie Barnes\">Scottie Barnes</a> <small>(TOR - C,PF,SF,SG)</small></td>\n<td>14</td>\n<td>14</td>\n<td>14.0</td>\n<tr><td>14</td>\n<td class=\"player-label\"><a href=\"/nba/adp/tyrese-haliburton.php\" class=\"player-name fp-player-link fp-id-5082\" fp-player-name=\"Tyrese Haliburton\">Tyrese Haliburton</a> <small>(IND - PG,SG)</small> <small class=\"player-status-abbrev\" style=\"cursor: default;\" title=\": \">DTD</small></td>\n<td>12</td>\n<td>17</td>\n<td>14.5</td>\n<tr><td>15</td>\n<td class=\"player-label\"><a href=\"/nba/adp/jalen-brunson.php\" class=\"player-name fp-player-link fp-id-3514\" fp-player-name=\"Jalen Brunson\">Jalen Brunson</a> <small>(NYK - PG)</small></td>\n<td>19</td>\n<td>13</td>\n<td>16.0</td>\n</tbody></table>"
+}
