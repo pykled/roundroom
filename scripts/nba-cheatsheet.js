@@ -595,7 +595,7 @@ function goTab(t){ setTab(t); window.scrollTo(0, 0); }
   });
   var foot = '<b>' + esc(document.querySelector(".banner").textContent) + '</b><br>Scoring: ' + esc(M.scoringText) +
     '<br>values: ' + esc(M.valueSource) + '<br>generated <span id="gen">' + esc(M.generatedAt) + '</span> · data as-of ' + esc(M.asOf || "unknown") + " · " + P.length + " players" +
-    '<br>Scoring-weight values are projections, not guarantees. ' + (M.eligSource === 'yahoo' ? 'Positions/eligibility from the Yahoo league snapshot.' : 'Eligibility derived from Sleeper positions (low confidence) until Yahoo positions are known; check the Yahoo draft room for exact slots.') + ' ' + ROUNDS + ' draft rounds (Yahoo does not draft IL). TD games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the DD bonus (unverified assumption).";
+    '<br>Scoring-weight values are projections, not guarantees. ' + (M.eligSource === 'yahoo' ? 'Positions/eligibility from the Yahoo league snapshot.' : 'Eligibility estimated from NBA positions (low confidence) until Yahoo positions are known; check the Yahoo draft room for exact slots.') + ' ' + ROUNDS + ' draft rounds (Yahoo does not draft IL). Triple-double games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the double-double bonus (unverified assumption).";
   $("foot").innerHTML = foot;
   recompute();
   setTab("board");

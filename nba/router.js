@@ -71,21 +71,29 @@ function boundedMap(max) {
 function comingSoonHtml(title) {
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} — Pocket NBA</title>
+<title>NBA ${title} | Pocket fantasy basketball</title>
+<meta name="description" content="Pocket NBA: Yahoo High Score fantasy basketball tools.">
+<meta name="theme-color" content="#1a110b">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
 <script defer src="/shared/nav.js"></script>
-</head><body>
+</head><body class="sport-nba">
 <nav id="rr-nav">
   <a href="/nba" class="rr-logo">Pocket</a>
   <div class="rr-links">
-    <a href="/nba/draft" class="rr-link">Draft</a>
+    <a href="/nba" class="rr-link">Draft board</a>
     <a href="/nba/lineup" class="rr-link">Lineup</a>
+    <a href="/nba/trade" class="rr-link">Trade</a>
+    <a href="/nba/waivers" class="rr-link">Waivers</a>
   </div>
   <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
 </nav>
-<main style="max-width:640px;margin:4rem auto;padding:0 1.25rem;text-align:center">
-  <h1>Pocket NBA ${title}</h1>
-  <p>Coming soon: Yahoo High Score draft and lineup tools.</p>
+<main class="nba-court" style="max-width:640px;width:calc(100% - 2rem);margin:3rem auto;box-sizing:border-box;padding:2.5rem 1.25rem;text-align:center;border:1px solid var(--nba-border);border-radius:var(--radius-lg);background:var(--nba-surface)">
+  <p style="font-size:2rem;margin-bottom:.75rem"><span class="nba-ball" aria-hidden="true"></span></p>
+  <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-.02em">NBA ${title}</h1>
+  <p style="color:var(--text-secondary);margin:.5rem 0 1.25rem">This page is still warming up. The draft board is ready for tip-off.</p>
+  <a class="btn-primary" href="/nba" style="display:inline-flex;align-items:center;min-height:44px;text-decoration:none">Open the NBA Draft Board</a>
 </main>
 </body></html>`;
 }
