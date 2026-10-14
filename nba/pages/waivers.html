@@ -4,301 +4,341 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Waiver Targets | Pocket</title>
-<meta name="description" content="Waiver and streaming targets for Yahoo High Score fantasy basketball: free agents ranked by how much they add to your best weekly lineup, driven by 4-game weeks.">
+<meta name="description" content="Waiver and streaming targets for Yahoo fantasy basketball: free agents ranked by how much they add to your best weekly lineup, add/drop pairs and a 4-game-week streamer calendar.">
 <link rel="canonical" href="https://pocketff.com/nba/waivers">
 <meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
 <meta property="og:title" content="NBA High Score Waiver Targets | Pocket">
-<meta property="og:description" content="Add/drop pairs and a 4-game-week streamer calendar for Yahoo High Score fantasy basketball.">
+<meta property="og:description" content="Add/drop pairs and a 4-game-week streamer calendar for Yahoo fantasy basketball.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pocketff.com/nba/waivers">
 <meta property="og:image" content="https://pocketff.com/og.png">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sleepercdn.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/nba/pages/nba-ui.css">
+<script src="/nba/pages/nba-ui.js"></script>
 <script defer src="/shared/nav.js"></script>
 <style>
-/* Shared tokens, nav, buttons, page head and footer come from /shared/styles.css.
-   This block is the waivers page only; G/F colours match the draft board. */
-:root {
-  --g: #facc15; --f: #38bdf8; --util: rgba(255,255,255,0.55);
-  --g-bg: rgba(250,204,21,.13); --f-bg: rgba(56,189,248,.14);
-  --hot: var(--nba-400, #ff8a3d); --up: #34d399;
+/* Waivers page only. Every colour, size and radius is a design-system token
+   (docs/nba-design-system.md); the components here are page-specific layouts
+   (target card, swap card, streamer calendar) built from kit parts. */
+.wv-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nu-2) var(--nu-3); margin-bottom: var(--nu-5); }
+.wv-controls .nu-select { width: auto; min-width: 0; max-width: 100%; }
+.wv-controls .nu-seg { flex-shrink: 0; }
+.wv-week { flex: 1 1 180px; max-width: 260px; }
+.wv-src { flex: 1 1 180px; max-width: 260px; }
+@media (max-width: 560px) { .wv-week, .wv-src { max-width: none; } }
+#wv-callout:empty { display: none; }
+#wv-callout { margin-bottom: var(--nu-4); }
+
+/* hero tiles */
+.wv-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--nu-2); margin-bottom: var(--nu-6); }
+@media (min-width: 768px) { .wv-hero { grid-template-columns: 1.3fr 1fr 1fr; gap: var(--nu-3); } }
+.wv-hero .nu-stat { min-width: 0; }
+.wv-hero .nu-stat__value small { font-size: var(--nu-fs-body); color: var(--nu-text-3); letter-spacing: 0; margin-left: 4px; }
+.wv-hero .wv-tile-best { grid-column: 1 / -1; }
+@media (min-width: 768px) { .wv-hero .wv-tile-best { grid-column: auto; } }
+.wv-pips { display: grid; grid-template-columns: repeat(var(--n, 10), minmax(0, 1fr)); gap: 3px; margin-top: 4px; }
+.wv-pips i { height: 6px; border-radius: 3px; background: var(--nba-400); }
+.wv-pips i.u { background: rgba(255,255,255,0.08); }
+
+/* section heads */
+.nba-ui .wv-sec { margin: 0 0 var(--nu-8); }
+.nba-ui .wv-sec > .nu-section__head, .nba-ui .wv-sec > div > .nu-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--nu-3); margin-bottom: var(--nu-3); }
+.wv-sec > .nu-section__head .nu-hint { text-align: right; }
+
+/* swap (add/drop) cards */
+.wv-swaps { display: grid; gap: var(--nu-3); }
+@media (min-width: 900px) { .wv-swaps--more { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.wv-swap { display: grid; gap: var(--nu-3); }
+.wv-swap__pair { display: grid; grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr); align-items: end; gap: var(--nu-4); }
+.wv-swap__arrow { margin-bottom: 12px; }
+.wv-swap__side { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+
+.wv-swap__verb { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-good); }
+.wv-swap__side--drop .wv-swap__verb { color: var(--nu-bad); }
+.wv-swap__arrow { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--nu-s2); border: 1px solid var(--nu-line); color: var(--nu-text-3); }
+.wv-swap__arrow svg { width: 16px; height: 16px; }
+.wv-swap__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--nu-3); flex-wrap: wrap; padding-top: var(--nu-3); border-top: 1px solid var(--nu-line); }
+.wv-swap__gain { display: flex; align-items: baseline; gap: var(--nu-2); }
+.wv-swap__gain b { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-weight: 500; font-size: var(--nu-fs-stat); letter-spacing: -0.04em; line-height: 1; color: var(--nu-good); }
+.wv-swap--focus .wv-swap__gain b { font-size: 36px; }
+.wv-swap__gain span { font-size: var(--nu-fs-xs); color: var(--nu-text-2); }
+.wv-swap .nu-player__meta { flex-wrap: wrap; }
+
+.wv-swap--compact { padding: var(--nu-4); }
+.wv-swap--compact .wv-swap__gain b { font-size: 22px; }
+@media (max-width: 480px) {
+  .wv-swap__pair { grid-template-columns: minmax(0, 1fr); gap: var(--nu-2); }
+  .wv-swap__arrow { transform: rotate(90deg); width: 24px; height: 24px; margin: 0 0 0 16px; }
+  .wv-swap__foot .nu-btn { flex: 1 1 100%; }
 }
-#app { max-width: 1180px; width: 100%; padding-top: var(--space-5); }
 
-.nw-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nba-300); margin-bottom: 0.35rem; }
-.nw-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
-.nw-ctl select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.6rem; min-height: 40px; max-width: 240px; }
-.nw-connect { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0 0.85rem; border-radius: var(--radius-pill); border: 1px solid rgba(124,58,237,.45); background: rgba(124,58,237,.12); color: #c4b5fd; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
-.nw-connect .y { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; background: #6001d2; color: #fff; font-size: 0.7rem; font-weight: 800; }
-.nw-seg { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); flex-shrink: 0; }
-.nw-seg button { min-width: 44px; min-height: 36px; padding: 0 0.65rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500; cursor: pointer; }
-.nw-seg button[aria-pressed="true"] { background: var(--nba-400); color: var(--nba-ink); }
-.nw-mode { font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono); white-space: nowrap; }
+/* filters */
+.wv-filters { display: flex; flex-direction: column; gap: var(--nu-2); margin-bottom: var(--nu-3); }
+.wv-filters__row { display: flex; align-items: center; gap: var(--nu-2); }
+.wv-filters__row .nu-chip-row { flex: 1; min-width: 0; }
+.nba-ui #wv-manual { margin-bottom: var(--nu-3); }
+#wv-sort > button { font-size: var(--nu-fs-xs); }
+@media (max-width: 640px) {
+  .wv-filters__row:last-child { flex-wrap: wrap; }
+  .nba-ui #wv-sort { display: flex; width: 100%; }
+  .nba-ui #wv-sort > button { flex: 1 1 0; padding: 0 6px; }
+  .wv-filters__row:last-child .nu-spacer { display: none; }
+}
+.wv-sep { width: 1px; align-self: stretch; margin: 6px 2px; background: var(--nu-line-2); flex-shrink: 0; }
+.wv-count { font-size: var(--nu-fs-xs); color: var(--nu-text-3); }
 
-.nw-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: 0.75rem 0.9rem; margin-bottom: var(--space-4); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
-.nw-banner b { color: var(--text-primary); }
-.nw-banner.info { border-color: var(--nba-border); border-left-color: var(--nba-400); background: rgba(255,138,61,.05); }
-.nw-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
-
-/* cards */
-.nw-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); padding: 0.9rem 1rem; }
-.nw-card h2 { font-size: 0.66rem; font-weight: 700; letter-spacing: var(--tracking-label, .1em); text-transform: uppercase; color: var(--text-secondary); margin: 0 0 0.6rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
-.nw-card h2 .aside { font-family: var(--font-mono); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-muted); }
-.nw-empty { font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.5; }
-
-/* manual roster editor */
-.nw-manual { margin-bottom: var(--space-4); }
-.nw-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
-.nw-chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 34px; padding: 0 0.35rem 0 0.65rem; border-radius: var(--radius-pill); border: 1px solid var(--border-bright); background: rgba(255,255,255,.03); font-size: 0.76rem; font-weight: 600; }
-.nw-chip button { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; font-size: 0.9rem; }
-.nw-chip button:hover { color: var(--text-primary); background: rgba(255,255,255,.08); }
-.nw-add { position: relative; display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.nw-add input { flex: 1 1 200px; min-height: 44px; background: var(--bg-primary); border: 1px solid var(--border-bright); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 0.75rem; }
-.nw-add .btn-secondary { min-height: 44px; }
-.nw-results { position: absolute; left: 0; right: 0; top: 48px; z-index: 30; list-style: none; margin: 0; padding: 4px; border: 1px solid var(--border-bright); border-radius: var(--radius-md); background: var(--bg-secondary); box-shadow: 0 16px 40px rgba(0,0,0,.6); }
-.nw-results button { width: 100%; min-height: 44px; display: flex; align-items: center; gap: .5rem; padding: 0 .6rem; border: none; border-radius: 6px; background: none; color: inherit; font: inherit; font-size: .82rem; text-align: left; cursor: pointer; }
-.nw-results button:hover, .nw-results button:focus-visible { background: var(--bg-hover); }
-.nw-results .tm { font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted); margin-left: auto; }
-
-/* best move */
-.nw-best { position: relative; overflow: hidden; border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: var(--space-4); background: radial-gradient(120% 140% at 0% 0%, rgba(52,211,153,.10), transparent 55%), var(--bg-card); }
-.nw-best .lbl { font-size: 0.62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); }
-.nw-move { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-3); margin-top: 0.5rem; }
-.nw-move-who { min-width: 0; }
-.nw-move-add { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-move-add .verb, .nw-move-drop .verb { font-size: .62rem; font-weight: 800; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; margin-right: .4rem; vertical-align: 2px; }
-.nw-move-add .verb { background: rgba(52,211,153,.15); color: var(--up); }
-.nw-move-drop { font-size: 0.82rem; color: var(--text-body); margin-top: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-move-drop .verb { background: rgba(239,68,68,.13); color: #f87171; }
-.nw-move-val { text-align: right; font-family: var(--font-mono); }
-.nw-move-val b { display: block; font-size: 1.6rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1; color: var(--up); }
-.nw-move-val span { font-size: 0.58rem; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
-.nw-alts { list-style: none; margin: 0.75rem 0 0; padding: 0.6rem 0 0; border-top: 1px solid var(--border); display: grid; gap: 0.35rem; }
-.nw-alts li { display: flex; align-items: center; gap: .5rem; font-size: .76rem; color: var(--text-body); min-height: 28px; }
-.nw-alts .arrow { color: var(--text-muted); }
-.nw-alts .g { margin-left: auto; font-family: var(--font-mono); color: var(--up); }
-.nw-alts .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-
-/* calendar strip */
-.nw-cal { margin-bottom: var(--space-4); }
-.nw-cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
-.nw-cal-head h2 { font-size: 0.66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-secondary); margin: 0; }
-.nw-cal-head p { margin: 0; font-size: .68rem; color: var(--text-muted); }
-.nw-cal-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
-.nw-wk { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); padding: .65rem .7rem; min-width: 0; }
-.nw-wk-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .45rem; }
-.nw-wk-h b { font-family: var(--font-mono); font-size: .8rem; font-weight: 500; }
-.nw-wk-h span { font-size: .66rem; color: var(--text-muted); }
-.nw-wk ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.nw-wk li { display: flex; align-items: center; gap: .4rem; font-size: .74rem; min-height: 26px; }
-.nw-wk li .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-wk li .v { font-family: var(--font-mono); font-size: .68rem; color: var(--text-secondary); }
-.nw-wk .none { font-size: .72rem; color: var(--text-muted); }
+/* target cards */
+.wv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--nu-2); }
+.nba-ui .wv-t { padding: 0; overflow: hidden; }
+.wv-t__main { width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: var(--nu-3); padding: var(--nu-3) var(--nu-4); background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.wv-t__main:hover { background: rgba(255,255,255,0.02); }
+.wv-t .nu-rank { text-align: right; }
+.wv-t__who { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.wv-t__line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.wv-t__gains { display: grid; grid-template-columns: repeat(2, minmax(84px, 112px)); gap: var(--nu-3); }
+.wv-g { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wv-g__lbl { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: var(--nu-track-caps); text-transform: uppercase; color: var(--nu-text-3); white-space: nowrap; }
+.wv-g__val { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; color: var(--nu-text); }
+.wv-g__val.is-pos { color: var(--nu-good); }
+.wv-g__val.is-zero { color: var(--nu-text-3); }
+.wv-g .nu-meter { height: 4px; }
+.wv-t__sub { font-size: var(--nu-fs-xs); color: var(--nu-text-2); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.wv-t__sub b { color: var(--nu-text); font-weight: 600; }
+.wv-t__sub .is-warn { color: #fde68a; }
+.wv-t[data-open="true"] { border-color: var(--nu-line-3); }
+.wv-t__chev { display: none; }
+@media (max-width: 640px) {
+  .wv-t__main { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: var(--nu-3); }
+  .wv-t .nu-rank { display: none; }
+  .wv-t__who { gap: 6px; }
+  .wv-t__who .nu-avatar--lg { width: 44px; height: 44px; }
+  .wv-t__gains { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--nu-4); padding-top: 10px; border-top: 1px solid var(--nu-line); }
+  .wv-g { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 8px; row-gap: 6px; }
+  .wv-g__val { font-size: 17px; text-align: right; }
+  .wv-g .nu-meter { grid-column: 1 / -1; }
+}
+.wv-gm { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 7px; border-radius: var(--nu-r-pill); border: 1px solid var(--nu-line-2); font-family: var(--nu-mono); font-size: var(--nu-fs-micro); color: var(--nu-text-2); white-space: nowrap; }
+.wv-gm b { font-weight: 500; color: var(--nu-text); }
+.wv-gm.is-hi { border-color: rgba(52,211,153,0.45); background: var(--nu-good-soft); color: var(--nu-good); }
+.wv-gm.is-hi b { color: var(--nu-good); }
+.wv-gm.is-lo b { color: var(--nu-text-3); }
+.wv-st { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: var(--nu-r-pill); font-size: var(--nu-fs-micro); font-weight: 600; white-space: nowrap; }
+.wv-st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.wv-st[data-kind="fa"] { color: var(--nu-good); background: var(--nu-good-soft); }
+.wv-st[data-kind="w"] { color: var(--nu-info); background: rgba(125,211,252,0.12); }
+.wv-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: var(--nu-r-xs); font-family: var(--nu-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.wv-badge--up { color: var(--nu-good); background: var(--nu-good-soft); }
+.wv-badge--save { color: #fde68a; background: var(--nu-warn-soft); }
+.wv-badge--mute { color: var(--nu-text-2); background: rgba(255,255,255,0.06); }
+.wv-t__detail { padding: 0 var(--nu-4) var(--nu-4) calc(var(--nu-4) + 22px + var(--nu-3)); display: grid; gap: var(--nu-3); font-size: var(--nu-fs-sm); color: var(--nu-text-2); }
+@media (max-width: 640px) { .wv-t__detail { padding: 0 var(--nu-3) var(--nu-3); } }
+.wv-t__detail .nu-table-wrap { max-width: 100%; }
+.wv-t__detail .nu-table { min-width: 0; }
+.wv-acts { display: flex; flex-wrap: wrap; gap: var(--nu-2); }
+.wv-more { margin-top: var(--nu-3); }
 
 /* layout */
-.nw-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
-.nw-side { display: flex; flex-direction: column; gap: var(--space-4); }
+.wv-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--nu-6); align-items: start; }
+@media (min-width: 769px) { .nba-ui .wv-actionbar { display: none; } body.nu-has-actionbar .nu-toast-region { bottom: var(--nu-4); } }
+.wv-set { margin-left: auto; }
+.wv-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--nu-3); margin-bottom: var(--nu-2); }
+.wv-fields .nu-input { font-family: var(--nu-mono); }
+@media (min-width: 1024px) { .wv-grid { grid-template-columns: minmax(0, 1fr) 340px; } }
+.wv-side { display: grid; gap: var(--nu-4); }
+@media (min-width: 1024px) { .wv-side { position: sticky; top: calc(var(--nu-nav-h) + var(--nu-4)); } }
+.wv-mini { list-style: none; margin: 0; padding: 0; display: grid; }
+.wv-mini > li { display: flex; align-items: center; gap: var(--nu-3); padding: 10px 0; border-top: 1px solid var(--nu-line); min-width: 0; }
+.wv-mini > li:first-child { border-top: 0; padding-top: 0; }
+.wv-mini .nu-player { flex: 1; min-width: 0; }
+.wv-mini__v { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: var(--nu-fs-sm); color: var(--nu-text-2); text-align: right; white-space: nowrap; }
+.wv-mini__slot { width: 34px; flex-shrink: 0; }
+.wv-drop { display: grid; gap: 6px; padding: 12px 0; border-top: 1px solid var(--nu-line); }
+.wv-drop:first-child { border-top: 0; padding-top: 0; }
+.wv-drop__top { display: flex; align-items: center; gap: var(--nu-3); }
+.wv-drop__top .nu-player { flex: 1; min-width: 0; }
+.wv-drop p { margin: 0; font-size: var(--nu-fs-xs); line-height: 1.5; color: var(--nu-text-2); }
 
-/* filters + list */
-.nw-filters { position: sticky; top: var(--nav-h, 56px); z-index: 10; display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; padding: 0.5rem 0; background: var(--bg-primary); }
-.nw-toggle { min-height: 40px; padding: 0 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.nw-toggle[aria-pressed="true"] { color: var(--up); border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.08); }
-.nw-filters select { margin-left: auto; min-height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; padding: 0 .5rem; }
-.nw-count { font-size: 0.66rem; color: var(--text-muted); padding: 0 0 .3rem; }
-.nw-list { list-style: none; margin: 0; padding: 0; }
-.nw-row { border-bottom: 1px solid var(--border); }
-.nw-row-main { width: 100%; display: flex; align-items: center; gap: 0.6rem; min-height: 60px; padding: 0.45rem 0.4rem; background: none; border: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
-.nw-row-main:hover { background: var(--bg-hover); }
-.nw-rk { width: 22px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-align: right; }
-.nw-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.22rem; }
-.nw-name { display: flex; align-items: center; gap: 0.35rem; min-width: 0; font-size: 0.88rem; font-weight: 600; }
-.nw-name .n { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-name .badge, .nw-name .inj { flex-shrink: 0; }
-.nw-meta { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; min-width: 0; overflow: hidden; }
-.nw-meta .tm { font-family: var(--font-mono); }
-.pp { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500; }
-.pp.G { background: var(--g-bg); color: var(--g); }
-.pp.F { background: var(--f-bg); color: var(--f); }
-.pp.C { background: rgba(167,139,250,.14); color: #a78bfa; }
-.badge.fa { background: rgba(52,211,153,.10); color: #6ee7b7; }
-.badge.save { background: rgba(250,204,21,.12); color: #fde68a; }
-.nw-budget { margin: 0 0 var(--space-4); }
-.nw-bud-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-@media (max-width: 640px) { .nw-bud-row { grid-template-columns: 1fr; } }
-.nw-bud { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; }
-.nw-bud .lbl { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
-.nw-bud .big { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
-.nw-bud .big small, .nw-bud > small { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
-.nw-bud label { font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
-.nw-bud input { width: 4.5rem; min-height: 36px; font-size: 16px; padding: 0 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); }
-.nw-bud-note { margin: 0; font-size: 0.72rem; line-height: 1.4; color: var(--text-secondary); }
-.nw-pips { display: flex; gap: 3px; }
-.nw-pips i { flex: 1; height: 6px; border-radius: 3px; background: rgba(52,211,153,.55); }
-.nw-pips i.u { background: rgba(255,255,255,.12); }
-.nw-rules { margin: 0.6rem 0 0; padding-left: 1.1rem; font-size: 0.72rem; line-height: 1.5; color: var(--text-muted); }
-.gm { font-family: var(--font-mono); font-size: 0.62rem; min-width: 22px; height: 18px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; border-radius: 4px; border: 1px solid var(--border-bright); color: var(--text-secondary); }
-.gm.hi { border-color: rgba(16,185,129,.5); color: #6ee7b7; background: rgba(16,185,129,.08); }
-.gm.lo { border-color: rgba(239,68,68,.35); color: #fca5a5; }
-.gm.zero { opacity: .5; }
-.gm small { font-size: .52rem; color: var(--text-muted); }
-.gms { display: inline-flex; gap: 3px; }
-.badge { font-size: 0.56rem; font-weight: 800; letter-spacing: .05em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; }
-.badge.up { background: rgba(52,211,153,.14); color: var(--up); }
-.badge.w { background: rgba(255,255,255,.07); color: var(--text-secondary); }
-.inj { font-size: 0.58rem; font-weight: 800; letter-spacing: .04em; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; border-radius: 4px; }
-.inj.OUT, .inj.SUS { background: rgba(239,68,68,.15); color: #f87171; }
-.inj.GTD, .inj.D { background: rgba(245,158,11,.15); color: #fbbf24; }
-.inj.P { background: rgba(255,255,255,.07); color: var(--text-secondary); }
-.nw-val { flex-shrink: 0; text-align: right; font-family: var(--font-mono); min-width: 64px; max-width: 120px; }
-.nw-val b { display: block; font-size: 1rem; font-weight: 500; letter-spacing: -0.02em; }
-.nw-val b.pos { color: var(--up); }
-.nw-val b.zero { color: var(--text-muted); }
-.nw-val small { display: block; font-family: var(--font-sans); font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-detail { padding: 0.2rem 0.4rem 0.8rem 2.1rem; font-size: 0.76rem; color: var(--text-body); line-height: 1.5; }
-.nw-detail table { border-collapse: collapse; font-family: var(--font-mono); font-size: .7rem; margin: .3rem 0 .5rem; }
-.nw-detail th, .nw-detail td { padding: 2px 10px 2px 0; text-align: right; font-weight: 400; }
-.nw-detail th { color: var(--text-muted); }
-.nw-detail td:first-child, .nw-detail th:first-child { text-align: left; color: var(--text-muted); }
-.nw-detail .acts { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .4rem; }
-.nw-detail .acts button { min-height: 36px; }
-.nw-more { width: 100%; min-height: 44px; margin-top: .5rem; }
-
-/* side lists */
-.nw-mini { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.nw-mini li { display: flex; align-items: center; gap: .45rem; min-height: 32px; font-size: .78rem; }
-.nw-mini .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nw-mini .v { font-family: var(--font-mono); font-size: .72rem; color: var(--text-secondary); }
-.nw-mini .slot { width: 34px; font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
-.nw-inj-item + .nw-inj-item { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--border); }
-.nw-inj-item .who { font-size: .8rem; font-weight: 700; display: flex; gap: .4rem; align-items: center; }
-.nw-inj-item .sub { font-size: .7rem; color: var(--text-muted); margin: .15rem 0 .35rem; }
-.nw-skel { height: 60px; border-bottom: 1px solid var(--border); background: linear-gradient(90deg, transparent, rgba(255,255,255,.035), transparent); background-size: 200% 100%; animation: nw-sh 1.3s infinite; }
-@keyframes nw-sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-.nw-foot { font-size: .68rem; color: var(--text-muted); line-height: 1.6; margin-top: var(--space-4); }
-
+/* streamer calendar */
+.wv-cal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--nu-3); }
 @media (max-width: 900px) {
-  .nw-grid { grid-template-columns: minmax(0, 1fr); }
-  .nw-side { order: 2; }
-  .nw-cal-strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: var(--space-2); margin: 0 calc(-1 * var(--space-4, 1rem)); padding: 0 var(--space-4, 1rem) 4px; scrollbar-width: none; }
-  .nw-cal-strip::-webkit-scrollbar { display: none; }
-  .nw-wk { flex: 0 0 78%; scroll-snap-align: start; }
-  .page-head { gap: var(--space-3); }
-  .nw-ctl { width: 100%; }
-  .nw-ctl select { flex: 1 1 0; max-width: none; min-width: 0; }
+  .wv-cal { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: var(--nu-2); margin: 0 calc(var(--nu-gutter) * -1); padding: 0 var(--nu-gutter) 4px; scroll-padding: var(--nu-gutter); scrollbar-width: none; }
+  .wv-cal::-webkit-scrollbar { display: none; }
+  .wv-cal > .nu-card { flex: 0 0 min(84%, 340px); scroll-snap-align: start; }
 }
-@media (max-width: 420px) {
-  .nw-filters select { margin-left: 0; flex: 1 1 100%; }
-  .nw-move-add { font-size: 1rem; }
-  .nw-move-val b { font-size: 1.35rem; }
-}
-@media (prefers-reduced-motion: reduce) { .nw-skel { animation: none; } }
+.wv-cal .nu-card { padding: var(--nu-4); min-width: 0; }
+.wv-cal__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--nu-2); margin-bottom: var(--nu-3); }
+.wv-cal__head b { font-size: var(--nu-fs-h3); font-weight: 700; letter-spacing: -0.02em; }
+.wv-cal__head span { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); color: var(--nu-text-3); white-space: nowrap; }
+.wv-cal__long { display: inline-flex; margin-bottom: var(--nu-3); }
+.wv-cal .nu-card[data-long="true"] { border-color: var(--nu-accent-line); }
+
+/* manual roster */
+.wv-roster-sum { display: flex; align-items: center; gap: var(--nu-3); flex-wrap: wrap; }
+.wv-stack { display: flex; padding-left: 8px; }
+.wv-stack .nu-avatar { margin-left: -8px; box-shadow: 0 0 0 2px var(--nu-s1); }
+.wv-roster-sum__txt { flex: 1 1 160px; min-width: 0; }
+.wv-roster-sum__txt b { display: block; font-size: var(--nu-fs-body); }
+.wv-rlist { list-style: none; margin: 0 0 var(--nu-4); padding: 0; display: grid; gap: 2px; }
+.wv-rlist li { display: flex; align-items: center; gap: var(--nu-3); min-height: 52px; padding: 4px 0; border-bottom: 1px solid var(--nu-line); }
+.wv-rlist .nu-player { flex: 1; min-width: 0; }
+.wv-results { list-style: none; margin: var(--nu-2) 0 0; padding: 0; display: grid; }
+.wv-results button { width: 100%; display: flex; align-items: center; gap: var(--nu-3); min-height: 52px; padding: 4px var(--nu-2); border: 0; border-radius: var(--nu-r-sm); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.wv-results button:hover, .wv-results button:focus-visible { background: var(--nu-s2); }
+.wv-results .nu-player { flex: 1; min-width: 0; }
+.wv-assume { display: flex; align-items: center; justify-content: space-between; gap: var(--nu-3); padding: var(--nu-3) 0; border-top: 1px solid var(--nu-line); margin-top: var(--nu-3); font-size: var(--nu-fs-sm); color: var(--nu-text-2); }
+.wv-assume b { display: block; color: var(--nu-text); font-weight: 600; }
+.wv-explain h3 { font-size: var(--nu-fs-h3); margin: var(--nu-5) 0 var(--nu-2); }
+.wv-explain h3:first-child { margin-top: 0; }
+.wv-explain p, .wv-explain li { font-size: var(--nu-fs-body); line-height: 1.6; color: var(--nu-text-2); max-width: 62ch; }
+.wv-explain ul { padding-left: 1.1rem; margin: 0; }
+.wv-foot { margin-top: var(--nu-8); font-size: var(--nu-fs-xs); color: var(--nu-text-3); }
 </style>
 </head>
-<body class="sport-nba">
+<body class="sport-nba nba-ui">
+<div data-nu-nav><nav id="rr-nav"><a href="/nba" class="rr-logo">Pocket</a><div class="rr-links"><a href="/nba" class="rr-link">Draft board</a><a href="/nba/research" class="rr-link">Research</a><a href="/nba/lineup" class="rr-link">Lineup</a><a href="/nba/trade" class="rr-link">Trade</a><a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a></div></nav></div>
+<script>NbaUI.mountNav({ active: 'waivers' });</script>
 
-<nav id="rr-nav">
-  <a href="/nba" class="rr-logo">Pocket</a>
-  <div class="sport-switch" id="rr-sport-switch" aria-label="Sport">
-    <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
-  </div>
-  <div class="rr-links">
-    <a href="/nba" class="rr-link">Draft board</a>
-    <a href="/nba/lineup" class="rr-link">Lineup</a>
-    <a href="/nba/trade" class="rr-link">Trade</a>
-    <a href="/nba/waivers" class="rr-link active" aria-current="page">Waivers</a>
-  </div>
-  <div class="rr-auth">
-    <div id="user-btn-mount"></div>
-    <button id="rr-sign-in" hidden>Sign In</button>
-  </div>
-  <button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>
-</nav>
-
-<div id="app">
-  <header class="page-head">
-    <div class="page-head-text">
-      <p class="nw-eyebrow">Yahoo High Score · Waivers</p>
-      <h1 class="page-title">Waiver targets</h1>
-      <p class="page-sub">Free agents ranked by how much they lift your best starting lineup under your league's roster slots and scoring. A 4-game week is the biggest edge in a best-game format.</p>
+<main class="nu-shell" id="wv-app">
+  <header class="nu-page-head nu-page-head--court">
+    <div class="nu-page-head__text">
+      <div class="nu-eyebrow" id="wv-eyebrow">Yahoo fantasy basketball · Waivers</div>
+      <h1 class="nu-page-head__title">Waivers</h1>
+      <p class="nu-page-head__sub">Who to pick up, who to let go, and when the 4-game weeks land.</p>
     </div>
-    <div class="nw-ctl">
-      <a id="nw-connect" class="nw-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
-      <select id="nw-source" aria-label="League" hidden></select>
-      <div class="nw-seg" id="nw-horizon" role="group" aria-label="Horizon">
-        <button type="button" data-h="1" aria-pressed="true">1 wk</button>
-        <button type="button" data-h="2" aria-pressed="false">2 wk</button>
-        <button type="button" data-h="4" aria-pressed="false">4 wk</button>
-      </div>
+    <div class="nu-page-head__actions">
+      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="wv-how" data-umami-event="nba-waivers-how"><span id="wv-how-ic"></span>How it works</button>
     </div>
   </header>
 
-  <div id="nw-banner" class="nw-banner" role="status" aria-live="polite" hidden></div>
-
-  <section id="nw-manual" class="nw-card nw-manual" hidden aria-labelledby="nw-manual-h">
-    <h2 id="nw-manual-h">My roster <span class="aside" id="nw-roster-count"></span></h2>
-    <div class="nw-chips" id="nw-chips"></div>
-    <div class="nw-add">
-      <input id="nw-search" type="search" placeholder="Add a player to your roster" autocomplete="off" aria-label="Search players to add" aria-controls="nw-results">
-      <button type="button" class="btn-secondary" id="nw-import">Import from draft board</button>
-      <ul class="nw-results" id="nw-results" role="listbox" hidden></ul>
+  <div class="wv-controls" id="wv-controls">
+    <a id="wv-connect" class="nu-btn nu-btn--yahoo nu-btn--sm" href="/nba/auth/login" hidden><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a>
+    <select id="wv-source" class="nu-select wv-src" aria-label="League" hidden></select>
+    <div class="nu-seg" id="wv-horizon" role="group" aria-label="Rank by">
+      <button type="button" data-h="1" aria-pressed="true">This week</button>
+      <button type="button" data-h="2" aria-pressed="false">2 wks</button>
+      <button type="button" data-h="4" aria-pressed="false">4 wks</button>
     </div>
+    <select id="wv-week" class="nu-select wv-week" aria-label="Starting matchup week" hidden></select>
+  </div>
+
+  <div id="wv-callout" aria-live="polite"></div>
+
+  <section id="wv-manual" class="nu-card wv-sec" hidden aria-labelledby="wv-manual-h"></section>
+
+  <section class="wv-hero" id="wv-hero" aria-label="This week at a glance"></section>
+
+  <section class="wv-sec" id="wv-swaps-sec" hidden aria-labelledby="wv-swaps-h">
+    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-swaps-h">Best move</h2><span class="nu-hint" id="wv-swaps-hint"></span></div>
+    <div id="wv-swaps" class="wv-swaps"></div>
+    <div class="nu-section__head" id="wv-more-swaps-h" style="margin-top:var(--nu-5)" hidden><h3 class="nu-section__title">More swaps</h3></div>
+    <div id="wv-more-swaps" class="wv-swaps wv-swaps--more"></div>
   </section>
 
-  <section id="nw-budget" class="nw-budget" hidden aria-label="Weekly add budget and waiver priority"></section>
-
-  <section id="nw-best" class="nw-best" hidden aria-label="Best move this week"></section>
-
-  <section class="nw-cal" id="nw-cal" hidden aria-labelledby="nw-cal-h">
-    <div class="nw-cal-head"><h2 id="nw-cal-h">Streamer calendar · 4-game weeks</h2><p>free agents only</p></div>
-    <div class="nw-cal-strip" id="nw-cal-strip"></div>
+  <section class="wv-sec" id="wv-cal-sec" hidden aria-labelledby="wv-cal-h">
+    <div class="nu-section__head"><h2 class="nu-section__title" id="wv-cal-h">Streamer calendar</h2><span class="nu-hint">Free agents with 4+ games</span></div>
+    <div class="wv-cal" id="wv-cal"></div>
   </section>
 
-  <div class="nw-grid">
-    <main>
-      <div class="nw-filters" id="nw-filters">
-        <div class="nw-seg" id="nw-pos" role="group" aria-label="Position">
-          <button type="button" data-pos="ALL" aria-pressed="true">All</button>
-          <button type="button" data-pos="G" aria-pressed="false">G</button>
-          <button type="button" data-pos="F" aria-pressed="false">F</button>
-          <button type="button" data-pos="C" aria-pressed="false">C</button>
+  <div class="wv-grid">
+    <div>
+      <section class="wv-sec" aria-labelledby="wv-list-h">
+        <div class="nu-section__head"><h2 class="nu-section__title" id="wv-list-h">Best adds</h2><span class="nu-hint" id="wv-list-hint"></span></div>
+        <div class="wv-filters" id="wv-filters">
+          <div class="wv-filters__row">
+            <div class="nu-chip-row nu-chip-row--scroll" role="group" aria-label="Filters">
+              <button type="button" class="nu-chip" data-pos="ALL" aria-pressed="true">All</button>
+              <button type="button" class="nu-chip" data-pos="G" aria-pressed="false">G</button>
+              <button type="button" class="nu-chip" data-pos="F" aria-pressed="false">F</button>
+              <button type="button" class="nu-chip" data-pos="C" aria-pressed="false">C</button>
+              <span class="wv-sep" aria-hidden="true"></span>
+              <button type="button" class="nu-chip" data-flag="fourGame" aria-pressed="false">4-game week</button>
+              <button type="button" class="nu-chip" data-flag="roleUp" aria-pressed="false">Role ↑</button>
+              <button type="button" class="nu-chip" data-flag="hideInjured" aria-pressed="false">Hide injured</button>
+            </div>
+          </div>
+          <div class="wv-filters__row">
+            <div class="nu-seg" id="wv-sort" role="group" aria-label="Sort by">
+              <button type="button" data-sort="gain" aria-pressed="true">Best gain</button>
+              <button type="button" data-sort="games" aria-pressed="false">Most games</button>
+              <button type="button" data-sort="ceiling" aria-pressed="false">Ceiling</button>
+            </div>
+            <span class="nu-spacer"></span><span class="wv-count" id="wv-count"></span>
+          </div>
         </div>
-        <button type="button" class="nw-toggle" id="nw-roleup" aria-pressed="false">Role ↑</button>
-        <select id="nw-sort" aria-label="Sort">
-          <option value="gain">Sort: net gain</option>
-          <option value="games">Sort: games this week</option>
-          <option value="ceiling">Sort: ceiling</option>
-        </select>
-      </div>
-      <div class="nw-count" id="nw-count"></div>
-      <ol class="nw-list" id="nw-list" aria-label="Waiver targets"></ol>
-      <button type="button" class="btn-secondary nw-more" id="nw-more" hidden>Show more</button>
-    </main>
-    <aside class="nw-side" id="nw-side">
-      <section class="nw-card" id="nw-inj" hidden><h2>Injury replacements</h2><div id="nw-inj-body"></div></section>
-      <section class="nw-card" id="nw-drops" hidden><h2>Drop candidates <span class="aside">cost to lineup</span></h2><ol class="nw-mini" id="nw-drops-body"></ol></section>
-      <section class="nw-card" id="nw-lineup" hidden><h2>My best lineup <span class="aside" id="nw-lineup-wk"></span></h2><ol class="nw-mini" id="nw-lineup-body"></ol></section>
-      <section class="nw-card" id="nw-unmatched" hidden><h2>Not matched</h2><p class="nw-empty" id="nw-unmatched-body"></p></section>
+        <ol class="wv-list" id="wv-list" aria-label="Waiver targets"></ol>
+        <button type="button" class="nu-btn nu-btn--block wv-more" id="wv-more" hidden>Show more</button>
+      </section>
+
+    </div>
+
+    <aside class="wv-side" id="wv-side" aria-label="Your roster">
+      <section class="nu-card" id="wv-drops" hidden><div class="nu-card__head"><h2 class="nu-card__title">Drop candidates</h2></div><div id="wv-drops-body"></div></section>
+      <section class="nu-card" id="wv-inj" hidden><div class="nu-card__head"><h2 class="nu-card__title">Injury cover</h2></div><div id="wv-inj-body"></div></section>
+      <section class="nu-card" id="wv-lineup" hidden><div class="nu-card__head"><h2 class="nu-card__title">Your best lineup</h2><span class="nu-hint nu-num" id="wv-lineup-wk"></span></div><ol class="wv-mini" id="wv-lineup-body"></ol></section>
+      <section class="nu-card" id="wv-unmatched" hidden><div class="nu-card__head"><h2 class="nu-card__title">Not matched</h2></div><p class="nu-meta" id="wv-unmatched-body" style="margin:0"></p></section>
     </aside>
   </div>
 
-  <p class="nw-foot">Gain = change in your expected points (sum of each starter's expected best game under your league's scoring) over the chosen matchup weeks, later weeks discounted 15% each, plus a small credit for bench depth. Games per week come from the NBA schedule (14-day weeks included). Waiver (W) claims are charged the value of the priority they use: with a rolling list a claim sends you to the back, so a marginal streamer is often worth less than keeping priority #1 for the next breakout.</p>
+
+  <p class="wv-foot">Projections are estimates, not guarantees. Pocket isn't affiliated with Yahoo or the NBA.</p>
+
+  <div class="nu-actionbar wv-actionbar" id="wv-actionbar" hidden>
+    <div class="nu-actionbar__info"><b id="wv-ab-title"></b><span id="wv-ab-sub"></span></div>
+    <button type="button" class="nu-btn nu-btn--primary" id="wv-ab-copy" data-umami-event="nba-waivers-copy-bar">Copy claim</button>
+  </div>
+</main>
+
+<div class="nu-sheet" id="wv-roster-sheet" role="dialog" aria-modal="true" aria-labelledby="wv-roster-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-roster-t">Your roster</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-roster-x"></button></div>
+  <div class="nu-sheet__body">
+    <div class="nu-section__head"><h3 class="nu-section__title">This week in your league</h3></div>
+    <div class="wv-fields">
+      <div class="nu-field"><label for="wv-adds-used">Adds used</label><input class="nu-input" type="number" id="wv-adds-used" inputmode="numeric" min="0" max="99" placeholder="0"></div>
+      <div class="nu-field"><label for="wv-priority">Waiver spot</label><input class="nu-input" type="number" id="wv-priority" inputmode="numeric" min="1" max="20" placeholder="#"></div>
+    </div>
+    <p class="nu-hint" style="margin:0 0 var(--nu-5)">Find both on Yahoo's team page. Your spot sets how much a waiver claim costs.</p>
+    <div class="nu-section__head"><h3 class="nu-section__title">Add players</h3></div>
+    <label class="nu-search"><span id="wv-search-ic"></span><input class="nu-input" id="wv-search" type="search" placeholder="Search players to add" autocomplete="off" aria-label="Search players to add" aria-controls="wv-results"></label>
+    <ul class="wv-results" id="wv-results" role="listbox" aria-label="Search results"></ul>
+    <div class="nu-section__head" style="margin-top:var(--nu-4)"><h3 class="nu-section__title" id="wv-rcount">On your team</h3></div>
+    <ul class="wv-rlist" id="wv-rlist"></ul>
+    <div class="wv-assume"><span><b>Hide players other teams likely own</b>Treats the top of the board as drafted by the other 11 teams.</span><button type="button" class="nu-switch" role="switch" aria-checked="true" id="wv-assume" aria-label="Hide players other teams likely own"></button></div>
+  </div>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn" id="wv-import" hidden>Import from draft board</button><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Done</button></div>
 </div>
 
-<footer class="rr-footer">
-  <div class="rr-footer-inner">
-    <span class="rr-footer-brand">© 2026 Pocket</span>
-    <nav class="rr-footer-links" aria-label="Footer">
-      <a href="https://discord.gg/ncgMyrTCqG" target="_blank" rel="noopener">Discord</a>
-      <a href="https://www.instagram.com/dillonbuilds/" target="_blank" rel="noopener">@dillonbuilds</a>
-      <a href="https://github.com/pykled/roundroom/issues" target="_blank" rel="noopener">Report a bug</a>
-    </nav>
+<div class="nu-sheet" id="wv-how-sheet" role="dialog" aria-modal="true" aria-labelledby="wv-how-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="wv-how-t">How waivers work here</h2><button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close" id="wv-how-x"></button></div>
+  <div class="nu-sheet__body wv-explain">
+    <h3>What the numbers mean</h3>
+    <p>Your weekly score counts each starter's single best game. A player helps you if his best game beats the starter he'd replace. <b>Gain</b> is how many points your best lineup goes up after the move, for this week and for the next few weeks (later weeks count a little less).</p>
+    <h3>Why games matter so much</h3>
+    <p>More games means more chances at a big night. A player with 4 games this week often beats a better player with 2. Green chips mark 4-game weeks. Weeks 7 and 17 last 14 days, so games pile up.</p>
+    <h3>Free agent or waivers</h3>
+    <ul>
+      <li><b>Free agent</b>: add him now. He can play today.</li>
+      <li><b>Waivers</b>: you put in a claim. It clears after the waiver period, so he misses today's game.</li>
+      <li>Your league uses a rolling list. A claim that goes through sends you to the back of the line; one that fails keeps your spot. When a claim only adds a little, we suggest keeping your spot for a bigger pickup later.</li>
+    </ul>
+    <h3>Add budget</h3>
+    <p>Your league allows a set number of adds per week. Every free agent or waiver add uses one. When you're out, we stop suggesting moves.</p>
+    <h3>Drops</h3>
+    <p>We suggest dropping whoever your lineup misses least. We never suggest dropping a player who's worth more over the season than the free agent replacing him.</p>
+    <h3 id="wv-rules-h" hidden>Your league's rules</h3>
+    <ul id="wv-rules"></ul>
   </div>
-</footer>
+  <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got it</button></div>
+</div>
 
+<script defer src="/nba/pages/yahoo-chip.js"></script>
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="/nba/pages/waivers-logic.js"></script>
 <script src="/nba/pages/waivers.js"></script>

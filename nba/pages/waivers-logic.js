@@ -48,6 +48,7 @@
       if (f.pos === 'C' && !has(['C'])) return false;
       if (f.roleUp && !t.roleUp) return false;
       if (f.hideInjured && t.injury) return false;
+      if (f.fourGame && num((t.gamesByWeek || [])[0]) < 4) return false;
       if (q && stripAccents(t.name).indexOf(q) < 0 && stripAccents(t.team).indexOf(q) < 0) return false;
       return true;
     });
@@ -105,6 +106,8 @@
     if (o.addsUsed != null && Number.isInteger(au) && au >= 0 && au <= 99) st.addsUsed = au;
     var w = cleanIds(o.waivers, MAX_EXCLUDE).filter(function (id) { return roster.indexOf(id) < 0; });
     if (w.length) st.waivers = w;
+    // P5: "assume the rest of the league drafted" is on by default; only an explicit false is stored.
+    if (o.assumeTaken === false) st.assumeTaken = false;
     return st;
   }
   function setNumber(st, key, v) {
@@ -156,10 +159,12 @@
     });
     return st.roster.length ? st : null;
   }
-  function manualRequest(st, horizon, week) {
+  function manualRequest(st, horizon, week, extraExclude) {
     st = loadManual(st);
     var body = { roster: st.roster, weeks: normalizeHorizon(horizon) };
-    if (st.exclude.length) body.exclude = st.exclude;
+    var ex = st.exclude.slice();
+    (extraExclude || []).forEach(function (id) { id = String(id); if (ex.length < MAX_EXCLUDE && ex.indexOf(id) < 0 && st.roster.indexOf(id) < 0) ex.push(id); });
+    if (ex.length) body.exclude = ex;
     if (week) body.week = Number(week);
     if (st.priority != null) body.priority = st.priority;
     if (st.addsUsed != null) body.addsUsed = st.addsUsed;
@@ -184,11 +189,73 @@
   function prefs(raw) {
     var o; try { o = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { o = null; }
     o = o && typeof o === 'object' ? o : {};
+    var wk = Number(o.week);
     return {
       horizon: normalizeHorizon(o.horizon), pos: o.pos === 'G' || o.pos === 'F' || o.pos === 'C' ? o.pos : 'ALL',
       roleUp: !!o.roleUp, sort: o.sort === 'ceiling' || o.sort === 'games' ? o.sort : 'gain',
       source: typeof o.source === 'string' ? o.source : null,
+      fourGame: !!o.fourGame, hideInjured: !!o.hideInjured,
+      week: Number.isInteger(wk) && wk >= 1 && wk <= 30 ? wk : null,
     };
+  }
+
+  // ---- P5 page helpers ----------------------------------------------------
+  // Manual mode: who the other teams most likely drafted. Board order (rank)
+  // minus my roster, (teams − 1) × perTeam players, capped at MAX_EXCLUDE.
+  function likelyRostered(players, rosterIds, teams, perTeam) {
+    var mine = {}; (rosterIds || []).forEach(function (id) { mine[String(id)] = 1; });
+    var n = Math.min(MAX_EXCLUDE, Math.max(0, (num(teams) || 12) - 1) * (num(perTeam) || 14));
+    var sorted = (players || []).filter(function (p) { return p && p.id != null; })
+      .slice().sort(function (a, b) { return (num(a.rank) || 1e9) - (num(b.rank) || 1e9) || String(a.id).localeCompare(String(b.id)); });
+    var out = [];
+    for (var i = 0; i < sorted.length && out.length < n; i++) if (!mine[String(sorted[i].id)]) out.push(String(sorted[i].id));
+    return out;
+  }
+  // Secondary-horizon gains keyed by id: { id: netGain } (the "next 2–4 weeks" column).
+  function gainsById(result) {
+    var out = {};
+    ((result && result.targets) || []).forEach(function (t) { if (t && t.id != null) out[String(t.id)] = num(t.netGain); });
+    return out;
+  }
+  // Bar width 0..1 against the list max (never divides by 0; negatives → 0).
+  function barFrac(x, max) { x = num(x); max = num(max); return max > 0 && x > 0 ? Math.min(1, x / max) : 0; }
+  function posText(p) { var a = p && (p.yahooPos && p.yahooPos.length ? p.yahooPos : p.pos); return (a || []).filter(function (x) { return x !== 'UTIL'; }).join(','); }
+  // Plain-text claim for pasting into Yahoo / a note: "Add X (SAS · C), drop Y (HOU · PG,SG). …"
+  function claimText(add, drop, opts) {
+    opts = opts || {};
+    if (!add) return '';
+    var who = function (p) { return p.name + ' (' + [p.team || 'FA', posText(p)].filter(Boolean).join(' · ') + ')'; };
+    var w = add.status === 'W' || add.onWaivers;
+    var s = (w ? 'Claim ' : 'Add ') + who(add) + (drop ? ', drop ' + who(drop) : ' into an open roster spot') + '.';
+    if (opts.gain != null) s += ' Expected gain ' + fmtGain(opts.gain) + (opts.span ? ' ' + opts.span : '') + '.';
+    s += w ? ' On waivers: the claim clears after ' + (opts.waiverDays || 1) + ' day' + ((opts.waiverDays || 1) === 1 ? '' : 's') + ' and moves you to the back of the priority list.' : ' Free agent: add now.';
+    return s;
+  }
+  // FA vs W status chip text.
+  function statusLabel(t, waiverDays) {
+    var w = t && (t.status === 'W' || t.onWaivers);
+    var d = num(waiverDays) || 1;
+    return w ? { kind: 'w', text: 'Waivers · clears in ' + d + ' day' + (d === 1 ? '' : 's') } : { kind: 'fa', text: 'Free agent · add now' };
+  }
+  // Week picker options from weekDates: [{ week, label, long }] (long = 14-day week).
+  function weekOptions(dates) {
+    return Object.keys(dates || {}).map(Number).filter(function (w) { return w > 0; }).sort(function (a, b) { return a - b; }).map(function (w) {
+      var d = dates[w] || {}, l = weekLabel(w, dates);
+      return { week: w, label: l.title + (l.span ? ' · ' + l.span : ''), long: num(d.days) >= 10 };
+    });
+  }
+  // Why this roster player is a drop candidate, in plain words.
+  function dropReason(d, nWeeks) {
+    if (!d) return '';
+    if (d.ilSlot) return 'In an IL slot: dropping him doesn\'t open a roster spot.';
+    if (d.keeper) return 'Worth more over the season than any free agent: keep him.';
+    var cost = num(d.dropCost), g = (d.gamesByWeek || [])[0];
+    var span = nWeeks > 1 ? 'the next ' + nWeeks + ' weeks' : 'this week';
+    var s = cost <= 0.05 ? 'Your lineup loses nothing ' + span + ' without him' : 'Your lineup loses ' + fmt1(cost) + ' pts ' + span + ' without him';
+    if (num(g) > 0 && num(g) <= 2) s += '; only ' + g + ' game' + (g === 1 ? '' : 's') + ' this week';
+    if (d.injury) s += '; listed ' + d.injury;
+    if (d.bankedGames > 0) s += '. His team already played ' + d.bankedGames + ' this week, so dropping him can cost that score';
+    return s + '.';
   }
 
   return {
@@ -198,6 +265,8 @@
     emptyManual: emptyManual, loadManual: loadManual, saveManual: saveManual, addToRoster: addToRoster,
     removeFromRoster: removeFromRoster, toggleExclude: toggleExclude, importFromDraft: importFromDraft,
     manualRequest: manualRequest, searchPlayers: searchPlayers, prefs: prefs,
-    setNumber: setNumber, toggleWaiver: toggleWaiver, addPips: addPips, adviceText: adviceText
+    setNumber: setNumber, toggleWaiver: toggleWaiver, addPips: addPips, adviceText: adviceText,
+    likelyRostered: likelyRostered, gainsById: gainsById, barFrac: barFrac, claimText: claimText,
+    statusLabel: statusLabel, weekOptions: weekOptions, dropReason: dropReason, posText: posText
   };
 }));
