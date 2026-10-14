@@ -12,6 +12,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { versionAssets } = require('../asset-version');
 const W = require('../model/waivers');
 const LC = require('./league-context');
 const R = require('../model/roster-slots');
@@ -175,7 +176,8 @@ module.exports = function waiversRoutes({
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     let html;
     try { html = fs.readFileSync(path.join(__dirname, '..', 'pages', 'waivers.html'), 'utf8'); } catch { return res.status(404).send('Not found'); }
-    res.send(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || ''));
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(versionAssets(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || '')));
   });
   const limited = createRateLimiter(rate, now);
   const userId = req => (getAuth(req) || {}).userId || null;

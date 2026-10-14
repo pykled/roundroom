@@ -347,8 +347,12 @@ async function freePort() {
       assert.strictEqual((await get('/api/nba/players?week=abc')).status, 400);
       assert.strictEqual((await (await get('/api/nba/health')).json()).modelAsOf, '2026-10-13T00:00:00Z');
     });
-    await test('yahoo endpoints require Clerk auth', async () => {
-      for (const p of ['/api/nba/yahoo/status', '/api/nba/yahoo/league?league_key=466.l.12345', '/api/nba/yahoo/draft?league_key=466.l.12345', '/api/nba/yahoo/roster?team_key=466.l.12345.t.1']) {
+    await test('yahoo endpoints require Clerk auth (status answers signed-out as not connected)', async () => {
+      const st = await get('/api/nba/yahoo/status');
+      assert.strictEqual(st.status, 200);
+      assert.deepStrictEqual(await st.json(), { connected: false, signedIn: false });
+      assert.match(st.headers.get('cache-control') || '', /no-store/);
+      for (const p of ['/api/nba/yahoo/league?league_key=466.l.12345', '/api/nba/yahoo/draft?league_key=466.l.12345', '/api/nba/yahoo/roster?team_key=466.l.12345.t.1']) {
         assert.strictEqual((await get(p)).status, 401, p);
       }
     });
@@ -467,7 +471,24 @@ async function freePort() {
         assert.strictEqual((await body(p))[0], 404, p);
       }
       assert.match((await body('/sitemap.xml'))[1], /<loc>https:\/\/pocketff\.com\/nba<\/loc>/);
-      assert.strictEqual((await body('/api/nba/yahoo/status'))[0], 401);
+      const [sts, stb] = await body('/api/nba/yahoo/status');
+      assert.strictEqual(sts, 200); assert.deepStrictEqual(JSON.parse(stb), { connected: false, signedIn: false });
+      // Assets revalidate (no stale 1 h cache); NBA pages pin ?v=<content hash>; CSP allows ESPN headshots.
+      for (const p of ['/shared/styles.css', '/shared/nav.js', '/nba/pages/nba-ui.css', '/nba/pages/nba-ui.js']) {
+        const r = await fetch(sbase + p);
+        assert.strictEqual(r.status, 200, p);
+        assert.strictEqual(r.headers.get('cache-control'), 'no-cache', p);
+        assert.ok(r.headers.get('etag'), p + ' etag');
+      }
+      for (const p of ['/nba', '/nba/research', '/nba/lineup', '/nba/trade', '/nba/waivers']) {
+        const r = await fetch(sbase + p);
+        const html = await r.text();
+        assert.strictEqual(r.status, 200, p);
+        assert.match(html, /href="\/nba\/pages\/nba-ui\.css\?v=[0-9a-f]{8}"/, p + ' nba-ui.css versioned');
+        assert.match(html, /href="\/shared\/styles\.css\?v=[0-9a-f]{8}"/, p + ' styles.css versioned');
+        assert.doesNotMatch(html, /src="\/nba\/pages\/[^"?]+\.js"/, p + ' unversioned page script');
+        assert.match(r.headers.get('content-security-policy') || '', /img-src [^;]*https:\/\/a\.espncdn\.com/, p + ' csp');
+      }
     } finally { child.kill('SIGKILL'); }
   });
 

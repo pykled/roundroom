@@ -13,6 +13,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { versionAssets } = require('../asset-version');
 const { evaluateTrade } = require('../model/trade');
 const LC = require('./league-context');
 
@@ -73,7 +74,8 @@ function createTradeRoutes({
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     let html;
     try { html = fs.readFileSync(path.join(__dirname, '..', 'pages', 'trade.html'), 'utf8'); } catch { return res.status(404).send('Not found'); }
-    res.send(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || ''));
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(versionAssets(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || '')));
   });
 
   // League + every team's roster, matched to Sleeper ids. Cached 60 s per user.

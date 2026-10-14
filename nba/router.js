@@ -16,6 +16,7 @@ const { createNonceStore } = require('./yahoo/nonces');
 const { createClient, YahooError } = require('./yahoo/client');
 const { runDiagnose, formatReport } = require('./yahoo/diagnose');
 const leagueProfile = require('./league-profile');
+const { versionAssets } = require('./asset-version');
 
 const PAGES_DIR = path.join(__dirname, 'pages');
 const PROD_ORIGIN = 'https://pocketff.com';
@@ -252,7 +253,8 @@ function createNbaRouter({
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       let html;
       try { html = fs.readFileSync(path.join(PAGES_DIR, file), 'utf8'); } catch { return res.send(comingSoonHtml(title)); }
-      res.send(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || ''));
+      res.setHeader('Cache-Control', 'no-cache');
+      res.send(versionAssets(html.replace(/PUBLISHABLE_KEY_PLACEHOLDER/g, env.CLERK_PUBLISHABLE_KEY || '')));
     };
   }
   router.get(['/nba', '/nba/draft'], page('draft.html', 'Draft'));
@@ -377,6 +379,13 @@ function createNbaRouter({
 
   router.use(require('./routes/profile')());
   router.use('/api/nba/market', rateLimit(limitApi), require('./routes/market'));
+  // Signed-out callers (every page polls this on load) get a plain "not connected"
+  // instead of a 401 that shows up as a console error.
+  router.get('/api/nba/yahoo/status', (req, res, next) => {
+    if (userId(req)) return next();
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.json({ connected: false, signedIn: false });
+  });
   router.use(['/api/nba/me', '/api/nba/yahoo'], auth, (req, res, next) => { res.setHeader('Cache-Control', 'private, no-store'); next(); });
 
   router.get('/api/nba/yahoo/status', async (req, res) => {

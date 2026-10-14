@@ -92,7 +92,7 @@ app.use((req, res, next) => {
     "script-src 'self' 'unsafe-inline' https://umami-production-e09b.up.railway.app https://cdn.jsdelivr.net " + clerkOrigins + " https://challenges.cloudflare.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data: https://sleepercdn.com https://img.clerk.com; " +
+    "img-src 'self' data: https://sleepercdn.com https://img.clerk.com https://a.espncdn.com; " +
     "connect-src 'self' https://api.sleeper.app https://api.the-odds-api.com https://api.open-meteo.com https://umami-production-e09b.up.railway.app " + clerkOrigins + "; " +
     "worker-src 'self' blob:; " +
     "frame-src 'self' https://challenges.cloudflare.com " + clerkOrigins + "; " +
@@ -2143,15 +2143,16 @@ app.post('/api/announce', express.json({ limit: '10kb' }), async (req, res) => {
   }
 });
 
-// Static assets: images/fonts are effectively immutable (1 week); CSS/JS are
-// not fingerprinted, so keep them short (1 hour) and let the ETag revalidate.
+// Static assets: images/fonts are effectively immutable (1 week). CSS/JS must
+// revalidate on every load (no-cache + ETag -> cheap 304) so a deploy is never
+// masked by a stale shared/nba-ui stylesheet; NBA pages also add ?v=<hash>.
 // Everything else (data/*.json, manifest, HTML) stays at the default max-age=0.
 app.use(express.static(path.join(__dirname), {
   setHeaders(res, filePath) {
     if (/\.(png|jpe?g|webp|gif|svg|ico|woff2?)$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'public, max-age=604800');
     } else if (/\.(css|js)$/i.test(filePath)) {
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Cache-Control', 'no-cache');
     }
   },
 }));
