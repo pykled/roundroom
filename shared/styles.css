@@ -1135,3 +1135,229 @@ body:has(> #app) > .rr-footer { margin-top: auto; }
   .rr-footer-links { gap: var(--space-4); }
   .rr-footer-links a { min-height: 44px; }
 }
+
+
+/* === NBA theme === ===========================================================
+   Basketball orange for the /nba section. A page opts in with
+   <body class="sport-nba">; any element can also carry .sport-nba to theme a
+   single block (home.html's NBA banner + section do this). Everything here is
+   scoped under .sport-nba except the NFL | NBA switch, which every page with
+   #rr-nav gets from shared/nav.js. Docs + contrast table: docs/nba-theme.md.
+
+   Text and fills are checked against the dark UI (#000 / #0a0a0a / #111):
+     --nba-400 #ff8a3d on #111 = 8.0:1   (accent text, active nav)
+     --nba-300 #ffb27a on #111 = 10.7:1  (hover text)
+     --nba-ink #1c0b02 on --nba-500 #f7711f = 6.7:1 (button label; 5.0:1 on pressed --nba-600)
+   White on orange fails AA, so orange buttons always use the dark ink label. */
+
+/* 12a. Sport switch (all pages) --------------------------------------------- */
+#rr-nav .rr-sport,
+#rr-nav .sport-switch {
+  display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;
+  margin: 0 var(--space-2) 0 0; padding: 2px;
+  border: 1px solid var(--border-bright); border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.02);
+}
+#rr-nav .rr-sport-opt,
+#rr-nav .sport-switch a {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  min-height: 28px; padding: 0 0.7rem; border-radius: var(--radius-pill);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; line-height: 1;
+  color: var(--text-secondary); text-decoration: none;
+  transition: color 0.12s, background 0.12s;
+}
+#rr-nav .rr-sport-opt:hover,
+#rr-nav .sport-switch a:hover { color: var(--text-primary); }
+#rr-nav .rr-sport-opt.active,
+#rr-nav .sport-switch a[aria-current="page"] { color: var(--bg-primary); background: var(--text-primary); }
+/* Small orange ball dot on the NBA option so it reads as "the basketball one". */
+#rr-nav .rr-sport-opt[data-sport="nba"]::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: #ff8a3d; box-shadow: 0 0 6px rgba(255,138,61,0.7);
+}
+/* Mobile menu copy of the switch: only shown inside the open hamburger. */
+#rr-nav .rr-sport-menu { display: none; }
+@media (max-width: 768px) {
+  #rr-nav .rr-sport,
+  #rr-nav .sport-switch { margin-right: 0; margin-left: var(--space-2); }
+  #rr-nav .rr-sport-opt,
+  #rr-nav .sport-switch a { min-height: 32px; padding: 0 0.75rem; }
+  /* Menu open: the Sport row sits between the links and Sign In, and the bar
+     pill steps aside (visibility, so the bar doesn't reflow). */
+  #rr-nav.open > .rr-sport,
+  #rr-nav.open > .sport-switch { visibility: hidden; }
+  #rr-nav.open .rr-auth { order: 12; }
+  #rr-nav.open .rr-sport-menu {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+    flex: 0 0 100%; order: 11; border-top: 1px solid var(--border); margin-top: 0.5rem; padding: 0.6rem 0.9rem 0.2rem;
+    font-size: var(--fs-xs); font-weight: 600; letter-spacing: var(--tracking-label);
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  #rr-nav.open .rr-sport-menu .rr-sport { margin: 0; }
+  #rr-nav.open .rr-sport-menu .rr-sport-opt { min-height: 40px; padding: 0 1rem; font-size: 0.78rem; }
+}
+@media (max-width: 360px) {
+  /* Tiny phones: the bar keeps logo + switch + hamburger; drop the label dot. */
+  #rr-nav > .rr-sport .rr-sport-opt[data-sport="nba"]::before { display: none; }
+}
+
+/* 12b. Tokens ---------------------------------------------------------------- */
+.sport-nba {
+  /* orange family (basketball leather, not traffic-cone) */
+  --nba-50:  #fff4ec;
+  --nba-200: #ffd2ad;
+  --nba-300: #ffb27a;
+  --nba-400: #ff8a3d;
+  --nba-500: #f7711f;
+  --nba-600: #db5a0c;
+  --nba-700: #a8430a;
+  --nba-ink: #1c0b02;          /* label colour on orange fills */
+  --nba-hardwood: #c8915a;     /* decorative court tone, never for text */
+  --nba-surface: #120c08;      /* warm-tinted card surface */
+  --nba-surface-2: #1a110b;
+  --nba-border: rgba(255,138,61,0.22);
+  --nba-border-bright: rgba(255,138,61,0.42);
+  --nba-glow: rgba(255,138,61,0.14);
+  --nba-glow-strong: rgba(247,113,31,0.32);
+  --nba-ring: 0 0 0 3px rgba(255,138,61,0.35);
+  --nba-line: rgba(255,178,122,0.07);  /* court-line pattern stroke */
+
+  /* remap the shared semantic tokens so existing components follow */
+  --accent: var(--nba-400);
+  --accent-glow: var(--nba-glow);
+  --color-accent: var(--nba-400);
+  --brand-400: var(--nba-400);
+  --brand-500: var(--nba-500);
+  --brand-600: var(--nba-600);
+  --brand-glow: var(--nba-glow);
+  --shadow-focus: var(--nba-ring);
+}
+body.sport-nba { background: #050302; }
+.sport-nba :focus-visible { outline-color: var(--nba-400); }
+.sport-nba ::selection { background: rgba(247,113,31,0.35); color: #fff; }
+
+/* 12c. Nav ------------------------------------------------------------------- */
+.sport-nba #rr-nav {
+  background: linear-gradient(180deg, rgba(26,13,5,0.96), rgba(10,7,5,0.96));
+  border-bottom-color: var(--nba-border);
+  box-shadow: inset 0 -1px 0 rgba(255,138,61,0.06);
+}
+/* Logo gets a tiny basketball (seams drawn with gradients, no asset). */
+.sport-nba #rr-nav .rr-logo { display: inline-flex; align-items: center; gap: 0.45rem; }
+.sport-nba #rr-nav .rr-logo::before {
+  content: ""; width: 14px; height: 14px; border-radius: 50%; flex: none;
+  background:
+    linear-gradient(90deg, transparent 46%, var(--nba-ink) 46% 54%, transparent 54%),
+    linear-gradient(0deg, transparent 46%, var(--nba-ink) 46% 54%, transparent 54%),
+    radial-gradient(circle at 35% 30%, var(--nba-300), var(--nba-500) 60%, var(--nba-600));
+  box-shadow: 0 0 10px rgba(255,138,61,0.45);
+}
+.sport-nba #rr-nav .rr-link:hover { color: var(--nba-300); background: var(--nba-glow); }
+.sport-nba #rr-nav .rr-link.active,
+.sport-nba #rr-nav .rr-link[aria-current="page"] {
+  color: var(--nba-400); background: var(--nba-glow);
+  box-shadow: inset 0 -2px 0 var(--nba-500);
+}
+.sport-nba #rr-nav .rr-sport-opt.active,
+.sport-nba #rr-nav .sport-switch a[aria-current="page"] {
+  color: var(--nba-ink);
+  background: linear-gradient(135deg, var(--nba-400), var(--nba-500));
+  box-shadow: 0 0 12px -2px var(--nba-glow-strong);
+}
+.sport-nba #rr-nav .rr-sport-opt.active::before { background: var(--nba-ink); box-shadow: none; }
+.sport-nba #rr-sign-in:hover,
+.sport-nba .nav-hamburger:hover,
+.sport-nba #rr-nav.open .nav-hamburger { background: var(--nba-glow); border-color: var(--nba-border-bright); }
+
+/* 12d. Buttons ---------------------------------------------------------------- */
+.sport-nba .btn-primary,
+.sport-nba .btn-brand,
+.nba-btn {
+  background: linear-gradient(135deg, var(--nba-400, #ff8a3d), var(--nba-500, #f7711f));
+  color: var(--nba-ink, #1c0b02); border: 1px solid transparent;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 20px -8px var(--nba-glow-strong, rgba(247,113,31,0.32));
+}
+.sport-nba .btn-primary:hover:not(:disabled),
+.sport-nba .btn-brand:hover,
+.nba-btn:hover { background: linear-gradient(135deg, var(--nba-300, #ffb27a), var(--nba-400, #ff8a3d)); filter: none; }
+.sport-nba .btn-primary:active:not(:disabled),
+.sport-nba .btn-brand:active,
+.nba-btn:active { background: var(--nba-600, #db5a0c); transform: scale(0.98); }
+.sport-nba .btn-primary:focus-visible,
+.sport-nba .btn-brand:focus-visible,
+.nba-btn:focus-visible { outline: none; box-shadow: var(--nba-ring, 0 0 0 3px rgba(255,138,61,0.35)); }
+.nba-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 44px; padding: 0 var(--space-5); border-radius: var(--radius-pill);
+  font-family: var(--font-sans); font-weight: 700; font-size: 0.9rem; line-height: 1;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+.sport-nba .btn-secondary:hover:not(:disabled) { background: var(--nba-glow); border-color: var(--nba-border-bright); }
+.sport-nba .btn-secondary:focus-visible { outline: none; box-shadow: var(--nba-ring); }
+
+/* 12e. Chips, badges, tiers ---------------------------------------------------- */
+.nba-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  min-height: 28px; padding: 0 0.7rem; border-radius: var(--radius-pill);
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--nba-300); background: var(--nba-glow); border: 1px solid var(--nba-border);
+  white-space: nowrap;
+}
+.nba-chip.solid { color: var(--nba-ink); background: var(--nba-400); border-color: transparent; }
+.nba-badge {
+  display: inline-flex; align-items: center; font-family: var(--font-mono);
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.12rem 0.4rem; border-radius: var(--radius-xs);
+  color: var(--nba-400); background: rgba(255,138,61,0.12); border: 1px solid var(--nba-border);
+}
+.sport-nba .badge { background: rgba(255,138,61,0.08); color: var(--nba-200); }
+.sport-nba .nd-chip-toggle[aria-pressed="true"],
+.sport-nba .nd-views button[aria-pressed="true"] { border-color: var(--nba-border-bright); background: var(--nba-glow); color: var(--nba-200); }
+/* Tier dividers: a short orange tick before the label. */
+.sport-nba .rsch-tier-divider { color: var(--nba-300); }
+.sport-nba .rsch-tier-divider::before {
+  content: ""; width: 10px; height: 2px; border-radius: 2px; background: var(--nba-500); flex: none; margin-right: 0.4rem;
+}
+/* Tier ladder colours for pages that render tier numbers. */
+.sport-nba .nba-tier-1 { color: var(--nba-300); }
+.sport-nba .nba-tier-2 { color: var(--nba-400); }
+.sport-nba .nba-tier-3 { color: var(--nba-hardwood); }
+.sport-nba .nba-tier-4 { color: var(--text-secondary); }
+
+/* 12f. Court motif (use sparingly: one hero/card per page) --------------------
+   .nba-court paints a faint half-court: centre circle, free-throw lane and the
+   three-point arc as 1px lines in --nba-line over a warm surface. Pure CSS
+   gradients, no images; sits behind content via ::before. */
+.nba-court { position: relative; isolation: isolate; overflow: hidden; }
+.nba-court::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    /* three-point arc, anchored right */
+    radial-gradient(circle at 100% 50%, transparent 0 239px, var(--nba-line, rgba(255,178,122,0.07)) 239px 240px, transparent 241px),
+    /* free-throw circle */
+    radial-gradient(circle at 100% 50%, transparent 0 89px, var(--nba-line, rgba(255,178,122,0.07)) 89px 90px, transparent 91px),
+    /* half-court line + centre circle, anchored left */
+    radial-gradient(circle at 0% 50%, transparent 0 69px, var(--nba-line, rgba(255,178,122,0.07)) 69px 70px, transparent 71px),
+    linear-gradient(90deg, var(--nba-line, rgba(255,178,122,0.07)) 0 1px, transparent 1px);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.6) 50%, #000 100%);
+          mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.6) 50%, #000 100%);
+}
+/* Ball-seam glyph for icons and empty states: <span class="nba-ball" aria-hidden="true"></span> */
+.nba-ball {
+  display: inline-block; width: 1em; height: 1em; border-radius: 50%; flex: none; vertical-align: -0.12em;
+  background:
+    radial-gradient(circle at -18% 50%, transparent 0 52%, var(--nba-ink, #1c0b02) 52% 58%, transparent 58%),
+    radial-gradient(circle at 118% 50%, transparent 0 52%, var(--nba-ink, #1c0b02) 52% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 47%, var(--nba-ink, #1c0b02) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, var(--nba-ink, #1c0b02) 47% 53%, transparent 53%),
+    radial-gradient(circle at 35% 30%, var(--nba-300, #ffb27a), var(--nba-500, #f7711f) 60%, var(--nba-600, #db5a0c));
+}
+@media (prefers-reduced-motion: reduce) {
+  .nba-btn, .sport-nba .btn-primary, .sport-nba .btn-brand { transition: none; }
+  .nba-btn:active, .sport-nba .btn-primary:active:not(:disabled), .sport-nba .btn-brand:active { transform: none; }
+}
+@media (prefers-contrast: more) {
+  .sport-nba { --nba-border: rgba(255,138,61,0.6); --nba-line: rgba(255,178,122,0.0); }
+}
+/* === end NBA theme === */
