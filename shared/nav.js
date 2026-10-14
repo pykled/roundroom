@@ -1,48 +1,104 @@
-/* Pocket nav — mobile hamburger toggle.
-   Toggles `.open` on #rr-nav; shared/styles.css (section 5 + 10) shows
-   .rr-links and .rr-auth as a stacked dropdown when open on ≤768px.
-   Closes on: link tap, Sign In tap, tap outside, Escape, resize to desktop.
+/* Pocket nav — sport switch + mobile hamburger toggle.
 
-   Also injects the NFL | NBA sport switch after the logo on every page that
-   has #rr-nav (window.PocketNav.sportSwitchHtml() returns the same markup for
-   pages that want to render it themselves; an existing .rr-sport is kept). */
+   Sport switch (NFL | NBA):
+   - The current sport comes from location.pathname: /nba and /nba/* are NBA,
+     everything else is NFL.
+   - Every page with #rr-nav gets a compact pill after the logo (kept visible on
+     the mobile bar) plus a second copy inside the hamburger menu. A page that
+     already ships its own switch (.rr-sport or #rr-sport-switch, e.g. the NBA
+     pages) keeps it; only the menu copy is added.
+   - On NBA pages whose .rr-links still point at NFL tools, the links are
+     replaced with the NBA set (Draft board, Lineup). NBA pages that already
+     link to /nba* are left alone apart from marking the current link.
+   - Styles live in shared/styles.css ("NBA theme" section 12a).
+   window.PocketNav exposes the helpers for pages and tests.
+
+   Hamburger: toggles `.open` on #rr-nav; shared/styles.css (section 5 + 10)
+   shows .rr-links and .rr-auth as a stacked dropdown when open on ≤768px.
+   Closes on: link tap, Sign In tap, tap outside, Escape, resize to desktop. */
 (function () {
-  var nav = document.getElementById('rr-nav');
-  var isNba = /^\/nba(\/|$)/.test(location.pathname);
+  var NBA_LINKS = [
+    { href: '/nba', label: 'Draft board', match: /^\/nba(\/draft)?\/?$/ },
+    { href: '/nba/lineup', label: 'Lineup', match: /^\/nba\/lineup\/?$/ },
+  ];
+
+  function sportFor(pathname) {
+    return /^\/nba(\/|$)/i.test(pathname || '') ? 'nba' : 'nfl';
+  }
 
   function sportSwitchHtml(sport) {
-    var nba = sport ? sport === 'nba' : isNba;
-    return '<a href="/nfl" class="rr-sport-opt' + (nba ? '' : ' active') + '"' + (nba ? '' : ' aria-current="page"') + '>NFL</a>' +
-      '<a href="/nba" class="rr-sport-opt' + (nba ? ' active' : '') + '"' + (nba ? ' aria-current="page"' : '') + '>NBA</a>';
+    var nba = (sport || sportFor(location.pathname)) === 'nba';
+    function opt(key, href, label, on) {
+      return '<a href="' + href + '" class="rr-sport-opt' + (on ? ' active' : '') + '" data-sport="' + key + '"' +
+        ' data-umami-event="' + (key === 'nba' ? 'nba-nav-switch' : 'nfl-nav-switch') + '"' +
+        (on ? ' aria-current="page"' : '') + '>' + label + '</a>';
+    }
+    return opt('nfl', '/nfl', 'NFL', !nba) + opt('nba', '/nba', 'NBA', nba);
   }
-  window.PocketNav = { sportSwitchHtml: sportSwitchHtml };
 
-  // NBA pages ship their own static switch (#rr-sport-switch); don't add a second.
-  if (!nav || nav.querySelector('.rr-sport, #rr-sport-switch')) return;
-  if (!document.getElementById('rr-sport-css')) {
-    var css = document.createElement('style');
-    css.id = 'rr-sport-css';
-    css.textContent =
-      '#rr-nav .rr-sport{display:inline-flex;align-items:center;gap:2px;margin:0 0.75rem 0 0.25rem;padding:2px;' +
-      'border:1px solid var(--border,rgba(255,255,255,0.12));border-radius:999px;flex-shrink:0}' +
-      '#rr-nav .rr-sport-opt{font-size:0.72rem;font-weight:600;letter-spacing:0.04em;padding:0.2rem 0.55rem;border-radius:999px;' +
-      'color:var(--text-secondary,#9aa);text-decoration:none;line-height:1.4}' +
-      '#rr-nav .rr-sport-opt:hover{color:var(--text-primary,#fff)}' +
-      '#rr-nav .rr-sport-opt.active{color:var(--text-primary,#fff);background:var(--accent-glow,rgba(120,140,255,0.2))}';
-    document.head.appendChild(css);
+  function nbaLinksHtml(pathname) {
+    return NBA_LINKS.map(function (l) {
+      var on = l.match.test(pathname || '');
+      return '<a href="' + l.href + '" class="rr-link' + (on ? ' active' : '') + '"' + (on ? ' aria-current="page"' : '') + '>' + l.label + '</a>';
+    }).join('');
   }
-  var sw = document.createElement('div');
-  sw.className = 'rr-sport';
-  sw.setAttribute('role', 'group');
-  sw.setAttribute('aria-label', 'Sport');
-  sw.innerHTML = sportSwitchHtml();
-  var logo = nav.querySelector('.rr-logo');
-  if (logo && logo.nextSibling) nav.insertBefore(sw, logo.nextSibling);
-  else if (logo) nav.appendChild(sw);
-  else nav.insertBefore(sw, nav.firstChild);
+
+  function makeSwitch(doc, sport) {
+    var sw = doc.createElement('div');
+    sw.className = 'rr-sport';
+    sw.setAttribute('role', 'group');
+    sw.setAttribute('aria-label', 'Sport');
+    sw.innerHTML = sportSwitchHtml(sport);
+    return sw;
+  }
+
+  // Applies the switch + NBA link set to one nav element. Safe to call twice.
+  function enhance(nav, pathname, doc) {
+    doc = doc || document;
+    if (!nav || nav.getAttribute('data-sport-ready')) return;
+    nav.setAttribute('data-sport-ready', '1');
+    var sport = sportFor(pathname);
+    nav.setAttribute('data-sport', sport);
+
+    // 1. Bar pill (unless the page ships its own switch).
+    if (!nav.querySelector('.rr-sport, #rr-sport-switch')) {
+      var sw = makeSwitch(doc, sport);
+      var logo = nav.querySelector('.rr-logo');
+      if (logo) nav.insertBefore(sw, logo.nextSibling);
+      else nav.insertBefore(sw, nav.firstChild);
+    }
+
+    // 2. NBA link set on /nba* pages that still carry NFL links.
+    var links = nav.querySelector('.rr-links');
+    if (sport === 'nba' && links) {
+      var hasNba = false, as = links.querySelectorAll('a[href]');
+      for (var i = 0; i < as.length; i++) if (/^\/nba(\/|$)/.test(as[i].getAttribute('href'))) hasNba = true;
+      if (!hasNba) links.innerHTML = nbaLinksHtml(pathname);
+      var logoA = nav.querySelector('a.rr-logo');
+      if (logoA && !/^\/nba/.test(logoA.getAttribute('href') || '')) logoA.setAttribute('href', '/nba');
+    }
+
+    // 3. Menu copy of the switch, shown only inside the open hamburger (CSS).
+    if (nav.querySelector('.nav-hamburger') && !nav.querySelector('.rr-sport-menu')) {
+      var row = doc.createElement('div');
+      row.className = 'rr-sport-menu';
+      var lbl = doc.createElement('span');
+      lbl.textContent = 'Sport';
+      row.appendChild(lbl);
+      row.appendChild(makeSwitch(doc, sport));
+      nav.appendChild(row);
+    }
+  }
+
+  var api = { sportFor: sportFor, sportSwitchHtml: sportSwitchHtml, nbaLinksHtml: nbaLinksHtml, enhance: enhance };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (typeof window === 'undefined') return;
+  window.PocketNav = api;
+  enhance(document.getElementById('rr-nav'), location.pathname, document);
 })();
 
 (function () {
+  if (typeof document === 'undefined') return;
   var nav = document.getElementById('rr-nav');
   if (!nav) return;
   var btn = nav.querySelector('.nav-hamburger');
@@ -60,10 +116,10 @@
     setOpen(!isOpen());
   });
 
-  // Tap a nav link or Sign In → close.
+  // Tap a nav link, a sport option or Sign In → close.
   nav.addEventListener('click', function (e) {
     var t = e.target;
-    if (t && t.closest && t.closest('a.rr-link, #rr-sign-in')) setOpen(false);
+    if (t && t.closest && t.closest('a.rr-link, a.rr-sport-opt, #rr-sign-in')) setOpen(false);
   });
 
   // Tap outside the nav → close.
