@@ -456,7 +456,7 @@ function whyBullets(r, E) {
   else if (heavyIn - heavyOut >= 1.5) out.push(`Adds 4-game weeks: ${per(heavyIn, 'coming in')} vs ${per(heavyOut, 'going out')}.`);
   if (both && r.meta.playoffStartWeek != null) {
     const pin = avg('get', 'playoffGames'), pout = avg('give', 'playoffGames');
-    if (Math.abs(pin - pout) >= 1) out.push(`Playoff weeks (${r.meta.playoffStartWeek}+, weighted ×${r.meta.playoffWeight}): ${per(pin, 'coming in')} vs ${per(pout, 'going out')} games.`);
+    if (Math.abs(pin - pout) >= 1) out.push(`Playoff weeks (${r.meta.playoffStartWeek}+, weighted ×${r.meta.playoffWeight}): ${Math.round(pin * 10) / 10} games per player coming in vs ${Math.round(pout * 10) / 10} going out.`);
   }
   // Injuries.
   for (const p of r.players) {

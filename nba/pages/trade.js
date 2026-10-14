@@ -283,7 +283,7 @@
       var theirs = st.partnerKey ? L.rosterIds(L.teamOf(ctx, st.partnerKey)) : [];
       st.give = st.give.filter(function (id) { return st.myRoster.indexOf(id) >= 0; });
       st.get = st.get.filter(function (id) { return theirs.indexOf(id) >= 0; });
-      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Yahoo player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and are shown greyed out.');
+      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Yahoo player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and ' + (ctx.unmatched.length > 1 ? 'are' : 'is') + ' shown greyed out.');
       save(); render(); schedule();
     }).catch(function (e) {
       S.ctx = null; S.st.mode = 'manual'; S.st.leagueKey = '';

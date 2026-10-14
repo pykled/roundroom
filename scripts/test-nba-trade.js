@@ -186,6 +186,7 @@ t('schedule: playoff weeks weigh more only when the league gives them', () => {
   const po = T.evaluateTrade({ ...o, settings: { playoffStartWeek: 18 } });
   eq(plain.meta.playoffWeight, 1);
   eq(po.meta.playoffWeight, 1.5);
+  ok(po.why.every(w => !/going out games/.test(w)), 'playoff bullet reads cleanly');
   ok(po.you.perWeek > plain.you.perWeek, `${po.you.perWeek} > ${plain.you.perWeek}`);
   ok(po.weeks.filter(w => w.playoff).every(w => w.weight === 1.5));
   ok(po.why.some(w => /Playoff weeks/.test(w)), po.why.join(' | '));
