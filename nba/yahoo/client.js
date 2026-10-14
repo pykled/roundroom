@@ -29,8 +29,16 @@ async function readBody(res) {
   try { return await res.json(); } catch { return ''; }
 }
 
-// Short human description from a Yahoo error body (JSON or XML), capped.
-function errorDescription(body) {
+// Short human description from a Yahoo error body (JSON or XML), capped, with
+// anything token-shaped removed: error messages reach logs and the diagnose
+// report, and an error page that echoes the request must not leak the bearer.
+function redact(text, secrets) {
+  let t = String(text);
+  for (const sec of secrets || []) if (sec && sec.length >= 8) t = t.split(sec).join('[redacted]');
+  return t.replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi, '$1 [redacted]')
+    .replace(/\b(access_token|refresh_token|code|client_secret)=[^&\s]+/gi, '$1=[redacted]');
+}
+function errorDescription(body, secrets) {
   let d = '';
   if (body && typeof body === 'object') {
     const e = body.error;
@@ -39,7 +47,7 @@ function errorDescription(body) {
     const m = /<description>([^<]*)<\/description>/i.exec(body);
     d = m ? m[1] : '';
   }
-  return String(d).replace(/\s+/g, ' ').trim().slice(0, 200);
+  return redact(String(d).replace(/\s+/g, ' ').trim(), secrets).slice(0, 200);
 }
 
 class YahooError extends Error {
@@ -117,12 +125,12 @@ function createClient({
       }
       const body = await readBody(res);
       if (!res.ok) {
-        const desc = errorDescription(body);
+        const desc = errorDescription(body, [tokens.access_token, tokens.refresh_token]);
         throw new YahooError(`Yahoo API ${res.status}${desc ? `: ${desc}` : ''}`, res.status === 999 ? 429 : res.status);
       }
       if (typeof body === 'string') {
         // 200 with a non-JSON body: Yahoo ignored ?format=json, or a proxy page.
-        const desc = errorDescription(body);
+        const desc = errorDescription(body, [tokens.access_token, tokens.refresh_token]);
         throw new YahooError(`Yahoo returned a non-JSON body${desc ? `: ${desc}` : ''}`, 502, 'bad_format');
       }
       return body;
@@ -133,7 +141,7 @@ function createClient({
   // YahooError (502) instead of a TypeError deep in the router.
   function parse(fn, json) {
     try { return P.capture(() => fn(json), onWarning); } catch (e) {
-      throw new YahooError(`Yahoo response not understood: ${e.message}`, 502, e.code || 'bad_response');
+      throw new YahooError(`Yahoo response not understood: ${redact(e.message)}`, 502, e.code || 'bad_response');
     }
   }
 
@@ -214,4 +222,4 @@ function createClient({
   return { request, getGameKey, getUserLeagues, getGameWeeks, getLeague, getDraftResults, getTeams, getRoster, getPlayers, getPlayersByKeys };
 }
 
-module.exports = { createClient, createLimiter, YahooError, BASE, readBody, errorDescription };
+module.exports = { createClient, createLimiter, YahooError, BASE, readBody, errorDescription, redact };
