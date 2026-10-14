@@ -27,6 +27,10 @@ const MAX_CANDIDATES = 80;          // free agents scored exactly (pool pre-cut 
 // who sits mid-week (lineups are daily). They earn a small share of their value
 // so a 4-game bench streamer beats a 2-game one and ties don't collapse to 0.
 const DEPTH_WEIGHTS = [0.12, 0.06];
+// Never stream away a better long-term asset: a drop is only suggested when the
+// added player's rest-of-season weekly value is within this many HS points of
+// the dropped player's (or the dropped player is out for the season).
+const KEEP_MARGIN = 4;
 
 const num = x => (Number.isFinite(+x) ? +x : 0);
 const r1 = x => Math.round(num(x) * 10) / 10;
@@ -80,6 +84,14 @@ function bestLineup(items) {
   }
   return { total: best, starters: starters.reverse() };
 }
+
+// Rest-of-season value per week (B's hsByWeek averaged over weeks >= from).
+function longRun(p, from) {
+  const ws = Object.keys((p && p.hsByWeek) || {}).map(Number).filter(w => Number.isFinite(w) && w >= from);
+  if (!ws.length) return 0;
+  return ws.reduce((s, w) => s + weekValue(p, w), 0) / ws.length;
+}
+const protectedFrom = (d, add, from) => !d.outForSeason && longRun(add, from) < longRun(d, from) - KEEP_MARGIN;
 
 const weekValue = (p, w) => Math.max(0, num(p && p.hsByWeek && p.hsByWeek[w]));
 const weekGames = (p, w) => Math.max(0, num(p && p.gamesByWeek && p.gamesByWeek[w]));
@@ -160,6 +172,8 @@ function isInjured(p) {
   return !!(p && (p.outForSeason || INJURED.test(String(p.injury || '').trim())));
 }
 
+function rosterById0(roster, id) { return roster.find(p => String(p.id) === id) || {}; }
+
 function brief(p) {
   return { id: String(p.id), name: p.name || String(p.id), team: p.team || null, pos: p.pos || [], elig: p.elig || ['UTIL'], injury: p.injury || null };
 }
@@ -188,9 +202,19 @@ function analyzeWaivers(opts = {}) {
   const dropCandidates = roster.map(d => ({
     ...brief(d),
     dropCost: r1(base - without.get(String(d.id))),
+    longRun: r1(longRun(d, start)),
     valueByWeek: weeks.map(w => r1(weekValue(d, w))),
     gamesByWeek: weeks.map(w => weekGames(d, w)),
   })).sort((a, b) => a.dropCost - b.dropCost || a.valueByWeek.reduce((s, x) => s + x, 0) - b.valueByWeek.reduce((s, x) => s + x, 0) || (a.id < b.id ? -1 : 1));
+
+  // Swaps try drops cheapest-first, so equal-gain ties go to the cheapest drop
+  // (and the result doesn't depend on roster order).
+  // "The" drop candidate: cheapest player who isn't a keeper (a keeper's
+  // rest-of-season value tops the best free agent's by more than KEEP_MARGIN).
+  const bestFaLong = pool.reduce((m, p) => Math.max(m, longRun(p, start)), 0);
+  for (const d of dropCandidates) d.keeper = !rosterById0(roster, d.id).outForSeason && bestFaLong < d.longRun - KEEP_MARGIN;
+  const rosterById = new Map(roster.map(p => [String(p.id), p]));
+  const dropOrder = dropCandidates.map(d => rosterById.get(d.id));
 
   // Pre-cut the pool by raw horizon value (cheap), then score exactly.
   const raw = p => weeks.reduce((s, w, i) => s + Math.pow(WEEK_DISCOUNT, i) * weekValue(p, w), 0);
@@ -203,8 +227,9 @@ function analyzeWaivers(opts = {}) {
     const addGain = horizonValue([...roster, p], weeks) - base; // as if a roster spot were free
     let bestDrop = null, netGain = openSpots > 0 ? addGain : -Infinity;
     if (openSpots === 0) {
-      for (const d of roster) {
+      for (const d of dropOrder) {
         const others = roster.filter(x => x !== d);
+        if (protectedFrom(d, p, start)) continue;
         const net = horizonValue([...others, p], weeks) - base;
         if (net > netGain + 1e-9) { netGain = net; bestDrop = d; }
       }
@@ -239,7 +264,8 @@ function analyzeWaivers(opts = {}) {
     const base0 = rosterWeekValue(roster, w0);
     const opts0 = [];
     for (const { p } of cands.slice(0, 40)) {
-      for (const d of (openSpots > 0 ? [null] : roster)) {
+      for (const d of (openSpots > 0 ? [null] : dropOrder)) {
+        if (d && protectedFrom(d, p, start)) continue;
         const set = d ? roster.filter(x => x !== d) : roster;
         const gain = rosterWeekValue([...set, p], w0) - base0;
         if (gain > 0.05) opts0.push({ p, d, gain });
@@ -262,22 +288,24 @@ function analyzeWaivers(opts = {}) {
 
   // Injury replacements: an injured rostered player whose hole is a starter-sized hole.
   const injuryReplacements = [];
-  for (const inj of roster.filter(isInjured)) {
+  for (const inj of dropOrder.filter(isInjured)) {
     const lost = weeks.reduce((s, w, i) => s + Math.pow(WEEK_DISCOUNT, i) * Math.max(0, healthyWeekValue(inj, w) - weekValue(inj, w)), 0);
     if (lost < 1) continue;
-    const others = roster.filter(x => x !== inj);
-    const reps = cands.slice(0, 40).map(({ p }) => ({ p, gain: horizonValue([...others, p], weeks) - base }))
-      .filter(x => x.gain > 0.05)
-      .sort((a, b) => b.gain - a.gain || (String(a.p.id) < String(b.p.id) ? -1 : 1))
+    // Who fills the hole: the best positive swaps (keeper-protected, so the
+    // injured star is only dropped when he isn't worth holding) for an FA who
+    // shares a G/F group with him.
+    const ie = eligOf(inj);
+    const reps = targets
+      .filter(t => t.netGain > 0.05 && ((ie.G && t.elig.includes('G')) || (ie.F && t.elig.includes('F')) || (!ie.G && !ie.F)))
       .slice(0, 3)
-      .map(x => ({ ...brief(x.p), netGain: r1(x.gain), gamesByWeek: weeks.map(w => weekGames(x.p, w)) }));
+      .map(t => ({ ...brief(t), netGain: t.netGain, drop: t.drop, gamesByWeek: t.gamesByWeek }));
     injuryReplacements.push({
       injured: { ...brief(inj), outForSeason: !!inj.outForSeason },
       lostValue: r1(lost),
       replacements: reps,
     });
   }
-  injuryReplacements.sort((a, b) => b.lostValue - a.lostValue);
+  injuryReplacements.sort((a, b) => b.lostValue - a.lostValue || (a.injured.id < b.injured.id ? -1 : 1));
 
   // Streamer calendar: free agents on 4+ game weeks over the next 3 weeks.
   const calendar = calWeeks.map(w => ({
@@ -298,10 +326,10 @@ function analyzeWaivers(opts = {}) {
     targets,
     pairs,
     dropCandidates,
-    dropCandidate: dropCandidates[0] || null,
+    dropCandidate: dropCandidates.find(d => !d.keeper) || null,
     injuryReplacements,
     calendar,
   };
 }
 
-module.exports = { analyzeWaivers, bestLineup, rosterWeekValue, DEPTH_WEIGHTS, roleSignal, roleSignalsFromData, healthyWeekValue, isInjured, HORIZONS, SLOTS, WEEK_DISCOUNT };
+module.exports = { analyzeWaivers, bestLineup, rosterWeekValue, longRun, DEPTH_WEIGHTS, KEEP_MARGIN, roleSignal, roleSignalsFromData, healthyWeekValue, isInjured, HORIZONS, SLOTS, WEEK_DISCOUNT };
