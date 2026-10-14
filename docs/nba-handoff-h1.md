@@ -16,16 +16,19 @@ Branch `nba-h1-profile` (off `nba` @ cff2be7). Spec: docs/nba-contracts.md "Phas
 | `scripts/test-nba-profile.js` (new) | 28 checks + top-15 board + 2025 backtest under league scoring. |
 
 ## Response additions (for H2)
-Per player: `yahooElig` (subset of PG, SG, G, SF, PF, F, C, UTIL), `eligConfidence: 'sleeper-mapped'`, `vorp`, `vorpBySlot`, `vorpRank`. `hsByWeek` and `gamesByWeek` are keyed by matchup week 1–22.
+Per player: `yahooElig` (subset of PG, SG, G, SF, PF, F, C, UTIL), `eligConfidence: 'yahoo' | 'sleeper-mapped'`, `vorp`, `vorpBySlot`, `vorpRank`, and from the Yahoo snapshot `yahooPid`, `yahooPos`, `yahooPreRank`, `yahooPctRos`, `yahooFanPts` (null when unmatched). `hsByWeek` and `gamesByWeek` are keyed by matchup week 1–22.
 
-Top level: `profile.{leagueId, scoring, flags, slots, starters, rosterSize, teams, weeks, longWeeks, replacement, draftedPool}`.
+Top level: `profile.{leagueId, scoring, flags, slots, starters, rosterSize, teams, weeks, longWeeks, replacement, draftedPool, unverified, yahoo}`. `profile.yahoo` = match summary (602/725, 83.0%).
+
+## Yahoo-first update (2026-10-13)
+Positions/eligibility now come from `data/nba/yahoo-snapshot-242808.json` (`nba/model/yahoo.js`); Sleeper is only the flagged fallback. Every Yahoo top-200 player is matched; all 123 unmatched rows are absent from Sleeper. Yahoo fanPts are reproduced exactly (±0.1, top 200) by the league scoring with DD/TD/tech zeroed. The snapshot's stat columns turned out to be Yahoo's 2026-27 projections, not 2025-26 totals, so the per-game log-sum check was replaced by a projection cross-check (see docs/nba-model.md).
 
 ## Verified
 `node scripts/test-nba-profile.js`, `test-nba-model.js`, `test-nba-yahoo.js`, `test-nba-ui.js`, `test-nba-hardening.js` and `npm test` all exit 0. The live Sleeper refresh path was exercised once and works with format 2.
 
 ## Gaps / unverified
-1. **`flags.tdAlsoCountsDD = true` is not verified on a Yahoo help page.** It's inferred from Yahoo's separate DD/TD stats and Sleeper's dd=1-on-td rows. Check one triple-double in the league after opening night. Impact is small (0.5% of games).
-2. **Eligibility is mapped from Sleeper**, which is wider than Yahoo's for many wings. Once Yahoo is connected, H2 or the router should call `slotsForPositions(yahoo eligible_positions)`.
+1. **DD/TD bonus unverified** (surfaced in `profile.unverified`): Yahoo fanPts have no DD/TD/tech component and the list shows those stats blank. Confirm on the first league box scores. Separately, **`flags.tdAlsoCountsDD = true` is not verified on a Yahoo help page.** It's inferred from Yahoo's separate DD/TD stats and Sleeper's dd=1-on-td rows. Check one triple-double in the league after opening night. Impact is small (0.5% of games).
+2. **Eligibility** is Yahoo's for 602 players; 52 deep players not in the Yahoo snapshot keep Sleeper-mapped positions. Yahoo players missing from Sleeper (Westbrook, Valančiūnas, Batum, ...) are not on the board at all.
 3. **VORP replacement levels are nearly flat** (~26 for every slot), so vorpRank ≈ hsValue rank. That's an honest result for 9 starters with 3 flex slots and a 168-player pool. Positional need should drive H2's pick advice.
 4. **NBA Cup TBD games:** the 2 undated games per team are imputed into Dec 3–11, so they land in week 7. Knockout games for the 8 qualifiers are not modelled.
 5. **Projections have no pf/tf.** These come from player per-minute history, or the league rate for rookies.

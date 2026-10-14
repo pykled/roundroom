@@ -5,6 +5,7 @@ const St = require('./stats');
 const Fit = require('./fit');
 const Sc = require('./score');
 const Slots = require('./slots');
+const Yahoo = require('./yahoo');
 const { normalizeName } = require('./names');
 const { epochDay } = require('./sleeper');
 
@@ -278,9 +279,13 @@ function buildBoard(data, opts = {}) {
   }
   // _norm is an internal match index; keep it non-enumerable so it never hits JSON.
   for (const p of players) Object.defineProperty(p, '_norm', { value: p._norm, enumerable: false });
-  let vorpMeta = null;
-  if (profile) vorpMeta = Slots.applyVorp(players, profile);
-  return { season: Number(season), week: reqWeek, currentWeek, players, vorpMeta };
+  let vorpMeta = null, yahooMeta = null;
+  if (profile) {
+    // Yahoo positions/identity first: slot VORP reads yahooElig.
+    yahooMeta = Yahoo.applyYahoo(players, { leagueId: profile.leagueId || Yahoo.DEFAULT_LEAGUE, profileSlots });
+    vorpMeta = Slots.applyVorp(players, profile);
+  }
+  return { season: Number(season), week: reqWeek, currentWeek, players, vorpMeta, yahooMeta };
 }
 
 // Gap-based tiers: a new tier starts where the drop to the next player is in

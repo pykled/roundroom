@@ -9,7 +9,7 @@ const Data = require('./data');
 const { buildBoard } = require('./board');
 const { expectedMax } = require('./stats');
 const { normalizeName, matchYahooPlayer } = require('./names');
-const { getProfile } = require('../league-profile');
+const { getProfile, unverifiedFor } = require('../league-profile');
 const Score = require('./score');
 const Slots = require('./slots');
 
@@ -24,13 +24,19 @@ function resolveProfile(profile) {
   return p;
 }
 // Compact profile summary echoed in the getPlayers response.
-function profileMeta(p, vorpMeta) {
+function profileMeta(p, vorpMeta, yahooMeta) {
   return {
     leagueId: p.leagueId, name: p.name, teams: p.teams, scoring: p.scoring, flags: p.flags,
     slots: p.slots, starters: p.starters, rosterSize: p.rosterSize,
     weeks: p.weeks.length, longWeeks: p.weeks.filter(w => w.days > 7).map(w => w.week),
     replacement: vorpMeta ? vorpMeta.replacement : null,
     draftedPool: vorpMeta ? vorpMeta.poolSize : null,
+    unverified: unverifiedFor(p),
+    yahoo: yahooMeta ? {
+      source: yahooMeta.source, fetchedAt: yahooMeta.fetchedAt, matched: yahooMeta.matched, total: yahooMeta.total,
+      matchRate: yahooMeta.matchRate, unmatchedCount: yahooMeta.unmatched.length,
+      unmatchedTop: yahooMeta.unmatched.filter(u => u.preRank != null && u.preRank <= 300),
+    } : null,
   };
 }
 
@@ -49,7 +55,7 @@ async function getPlayers({ season, week, profile } = {}) {
   if (hit && Date.now() - hit.time < BOARD_TTL_MS) return hit.value;
   const board = buildBoard(data, { week: wk, profile: prof });
   const value = { season: board.season, week: board.week, currentWeek: board.currentWeek, asOf: data.asOf, players: board.players };
-  if (prof) value.profile = profileMeta(prof, board.vorpMeta);
+  if (prof) value.profile = profileMeta(prof, board.vorpMeta, board.yahooMeta);
   for (const k of boards.keys()) if (!k.endsWith(`|${Data.version()}`)) boards.delete(k);
   boards.set(key, { value, time: Date.now() });
   return value;

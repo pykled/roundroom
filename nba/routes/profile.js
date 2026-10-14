@@ -2,7 +2,7 @@
 // league_id defaults to Dillon's league (242808). Unknown league → 404.
 'use strict';
 const express = require('express');
-const { getProfile, DEFAULT_LEAGUE_ID } = require('../league-profile');
+const { getProfile, unverifiedFor, DEFAULT_LEAGUE_ID } = require('../league-profile');
 
 module.exports = function profileRoutes() {
   const router = express.Router();
@@ -13,7 +13,7 @@ module.exports = function profileRoutes() {
     const profile = getProfile(id);
     if (!profile) return res.status(404).json({ error: 'Unknown league profile', leagueId: id });
     res.setHeader('Cache-Control', 'public, max-age=300');
-    res.json(profile);
+    res.json({ ...profile, unverified: unverifiedFor(profile) });
   });
   return router;
 };

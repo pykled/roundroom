@@ -84,7 +84,15 @@ function getProfile(leagueId = DEFAULT_LEAGUE_ID) {
   const p = PROFILES[id];
   return p ? clone(p) : null;
 }
+// Profile settings not confirmed against Yahoo data, surfaced in API meta.
+// Yahoo's league-scored fanPts (data/nba/yahoo-snapshot-242808.json) reproduce
+// PTS+1.2REB+1.5AST+3STL+3BLK-TO-PF exactly; Yahoo's list shows no DD/TD/tech
+// values, so whether the +5/+3 bonuses actually score is unverified.
+function unverifiedFor(p) {
+  if (!p || !p.scoring || !(p.scoring.dd || p.scoring.td)) return [];
+  return [`DD/TD bonus unverified: Yahoo player list shows no DD/TD stats; bonuses applied per contract (tdAlsoCountsDD=${!(p.flags && p.flags.tdAlsoCountsDD === false)})`];
+}
 function defaultProfile() { return getProfile(DEFAULT_LEAGUE_ID); }
 function highScoreDefaultProfile() { return clone(HIGH_SCORE_DEFAULT); }
 
-module.exports = { getProfile, defaultProfile, highScoreDefaultProfile, DEFAULT_LEAGUE_ID, buildWeeks };
+module.exports = { getProfile, defaultProfile, highScoreDefaultProfile, unverifiedFor, DEFAULT_LEAGUE_ID, buildWeeks };

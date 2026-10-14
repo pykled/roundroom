@@ -146,7 +146,7 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
   await test('contract shape + new fields + no NaN anywhere', () => {
     assert.ok(board.players.length > 400);
     for (const p of board.players) {
-      for (const k of ['id', 'name', 'team', 'pos', 'elig', 'mean', 'sd', 'games', 'gamesByWeek', 'hsValue', 'hsByWeek', 'ceiling', 'floor', 'rank', 'tier', 'posRank', 'source', 'yahooElig', 'eligConfidence', 'vorp', 'vorpBySlot', 'vorpRank']) assert.ok(k in p, `${p.name} missing ${k}`);
+      for (const k of ['id', 'name', 'team', 'pos', 'elig', 'mean', 'sd', 'games', 'gamesByWeek', 'hsValue', 'hsByWeek', 'ceiling', 'floor', 'rank', 'tier', 'posRank', 'source', 'yahooElig', 'eligConfidence', 'vorp', 'vorpBySlot', 'vorpRank', 'yahooPid', 'yahooPreRank', 'yahooPctRos', 'yahooFanPts']) assert.ok(k in p, `${p.name} missing ${k}`);
       const nums = [p.mean, p.sd, p.games, p.hsValue, p.ceiling, p.floor, p.vorp, ...Object.values(p.hsByWeek), ...Object.values(p.gamesByWeek), ...Object.values(p.vorpBySlot)];
       for (const x of nums) assert.ok(Number.isFinite(x), `${p.name} non-finite`);
       assert.deepStrictEqual(Object.keys(p.hsByWeek).map(Number), P.weeks.map(w => w.week));
@@ -231,9 +231,17 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     for (const pos of [[], 'XYZ', ['PG'], ['C'], 'G/F', ['SF', 'PF']]) assert.ok(sl(pos).includes('UTIL'), JSON.stringify(pos));
     assert.deepStrictEqual(sl([]), ['UTIL']);
   });
-  await test('board: Sleeper positions mapped and flagged; Jokić (C) has no F slot', () => {
-    assert.deepStrictEqual(byId['1658'].yahooElig, ['C', 'UTIL']);
-    assert.ok(board.players.every(p => p.eligConfidence === 'sleeper-mapped'));
+  await test('board: Yahoo positions are the eligibility source; Sleeper only as flagged fallback', () => {
+    assert.deepStrictEqual(byId['1658'].yahooElig, ['C', 'UTIL']); // Jokić: Yahoo 'C' → no F slot
+    for (const p of board.players) {
+      assert.ok(['yahoo', 'sleeper-mapped'].includes(p.eligConfidence));
+      assert.strictEqual(p.eligConfidence === 'yahoo', p.yahooPos != null, p.name);
+      if (p.eligConfidence === 'yahoo') assert.deepStrictEqual(p.yahooElig, Slots.slotsForPositions(p.yahooPos).filter(s => s !== 'FC'), p.name);
+    }
+    // Flagg: Sleeper said PG/SG/SF; Yahoo says SG,SF,PF → PF-eligible, not PG.
+    const flagg = board.players.find(p => p.name === 'Cooper Flagg');
+    assert.strictEqual(flagg.eligConfidence, 'yahoo');
+    assert.ok(flagg.yahooElig.includes('PF') && !flagg.yahooElig.includes('PG'), flagg.yahooElig.join(','));
   });
 
   console.log('VORP by slot');
@@ -253,6 +261,71 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     ranks.forEach((r, i) => assert.strictEqual(r, i + 1));
     const top = board.players.find(p => p.vorpRank === 1);
     assert.ok(['1658', '2577'].includes(top.id), top.name);
+  });
+
+  console.log('Yahoo snapshot (league 242808)');
+  const Y = require('../nba/model/yahoo');
+  const snap = Y.loadSnapshot('242808');
+  const ym = board.yahooMeta;
+  await test('identity: yahooPid / yahooPreRank / yahooPctRos attached; match rate reported', () => {
+    assert.ok(snap && snap.players.length >= 700);
+    assert.strictEqual(ym.total, snap.players.length);
+    assert.strictEqual(ym.matched + ym.unmatched.length, ym.total);
+    const pids = board.players.map(p => p.yahooPid).filter(Boolean);
+    assert.strictEqual(board.players.filter(p => p.yahooPos).length, ym.matched);
+    assert.strictEqual(pids.length + ym.missingPid, ym.matched + ym.unmatched.filter(u => u.pid == null).length);
+    assert.strictEqual(new Set(pids).size, pids.length, 'a Yahoo pid matched to two players');
+    assert.strictEqual(byId['1658'].yahooPid, '5352');
+    assert.strictEqual(byId['1658'].yahooPreRank, 1);
+    assert.strictEqual(byId['1658'].yahooPctRos, 100);
+    // Everyone Yahoo ranks in the top 200 is on the board and matched.
+    const top = snap.players.filter(y => y.preRank != null && y.preRank <= 200);
+    const matched = new Set(pids);
+    const miss = top.filter(y => !matched.has(String(y.pid))).map(y => y.name);
+    assert.deepStrictEqual(miss, []);
+    // Every unmatched Yahoo row is absent from Sleeper's player list (no name we failed to match).
+    const sleeperNames = new Set(Object.values(data.players).map(p => M.normalizeName(p.n)));
+    const fixable = ym.unmatched.filter(u => sleeperNames.has(M.normalizeName(u.name))).map(u => u.name);
+    assert.deepStrictEqual(fixable, []);
+    console.log(`        matched ${ym.matched}/${ym.total} Yahoo players (${(ym.matchRate * 100).toFixed(1)}%); ${ym.unmatched.length} unmatched, all missing from Sleeper (best: ${ym.unmatched.slice(0, 4).map(u => `${u.name} #${u.preRank}`).join(', ')})`);
+  });
+  // Yahoo's fanPts are league-scored with NO DD/TD/tech component, so compare under
+  // the league profile with those weights zeroed (profile-driven, nothing hardcoded).
+  const linear = { ...P, scoring: { ...P.scoring, dd: 0, td: 0, tech: 0 } };
+  const yTop = snap.players.filter(y => y.fanPts != null).sort((a, b) => b.fanPts - a.fanPts).slice(0, 200);
+  await test('ground truth: league scoring of Yahoo stat totals == Yahoo fanPts (top 200, ±0.1)', () => {
+    assert.strictEqual(yTop.length, 200);
+    const bad = yTop.map(y => [y.name, Sc.gameScore(y, linear), y.fanPts]).filter(([, s, f]) => Math.abs(s - f) > 0.1);
+    assert.deepStrictEqual(bad, []);
+  });
+  await test('Yahoo totals are 2026-27 projections: per-game rates equal Sleeper projections; our projected mean tracks fanPts/gp', () => {
+    // Yahoo's "last-season" columns are its pre-season projection (Haliburton/Lillard
+    // missed 2025-26 yet show 60+ GP), so the per-game log sum cannot reproduce them;
+    // the per-game projection inputs can be checked instead.
+    const curve = Sc.ddCurve(data.logs);
+    const logs = data.logs.find(l => String(l.season) === '2025');
+    const asOf = epochDay('2026-10-14');
+    const ks = ['pts', 'reb', 'ast', 'stl', 'blk', 'to'];
+    const byPid = new Map(board.players.filter(p => p.yahooPid).map(p => [p.yahooPid, p]));
+    let n = 0, same = 0, se = 0, sa = 0;
+    const worst = [];
+    for (const y of snap.players.filter(q => q.preRank != null && q.gp > 0).sort((a, b) => a.preRank - b.preRank).slice(0, 200)) {
+      const p = byPid.get(String(y.pid));
+      const sp = p && data.proj.seasonProj[p.id];
+      if (!sp) continue;
+      n++;
+      const means = Object.fromEntries(ks.map((k, i) => [k, sp[3 + i]]));
+      if (ks.every(k => Math.abs(means[k] - y[k] / y.gp) <= 0.011)) same++;
+      const ex = Sc.playerExtras(((logs && logs.players[p.id]) || { g: [] }).g, asOf);
+      const d = Sc.projectedMean(means, sp[1], ex, curve, linear) - y.fanPts / y.gp;
+      assert.ok(Number.isFinite(d), p.name);
+      se += d; sa += Math.abs(d);
+      worst.push([p.name, d]);
+    }
+    worst.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+    console.log(`        ${n} matched: ${same} identical per-game projections; our linear mean − Yahoo fanPts/gp: bias ${(se / n).toFixed(2)}, MAE ${(sa / n).toFixed(2)}; largest ${worst.slice(0, 3).map(([nm, d]) => `${nm} ${d.toFixed(1)}`).join(', ')}`);
+    assert.ok(n >= 190 && same / n >= 0.6, `${same}/${n}`);
+    assert.ok(Math.abs(se / n) < 0.5 && sa / n < 2, `bias ${se / n} MAE ${sa / n}`);
   });
 
   console.log('robustness');
@@ -299,8 +372,10 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     await test('GET /api/nba/league-profile (default, explicit, unknown, invalid)', async () => {
       const a = await get('/api/nba/league-profile');
       assert.strictEqual(a.status, 200);
-      assert.deepStrictEqual(JSON.parse(a.body), P);
-      assert.deepStrictEqual(JSON.parse((await get('/api/nba/league-profile?league_id=242808')).body), P);
+      const { unverified, ...body } = JSON.parse(a.body);
+      assert.deepStrictEqual(body, P);
+      assert.ok(unverified.some(u => /DD\/TD bonus unverified/.test(u)));
+      assert.deepStrictEqual(JSON.parse((await get('/api/nba/league-profile?league_id=242808')).body), { ...P, unverified });
       assert.strictEqual((await get('/api/nba/league-profile?league_id=12345')).status, 404);
       assert.strictEqual((await get('/api/nba/league-profile?league_id=abc')).status, 400);
     });
@@ -313,6 +388,11 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
       assert.strictEqual(j.profile.leagueId, '242808');
       assert.deepStrictEqual(j.profile.scoring, P.scoring);
       assert.deepStrictEqual(j.profile.longWeeks, [7, 17]);
+      assert.ok(j.profile.unverified.some(u => /DD\/TD bonus unverified/.test(u)));
+      assert.ok(j.profile.yahoo.matched > 550 && j.profile.yahoo.matchRate > 0.75, JSON.stringify(j.profile.yahoo));
+      const jok = j.players.find(p => p.id === '1658');
+      assert.strictEqual(jok.yahooPid, '5352');
+      assert.strictEqual(jok.eligConfidence, 'yahoo');
       assert.ok(j.players[0].yahooElig && 'vorp' in j.players[0]);
       const b = await get('/api/nba/players?profile=242808', { 'if-none-match': a.headers.etag });
       assert.strictEqual(b.status, 304);
