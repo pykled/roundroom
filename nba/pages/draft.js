@@ -87,7 +87,9 @@
     var t = (S.teams || []).filter(function (x) { return x.team_key === key; })[0];
     return t && t.name ? t.name : teamName(slot);
   }
-  function toast(msg, opts) { U.toast(msg, opts); }
+  // One toast at a time: fast drafting must never stack notices over the board.
+  var lastToast = null;
+  function toast(msg, opts) { if (lastToast) lastToast.dismiss(); lastToast = U.toast(msg, Object.assign({ timeout: 2200 }, opts || {})); }
   function researchId(p) { return p.sleeperId || p.id; }
 
   /* ------------------------------------------------------------ state */
@@ -240,7 +242,7 @@
     var st = V.st, secs = timerSeconds();
     $('nd-eyebrow').textContent = leagueName() + ' · Yahoo High Score';
     var mode = liveYahoo() ? '' : S.connected && S.leagueKey && S.auction ? '' : 'Manual · ';
-    $('nd-sub').innerHTML = esc(mode) + '<b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
+    $('nd-sub').innerHTML = '<span class="nd-status__lg">' + esc(leagueName()) + ' · </span>' + esc(mode) + '<b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
       '<span class="nd-status__more"> · ' + esc(L.starterCount(st)) + ' starters + ' + esc(st.bench) + ' BN' + (st.il ? ' + ' + esc(st.il) + ' IL' : '') + '</span>';
   }
 
@@ -267,7 +269,7 @@
     else if (ci.onMe) { who.textContent = "You're on the clock"; sub.textContent = !ci.myAfter ? 'Last pick of your draft' : ci.gapNow ? 'Then ' + ci.gapNow + ' picks until #' + ci.myAfter : 'Back-to-back: you also pick #' + ci.myAfter; }
     else {
       who.textContent = clockTeamName(ci) + ' on the clock';
-      sub.textContent = ci.myNext ? 'You pick in ' + ci.awayN + ' · #' + ci.myNext + (ci.myNextRound ? ' (R' + ci.myNextRound + ')' : '') + (ci.myAfter ? ', then #' + ci.myAfter : '') : 'Your picks are done';
+      sub.textContent = ci.myNext ? 'You pick in ' + ci.awayN + ' · #' + ci.myNext + (ci.myAfter ? ', then #' + ci.myAfter : '') : 'Your picks are done';
     }
     renderTimer(ci);
     var undoBtn = $('nd-undo');
@@ -348,10 +350,11 @@
       var m = /^(\w+) is drying up: (\d+) starter-grade/.exec(w.text), c = /no (\w+) yet|Needs a \w+ (\w+)/.exec(w.text);
       if (m) { seen[m[1]] = 1; chips.push({ slot: m[1], level: w.level, label: m[1] + ' · ' + m[2] + ' left', title: w.text }); }
       else if (c) { var s = c[1] || c[2]; seen[s] = 1; chips.push({ slot: s, level: w.level, label: (c[1] ? 'No ' + s + ' yet' : 'Need ' + s), title: w.text }); }
-      else if (w !== head) chips.push({ slot: null, level: w.level, label: w.text, title: w.text });
+      else if (w !== head && w.level !== 'info') chips.push({ slot: null, level: w.level, label: w.text, title: w.text });
     });
+    chips = chips.filter(function (c) { return c.level !== 'info'; });
     S.pulse.forEach(function (x) {
-      if (x.run && !seen[x.slot]) chips.push({ slot: x.slot, level: 'info', label: slotLabel(x.slot) + ' run ▲', title: slotLabel(x.slot) + ' run: ' + x.recent + ' of the last ' + V.st.teams + ' picks · ' + x.left + ' left in the top 40' });
+      if (x.run && !seen[x.slot]) chips.push({ slot: x.slot, level: 'warn', label: slotLabel(x.slot) + ' run ▲', title: slotLabel(x.slot) + ' run: ' + x.recent + ' of the last ' + V.st.teams + ' picks · ' + x.left + ' left in the top 40' });
     });
     if (!chips.length && !head) { el.innerHTML = ''; return; }
     var lvl = head || chips.some(function (c) { return c.level === 'danger'; }) ? 'danger' : chips.some(function (c) { return c.level === 'warn'; }) ? 'warn' : 'info';
@@ -597,8 +600,8 @@
       var wait = Math.max(0, Math.round((S.nextPollAt - Date.now()) / 1000));
       set('error', 'Yahoo sync paused');
       banner.className = 'nd-banner';
-      banner.innerHTML = '<div class="nu-callout nu-callout--warn nd-degraded" role="alert">' + U.icon.alert + '<div><b>Can’t reach Yahoo' + (S.lastErr ? ' (' + esc(S.lastErr) + ')' : '') + '.</b> Manual tracking is on: tap Draft as picks happen and they’ll be flagged pending until Yahoo confirms them. ' +
-        (S.lastOk ? 'Last synced ' + esc(ago) + '. ' : '') + 'Retrying in <span class="nu-num">' + wait + 's</span>.</div><button type="button" class="nu-btn nu-btn--sm" id="nd-retry">Retry now</button></div>';
+      banner.innerHTML = '<div class="nu-callout nu-callout--warn nd-degraded" role="alert">' + U.icon.alert + '<div><b>Can’t reach Yahoo' + (S.lastErr ? ' (' + esc(S.lastErr) + ')' : '') + '.</b> Keep tapping Draft as picks happen; they’re marked pending until Yahoo confirms. ' +
+        (S.lastOk ? 'Last sync ' + esc(ago) + ' · ' : '') + 'retry in <span class="nu-num">' + wait + 's</span>.</div><button type="button" class="nu-btn nu-btn--sm" id="nd-retry">Retry now</button></div>';
       banner.hidden = false;
       $('nd-retry').onclick = function () { poll(true); };
     } else {
