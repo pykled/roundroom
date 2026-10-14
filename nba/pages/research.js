@@ -196,7 +196,7 @@
       box.innerHTML = '<div class="nu-card">' + U.emptyState({
         title: state.q ? 'No players match “' + state.q + '”' : 'No players match these filters',
         body: filtered ? 'Try a different spelling, or clear the filters.' : 'Player data is not available right now.',
-        action: filtered ? '<button type="button" class="nu-btn" data-clear>Clear search and filters</button>' : '',
+        action: filtered ? '<button type="button" class="nu-btn" data-clear>Clear Search and Filters</button>' : '',
       }) + '</div>';
       return;
     }
@@ -235,7 +235,7 @@
       clearTimeout(t);
       if (seq !== tableSeq) return;
       box.removeAttribute('aria-busy');
-      box.innerHTML = U.callout('error', '<b>Could not load players.</b> ' + esc(e.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-retry>Try again</button>');
+      box.innerHTML = U.callout('error', '<b>Could not load players.</b> ' + esc(e.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-retry>Try Again</button>');
       $('rs-count').textContent = '';
     });
   }
@@ -353,7 +353,7 @@
   }
   function nextWeekHtml(d) {
     var nw = d.nextWeek;
-    if (!nw) return '<div class="nu-card rs-next">' + '<div class="nu-section__head"><h3 class="nu-section__title">Next matchup week</h3></div>' + unavailTag(L.unavailable(d, 'nextWeek') || 'No schedule model for this player') + '</div>';
+    if (!nw) return '<div class="nu-card rs-next">' + '<div class="nu-section__head"><h3 class="nu-section__title">Next Matchup Week</h3></div>' + unavailTag(L.unavailable(d, 'nextWeek') || 'No schedule model for this player') + '</div>';
     var chips = L.probChips(nw.pBestAtLeast).map(function (c) {
       return '<li class="rs-prob" data-tone="' + c.tone + '" aria-label="' + esc(c.label) + '"><span class="rs-prob__t">' + c.t + '+</span><span class="rs-prob__p">' + esc(c.text) + '</span></li>';
     }).join('');
@@ -379,12 +379,12 @@
         '<div class="rs-wk__n"><b>' + (c.count == null ? '—' : c.count) + '</b> game' + (c.count === 1 ? '' : 's') + (c.b2b ? '<span class="rs-wk__b2b">' + c.b2b + '× B2B</span>' : '') + '</div>' +
         games + (c.hsValue != null ? '<div class="rs-wk__hs"><span>Best gm</span><b>' + n1(c.hsValue) + '</b></div>' : '') + '</li>';
     }).join('');
-    return section('Next 4 matchup weeks', '<ol class="rs-sched">' + cards + '</ol>', { right: '<span class="nu-hint">B2B = back-to-back nights</span>' });
+    return section('Next 4 Matchup Weeks', '<ol class="rs-sched">' + cards + '</ol>', { right: '<span class="nu-hint">B2B = back-to-back nights</span>' });
   }
   function scoutHtml(d) {
     var lines = L.scouting(d);
     if (!lines.length) return '';
-    return section('Scouting report', '<div class="nu-card rs-scout"><p>' + lines.map(esc).join(' ') + '</p></div>');
+    return section('Scouting Report', '<div class="nu-card rs-scout"><p>' + lines.map(esc).join(' ') + '</p></div>');
   }
   function marketBlock(d) {
     var v = d.value || {}, m = d.market || {};
@@ -394,13 +394,13 @@
       '<div><dt>Market</dt><dd>' + esc(fmt.rank(m.marketRank)) + '</dd></div>' +
       '<div><dt>Yahoo rank</dt><dd>' + esc(fmt.rank(m.yahooPreRank)) + '</dd></div>' +
       '<div><dt>Rostered</dt><dd>' + (m.yahooPctRos == null ? '—' : esc(Math.round(m.yahooPctRos) + '%')) + '</dd></div></dl>';
-    return section('Market vs model', '<div class="nu-card rs-market">' + kv + '<p class="rs-market__read" data-tone="' + r.tone + '">' + (m.label ? U.valueBadge(m.label, m.strong) : '') + '<span>' + esc(r.text) + '</span></p>' +
+    return section('Market vs. Model', '<div class="nu-card rs-market">' + kv + '<p class="rs-market__read" data-tone="' + r.tone + '">' + (m.label ? U.valueBadge(m.label, m.strong) : '') + '<span>' + esc(r.text) + '</span></p>' +
       (m.contested ? '<p class="nu-hint">Drafters disagree a lot on him, so his draft spot is hard to predict.</p>' : '') + '</div>');
   }
   function similarHtml(d) {
     var s = d.similar || [];
-    if (!s.length) return section('Similar players', '<p class="nu-hint">' + esc(d.source === 'yahoo-only' ? 'Not available for Yahoo-only players (no game logs to compare).' : 'No close matches.') + '</p>');
-    return section('Similar players', '<div class="nu-list rs-similar">' + s.map(function (p) {
+    if (!s.length) return section('Similar Players', '<p class="nu-hint">' + esc(d.source === 'yahoo-only' ? 'Not available for Yahoo-only players (no game logs to compare).' : 'No close matches.') + '</p>');
+    return section('Similar Players', '<div class="nu-list rs-similar">' + s.map(function (p) {
       return '<a class="nu-row nu-row--compact" href="' + esc(playerHref(p.id)) + '" data-open="' + esc(p.id) + '">' +
         '<div class="nu-player">' + avatarOf(p, 'md') + '<div class="nu-player__text"><span class="nu-player__name">' + esc(p.name) + '</span><span class="nu-player__meta rs-sim-why">' + esc(String(p.reason || '').replace(/^shares \w+ · /, '').replace(/HS value/g, 'Best gm').replace(/pts\/game/g, 'avg')) + '</span></div></div>' +
         '<div class="nu-row__end"><div class="nu-row__num"><b>' + n1(p.hsValue) + '</b><small>' + esc(fmt.rank(p.rank)) + '</small></div></div></a>';
@@ -423,11 +423,11 @@
   function highScoreHtml(d) {
     var v = d.value || {}, wb = d.weeklyBest, gl = d.gameLog, out = [nextWeekHtml(d)];
     if (!wb || !wb.weeks || !wb.weeks.length) {
-      out.push(section('Last season, week by week', unavailTag(L.unavailable(d, 'logs') || 'No game logs')));
+      out.push(section('Last Season, Week by Week', unavailTag(L.unavailable(d, 'logs') || 'No game logs')));
       return out.join('');
     }
     var s = wb.summary || {};
-    out.push(section('His best game each week · ' + seasonLabel(wb.season),
+    out.push(section('His Best Game Each Week · ' + seasonLabel(wb.season),
       '<div class="nu-stats rs-mini4">' +
         U.statTile({ label: 'Average', value: s.mean, tone: 'accent' }) + U.statTile({ label: 'Median', value: s.median }) +
         U.statTile({ label: 'Top 10%', value: s.p90 }) + U.statTile({ label: 'Best', value: s.max }) + '</div>' +
@@ -437,7 +437,7 @@
     if (scores.length) {
       var lo = Math.floor(Math.min.apply(null, scores) / 10) * 10, hi = Math.ceil(Math.max.apply(null, scores) / 10) * 10;
       var mean = L.mean(scores);
-      out.push(section('Every game last season',
+      out.push(section('Every Game Last Season',
         '<div class="rs-chart">' + U.histogram(scores, { bins: Math.max(6, Math.min(20, (hi - lo) / 5)), w: 360, h: 96, range: [lo, Math.max(hi, lo + 10)], mark: mean, highlightFrom: v.hsValue != null ? Math.floor(v.hsValue / 5) * 5 : null, label: scores.length + ' games, league points per game, average ' + n1(mean) }) +
         '<p class="rs-legend">' + scores.length + ' games<span class="nu-sep" aria-hidden="true"></span>dashed line = average ' + n1(mean) + '<span class="nu-sep" aria-hidden="true"></span>bright = ' + n1(v.hsValue) + '+ games</p></div>' +
         (d.consistency ? '<dl class="rs-kv4"><div><dt>Boom games</dt><dd>' + L.pct(d.consistency.boomRate) + '</dd></div><div><dt>Bust games</dt><dd>' + L.pct(d.consistency.bustRate) + '</dd></div><div><dt>Double-dbl</dt><dd>' + (d.rates ? d.rates.ddCount : '—') + '</dd></div><div><dt>Triple-dbl</dt><dd>' + (d.rates ? d.rates.tdCount : '—') + '</dd></div></dl>' +
@@ -458,10 +458,10 @@
           STAT_COLS.map(function (c) { var x = g[c[0]]; return '<td class="nu-col-num' + (c[2] ? ' nu-col-opt' : '') + '">' + (x == null ? '—' : esc(c[0] === 'min' ? Math.round(x) : x)) + '</td>'; }).join('') +
           '<td class="nu-col-num rs-score"><b>' + n1(g.score) + '</b>' + tag + '</td></tr>';
       }).join('');
-      out.push(section('Last ' + games.length + ' games · ' + seasonLabel(d.gameLog && d.gameLog.season), '<div class="nu-table-wrap"><table class="nu-table nu-table--compact rs-log"><caption class="nu-sr">Recent games with league score</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
+      out.push(section('Last ' + games.length + ' Games · ' + seasonLabel(d.gameLog && d.gameLog.season), '<div class="nu-table-wrap"><table class="nu-table nu-table--compact rs-log"><caption class="nu-sr">Recent games with league score</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
         (L.unavailable(d, 'gameContext') ? '<p class="nu-hint">Opponents: ' + esc(L.unavailable(d, 'gameContext')) + '</p>' : '')));
     } else {
-      out.push(section('Recent games', unavailTag(L.unavailable(d, 'logs') || 'No game logs')));
+      out.push(section('Recent Games', unavailTag(L.unavailable(d, 'logs') || 'No game logs')));
     }
     // season line vs projection
     var ls = d.lastSeason, pj = d.projection, lines = [];
@@ -473,14 +473,14 @@
         return '<tr><th scope="row" class="rs-line-l">' + esc(l.label) + '<small>' + esc(l.sub) + '</small></th>' + STAT_COLS.map(function (c) { var x = l.s[c[0]]; return '<td class="nu-col-num' + (c[2] ? ' nu-col-opt' : '') + '">' + (x == null ? '—' : n1(x)) + '</td>'; }).join('') +
           '<td class="nu-col-num rs-score"><b>' + n1(l.score) + '</b></td></tr>';
       }).join('');
-      out.push(section('Season line', '<div class="nu-table-wrap"><table class="nu-table nu-table--compact rs-line"><caption class="nu-sr">Season per-game stats and projection, scored with league settings</caption><thead>' + h2 + '</thead><tbody>' + b2 + '</tbody></table></div>' +
+      out.push(section('Season Line', '<div class="nu-table-wrap"><table class="nu-table nu-table--compact rs-line"><caption class="nu-sr">Season per-game stats and projection, scored with league settings</caption><thead>' + h2 + '</thead><tbody>' + b2 + '</tbody></table></div>' +
         '<p class="nu-hint">Score = league points per game with this league’s scoring, including double-double and triple-double bonuses.</p>'));
     } else if (pj) {
       out.push(section('Projection', '<p class="rs-body">' + esc(pj.note || 'Estimate only.') + (pj.yahooFanPts != null ? ' Yahoo projects ' + esc(Math.round(pj.yahooFanPts)) + ' fantasy points for the season.' : '') + '</p>'));
     }
     if (d.splits && (d.splits.home || d.splits.away)) {
       var sp = d.splits;
-      out.push(section('Home and away', '<dl class="rs-kv4"><div><dt>Home avg</dt><dd>' + n1(sp.home && sp.home.mean) + '</dd></div><div><dt>Home games</dt><dd>' + esc(sp.home ? sp.home.gp : '—') + '</dd></div><div><dt>Away avg</dt><dd>' + n1(sp.away && sp.away.mean) + '</dd></div><div><dt>Away games</dt><dd>' + esc(sp.away ? sp.away.gp : '—') + '</dd></div></dl>'));
+      out.push(section('Home and Away', '<dl class="rs-kv4"><div><dt>Home avg</dt><dd>' + n1(sp.home && sp.home.mean) + '</dd></div><div><dt>Home games</dt><dd>' + esc(sp.home ? sp.home.gp : '—') + '</dd></div><div><dt>Away avg</dt><dd>' + n1(sp.away && sp.away.mean) + '</dd></div><div><dt>Away games</dt><dd>' + esc(sp.away ? sp.away.gp : '—') + '</dd></div></dl>'));
     }
     return out.join('');
   }
@@ -489,7 +489,7 @@
     var inj = d.injury || {};
     var injNote = inj.status ? U.callout('warn', '<b>' + esc(inj.status) + '</b>' + (inj.bodyPart ? ' · ' + esc(inj.bodyPart) : '') + (inj.notes ? ' · ' + esc(inj.notes) : '') + (inj.newsUpdated ? ' <span class="nu-hint">(' + esc(L.timeAgo(inj.newsUpdated)) + ')</span>' : '')) : '';
     if (!items.length) {
-      return injNote + '<div class="nu-card">' + U.emptyState({ title: 'No recent news', body: L.unavailable(d, 'news') || 'Nothing from Rotowire about him lately.' }) + '</div>';
+      return injNote + '<div class="nu-card">' + U.emptyState({ title: 'No Recent News', body: L.unavailable(d, 'news') || 'Nothing from Rotowire about him lately.' }) + '</div>';
     }
     return injNote + '<ol class="rs-news">' + items.slice(0, 8).map(function (it) {
       return '<li class="rs-news__item"><div class="rs-news__meta"><span class="nu-label">' + esc(it.source || 'news') + '</span><time datetime="' + esc(it.published || '') + '">' + esc(L.timeAgo(it.published)) + '</time></div>' +
@@ -518,8 +518,8 @@
       freshHtml(d) + '</article>';
   }
   function detailError(e, id) {
-    if (e && e.status === 404) return U.emptyState({ title: 'Player not found', body: 'No player with id ' + id + '. He may have left the league pool.' });
-    return U.callout('error', '<b>Could not load this player.</b> ' + esc(e && e.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-retry-detail="' + esc(id) + '">Try again</button>');
+    if (e && e.status === 404) return U.emptyState({ title: 'Player Not Found', body: 'No player with id ' + id + '. He may have left the league pool.' });
+    return U.callout('error', '<b>Could not load this player.</b> ' + esc(e && e.message) + ' <button type="button" class="nu-btn nu-btn--sm" data-retry-detail="' + esc(id) + '">Try Again</button>');
   }
   function mountDetail(box, id, ctx, onDone) {
     var seq = ++detailSeq;

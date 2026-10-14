@@ -75,6 +75,7 @@
 .nba-ui .rs-trend[hidden] { display: none; }
 .nba-ui .rs-trend__head { display: flex; align-items: center; gap: var(--nu-3); flex-wrap: wrap; }
 .nba-ui .rs-trend__seg > button { min-height: 30px; padding: 0 12px; font-size: var(--nu-fs-xs); }
+@media (pointer: coarse) { .nba-ui .rs-trend__seg > button { min-height: 36px; } }
 .nba-ui .rs-trend__src { margin-left: auto; }
 .nba-ui .rs-trend__list {
   display: flex; gap: var(--nu-2); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
@@ -122,6 +123,9 @@
 @container rslist (max-width: 660px) { .nba-ui .rs-table .rs-c-floor { display: none; } }
 .nba-ui .rs-team { display: inline-flex; align-items: center; gap: 4px; }
 .nba-ui .rs-src { min-height: 18px; padding: 0 6px; font-size: 0.66rem; color: var(--nu-text-2); }
+/* list rows: a source tag that doesn't fit wraps to a hidden second line instead of being cut mid-word */
+.nba-ui .rs-table .nu-player__meta, .nba-ui .rs-card .nu-player__meta { flex-wrap: wrap; row-gap: 6px; max-height: 20px; }
+.nba-ui .rs-table .nu-player__meta .rs-src, .nba-ui .rs-card .nu-player__meta .rs-src { flex: none; }
 .nba-ui .rs-src[data-src="rookie"] { color: var(--nu-info); background: var(--nu-info-soft); }
 .nba-ui .rs-form { font-family: var(--nu-mono); font-variant-numeric: tabular-nums; font-size: var(--nu-fs-xs); color: var(--nu-text-3); white-space: nowrap; }
 .nba-ui .rs-form[data-dir="up"] { color: var(--nu-good); }

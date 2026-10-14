@@ -195,7 +195,7 @@
   /* --------------------------------------------------------- pick sheet (phones) */
   function renderPickSheet() {
     var side = S.pickSide; if (!side) return;
-    $('nt-pick-t').textContent = side === 'give' ? 'Add a player you give' : 'Add a player you get';
+    $('nt-pick-t').textContent = side === 'give' ? 'Add a Player You Give' : 'Add a Player You Get';
     $('nt-pick-q').placeholder = side === 'give' ? 'Search your roster' : (isYahoo() ? 'Search their roster' : 'Search any player');
     $('nt-pick-list').innerHTML = groupsHtml(candidates(side, $('nt-pick-q').value), side);
     var n = S.st[side].length;
@@ -226,7 +226,7 @@
     if (yahoo) (myTeam() || { players: [] }).players.filter(function (y) { return !y.sleeperId; }).forEach(function (y) {
       html += '<div class="nu-row nu-row--compact" style="opacity:.55">' + U.playerCell({ name: y.name }, { size: 'sm', meta: '<span>Not matched to the model</span>' }) + '</div>';
     });
-    $('nt-roster-list').innerHTML = html || U.emptyState({ title: 'No players yet', body: 'Search above, or import the team you marked as yours on the draft board.' });
+    $('nt-roster-list').innerHTML = html || U.emptyState({ title: 'No Players Yet', body: 'Search above, or import the team you marked as yours on the draft board.' });
     var q = $('nt-roster-q').value;
     var res = q ? L.search(S.players, q, 30).filter(function (p) { return S.st.myRoster.indexOf(String(p.id)) < 0; }).slice(0, 6) : [];
     $('nt-roster-opts').innerHTML = res.map(function (p, i) { return optHtml({ p: p, on: false }, 'roster', i); }).join('');
@@ -244,12 +244,12 @@
     var st = S.st, n = st.myRoster.length, yahoo = isYahoo();
     var steps = [
       { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Yahoo.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add players') + '</button>' },
-      { done: st.give.length > 0, html: '<b>Pick who you give.</b> Tap “Add” under You give.' },
+      { done: st.give.length > 0, html: '<b>Pick who you give.</b> Tap “Add” under You Give.' },
       { done: st.get.length > 0, html: yahoo ? '<b>Pick a partner and who you get.</b>' : '<b>Pick who you get.</b> Any player works.' }
     ];
     if (yahoo) steps[0].done = true;
-    var ex = !yahoo && !n && !st.give.length && !st.get.length && S.players.length ? '<button type="button" class="nu-btn nu-btn--block" data-act="example" style="margin-top:var(--nu-5)">Try an example trade</button>' : '';
-    return '<div class="nu-eyebrow">Verdict</div><h2 class="nu-title" style="margin-top:6px">Build a trade</h2>' +
+    var ex = !yahoo && !n && !st.give.length && !st.get.length && S.players.length ? '<button type="button" class="nu-btn nu-btn--block" data-act="example" style="margin-top:var(--nu-5)">Try an Example Trade</button>' : '';
+    return '<div class="nu-eyebrow">Verdict</div><h2 class="nu-title" style="margin-top:6px">Build a Trade</h2>' +
       '<p class="nu-body" style="margin-top:6px">You get Accept, Counter or Decline, with the points per week it adds or costs you.</p>' +
       '<ol class="nt-steps">' + steps.map(function (s) { return '<li class="' + (s.done ? 'is-done' : '') + '"><span>' + s.html + '</span></li>'; }).join('') + '</ol>' + ex;
   }
@@ -303,7 +303,7 @@
       '<div class="nt-vstats">' + tile('You', r.you, L.signed(r.you.ros, 0) + ' season total') + tile(who, r.them, L.signed(r.them.ros, 0) + ' season total') + '</div>' +
       rangesHtml(r) + fairHtml(r) +
       '<div class="nt-likely" data-l="' + esc(r.them.likely) + '"><span class="nu-dot" aria-hidden="true"></span><span>' + esc(L.likelyText(r.them.likely, r.them.estimated)) + '.' + (r.them.estimated ? ' Connect Yahoo for their real roster.' : '') + '</span></div>' +
-      '<div class="nt-vactions"><button type="button" class="nu-btn" data-act="copy">Copy trade summary</button><button type="button" class="nu-btn nu-btn--ghost" data-act="clear">Clear trade</button></div>';
+      '<div class="nt-vactions"><button type="button" class="nu-btn" data-act="copy">Copy Trade Summary</button><button type="button" class="nu-btn nu-btn--ghost" data-act="clear">Clear Trade</button></div>';
     renderWhy(r); renderLineup(r); renderWeeks(r); renderRules(r.meta && r.meta.rules); renderBar();
   }
 
