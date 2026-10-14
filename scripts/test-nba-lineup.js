@@ -612,5 +612,49 @@ async function call(server, method, path, body, headers = {}) {
     assert(g.left > 0 && g.left + g.width < 100 && Math.abs(g.mark - 50) < 1e-9);
   });
 
+  await test('page logic (P3): suggestions, apply moves, week options, freshness', () => {
+    const UL = require('../nba/pages/lineup-logic.js');
+    assert.strictEqual(UL.fmtRange('2026-11-30', '2026-12-13'), 'Nov 30 – Dec 13');
+    assert.strictEqual(UL.fmtRange('2026-10-20', '2026-10-25'), 'Oct 20 – 25');
+    const wk = UL.weekOptions(LP.getProfile('242808').weeks, 7);
+    assert.strictEqual(wk.length, 22);
+    assert(wk[6].long && wk[6].days === 14 && wk[6].current && wk[6].range === 'Nov 30 – Dec 13');
+    assert(wk[16].long && !wk[0].long && wk[21].playoffs);
+    const result = {
+      spots: { slots: ['PG', 'G', 'UTIL'] },
+      slots: [{ slot: 'PG', player: { id: '1' } }, { slot: 'G', player: { id: '2' } }, { slot: 'UTIL', player: { id: '4' } }],
+      diff: [
+        { out: { id: '3', name: 'Cee' }, in: { id: '4', name: 'Dee' }, slot: 'UTIL', gain: 4.06, forfeits: 30, warning: 'Benching Cee forfeits his banked 30.0' },
+        { out: null, in: { id: '9', name: 'Ex' }, slot: 'G', gain: 9.2 },
+        { out: { id: '5', name: 'Eff' }, in: null, slot: 'G', gain: -0.5 },
+        { out: { id: '6', name: 'Gee' }, in: { id: '7', name: 'Ach' }, slot: 'PG', gain: 1 },
+      ],
+      moved: [{ id: '1', from: 'G', to: 'PG' }, { id: '2', from: 'PG', to: 'G' }],
+    };
+    const s = UL.suggestions(result);
+    assert.deepStrictEqual(s.map(x => x.text), ['Start Ex at G', 'Start Dee over Cee', 'Start Ach over Gee'], 'top 3 by gain, plain English');
+    assert.strictEqual(s[1].gainText, '+4.1 expected');
+    assert(s[1].warning && s[1].forfeits === 30);
+    assert.strictEqual(UL.suggestions({ diff: [] }).length, 0);
+    const roster = [{ id: '1', slot: 'G' }, { id: '2', slot: 'PG' }, { id: '3', slot: 'UTIL' }, { id: '4', slot: 'BN' }, { id: '8', slot: 'IL' }];
+    const one = UL.applyMoves(roster, { ...result, diff: [result.diff[0]] }, 0);
+    assert.strictEqual(one.full, false);
+    assert.deepStrictEqual(one.roster, [{ id: '1', slot: 'PG' }, { id: '2', slot: 'G' }, { id: '3', slot: 'BN' }, { id: '4', slot: 'UTIL' }, { id: '8', slot: 'IL' }]);
+    assert(UL.slotsFit(one.roster, ['PG', 'G', 'UTIL']));
+    const all = UL.applyMoves(roster, result, null);
+    assert.strictEqual(all.full, true);
+    assert.deepStrictEqual(all.roster.map(r => r.slot), ['PG', 'G', 'BN', 'UTIL', 'IL'], 'IL kept, non-starters benched');
+    // a single move that would over-fill a slot falls back to the whole lineup
+    const clash = UL.applyMoves([{ id: '1', slot: 'UTIL' }, { id: '2', slot: 'G' }, { id: '3', slot: 'PG' }, { id: '4', slot: 'BN' }],
+      { ...result, moved: [], diff: [{ out: { id: '2' }, in: { id: '4' }, slot: 'UTIL', gain: 1 }] }, 0);
+    assert.strictEqual(clash.full, true);
+    assert(!UL.slotsFit([{ id: '1', slot: 'PG' }, { id: '2', slot: 'PG' }], ['PG', 'G']));
+    const now = Date.parse('2026-10-14T12:00:00Z');
+    assert.strictEqual(UL.freshness('2026-10-14T09:00:00Z', now), 'Updated 3h ago');
+    assert.strictEqual(UL.freshness('2026-10-14T11:59:30Z', now), 'Updated just now');
+    assert.strictEqual(UL.freshness('nope', now), '');
+    assert.strictEqual(UL.yahooTeamUrl('466.l.242808.t.3'), 'https://basketball.fantasysports.yahoo.com/nba/242808/3');
+  });
+
   console.log(`\n${passed} passed${process.exitCode ? ', FAILURES above' : ''}`);
 })();

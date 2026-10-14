@@ -185,7 +185,112 @@
     return { left: at(total.p10), width: at(total.p90) - at(total.p10), mark: at(total.expected) };
   }
 
+  // "Nov 30" from an ISO date (UTC noon, so no timezone drift).
+  function fmtDate(iso) {
+    var t = Date.parse(String(iso || '') + 'T12:00:00Z');
+    return isFinite(t) ? new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
+  }
+  // "Nov 30 – Dec 13" / "Oct 20 – 25" (same month collapses).
+  function fmtRange(start, end) {
+    var a = fmtDate(start), b = fmtDate(end);
+    if (!a || !b) return a || b || '';
+    if (a.split(' ')[0] === b.split(' ')[0]) b = b.split(' ')[1];
+    return a + ' – ' + b;
+  }
+
+  // Week picker rows from profile.weeks: [{ week, range, days, long, playoffs, current }].
+  function weekOptions(weeks, currentWeek, maxWeek) {
+    var out = [], n = (weeks && weeks.length) || maxWeek || 0;
+    for (var w = 1; w <= n; w++) {
+      var wk = weeks && weeks[w - 1];
+      out.push({
+        week: w, range: wk ? fmtRange(wk.start, wk.end) : '', days: wk ? wk.days : 7,
+        long: !!(wk && wk.days > 7), playoffs: !!(wk && wk.playoffs), current: w === currentWeek
+      });
+    }
+    return out;
+  }
+
+  // Optimal-vs-current diff → at most `max` plain-English moves, biggest gain first.
+  // { i, text, inName, outName, slot, gain, gainText, warning, forfeits }
+  function suggestions(result, max) {
+    var diff = (result && result.diff) || [];
+    var out = diff.map(function (d, i) {
+      var text = d.out && d.in ? 'Start ' + d.in.name + ' over ' + d.out.name
+        : d.in ? 'Start ' + d.in.name + ' at ' + d.slot
+        : d.out ? 'Bench ' + d.out.name : '';
+      return {
+        i: i, text: text, inId: d.in ? String(d.in.id) : null, outId: d.out ? String(d.out.id) : null,
+        inName: d.in ? d.in.name : null, outName: d.out ? d.out.name : null, slot: d.slot,
+        gain: d.gain, gainText: sign(d.gain) + ' expected', warning: d.warning || null, forfeits: d.forfeits || 0
+      };
+    }).filter(function (s) { return s.text; });
+    out.sort(function (a, b) { return (b.gain || 0) - (a.gain || 0); });
+    return out.slice(0, max || 3);
+  }
+
+  function slotCounts(slotList) {
+    var c = {};
+    (slotList || []).forEach(function (s) { c[s] = (c[s] || 0) + 1; });
+    return c;
+  }
+  // Is a manual roster's current lineup legal for the slot list (no slot over-filled)?
+  function slotsFit(roster, slotList) {
+    var cap = slotCounts(slotList), used = {};
+    for (var i = 0; i < roster.length; i++) {
+      var s = roster[i].slot;
+      if (!s || s === 'BN' || s === 'IL') continue;
+      used[s] = (used[s] || 0) + 1;
+      if (!cap[s] || used[s] > cap[s]) return false;
+    }
+    return true;
+  }
+  // Apply the recommendation to a manual roster (pure; returns a new roster).
+  //   index == null → the whole optimal lineup (starters to their slots, the rest BN, IL kept)
+  //   index = i     → diff[i] plus the free active-slot shuffles (`moved`); falls back to
+  //                   the whole lineup if that alone would over-fill a slot. → { roster, full }
+  function applyMoves(roster, result, index) {
+    var target = {};
+    ((result && result.slots) || []).forEach(function (s) { if (s.player && s.player.id != null) target[String(s.player.id)] = s.slot; });
+    var slotList = (result && result.spots && result.spots.slots) || ((result && result.slots) || []).map(function (s) { return s.slot; });
+    function all() {
+      return roster.map(function (r) {
+        if (r.slot === 'IL' && !target[r.id]) return { id: r.id, slot: 'IL' };
+        return { id: r.id, slot: target[r.id] || 'BN' };
+      });
+    }
+    var d = index == null ? null : ((result && result.diff) || [])[index];
+    if (!d) return { roster: all(), full: true };
+    var next = roster.map(function (r) { return { id: r.id, slot: r.slot }; });
+    function set(id, slot) { next.forEach(function (r) { if (r.id === String(id)) r.slot = slot; }); }
+    if (d.out) set(d.out.id, 'BN');
+    if (d.in) set(d.in.id, target[String(d.in.id)] || d.slot);
+    ((result && result.moved) || []).forEach(function (m) { set(m.id, m.to); });
+    if (!slotsFit(next, slotList)) return { roster: all(), full: true };
+    return { roster: next, full: false };
+  }
+
+  // "Updated 3h ago" from an ISO timestamp.
+  function freshness(asOf, now) {
+    var t = Date.parse(asOf || '');
+    if (!isFinite(t)) return '';
+    var m = Math.max(0, Math.round(((now == null ? Date.now() : now) - t) / 60000));
+    if (m < 2) return 'Updated just now';
+    if (m < 60) return 'Updated ' + m + 'm ago';
+    var h = Math.round(m / 60);
+    if (h < 48) return 'Updated ' + h + 'h ago';
+    return 'Updated ' + Math.round(h / 24) + 'd ago';
+  }
+
+  // Yahoo team page from a team key ("466.l.242808.t.3").
+  function yahooTeamUrl(teamKey) {
+    var m = /\.l\.(\d+)\.t\.(\d+)$/.exec(String(teamKey || ''));
+    return m ? 'https://basketball.fantasysports.yahoo.com/nba/' + m[1] + '/' + m[2] : 'https://basketball.fantasysports.yahoo.com/nba';
+  }
+
   return {
+    fmtDate: fmtDate, fmtRange: fmtRange, weekOptions: weekOptions, suggestions: suggestions,
+    slotsFit: slotsFit, applyMoves: applyMoves, freshness: freshness, yahooTeamUrl: yahooTeamUrl,
     STORAGE_PREFIX: STORAGE_PREFIX, MAX_ROSTER: MAX_ROSTER, SLOT_CHOICES: SLOT_CHOICES,
     slotChoices: slotChoices, slotGroup: slotGroup, scoringText: scoringText, slotListText: slotListText, countWord: countWord,
     normName: normName, searchPlayers: searchPlayers, parseRosterText: parseRosterText,
