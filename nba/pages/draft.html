@@ -6,7 +6,7 @@
 <title>NBA High Score Draft Board | Pocket</title>
 <meta name="description" content="Live draft board for Yahoo High Score fantasy basketball. Players ranked by expected best game of the week, with slot-aware best-available picks, a 90-second pick clock and live Yahoo draft sync.">
 <link rel="canonical" href="https://pocketff.com/nba">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
 <meta property="og:title" content="NBA High Score Draft Board | Pocket">
 <meta property="og:description" content="Draft board for Yahoo High Score fantasy basketball: best-game value, slot balance and live Yahoo sync.">
@@ -23,26 +23,27 @@
 /* Shared tokens, reset, nav, buttons, page head, tier dividers, footer come from
    /shared/styles.css. This block holds only the NBA draft board's own widgets. */
 :root {
-  --g: #fb923c;           /* guards: basketball orange */
+  --g: #facc15;           /* guards: gold, kept apart from the orange accent */
   --f: #38bdf8;           /* forwards / bigs */
   --util: rgba(255,255,255,0.55);
-  --g-bg: rgba(251,146,60,.14);
+  --g-bg: rgba(250,204,21,.13);
   --f-bg: rgba(56,189,248,.14);
   --c: #c4b5fd;           /* centers */
   --c-bg: rgba(167,139,250,.16);
-  --clock: #fb923c;
+  --clock: var(--nba-400, #ff8a3d);
   --minibar-h: 104px;
   --sheet-ease: cubic-bezier(.32,.72,0,1);
 }
 #app { max-width: 1180px; width: 100%; padding-top: var(--space-5); }
 
-/* NFL | NBA switch in the nav (static; stream A's nav helper may replace it). */
-.sport-switch { display: inline-flex; border: 1px solid var(--border-bright); border-radius: var(--radius-pill); padding: 2px; margin-right: var(--space-2); }
-.sport-switch a { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: var(--radius-pill); color: var(--text-secondary); text-decoration: none; }
-.sport-switch a[aria-current="page"] { background: var(--text-primary); color: var(--bg-primary); }
-
 /* ── Head ─────────────────────────────────────────────────────────────── */
-.nd-eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--clock); margin-bottom: 0.35rem; }
+.nd-eyebrow { display: flex; align-items: center; gap: 0.45rem; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nba-300, #ffb27a); margin-bottom: 0.35rem; min-width: 0; }
+.nd-eyebrow .nba-ball { flex-shrink: 0; font-size: 0.9rem; }
+.nd-eyebrow span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Hero: faint half-court behind the title only (non-interactive). */
+.nd-hero { padding: 1rem 1.1rem; margin-bottom: var(--space-4); border: 1px solid var(--nba-border, var(--border)); border-radius: var(--radius-lg); background: radial-gradient(90% 140% at 100% 0%, rgba(255,138,61,.10), transparent 60%), var(--nba-surface, var(--bg-card)); }
+.nd-hero .page-title { letter-spacing: -0.03em; }
+.nd-hero .page-sub { color: var(--text-secondary); }
 .nd-head-ctl { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .nd-head-ctl select { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: var(--fs-sm); padding: 0 0.6rem; min-height: 36px; max-width: 220px; }
 .nd-icon-btn { min-height: 36px; display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -64,11 +65,11 @@
 .nd-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: 0.75rem 0.9rem; margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid rgba(245,158,11,.35); border-left: 3px solid var(--amber); background: rgba(245,158,11,.06); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-body); }
 .nd-banner b { color: var(--text-primary); }
 .nd-banner .btn-secondary { margin-left: auto; flex-shrink: 0; min-height: 36px; }
-.nd-banner.info { border-color: rgba(124,58,237,.4); border-left-color: #8b5cf6; background: rgba(124,58,237,.07); }
+.nd-banner.info { border-color: var(--nba-border, rgba(255,138,61,.22)); border-left-color: var(--nba-400, #ff8a3d); background: rgba(255,138,61,.06); }
 .nd-banner.error { border-color: rgba(239,68,68,.35); border-left-color: var(--danger); background: rgba(239,68,68,.06); }
 
 /* ── Clock bar ────────────────────────────────────────────────────────── */
-.nd-clock { position: sticky; top: var(--nav-h, 56px); z-index: 20; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4); padding: 0.65rem 0.85rem; margin-bottom: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: rgba(10,10,10,.82); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); }
+.nd-clock { position: sticky; top: var(--nav-h, 56px); z-index: 20; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4); padding: 0.65rem 0.85rem; margin-bottom: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: rgba(18,12,8,.86); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); }
 .nd-clock-num { display: flex; align-items: baseline; gap: 0.5rem; font-family: var(--font-mono); }
 .nd-clock-num .big { font-size: 1.55rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1; color: var(--text-primary); }
 .nd-clock-num .lbl { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.2rem; }
@@ -76,7 +77,7 @@
 .nd-otc { min-width: 0; }
 .nd-otc .who { font-size: 0.92rem; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nd-otc .sub { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nd-clock.mine { border-color: rgba(251,146,60,.55); box-shadow: 0 0 0 1px rgba(251,146,60,.25), 0 10px 40px rgba(251,146,60,.12); }
+.nd-clock.mine { border-color: rgba(255,138,61,.55); box-shadow: 0 0 0 1px rgba(255,138,61,.25), 0 10px 40px rgba(255,138,61,.12); }
 .nd-clock.mine .who { color: var(--clock); }
 .nd-clock-ctl { display: flex; gap: var(--space-2); }
 .nd-clock-ctl .btn-secondary { min-height: 40px; padding: 0 0.85rem; }
@@ -84,7 +85,7 @@
 .nd-ticker { grid-column: 1 / -1; display: flex; gap: 4px; overflow: hidden; mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
 .nd-tick { flex: 0 0 auto; min-width: 30px; height: 22px; padding: 0 5px; display: grid; place-items: center; border-radius: 5px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); background: rgba(255,255,255,.04); border: 1px solid transparent; }
 .nd-tick.now { color: var(--text-primary); border-color: var(--border-bright); background: rgba(255,255,255,.09); }
-.nd-tick.me { color: var(--clock); background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.4); font-weight: 500; }
+.nd-tick.me { color: var(--clock); background: rgba(255,138,61,.12); border-color: rgba(255,138,61,.4); font-weight: 500; }
 .nd-tick.turn { margin-left: 6px; }
 
 /* pick timer: quiet for other teams, loud when it's my pick */
@@ -93,7 +94,7 @@
 .nd-timer .t { font-size: 0.95rem; font-weight: 500; }
 .nd-timer.warn .t { color: var(--amber); }
 .nd-timer.urgent .t, .nd-timer.expired .t { color: var(--danger); }
-.nd-timer.me { border-color: rgba(251,146,60,.6); background: rgba(251,146,60,.12); color: var(--clock); min-width: 86px; }
+.nd-timer.me { border-color: rgba(255,138,61,.6); background: rgba(255,138,61,.12); color: var(--clock); min-width: 86px; }
 .nd-timer.me .w { color: var(--clock); }
 .nd-timer.me .t { font-size: 1.3rem; }
 .nd-timer.me.urgent { border-color: var(--danger); background: rgba(239,68,68,.16); animation: nd-urgent 1s steps(2, start) infinite; }
@@ -101,7 +102,7 @@
 @keyframes nd-urgent { 50% { background: rgba(239,68,68,.32); } }
 
 /* first-run: Connect Yahoo vs manual */
-.nd-firstrun { border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: var(--space-4); background: var(--bg-card); }
+.nd-firstrun { border: 1px solid var(--nba-border-bright, var(--border-bright)); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: var(--space-4); background: var(--nba-surface, var(--bg-card)); }
 .nd-firstrun h2 { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 0.7rem; }
 .nd-fr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .nd-fr-opt h3 { display: flex; align-items: center; gap: 0.45rem; font-size: 0.84rem; font-weight: 700; margin-bottom: 0.35rem; }
@@ -115,7 +116,7 @@
 .nd-side { position: sticky; top: calc(var(--nav-h, 56px) + var(--clock-h, 96px) + 16px); display: flex; flex-direction: column; gap: var(--space-4); max-height: calc(100vh - var(--nav-h, 56px) - var(--clock-h, 96px) - 32px); overflow-y: auto; scrollbar-width: thin; }
 
 /* ── Recommendation ───────────────────────────────────────────────────── */
-.nd-reco { position: relative; overflow: hidden; border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: var(--space-4); background: radial-gradient(120% 140% at 0% 0%, rgba(251,146,60,.10), transparent 55%), var(--bg-card); }
+.nd-reco { position: relative; overflow: hidden; border: 1px solid var(--nba-border-bright, var(--border-bright)); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: var(--space-4); background: radial-gradient(120% 140% at 0% 0%, rgba(255,138,61,.10), transparent 55%), var(--nba-surface, var(--bg-card)); }
 .nd-reco .lbl { display: flex; justify-content: space-between; align-items: center; }
 .nd-reco-main { display: flex; align-items: center; gap: var(--space-3); margin-top: 0.5rem; }
 .nd-reco-name { background: none; border: none; color: inherit; font-family: inherit; text-align: left; cursor: pointer; padding: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; min-width: 0; }
@@ -133,7 +134,7 @@
 /* ── View switch (Board | Cheat sheet) ────────────────────────────────── */
 .nd-views { display: inline-flex; padding: 3px; margin-bottom: var(--space-3); border-radius: var(--radius-md); background: rgba(255,255,255,.05); border: 1px solid var(--border); }
 .nd-views button { min-height: 38px; padding: 0 1rem; border: none; border-radius: 7px; background: none; color: var(--text-secondary); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-.nd-views button[aria-pressed="true"] { background: var(--text-primary); color: var(--bg-primary); }
+.sport-nba .nd-views button[aria-pressed="true"] { background: var(--nba-400); color: var(--nba-ink); border-color: transparent; }
 
 /* ── Filters ──────────────────────────────────────────────────────────── */
 .nd-filters-wrap { position: sticky; top: calc(var(--nav-h, 56px) + var(--clock-h, 96px) + 6px); z-index: 10; padding: 0.5rem 0 0.35rem; margin-bottom: 0.25rem; background: var(--bg-primary); }
@@ -148,8 +149,9 @@
 .nd-seg button.scarce small { color: var(--amber); font-weight: 700; }
 .nd-seg button.run small { color: #f87171; font-weight: 700; }
 .nd-seg button.run::after { content: ''; position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: #f87171; }
-.nd-seg button[aria-pressed="true"] { background: var(--text-primary); }
-.nd-seg button[aria-pressed="true"] span, .nd-seg button[aria-pressed="true"] small { color: var(--bg-primary); }
+.nd-seg button[aria-pressed="true"] { background: var(--nba-400, #ff8a3d); }
+.nd-seg button[aria-pressed="true"] span, .nd-seg button[aria-pressed="true"] small { color: var(--nba-ink, #1c0b02); }
+.nd-seg button[aria-pressed="true"].run::after { background: var(--nba-ink, #1c0b02); }
 .nd-elig-note { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; margin: 0 0 0.4rem; }
 .nd-chip-toggle { min-height: 40px; padding: 0 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .nd-chip-toggle[aria-pressed="true"] { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-glow); }
@@ -164,7 +166,7 @@
 .nd-row-main:hover { background: var(--bg-hover); }
 .nd-rk { width: 28px; flex-shrink: 0; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-align: right; display: flex; flex-direction: column; line-height: 1.15; }
 .nd-rk small { font-size: 0.56rem; opacity: .8; }
-.nd-elig-badge { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; font-family: var(--font-mono); font-size: 0.56rem; font-weight: 600; color: #b45309; background: rgba(245,158,11,.16); }
+.nd-elig-badge { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; font-family: var(--font-mono); font-size: 0.56rem; font-weight: 600; color: #fbbf24; background: rgba(245,158,11,.16); }
 .nd-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.18rem; }
 .nd-name { font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nd-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; min-width: 0; }
@@ -195,17 +197,19 @@
 .nd-val b { display: block; font-size: 0.95rem; font-weight: 500; letter-spacing: -0.02em; }
 .nd-val small { display: block; font-size: 0.6rem; color: var(--text-muted); margin-top: 1px; }
 .nd-draft { flex-shrink: 0; align-self: center; min-width: 64px; min-height: 44px; margin: 0 0.15rem 0 0.35rem; border-radius: var(--radius-md); border: 1px solid var(--border-bright); background: none; color: var(--text-primary); font-size: 0.74rem; font-weight: 700; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform .1s, background .12s; }
-.nd-draft:hover { background: var(--accent-glow); }
+.nd-draft:hover { background: var(--accent-glow); border-color: var(--nba-border-bright, var(--border-bright)); }
+.nd-row-main:focus-visible, .nd-draft:focus-visible { outline: 2px solid var(--nba-400, #ff8a3d); outline-offset: -2px; }
 .nd-draft:active { transform: scale(.96); }
 .nd-row.reco .nd-name::after { content: 'PICK'; margin-left: 0.45rem; font-size: 0.55rem; font-weight: 800; letter-spacing: .08em; color: var(--clock); vertical-align: 1px; }
-.nd-on-me .nd-draft { background: var(--text-primary); color: var(--bg-primary); border-color: transparent; }
+.nd-on-me .nd-draft { background: linear-gradient(135deg, var(--nba-400, #ff8a3d), var(--nba-500, #f7711f)); color: var(--nba-ink, #1c0b02); border-color: transparent; }
+.nd-on-me .nd-draft:hover { background: var(--nba-300, #ffb27a); }
 .nd-row.taken { opacity: .38; }
 .nd-row.taken .nd-name { text-decoration: line-through; text-decoration-color: rgba(255,255,255,.35); }
 .nd-row.taken .nd-draft { border-style: dashed; }
 .nd-matching .nd-draft { border-color: rgba(124,58,237,.6); color: #c4b5fd; }
 
 /* ── Side panels ──────────────────────────────────────────────────────── */
-.nd-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.85rem 0.9rem; }
+.nd-panel { background: var(--nba-surface, var(--bg-card)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.85rem 0.9rem; }
 .nd-panel .col-hdr { margin-bottom: 0.55rem; }
 .nd-slot { display: flex; align-items: center; gap: 0.55rem; min-height: 40px; padding: 0.25rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
 .nd-slot:last-child { border-bottom: none; }
@@ -277,7 +281,7 @@
 .nd-p-tiles .stat-val { font-size: 1.15rem; }
 .nd-range { margin-top: 1rem; }
 .nd-range-bar { position: relative; height: 8px; border-radius: 4px; background: rgba(255,255,255,.06); margin: 0.5rem 0 0.3rem; }
-.nd-range-bar .band { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(56,189,248,.35), rgba(251,146,60,.6)); }
+.nd-range-bar .band { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(56,189,248,.35), rgba(255,138,61,.6)); }
 .nd-range-bar .mk { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--text-primary); border-radius: 1px; }
 .nd-range-lbl { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
 .nd-p-note { font-size: 0.74rem; color: var(--text-secondary); line-height: 1.5; margin-top: 0.85rem; }
@@ -304,14 +308,14 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 .nd-cs-rounds li { display: grid; grid-template-columns: 34px 42px minmax(0, 1fr); align-items: start; gap: 0.4rem; padding: 0.5rem 0.65rem; border-bottom: 1px solid var(--border); }
 .nd-cs-rounds li:last-child { border-bottom: none; }
 .nd-cs-rounds li.done { opacity: .6; }
-.nd-cs-rounds li.now { background: rgba(251,146,60,.08); }
+.nd-cs-rounds li.now { background: rgba(255,138,61,.08); }
 .nd-cs-rounds .r { font-family: var(--font-mono); font-size: 0.72rem; color: var(--clock); padding-top: 0.45rem; }
 .nd-cs-rounds .pk { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); padding-top: 0.48rem; }
 .nd-cs-rounds .got { font-size: 0.8rem; font-weight: 600; padding-top: 0.35rem; display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
 .nd-cs-rounds .tg { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .nd-cs-p { min-height: 34px; padding: 0 0.55rem; border-radius: var(--radius-pill); border: 1px solid var(--border); background: rgba(255,255,255,.02); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nd-cs-p i { font-style: normal; font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); font-weight: 400; }
-.nd-cs-p.need { color: var(--text-primary); border-color: rgba(251,146,60,.45); }
+.nd-cs-p.need { color: var(--text-primary); border-color: rgba(255,138,61,.45); }
 .nd-cs-h3 { font-size: 0.66rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin: 0 0 0.5rem; }
 .nd-cs-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.6rem; }
 .nd-cs-slot { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.55rem 0.7rem; background: var(--bg-card); }
@@ -325,7 +329,14 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 .nd-fields-h { font-size: 0.64rem; font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin: 0.9rem 0 0.4rem; }
 .nd-slot-fields { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.45rem; }
 .nd-slot-fields input { padding: 0 0.4rem; text-align: center; }
-.nd-link { background: none; border: none; color: #c4b5fd; font-size: 0.74rem; font-weight: 600; cursor: pointer; padding: 0.5rem 0; min-height: 40px; }
+.nd-link { background: none; border: none; color: var(--nba-300, #ffb27a); font-size: 0.74rem; font-weight: 600; cursor: pointer; padding: 0.5rem 0; min-height: 40px; }
+
+/* About this board (info dialog) */
+.nd-about-list { list-style: none; margin: 0.25rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; counter-reset: ab; }
+.nd-about-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 0.55rem; font-size: 0.82rem; line-height: 1.5; color: var(--text-body); counter-increment: ab; }
+.nd-about-list li::before { content: counter(ab); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--nba-glow, rgba(255,138,61,.14)); color: var(--nba-300, #ffb27a); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; }
+.nd-about-list b { color: var(--text-primary); }
+.nd-dialog .nd-about-foot { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin-top: 0.9rem; }
 
 /* toast */
 .nd-toast { position: fixed; left: 50%; top: calc(var(--nav-h, 56px) + 10px); transform: translate(-50%, -12px); opacity: 0; z-index: var(--z-toast); max-width: min(92vw, 420px); padding: 0.6rem 0.95rem; border-radius: var(--radius-pill); background: rgba(24,24,24,.94); border: 1px solid var(--border-bright); font-size: 0.78rem; box-shadow: var(--shadow-card); transition: opacity .2s, transform .25s var(--sheet-ease); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -343,13 +354,16 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   #app { padding: var(--space-3) var(--space-3) calc(var(--minibar-h) + 2rem + env(safe-area-inset-bottom)); }
   .nd-grid { grid-template-columns: minmax(0, 1fr); }
   .page-head { margin-bottom: var(--space-3); gap: var(--space-2); position: relative; }
-  .page-sub, .nd-eyebrow { display: none; }
+  .page-sub { display: none; }
+  .nd-eyebrow { font-size: 0.6rem; margin-bottom: 0.2rem; }
+  .nd-hero { padding: 0.7rem 0.8rem; margin-bottom: var(--space-3); }
   .page-title { font-size: 1.35rem; }
   .nd-head-ctl { width: 100%; flex-wrap: nowrap; }
   .nd-head-ctl select { flex: 1 1 0; min-width: 0; max-width: none; min-height: 40px; font-size: 16px; }
   .nd-sync, .nd-connect { flex: 0 1 auto; min-width: 0; min-height: 40px; overflow: hidden; }
-  #nd-settings-btn { flex: 0 0 44px; min-height: 44px; padding: 0; justify-content: center; margin-left: auto; }
-  #nd-settings-btn .lbl-txt { display: none; }
+  #nd-settings-btn, #nd-about-btn { flex: 0 0 44px; min-height: 44px; padding: 0; justify-content: center; }
+  #nd-about-btn { margin-left: auto; }
+  #nd-settings-btn .lbl-txt, #nd-about-btn .lbl-txt { display: none; }
   .nd-banner { flex-direction: column; gap: var(--space-2); font-size: 0.74rem; padding: 0.6rem 0.75rem; }
   .nd-banner .btn-secondary { margin-left: 0; }
   .nd-clock.compact .nd-ticker { display: none; }
@@ -381,14 +395,14 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   .nd-side-head .grab { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.2); }
 
   /* bottom bar (thumb zone): my 9 starter slots, then status or a one-tap Draft */
-  .nd-minibar { display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; min-height: var(--minibar-h); padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom)); background: rgba(10,10,10,.88); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border-top: 1px solid var(--border-bright); }
+  .nd-minibar { display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; min-height: var(--minibar-h); padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom)); background: rgba(18,12,8,.9); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border-top: 1px solid var(--border-bright); }
   /* Phones: the sticky clock sits where the toast would; show it above the thumb bar instead. */
   .nd-toast { top: auto; bottom: calc(var(--minibar-h, 96px) + 14px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); }
   .nd-toast.show { transform: translate(-50%, 0); }
   .nd-mb-slots { display: grid; grid-template-columns: repeat(var(--n, 9), minmax(0, 1fr)); gap: 3px; }
   .nd-mb-slot { height: 24px; border-radius: 5px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.6rem; border: 1px dashed rgba(255,255,255,.25); color: var(--text-muted); }
   .nd-mb-slot.need { border: 1px solid var(--amber); color: var(--amber); }
-  .nd-mb-slot.G.on { background: var(--g); color: #1a0d03; border: none; font-weight: 500; }
+  .nd-mb-slot.G.on { background: var(--g); color: #1f1600; border: none; font-weight: 500; }
   .nd-mb-slot.F.on { background: var(--f); color: #02141d; border: none; font-weight: 500; }
   .nd-mb-slot.C.on { background: var(--c); color: #1b0f3a; border: none; font-weight: 500; }
   .nd-mb-slot.UTIL.on { background: rgba(255,255,255,.75); color: #000; border: none; }
@@ -433,6 +447,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 @media (prefers-reduced-motion: reduce) and (min-width: 901px) { .nd-side { opacity: 1; } .nd-sheet, .nd-sheet.open { transform: translate(-50%, -50%); } }
 @media print {
   #rr-nav, .page-head, .nd-banner, .nd-firstrun, .nd-clock, .nd-views, #nd-boardview, .nd-side, .nd-minibar, .tool-about, .rr-footer, .nd-toast, .nd-cheat-head .btn-secondary { display: none !important; }
+  .nd-hero { border: none !important; background: none !important; }
   body, #app { background: #fff !important; color: #000 !important; padding: 0 !important; }
   .nd-grid { display: block; }
   .nd-cheat { display: block !important; color: #000; }
@@ -445,7 +460,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 }
 </style>
 </head>
-<body>
+<body class="sport-nba">
 
 <nav id="rr-nav">
   <a href="/nba" class="rr-logo">Pocket</a>
@@ -453,8 +468,10 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
     <a href="/nfl">NFL</a><a href="/nba" aria-current="page">NBA</a>
   </div>
   <div class="rr-links">
-    <a href="/nba/draft" class="rr-link active" aria-current="page">Draft</a>
+    <a href="/nba" class="rr-link active" aria-current="page">Draft board</a>
     <a href="/nba/lineup" class="rr-link">Lineup</a>
+    <a href="/nba/trade" class="rr-link">Trade</a>
+    <a href="/nba/waivers" class="rr-link">Waivers</a>
   </div>
   <div class="rr-auth">
     <div id="user-btn-mount"></div>
@@ -464,16 +481,20 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 </nav>
 
 <div id="app">
-  <header class="page-head">
+  <header class="page-head nd-hero nba-court">
     <div class="page-head-text">
-      <p class="nd-eyebrow" id="nd-eyebrow">NBA · Yahoo High Score</p>
-      <h1 class="page-title">Draft board</h1>
+      <p class="nd-eyebrow"><span class="nba-ball" aria-hidden="true"></span><span id="nd-eyebrow">Yahoo High Score</span></p>
+      <h1 class="page-title">NBA Draft Board</h1>
       <p class="page-sub" id="nd-sub">Ranked by each player's expected best game of the week, the only game High Score counts.</p>
     </div>
     <div class="nd-head-ctl">
       <span id="nd-sync" class="nd-sync" role="status" aria-live="polite" hidden></span>
       <a id="nd-connect" class="nd-connect" href="/nba/auth/login" hidden><span class="y" aria-hidden="true">Y!</span>Connect Yahoo</a>
       <select id="nd-league" aria-label="Yahoo league" hidden></select>
+      <button id="nd-about-btn" class="btn-secondary nd-icon-btn" type="button" aria-haspopup="dialog" aria-controls="nd-about" aria-label="How to use this board">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>
+        <span class="lbl-txt">How it works</span>
+      </button>
       <button id="nd-settings-btn" class="btn-secondary nd-icon-btn" type="button" aria-haspopup="dialog" aria-label="League settings">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
         <span class="lbl-txt">League</span>
@@ -539,7 +560,7 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
         <div class="nd-seg" id="nd-seg" role="group" aria-label="Slot filter (number = eligible players left in the top 40)"></div>
       </div>
       <div class="nd-count-row"><span class="nd-count" id="nd-count" aria-live="polite"></span><button id="nd-hide-out" class="nd-chip-toggle" type="button" aria-pressed="false">Hide OUT</button><button id="nd-show-taken" class="nd-chip-toggle" type="button" aria-pressed="false">Show drafted</button></div>
-      <p class="nd-elig-note" id="nd-elig-note" hidden>Positions come from Sleeper until Yahoo eligibility loads (dashed tags). Check a player’s Yahoo positions before relying on a slot.</p>
+      <p class="nd-elig-note" id="nd-elig-note" hidden>Dashed position tags are estimates until Yahoo eligibility loads. Check a player’s Yahoo positions before counting on a slot.</p>
       <div id="nd-list" class="nd-list" role="list" aria-label="Players">
         <div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div><div class="nd-skel"></div>
       </div>
@@ -609,6 +630,22 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
   </form>
 </dialog>
 
+<dialog id="nd-about" class="nd-dialog" aria-labelledby="nd-about-h">
+  <form method="dialog">
+    <h2 id="nd-about-h">About this board</h2>
+    <p class="hint">How to use it during the live draft.</p>
+    <ol class="nd-about-list">
+      <li><span><b>Set your draft slot.</b> Tap <b>League</b> and enter the number of teams and where you pick. With Yahoo connected, your league fills this in for you.</span></li>
+      <li><span><b>Tap every pick.</b> When anyone takes a player, find him (search or the position chips) and tap <b>Draft</b>. Tapped the wrong one? <b>↶ Undo</b> takes back the last pick.</span></li>
+      <li><span><b>Yahoo live sync or manual.</b> Connected to Yahoo, picks fill in by themselves every few seconds (read-only: Pocket can’t draft for you). Manual board: you tap each pick, and it’s saved on this device.</span></li>
+      <li><span><b>Watch the clock bar.</b> It shows the round, the pick, who’s up and how many picks until yours. It turns orange when you’re on the clock. Yahoo’s draft room is the official timer.</span></li>
+      <li><span><b>Use the top pick card.</b> It suggests the best player for your open lineup spots, ranked by his expected best game of the week, the only game High Score counts. Tap a name for details.</span></li>
+    </ol>
+    <p class="nd-about-foot">Values use your league’s scoring and roster slots. Players drafted by anyone leave the board.</p>
+    <div class="nd-dialog-actions"><button type="submit" value="close" class="btn-primary" style="margin-left:auto">Got it</button></div>
+  </form>
+</dialog>
+
 <div id="nd-toast" class="nd-toast" role="status" aria-live="polite"></div>
 
 <footer class="rr-footer">
@@ -626,5 +663,11 @@ dialog.nd-dialog::backdrop { background: rgba(0,0,0,.65); }
 <script src="/nba/pages/yahoo-chip.js"></script>
 <script src="/nba/pages/draft-logic.js"></script>
 <script src="/nba/pages/draft.js"></script>
+<script>
+(function () { // "How it works" sheet; independent of the board logic.
+  var b = document.getElementById('nd-about-btn'), d = document.getElementById('nd-about');
+  if (b && d && d.showModal) b.addEventListener('click', function () { d.showModal(); });
+})();
+</script>
 </body>
 </html>

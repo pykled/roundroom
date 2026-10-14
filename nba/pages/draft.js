@@ -51,7 +51,7 @@
     // Yahoo-style positions; dashed when eligibility isn't confirmed by Yahoo.
     var el = L.slotElig(p), list = L.displayPositions(p), low = el.source !== 'yahoo' || el.low;
     if (!list.length) list = ['UTIL'];
-    var why = el.source !== 'yahoo' ? 'from Sleeper positions' : 'eligibility source: ' + (p.eligConfidence == null ? 'unknown' : p.eligConfidence);
+    var why = el.source !== 'yahoo' ? 'estimated positions' : 'eligibility source: ' + (p.eligConfidence == null ? 'unknown' : p.eligConfidence);
     return list.map(function (x) {
       return '<span class="pp ' + fam(x) + (low ? ' low' : '') + '"' + (low ? ' title="Not confirmed by Yahoo (' + esc(why) + ')"' : '') + '>' + x + '</span>';
     }).join('') + (low ? '<span class="nd-elig-badge" title="Positions not confirmed by Yahoo (' + esc(why) + ')" aria-label="Positions not confirmed by Yahoo">?</span>' : '');
@@ -224,7 +224,7 @@
     var st = S.state.settings, types = L.slotTypes(st), parts = [];
     types.forEach(function (t) { var c = st.slots[t]; parts.push(slotLabel(t) + (c > 1 ? '×' + c : '')); });
     var secs = timerSeconds();
-    $('nd-eyebrow').textContent = 'NBA · ' + leagueName();
+    $('nd-eyebrow').textContent = leagueName() + ' · Yahoo High Score';
     $('nd-sub').textContent = st.teams + ' teams · ' + parts.join(', ') + ' + ' + st.bench + ' BN' + (st.il ? ' + ' + st.il + ' IL' : '') +
       ' · ' + L.draftRounds(st) + ' rounds' + (secs ? ' · ' + secs + 's picks' : '') + '. Ranked by expected best game of the week under your league’s scoring.';
   }
@@ -669,7 +669,7 @@
     var reco = recoCache.filter(function (r) { return r.player.id === p.id; })[0];
     $('nd-sheet-body').innerHTML =
       '<div class="nd-p-head"><h2 class="nd-p-name" id="nd-p-name" tabindex="-1">' + esc(p.name) + '</h2>' +
-      '<div class="nd-p-meta">' + posPills(p) + '<span>' + esc(p.team || 'FA') + '</span><span>·</span><span>' + esc(L.yahooPosString(p) ? 'Yahoo ' + L.yahooPosString(p) : 'Sleeper ' + (Array.isArray(p.pos) ? p.pos.join('/') : (p.pos || '—'))) + '</span>' + gamesChip(p) + injBadge(p) +
+      '<div class="nd-p-meta">' + posPills(p) + '<span>' + esc(p.team || 'FA') + '</span><span>·</span><span>' + esc(L.yahooPosString(p) ? 'Yahoo ' + L.yahooPosString(p) : 'Est. ' + (Array.isArray(p.pos) ? p.pos.join('/') : (p.pos || '—'))) + '</span>' + gamesChip(p) + injBadge(p) +
       '<span>· Rank ' + esc(p.rank) + (p.yahooPreRank != null ? ' · Yahoo #' + esc(p.yahooPreRank) : '') + ' · Tier ' + esc(p.tier) + (p.yahooPctRos != null ? ' · ' + esc(p.yahooPctRos) + '% rostered' : '') + '</span></div></div>' +
       '<div class="nd-p-tiles">' +
         '<div class="stat-tile"><div class="stat-val">' + n1(p.hsValue) + '</div><div class="stat-lbl">Best-game value</div></div>' +
@@ -682,7 +682,7 @@
         '<div class="nd-range-lbl"><span>floor ' + n0(p.floor) + '</span><span>value ' + n1(p.hsValue) + '</span><span>ceiling ' + n0(p.ceiling) + '</span></div></div>' +
       (reco ? '<p class="nd-p-note"><b>Why now:</b> ' + esc(reco.reason) + '</p>' : '') +
       (p.marketRank != null ? '<p class="nd-p-note">Market (Yahoo-first) #' + esc(p.marketRank) + (p.label ? ' · ' + esc(p.label) + (typeof p.adpDelta === 'number' && p.adpDelta ? ' (' + (p.adpDelta > 0 ? '+' : '') + esc(p.adpDelta) + ' vs our rank)' : '') : '') + (p.contested ? ' · sources disagree' : '') + '. A sanity check only; the board never sorts by it.</p>' : '') +
-      (p.source === 'yahoo-only' ? '<p class="nd-p-note">No game-log data: this player is in Yahoo’s pool but not in Sleeper, so the value is a conservative estimate from Yahoo’s projected fantasy points per game.</p>'
+      (p.source === 'yahoo-only' ? '<p class="nd-p-note">No game-log data: this player is in Yahoo’s pool but not in our NBA data feed, so the value is a conservative estimate from Yahoo’s projected fantasy points per game.</p>'
         : p.source && p.source !== 'logs' ? '<p class="nd-p-note">' + (p.source === 'rookie' ? 'Rookie: value is projection-only (no NBA game logs yet), so the range is wider than it looks.' : 'Projection-only: not enough recent game logs for a measured spread.') + '</p>' : '') +
       (t ? '<p class="nd-p-note">Drafted #' + t.pick + ' by ' + esc(t.mine ? 'you' : teamNameForKey(t.team_key, t.slot)) + (t.source === 'manual' && !t.confirmed ? ' (pending Yahoo)' : '') + '.</p>' : '');
     var acts = $('nd-sheet-actions');
