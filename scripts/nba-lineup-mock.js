@@ -21,15 +21,18 @@ const ROOT = path.join(__dirname, '..');
 const arg = (k, d) => { const a = process.argv.find(x => x.startsWith('--' + k + '=')); return a ? a.split('=')[1] : d; };
 let mode = arg('yahoo', 'off');
 
-const LEAGUE = '466.l.777', ME = LEAGUE + '.t.1', RIVAL = LEAGUE + '.t.2';
+const LEAGUE = '466.l.242808', ME = LEAGUE + '.t.1', RIVAL = LEAGUE + '.t.2';
 // [model player name, Yahoo selected_position]
 const MY_ROSTER = [
-  ['Luka Dončić', 'G'], ['Tyrese Maxey', 'G'], ['Victor Wembanyama', 'F'], ['Evan Mobley', 'F'], ['Paolo Banchero', 'F'],
-  ['Stephen Curry', 'Util'], ['Cooper Flagg', 'BN'], ['Jalen Johnson', 'BN'], ['Josh Giddey', 'BN'], ['Zztop Notaplayer', 'BN'],
+  ['Luka Dončić', 'PG'], ['Tyrese Maxey', 'SG'], ['Josh Giddey', 'G'], ['Jayson Tatum', 'SF'], ['Paolo Banchero', 'PF'],
+  ['Jalen Johnson', 'F'], ['Evan Mobley', 'C'], ['Stephen Curry', 'Util'], ['Jamal Murray', 'Util'],
+  ['Nikola Jokić', 'BN'], ['Cooper Flagg', 'BN'], ['Anthony Edwards', 'BN'], ['Alex Sarr', 'BN'], ['Zztop Notaplayer', 'BN'],
+  ['Jimmy Butler', 'IL'],
 ];
 const RIVAL_ROSTER = [
-  ['Nikola Jokić', 'F'], ['Cade Cunningham', 'G'], ['LaMelo Ball', 'G'], ['Scottie Barnes', 'F'], ['Alperen Şengün', 'F'],
-  ['Donovan Mitchell', 'Util'], ['Karl-Anthony Towns', 'BN'], ['Jamal Murray', 'BN'], ['Deni Avdija', 'BN'], ['Bam Adebayo', 'BN'],
+  ['Shai Gilgeous-Alexander', 'PG'], ['Cade Cunningham', 'SG'], ['Donovan Mitchell', 'G'], ['Scottie Barnes', 'SF'], ['Alperen Şengün', 'PF'],
+  ['Bam Adebayo', 'F'], ['Karl-Anthony Towns', 'C'], ['Deni Avdija', 'Util'], ['Chet Holmgren', 'Util'],
+  ['LaMelo Ball', 'BN'], ['Kawhi Leonard', 'BN'], ['Jalen Brunson', 'BN'], ['Amen Thompson', 'BN'], ['Stephon Castle', 'BN'],
 ];
 let boardCache = null;
 // Mock Yahoo players are matched against the default-profile (242808) board.
@@ -38,8 +41,8 @@ function yahooPlayer(name, sel, i, players) {
   const p = players.find(x => x.name === name);
   return {
     player_key: `466.p.${9000 + i}`, player_id: String(9000 + i), name: { full: name },
-    editorial_team_abbr: p ? p.team : 'FA', display_position: p ? p.pos.join(',') : 'SF',
-    eligible_positions: p ? p.pos : ['SF'], selected_position: sel,
+    editorial_team_abbr: p ? p.team : 'FA', display_position: p ? (p.yahooPos || p.pos).join(',') : 'SF',
+    eligible_positions: p ? (p.yahooPos || p.pos) : ['SF'], selected_position: sel,
   };
 }
 const fakeClient = () => ({
@@ -64,13 +67,14 @@ app.get('/nba/auth/login', (req, res) => { mode = 'on'; res.redirect('/nba/lineu
 
 // L1: routes pass the league profile id (null → legacy High Score board).
 const modelPlayers = (week, profile) => model.getPlayers({ week: week || undefined, profile: profile || undefined });
-app.get('/api/nba/players', async (req, res) => res.json(await modelPlayers(Number(req.query.week) || null)));
+app.get('/api/nba/players', async (req, res) => res.json(await modelPlayers(Number(req.query.week) || null, req.query.profile || null)));
+app.use(require('../nba/routes/profile')());
 app.get('/api/nba/yahoo/status', (req, res) => res.json(mode === 'on'
   ? { connected: true, leagues: [{ league_key: LEAGUE, name: 'High Score Homies', num_teams: 10, draft_status: 'postdraft' }] }
   : { connected: false }));
 app.get('/api/nba/yahoo/league', (req, res) => {
   if (mode !== 'on') return res.status(409).json({ error: 'Yahoo not connected', code: 'yahoo_not_connected' });
-  res.json({ league: { league_key: LEAGUE, name: 'High Score Homies', current_week: 2 }, teams: [{ team_key: ME, name: 'Dillon’s Dimes', is_owned_by_current_login: true }, { team_key: RIVAL, name: 'Sengun Sunday' }], myTeamKey: ME });
+  res.json({ league: { league_key: LEAGUE, name: 'High Score Homies', current_week: 7 }, teams: [{ team_key: ME, name: 'Dillon’s Dimes', is_owned_by_current_login: true }, { team_key: RIVAL, name: 'Sengun Sunday' }], myTeamKey: ME });
 });
 app.use(createLineupRoutes({
   auth: (req, res, next) => next(), getAuth: () => ({ userId: 'mock_user' }),
