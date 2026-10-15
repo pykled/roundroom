@@ -1,4 +1,6 @@
-# Pocket NBA (Yahoo High Score) — build contracts
+# Pocket NBA (High Score) — build contracts
+
+> **2026-10-15: the NBA side is Sleeper-first.** Yahoo blocked the app's Fantasy API, so league sync now comes from Sleeper's public API by username (`docs/nba-sleeper.md`: endpoints, shapes, season param, reversal round, id matching, how to re-enable Yahoo). The Yahoo contracts below are kept for history; the OAuth/`/api/nba/yahoo/*` routes only mount with `NBA_YAHOO_ENABLED=1`.
 
 Branch `nba` (integration, off `main`). Streams build on `nba-a-foundation`, `nba-b-model`, `nba-c-ui` and merge into `nba` after a Checker passes. NEVER push; NEVER touch NFL behaviour. `/` stays the NFL home. Read docs/nba-data-spike.md for data facts.
 

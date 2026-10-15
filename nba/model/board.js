@@ -282,8 +282,8 @@ function buildBoard(data, opts = {}) {
   for (const p of players) Object.defineProperty(p, '_norm', { value: p._norm, enumerable: false });
   let vorpMeta = null, yahooMeta = null;
   if (profile) {
-    // Yahoo positions/identity first: slot VORP reads yahooElig.
-    yahooMeta = Yahoo.applyYahoo(players, { leagueId: profile.leagueId || Yahoo.DEFAULT_LEAGUE, profileSlots });
+    // Identity (+ positions when the profile is Yahoo-first): slot VORP reads yahooElig.
+    yahooMeta = Yahoo.applyYahoo(players, { leagueId: profile.leagueId || Yahoo.DEFAULT_LEAGUE, profileSlots, positionSource: profile.positionSource || 'sleeper' });
     vorpMeta = Slots.applyVorp(players, profile);
   }
   return { season: Number(season), week: reqWeek, currentWeek, players, vorpMeta, yahooMeta };

@@ -28,8 +28,10 @@ function dropAllowedNfl(s) {
 const FORBIDDEN = [
   [/\bQB\b/, 'QB'], [/\bRB\b/, 'RB'], [/\bWR\b/, 'WR'], [/\bTE\b/, 'TE'],
   [/touchdown/i, 'touchdown'], [/quarterback/i, 'quarterback'], [/kick-?off/i, 'kickoff'],
-  [/gridiron/i, 'gridiron'], [/bye[- ]weeks?/i, 'bye week'], [/Sleeper username/i, 'Sleeper username'],
+  [/gridiron/i, 'gridiron'], [/bye[- ]weeks?/i, 'bye week'],
   [/weeks? 1\s*[-–]\s*18\b/i, 'week 1-18'], [/\bNFL\b/, 'NFL'],
+  // 2026-10-15: the NBA side is Sleeper-first; Yahoo must not appear in shipped NBA copy.
+  [/\bYahoo\b/, 'Yahoo'],
 ];
 
 const sources = [];
@@ -75,7 +77,8 @@ const draft = pages[0].html;
 ok(/<h1 class="page-title">NBA Draft Board<\/h1>/.test(draft), 'draft: hero title "NBA Draft Board"');
 const about = (/<ol class="nd-about-list">([\s\S]*?)<\/ol>/.exec(draft) || [])[1] || '';
 ok((about.match(/<li>/g) || []).length === 5, 'draft: About this board has 5 bullets');
-for (const w of ['draft slot', 'Undo', 'Yahoo', 'clock', 'best game']) ok(about.includes(w), `draft: About covers "${w}"`);
+for (const w of ['draft slot', 'Undo', 'Sleeper', 'clock', 'best game']) ok(about.includes(w), `draft: About covers "${w}"`);
+ok(/id="nd-fr-user"/.test(draft) && /Connect Sleeper/.test(draft), 'draft: setup card has the Sleeper username form');
 for (const p of pages.slice(1, 4)) ok(!/nine-man|best six/.test(p.html), `${p.name}: no hard-coded lineup size in static copy`);
 
 console.log(`${pass} passed, ${fail} failed`);

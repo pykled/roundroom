@@ -21,7 +21,7 @@ const range = n => Array.from({ length: n }, (_, i) => i + 1);
 
 console.log('picker view');
 t('manual board, nothing chosen: chips 1..teams', () => {
-  const v = L.slotPickerView(S12, { yahooKnown: false, chosen: false });
+  const v = L.slotPickerView(S12, { syncKnown: false, chosen: false });
   eq(v.mode, 'pick'); eq(v.chips, range(12)); eq(v.teams, 12);
 });
 [8, 10, 12].forEach(n => t(n + ' teams: one chip per team', () => {
@@ -33,29 +33,33 @@ t('chosen: collapsed (no chips) with the slot', () => {
   eq(v.mode, 'chosen'); eq(v.slot, 7); eq(v.chips, []);
 });
 t('chosen + Change tapped: chips again', () => eq(L.slotPickerView(S12, { chosen: true, open: true }).mode, 'pick'));
-t('Yahoo-synced: no chips, shows synced slot', () => {
-  const v = L.slotPickerView(Object.assign({}, S12, { mySlot: 4 }), { yahooKnown: true, chosen: false, open: true });
-  eq(v.mode, 'yahoo'); eq(v.slot, 4); eq(v.chips, []);
+t('league-synced: no chips, shows synced slot', () => {
+  const v = L.slotPickerView(Object.assign({}, S12, { mySlot: 4 }), { syncKnown: true, chosen: false, open: true });
+  eq(v.mode, 'synced'); eq(v.slot, 4); eq(v.chips, []);
 });
 
-console.log('yahoo slot-known signal');
+console.log('sync slot-known signal');
 const teams = [{ team_key: 'a', draft_position: '' }, { team_key: 'me', draft_position: '' }];
-t('not connected: never known', () => eq(L.yahooSlotKnown({ live: false, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: 3 }], settings: S12 }), false));
-t('live, no draft_position/order/picks: unknown -> picker shows', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, yahoo: { picks: [] }, picks: [] }), false));
-t('live, my draft_position: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '5' }], settings: S12 }), true));
-t('draft_position out of range ignored', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '15' }], settings: S12 }), false));
-t('live, my team in Yahoo pick order: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, yahoo: { order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }] } }), true));
-t('order slot = my round-1 pick in Yahoo order', () => eq(L.yahooOrderSlot({ order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }, { pick: 3, team_key: 'me' }] }, 'me', 2), 2));
+t('not connected: never known', () => eq(L.syncSlotKnown({ live: false, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: 3 }], settings: S12 }), false));
+t('live, no draft_position/order/picks: unknown -> picker shows', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, sync: { picks: [] }, picks: [] }), false));
+t('live, my draft_position: known', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '5' }], settings: S12 }), true));
+t('draft_position out of range ignored', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams: [{ team_key: 'me', draft_position: '15' }], settings: S12 }), false));
+t('live, my team in the published pick order: known', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, sync: { order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }] } }), true));
+t('order slot = my round-1 pick in the published order', () => eq(L.syncOrderSlot({ order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'me' }, { pick: 3, team_key: 'me' }] }, 'me', 2), 2));
 t('order with only later-round (traded) picks of mine: unknown', () => {
   const y = { order: [{ pick: 1, team_key: 'a' }, { pick: 2, team_key: 'a' }, { pick: 3, team_key: 'me' }] };
-  eq(L.yahooOrderSlot(y, 'me', 2), null);
-  eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: L.normalizeSettings({ teams: 2 }), yahoo: y }), false);
+  eq(L.syncOrderSlot(y, 'me', 2), null);
+  eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams, settings: L.normalizeSettings({ teams: 2 }), sync: y }), false);
 });
-t('live, Yahoo pick credited to me: known', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'yahoo', mine: true, slot: 2 }] }), true));
-t('manual pick of mine does not count', () => eq(L.yahooSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'manual', mine: true }] }), false));
-t('settingsFromYahoo keeps a chosen slot when Yahoo has no draft_position', () => {
+t('live, synced pick credited to me: known', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'sync', mine: true, slot: 2 }] }), true));
+t('Sleeper roster ids: numeric team_key compares as a string', () => {
+  eq(L.syncSlotKnown({ live: true, myTeamKey: '7', teams: [{ team_key: 7, draft_position: 2 }], settings: S12 }), true);
+  eq(L.syncOrderSlot({ order: [{ pick: 1, team_key: 3 }, { pick: 2, team_key: '7' }] }, 7, 12), 2);
+});
+t('manual pick of mine does not count', () => eq(L.syncSlotKnown({ live: true, myTeamKey: 'me', teams, settings: S12, picks: [{ source: 'manual', mine: true }] }), false));
+t('settingsFromLeague keeps a chosen slot when the league has no draft_position', () => {
   const base = Object.assign({}, S12, { mySlot: 9 });
-  eq(L.settingsFromYahoo({ num_teams: 12 }, 'me', teams, base).mySlot, 9);
+  eq(L.settingsFromLeague({ num_teams: 12 }, 'me', teams, base).mySlot, 9);
 });
 
 console.log('persistence');
@@ -94,10 +98,10 @@ t('migrated legacy board re-saves with slotChosen:true', () => {
   eq(JSON.parse(L.serializeState(back)).slotChosen, true);
 });
 
-console.log('hold while Yahoo status loads (no chip flash)');
+console.log('hold while the connection status loads (no chip flash)');
 const H = L.SLOT_HOLD_STATUS_MS, HL = L.SLOT_HOLD_LEAGUE_MS;
-t('status pending on a Yahoo device: hold', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: true, sinceBootMs: 50 }), true));
-t('status pending, never used Yahoo: no wait', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: false, sinceBootMs: 0 }), false));
+t('status pending on a connected device: hold', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: true, sinceBootMs: 50 }), true));
+t('status pending, never connected: no wait', () => eq(L.slotPickerHold({ statusResolved: false, maybeConnected: false, sinceBootMs: 0 }), false));
 t('status pending past the ~1s cap: stop holding', () => {
   eq(H <= 1000, true, 'cap <= 1s');
   eq(L.slotPickerHold({ statusResolved: false, maybeConnected: true, sinceBootMs: H }), false);
@@ -111,7 +115,7 @@ t('hold view: no chips, hold mode even when nothing chosen', () => {
   const v = L.slotPickerView(S12, { hold: true, chosen: false });
   eq(v.mode, 'hold'); eq(v.chips, []);
 });
-t('Yahoo-known beats hold', () => eq(L.slotPickerView(S12, { hold: true, yahooKnown: true }).mode, 'yahoo'));
+t('synced slot beats hold', () => eq(L.slotPickerView(S12, { hold: true, syncKnown: true }).mode, 'synced'));
 t('league profile keeps the chosen slot', () => {
   eq(L.settingsFromProfile({ teams: 12, slots: { PG: 1, C: 1, UTIL: 2, BN: 5 } }, Object.assign({}, S12, { mySlot: 6 })).mySlot, 6);
 });

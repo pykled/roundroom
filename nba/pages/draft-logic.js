@@ -1,18 +1,22 @@
-/* Pocket NBA — draft board logic (Yahoo High Score).
+/* Pocket NBA — draft board logic (High Score scoring, Sleeper-first sync).
    Pure functions only: no DOM, no fetch, no storage access. Loaded as a plain
    <script> in the browser (exposes window.NbaDraft) and via require() in node
-   (scripts/test-nba-ui.js).
+   (scripts/test-nba-ui.js, scripts/test-nba-sleeper.js).
 
    Conventions
      pick     1-based overall pick number
      slot     1-based draft slot (team position in round 1)
-     settings { teams, mySlot, slots: { PG, SG, G, SF, PF, F, C, UTIL } | { G, F, UTIL }, bench, il }
+     settings { teams, mySlot, slots: { PG, SG, G, SF, PF, F, C, UTIL } | { G, F, UTIL }, bench, il,
+                thirdRoundReversal?, reversalRound?, rounds? }
               Position-aware leagues (any of PG/SG/SF/PF/C/FC in slots, e.g. league
-              242808) use Yahoo slot eligibility; G/F/UTIL-only leagues (Yahoo
-              High Score default) keep the model's `elig` (C counts as F).
-     player   contract Player: { id, name, team, pos: ['PG'..'C'], elig: ['G'|'F'|'UTIL'],
-              yahooElig?: ['PG'..'UTIL'], eligConfidence?, hsValue, vorp?, vorpBySlot?,
-              ceiling, floor, injury, tier, ... } */
+              242808) use slot eligibility from the league's positions; G/F/UTIL-only
+              leagues (the old High Score default) keep the model's `elig` (C counts as F).
+     player   contract Player: { id (Sleeper id), name, team, pos: ['PG'..'C'], elig: ['G'|'F'|'UTIL'],
+              yahooElig?: ['PG'..'UTIL'] (slot eligibility from the league positions, field name is
+              historical), eligConfidence? ('sleeper' | 'yahoo' | 'sleeper-mapped' | number),
+              hsValue, vorp?, vorpBySlot?, ceiling, floor, injury, tier, ... }
+     sync     live league data (Sleeper): { status, picks, unmatched, order, draft, polledAt }.
+              team_key = Sleeper roster_id as a string; player_key = Sleeper player_id. */
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -29,7 +33,7 @@
   // Narrow slots first: a PG who can start at PG, G or UTIL takes PG.
   var SUBSLOTS = { G: ['PG', 'SG'], F: ['SF', 'PF'], FC: ['SF', 'PF', 'F', 'C'] };
   var SPECIFIC = { PG: 3, SG: 3, SF: 3, PF: 3, C: 3, G: 2, F: 2, FC: 2, UTIL: 1 };
-  /* Yahoo position token -> starter slots it can fill (Phase 3 addendum legend:
+  /* Position token -> starter slots it can fill (Phase 3 addendum legend:
      PG<-PG; SG<-SG,G,G/F; G<-PG,SG,G,G/F; SF<-SF,F,G/F; PF<-PF,F,F/C;
      F<-SF,PF,F,G/F,F/C; C<-C,F/C; FC<-forwards+centers; UTIL<-anyone).
      A C-only player is NOT F-eligible. */
@@ -41,7 +45,7 @@
   // League 242808 "HALIMSANITY 26-27" (docs/nba-contracts.md Phase 3) — used only
   // until GET /api/nba/league-profile answers (or if it can't).
   var DEFAULT_SETTINGS = { teams: 12, mySlot: 1, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2 };
-  // Yahoo High Score default roster (G, G, F, F, F, UTIL + 4 bench) for other leagues.
+  // Legacy High Score default roster (G, G, F, F, F, UTIL + 4 bench) for leagues without positions.
   var HIGH_SCORE_SETTINGS = { teams: 10, mySlot: 1, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4, il: 0 };
   var DEFAULT_PICK_SECONDS_PROFILE = 90;
 
@@ -77,9 +81,13 @@
     };
     out.mySlot = clampInt(s.mySlot, 1, out.teams, 1);
     // Only present when on, so snake-only settings keep their old shape.
-    if (s.thirdRoundReversal === true || s.thirdRoundReversal === 'true' || s.thirdRoundReversal === 'on') out.thirdRoundReversal = true;
-    // Draft rounds: Yahoo drafts active + bench spots only (IL starts empty), so
-    // the default is starters + BN; a profile / the League dialog can override.
+    // Sleeper's reversal_round (3 = third-round reversal) maps onto the same flag;
+    // an unusual value (e.g. 5) is kept as reversalRound and drives roundForward.
+    var rr = parseInt(s.reversalRound, 10);
+    if (s.thirdRoundReversal === true || s.thirdRoundReversal === 'true' || s.thirdRoundReversal === 'on' || rr === 3) out.thirdRoundReversal = true;
+    else if (rr >= 2) out.reversalRound = rr;
+    // Draft rounds: leagues draft active + bench spots only (IL starts empty), so
+    // the default is starters + BN; a profile / the league / the dialog can override.
     var n = 0; Object.keys(slots).forEach(function (k) { n += slots[k] || 0; });
     out.rounds = clampInt(s.rounds, 1, 30, n + out.bench);
     return out;
@@ -110,13 +118,22 @@
   /* ---------------------------------------------------------------- snake */
   /* The one pick-order rule: board, clock strip, timeline and cheat sheet all
      derive from roundForward(). Snake: odd rounds run slot 1→N, even rounds
-     N→1. Third-round reversal (rr): round 3 runs N→1 like round 2, then it
-     alternates again from round 4 (forward), so slot N picks N, N+1, 2N+1,
-     4N, 4N+1… and slot 1 picks 1, 2N, 3N, 3N+1… */
+     N→1. Third-round reversal (rr = true or 3): round 3 runs N→1 like round 2,
+     then it alternates again from round 4 (forward), so slot N picks N, N+1,
+     2N+1, 4N, 4N+1… and slot 1 picks 1, 2N, 3N, 3N+1… A numeric rr = n ≥ 2
+     generalises that (round n repeats round n-1's direction); Sleeper exposes it
+     as draft.settings.reversal_round. Mirrors nba/sleeper/map.js roundForward. */
 
   function roundOf(pick, teams) { return Math.ceil(pick / teams); }
 
-  function roundForward(round, rr) { return rr && round >= 3 ? round % 2 === 0 : round % 2 === 1; }
+  function roundForward(round, rr) {
+    var n = rr === true ? 3 : parseInt(rr, 10) || 0;
+    if (n < 2 || round < n) return round % 2 === 1;
+    var forwardBefore = (n - 1) % 2 === 1;
+    return (((round - n) % 2 === 0) === forwardBefore);
+  }
+  // Reversal setting of a settings object → roundForward's rr argument.
+  function reversalOf(settings) { return settings && settings.thirdRoundReversal ? 3 : (settings && settings.reversalRound) || 0; }
 
   function slotForPick(pick, teams, rr) {
     var idx = (pick - 1) % teams;
@@ -143,7 +160,7 @@
 
   // Next pick number >= currentPick owned by mySlot, or null when the draft is over for us.
   function nextPickFor(slot, currentPick, settings) {
-    var list = picksForSlot(slot, settings.teams, draftRounds(settings), currentPick, !!settings.thirdRoundReversal);
+    var list = picksForSlot(slot, settings.teams, draftRounds(settings), currentPick, reversalOf(settings));
     return list.length ? list[0] : null;
   }
 
@@ -175,9 +192,10 @@
 
   var eligCache = typeof WeakMap === 'function' ? new WeakMap() : null;
   /* Slots p can fill in a position-aware league:
-     { slots: {PG:true,..,UTIL:true}, source: 'yahoo'|'derived'|'none', low: bool }.
-     Yahoo's yahooElig wins; otherwise derive from Sleeper pos[] via the contract
-     legend (flagged low confidence); last resort the model's G/F elig. */
+     { slots: {PG:true,..,UTIL:true}, source: 'league'|'derived'|'none', low: bool }.
+     The model's yahooElig (slot eligibility from the league's positions; Sleeper
+     fantasy_positions on a Sleeper-first board) wins; otherwise derive from pos[]
+     via the contract legend (flagged low confidence); last resort the model's G/F elig. */
   function slotElig(p) {
     if (p && typeof p === 'object' && eligCache) { var hit = eligCache.get(p); if (hit) return hit; }
     var slots = { UTIL: true }, source = 'none', low = true;
@@ -189,11 +207,11 @@
         if (k === 'F/C') k = 'FC';
         if (SLOT_TYPES.indexOf(k) >= 0) slots[k] = true;
       });
-      source = 'yahoo';
-      // H1 sends 'yahoo' when eligibility came from Yahoo's own snapshot; any
-      // other string (e.g. 'sleeper', 'inferred') or a numeric score < .7 is a guess.
+      source = 'league';
+      // 'sleeper' / 'yahoo' = the league site's own positions; anything else
+      // (e.g. 'sleeper-mapped', 'inferred') or a numeric score < .7 is a guess.
       var c = p.eligConfidence;
-      low = c == null ? false : typeof c === 'number' ? c < 0.7 : String(c).toLowerCase() !== 'yahoo' && String(c).toLowerCase() !== 'high';
+      low = c == null ? false : typeof c === 'number' ? c < 0.7 : ['yahoo', 'sleeper', 'high', 'league'].indexOf(String(c).toLowerCase()) < 0;
     } else {
       var toks = posTokens(p && p.pos);
       if (toks.length) {
@@ -216,9 +234,9 @@
     return !!slotElig(p).slots[type];
   }
 
-  // Display positions for a player: Yahoo-style base positions (PG, SG, SF, PF, C).
+  // Display positions for a player: base positions (PG, SG, SF, PF, C).
   function displayPositions(p) {
-    var ys = yahooPosString(p);
+    var ys = posString(p);
     if (ys) return ys.split(',');
     var e = slotElig(p).slots, out = [];
     ['PG', 'SG', 'SF', 'PF', 'C'].forEach(function (k) { if (e[k]) out.push(k); });
@@ -226,22 +244,30 @@
     return out;
   }
 
-  // Yahoo's own position string ('PG,SG'), from p.yahooPos when H1 sends it,
-  // else rebuilt from yahooElig. null when Yahoo eligibility is unknown.
-  function yahooPosString(p) {
+  // The league's own position string ('PG,SG'): Sleeper pos[] when eligibility is
+  // Sleeper-confirmed, else p.yahooPos, else rebuilt from yahooElig. null when unknown.
+  function posString(p) {
     if (!p) return null;
-    var raw = typeof p.yahooPos === 'string' ? p.yahooPos : null;
+    var conf = String(p.eligConfidence || '').toLowerCase();
+    var raw = typeof p.yahooPos === 'string' ? p.yahooPos : Array.isArray(p.yahooPos) ? p.yahooPos.join(',') : null;
+    if (conf === 'sleeper' && (Array.isArray(p.pos) ? p.pos.length : p.pos)) raw = Array.isArray(p.pos) ? p.pos.join(',') : String(p.pos);
     var toks = raw ? raw.toUpperCase().split(/[,/\s]+/) : Array.isArray(p.yahooElig) ? p.yahooElig.map(function (x) { return String(x || '').toUpperCase(); }) : [];
     var out = ['PG', 'SG', 'SF', 'PF', 'C'].filter(function (k) { return toks.indexOf(k) >= 0; });
     return out.length ? out.join(',') : null;
   }
 
-  /* Stable identity for a board player: Yahoo's player id when the model has
-     one (Yahoo draft sync speaks Yahoo player_keys), else the Sleeper id. */
+  /* Stable identity for a board player: the Sleeper id (Sleeper draft sync
+     speaks Sleeper player_ids, which are the model's own ids). Rows the model
+     only knows from the Yahoo pool keep their 'y<pid>' id. Boards saved while
+     the site was Yahoo-first used 'y<pid>' ids: legacyKey() gives that form so
+     the page can alias it back. */
   function playerKey(p) {
     if (!p) return '';
-    if (p.yahooPid != null && p.yahooPid !== '') return 'y' + String(p.yahooPid);
     return String(p.id);
+  }
+  function legacyKey(p) {
+    if (!p || p.yahooPid == null || p.yahooPid === '') return null;
+    return 'y' + String(p.yahooPid);
   }
   // '466.p.5352' → '5352'; bare ids pass through. null when not parseable.
   function yahooPidFromKey(k) {
@@ -652,7 +678,7 @@
 
   /* ------------------------------------------------- availability (ADP) */
   /* Where each player goes is modelled as Normal(mu, sd) in overall-pick units.
-     mu = his place in the market (Yahoo-first ADP rank) among the players still
+     mu = his place in the market (consensus ADP rank) among the players still
      on the board, counted from the pick on the clock: pre-draft mu = marketRank;
      mid-draft a faller (market #3 still there at pick 10) gets mu = 10, not 3.
      ADP rank is already an overall-pick number (the Nth player off the board),
@@ -660,8 +686,8 @@
      sd = 1.5 + 0.18·mu (cap 40): between the cross-site gap in
      data/nba/market.json (ESPN/Sleeper vs Yahoo: median |gap| 2 picks at
      1-12, 10 at 25-48, 21 at ~120, i.e. sd ≈ 1.5 + 0.22·rank) and published
-     single-site ADP spreads (~0.13-0.15·ADP); a Yahoo room mostly follows
-     Yahoo's ranks, so the cross-site gap is an upper bound.
+     single-site ADP spreads (~0.13-0.15·ADP); a draft room mostly follows its
+     own site's ranks, so the cross-site gap is an upper bound.
      The k − cur picks before pick k remove exactly k − cur players, so a shared
      threshold t(k) is solved from Σ Φ((t − mu)/sd) = k − cur and
      P(still there at k) = 1 − Φ((t − mu)/sd). t rises with k, so P falls as k
@@ -721,7 +747,7 @@
 
   /* Pick-by-pick plan for my remaining picks + by-slot tiers, from ADP odds.
      ctx: { available (board order = our value order), settings, cur (pick on the clock),
-            myPicks: [{ pick, round }] my remaining picks (Yahoo order or snake/3RR),
+            myPicks: [{ pick, round }] my remaining picks (the league's order or snake/3RR),
             made: [{ pick, round, player }] my picks so far, roster: [player], perSlot }
      Each remaining pick k (next = my following pick) gets, in board order:
        take      best value with P(k) ≥ 75% that is NOT likely (≥ 60%) back at next
@@ -806,86 +832,98 @@
   // My remaining picks on the snake from `fromPick`: [{pick, round}].
   function myPicksSnake(settings, fromPick) {
     settings = normalizeSettings(settings);
-    return picksForSlot(settings.mySlot, settings.teams, draftRounds(settings), fromPick || 1, settings.thirdRoundReversal).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
+    return picksForSlot(settings.mySlot, settings.teams, draftRounds(settings), fromPick || 1, reversalOf(settings)).map(function (p) { return { pick: p, round: roundOf(p, settings.teams) }; });
   }
 
-  /* ------------------------------------------------------ Yahoo pick merge */
+  /* ------------------------------------------------------ live pick merge */
 
-  /* Merge Yahoo draft results (truth) with locally tracked manual picks.
-     yahoo:    { picks: [{pick, round, team_key, player_key, sleeperId|null, name, matchConfidence}], unmatched: [...] } | null
+  /* Merge the league's draft results (truth) with locally tracked manual picks.
+     sync:     { picks: [{pick, round, team_key, player_key, sleeperId|null, name, matchConfidence}], unmatched: [...], order?: [...] } | null
+               (Sleeper: team_key = roster_id string, player_key = Sleeper player_id)
      manual:   [{ playerId, mine, at }] in the order they were marked
      ctx:      { settings, myTeamKey, overrides: {player_key: playerId}, playersById,
-                 byYahooPid?: {yahooPid: playerId}, alias?: {sleeperId|playerId: playerId} }
-               A Yahoo pick resolves by its player_key's Yahoo id first, then by
-               sleeperId, then by a manual override; alias maps legacy Sleeper
-               ids (saved picks, overrides) onto board ids.
+                 byYahooPid?: {yahooPid: playerId}, alias?: {legacyId: playerId} }
+               A synced pick resolves by sleeperId (the server's match), then by
+               its player_key as a board id, then by a manual override, then (legacy
+               Yahoo keys) by Yahoo id; alias maps ids saved under an older id
+               scheme (e.g. 'y5352' from the Yahoo era) onto board ids.
+     Idempotent: the same payload merges to the same result; duplicate pick
+     numbers and a player listed twice are dropped; manual picks the league has
+     since confirmed are reported in confirmedManual so the caller prunes them.
      Returns {
-       picks: [{ pick, round, slot, playerId|null, name, mine, source: 'yahoo'|'manual', confirmed, player_key?, team_key? }],
+       picks: [{ pick, round, slot, playerId|null, name, mine, source: 'sync'|'manual', confirmed, player_key?, team_key? }],
        unmatched: [{ pick, player_key, name, team_key }],
-       confirmedManual: [playerId]   // manual picks Yahoo has now confirmed (caller prunes)
+       confirmedManual: [playerId]
      } */
-  function mergePicks(yahoo, manual, ctx) {
+  function mergePicks(sync, manual, ctx) {
     ctx = ctx || {};
     var settings = normalizeSettings(ctx.settings);
     var overrides = ctx.overrides || {};
     var byId = ctx.playersById || {};
     var byYpid = ctx.byYahooPid || {}, alias = ctx.alias || null;
     var canon = function (x) { if (x == null || x === '') return null; x = String(x); return alias && alias[x] != null ? String(alias[x]) : x; };
+    var rr = reversalOf(settings);
     var out = [], unmatched = [], seen = {}, confirmed = [];
 
-    var ypicks = (yahoo && yahoo.picks ? yahoo.picks : []).filter(function (p) { return p && p.pick > 0; })
+    var spicks = (sync && sync.picks ? sync.picks : []).filter(function (p) { return p && p.pick > 0; })
       .slice().sort(function (a, b) { return a.pick - b.pick; });
     var lastPick = 0;
-    ypicks.forEach(function (yp) {
+    spicks.forEach(function (yp) {
       if (seen['#' + yp.pick]) return; // duplicate pick number from a flaky poll
       seen['#' + yp.pick] = 1;
-      var ypid = yahooPidFromKey(yp.player_key);
-      var id = (ypid != null && byYpid[ypid] != null) ? String(byYpid[ypid])
+      var key = yp.player_key != null && yp.player_key !== '' ? String(yp.player_key) : null;
+      var ypid = yahooPidFromKey(key);
+      var id = yp.sleeperId != null && yp.sleeperId !== '' && byId[canon(yp.sleeperId)] ? canon(yp.sleeperId)
+        : key && byId[canon(key)] ? canon(key)
+        : (key && overrides[key] != null && byId[canon(overrides[key])]) ? canon(overrides[key])
+        : (ypid != null && byYpid[ypid] != null) ? String(byYpid[ypid])
         : yp.sleeperId != null && yp.sleeperId !== '' ? canon(yp.sleeperId)
-        : (overrides[yp.player_key] != null ? canon(overrides[yp.player_key]) : null);
+        : (key && overrides[key] != null ? canon(overrides[key]) : null);
       if (id && seen[id]) id = null; // same player twice → treat the later one as unmatched
       if (id) seen[id] = 1;
       var row = {
-        pick: yp.pick, round: yp.round || roundOf(yp.pick, settings.teams), slot: slotForPick(yp.pick, settings.teams, settings.thirdRoundReversal),
+        pick: yp.pick, round: yp.round || roundOf(yp.pick, settings.teams), slot: slotForPick(yp.pick, settings.teams, rr),
         playerId: id, name: (id && byId[id] && byId[id].name) || yp.name || 'Unknown player',
-        mine: !!(ctx.myTeamKey && yp.team_key === ctx.myTeamKey), source: 'yahoo', confirmed: true,
-        player_key: yp.player_key, team_key: yp.team_key
+        mine: !!(ctx.myTeamKey && yp.team_key != null && String(yp.team_key) === String(ctx.myTeamKey)), source: 'sync', confirmed: true,
+        player_key: key, team_key: yp.team_key != null ? String(yp.team_key) : null
       };
-      if (!id) unmatched.push({ pick: yp.pick, player_key: yp.player_key, name: row.name, team_key: yp.team_key });
+      if (yp.is_keeper) row.keeper = true;
+      if (!id) unmatched.push({ pick: yp.pick, player_key: key, name: row.name, team_key: row.team_key });
       out.push(row);
       lastPick = Math.max(lastPick, yp.pick);
     });
 
     // Server-reported unmatched entries not already represented by a pick.
-    (yahoo && yahoo.unmatched ? yahoo.unmatched : []).forEach(function (u) {
+    (sync && sync.unmatched ? sync.unmatched : []).forEach(function (u) {
       if (!u || !u.player_key || overrides[u.player_key] != null) return;
       var upid = yahooPidFromKey(u.player_key);
-      if (upid != null && byYpid[upid] != null) return; // board knows this Yahoo id
+      if (upid != null && byYpid[upid] != null) return; // board knows this legacy id
+      if (byId[canon(u.player_key)]) return;
       if (unmatched.some(function (x) { return x.player_key === u.player_key; })) return;
       if (out.some(function (x) { return x.player_key === u.player_key && x.playerId; })) return;
-      unmatched.push({ pick: u.pick || null, player_key: u.player_key, name: (u.name && u.name.full) || u.name || 'Unknown player', team_key: u.team_key || null });
+      unmatched.push({ pick: u.pick || null, player_key: u.player_key, name: (u.name && u.name.full) || u.name || 'Unknown player', team_key: u.team_key != null ? String(u.team_key) : null });
     });
 
-    // With Yahoo's remaining order (keepers / traded picks), pending manual
-    // picks fill the next open Yahoo slots, owner included; otherwise they
-    // follow Yahoo's last pick on the snake.
-    var open = openSlots(yahoo);
+    // With the league's remaining order (keepers / traded picks), pending manual
+    // picks fill the next open slots, owner included; otherwise they follow the
+    // last synced pick on the snake.
+    var open = openSlots(sync);
     var n = lastPick, oi = 0;
     open.forEach(function (o) { n = Math.max(n, o.pick); });
     if (!open.length) n = lastPick;
     (manual || []).forEach(function (m) {
       if (!m || m.playerId == null) return;
       var id = canon(m.playerId);
-      if (seen[id]) { if (yahoo) confirmed.push(id); return; }
+      if (seen[id]) { if (sync) confirmed.push(id); return; }
       seen[id] = 1;
       var o = open[oi++], pk;
       if (o) pk = o.pick; else { n++; pk = n; }
       var row = {
-        pick: pk, round: (o && o.round) || roundOf(pk, settings.teams), slot: slotForPick(pk, settings.teams, settings.thirdRoundReversal),
+        pick: pk, round: (o && o.round) || roundOf(pk, settings.teams), slot: (o && o.slot) || slotForPick(pk, settings.teams, rr),
         playerId: id, name: (byId[id] && byId[id].name) || m.name || id,
-        mine: !!m.mine, source: 'manual', confirmed: !yahoo
+        mine: !!m.mine, source: 'manual', confirmed: !sync
       };
-      if (o && o.team_key) row.team_key = o.team_key;
+      if (o && o.team_key != null) row.team_key = String(o.team_key);
       out.push(row);
     });
 
@@ -893,28 +931,29 @@
     return { picks: out, unmatched: unmatched, confirmedManual: confirmed };
   }
 
-  // Yahoo's unfilled pick slots in pick order: [{pick, round, team_key}].
-  function openSlots(yahoo) {
-    if (!yahoo || !Array.isArray(yahoo.order)) return [];
+  // The league's unfilled pick slots in pick order: [{pick, round, slot?, team_key}].
+  function openSlots(sync) {
+    if (!sync || !Array.isArray(sync.order)) return [];
     var seenPick = {};
-    (yahoo.picks || []).forEach(function (p) { if (p && p.pick) seenPick[p.pick] = 1; });
-    // seenPick also drops a slot Yahoo listed twice.
-    return yahoo.order.filter(function (o) { return o && o.pick > 0 && !seenPick[o.pick] && (seenPick[o.pick] = 1); })
+    (sync.picks || []).forEach(function (p) { if (p && p.pick) seenPick[p.pick] = 1; });
+    // seenPick also drops a slot listed twice.
+    return sync.order.filter(function (o) { return o && o.pick > 0 && !seenPick[o.pick] && (seenPick[o.pick] = 1); })
       .slice().sort(function (a, b) { return a.pick - b.pick; });
   }
 
-  /* Who is on the clock according to Yahoo (draft order with team_key per
+  /* Who is on the clock according to the league (draft order with team_key per
      pick), so keepers and traded picks are right. pending = local picks not
-     yet confirmed by Yahoo (they occupy the next open slots).
-     Returns null when Yahoo gave no order (caller falls back to the snake), else
+     yet confirmed by the league (they occupy the next open slots).
+     Returns null when no order was given (caller falls back to the snake), else
      { cur, round, teamKey, total, done, onMe, myNext, myAfter, myNextRound,
        awayN (picks before my next), gapNow (others' picks between now and my
        following pick when I'm up), gapNext (others' picks between my next two) } */
-  function yahooClock(yahoo, myTeamKey, pending) {
+  function syncClock(sync, myTeamKey, pending) {
+    var yahoo = sync;
     var open = openSlots(yahoo);
     var picks = (yahoo && yahoo.picks) || [];
-    // No open slots listed: only trust that as "draft over" when Yahoo says
-    // postdraft; otherwise Yahoo just didn't send future slots → snake fallback.
+    // No open slots listed: only trust that as "draft over" when the league says
+    // postdraft; otherwise it just didn't send future slots → snake fallback.
     if (!open.length && !(yahoo && yahoo.status === 'postdraft' && picks.length)) return null;
     var total = 0;
     picks.forEach(function (p) { if (p && p.pick > total) total = p.pick; });
@@ -924,11 +963,11 @@
     if (!rest.length) return { cur: total + 1, round: null, teamKey: null, total: total, done: true, onMe: false, myNext: null, myAfter: null, myNextRound: null, awayN: null, gapNow: 0, gapNext: 0 };
     var now = rest[0];
     var mineIdx = [];
-    rest.forEach(function (o, i) { if (myTeamKey && o.team_key === myTeamKey) mineIdx.push(i); });
+    rest.forEach(function (o, i) { if (myTeamKey != null && o.team_key != null && String(o.team_key) === String(myTeamKey)) mineIdx.push(i); });
     var i0 = mineIdx.length ? mineIdx[0] : -1, i1 = mineIdx.length > 1 ? mineIdx[1] : -1;
     return {
       cur: now.pick, round: now.round || null, teamKey: now.team_key || null, total: total, done: false,
-      onMe: !!myTeamKey && now.team_key === myTeamKey,
+      onMe: myTeamKey != null && now.team_key != null && String(now.team_key) === String(myTeamKey),
       myNext: i0 >= 0 ? rest[i0].pick : null, myAfter: i1 >= 0 ? rest[i1].pick : null,
       myNextRound: i0 >= 0 ? rest[i0].round || null : null,
       awayN: i0 >= 0 ? i0 : null,
@@ -937,16 +976,17 @@
     };
   }
 
-  /* Auction leagues: Yahoo settings or draft results say so. The board has no
+  /* Auction leagues: the league summary (Sleeper draft.type === 'auction', or
+     Yahoo-era flags) or the draft payload says so. The board has no
      nomination/bidding model yet, so the page drops to manual mode. */
-  function isAuction(league, yahoo) {
-    if (league && (league.is_auction_draft === true || league.is_auction_draft === 1 || league.is_auction_draft === '1' ||
+  function isAuction(league, sync) {
+    if (league && (league.auction === true || league.is_auction_draft === true || league.is_auction_draft === 1 || league.is_auction_draft === '1' ||
         /auction/i.test(String(league.draft_type || '')) || (league.settings && (league.settings.is_auction_draft === true || /auction/i.test(String(league.settings.draft_type || '')))))) return true;
-    return !!(yahoo && (yahoo.auction === true || (yahoo.picks || []).some(function (p) { return p && p.cost != null; })));
+    return !!(sync && (sync.auction === true || (sync.draft && /auction/i.test(String(sync.draft.type || ''))) || (sync.picks || []).some(function (p) { return p && p.cost != null; })));
   }
 
-  /* Which Yahoo league to open after /status. `pref` is the device's saved
-     choice: a league_key, '' (manual board), or null (never chosen).
+  /* Which league to open after the account's leagues load. `pref` is the
+     device's saved choice: a league_key, '' (manual board), or null (never chosen).
        none   — no NBA leagues this season (board stays manual)
        saved  — the remembered league is still on the account
        manual — the user picked "Manual board" before
@@ -961,12 +1001,12 @@
     return { mode: 'pick', key: null };
   }
 
-  /* Yahoo scoring_type: headpoint (H2H points / High Score) and point are what
-     the board's values model; head (H2H categories) and roto are not. */
-  var CATEGORY_SCORING = { head: 'H2H categories', roto: 'Rotisserie' };
+  /* scoring_type: Sleeper leagues are 'points' (what the board's values model)
+     or 'categories'; the Yahoo-era names (headpoint / point / head / roto) still map. */
+  var CATEGORY_SCORING = { head: 'H2H categories', roto: 'Rotisserie', categories: 'Categories', cat: 'Categories', rotisserie: 'Rotisserie' };
   function scoringLabel(t) {
     t = String(t || '').toLowerCase();
-    return CATEGORY_SCORING[t] || (t === 'headpoint' ? 'H2H points' : t === 'point' ? 'Points' : '');
+    return CATEGORY_SCORING[t] || (t === 'headpoint' ? 'H2H points' : t === 'point' || t === 'points' || t === 'std' ? 'Points' : '');
   }
   // What the board can do for a league: { recos, kind: null|'auction'|'categories', label }.
   // Auction keeps its own manual-mode path (isAuction); category scoring keeps
@@ -979,27 +1019,44 @@
   }
 
   var DRAFT_STATUS_TEXT = { predraft: 'Draft not started', draft: 'Drafting now', drafting: 'Drafting now', postdraft: 'Drafted' };
-  // "12 teams · Draft not started · H2H categories" for the league picker.
-  function leagueSummary(l) {
+  // "Oct 20, 7:00 PM" for a scheduled draft (ms epoch); '' when unknown.
+  function draftTimeText(ms, now) {
+    var t = Number(ms);
+    if (!(t > 0)) return '';
+    var d = new Date(t), n = now ? new Date(now) : new Date();
+    try {
+      var opts = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+      if (d.getFullYear() !== n.getFullYear()) opts.year = 'numeric';
+      return d.toLocaleString('en-US', opts);
+    } catch (e) { return d.toISOString().slice(0, 16).replace('T', ' '); }
+  }
+  // "12 teams · Drafts Oct 20, 7:00 PM · Points · 3RR" for the league picker.
+  function leagueSummary(l, now) {
     var parts = [];
     var n = parseInt(l && l.num_teams, 10);
     if (n > 0) parts.push(n + ' teams');
-    if (l && DRAFT_STATUS_TEXT[l.draft_status]) parts.push(DRAFT_STATUS_TEXT[l.draft_status]);
+    if (l && l.auction) parts.push('Auction');
+    if (l && l.draft_status === 'predraft' && l.draft_start) parts.push('Drafts ' + draftTimeText(l.draft_start, now));
+    else if (l && DRAFT_STATUS_TEXT[l.draft_status]) parts.push(DRAFT_STATUS_TEXT[l.draft_status]);
     var sc = scoringLabel(l && l.scoring_type);
     if (sc) parts.push(sc);
+    if (l && parseInt(l.reversal_round, 10) === 3) parts.push('3RR');
     return parts.join(' · ');
   }
 
-  /* /status failure → what to tell the user. kind: 'blocked' (Yahoo refuses
-     our app; nothing the user can do), 'down' (Yahoo 5xx / unreachable: retry),
-     'reauth' (reconnect), 'signin', or null (no problem / not connected). */
-  function yahooProblem(st) {
+  /* Account/status failure → what to tell the user. kind: 'user' (no Sleeper
+     user by that name), 'down' (Sleeper 5xx / timeout / unreachable / rate
+     limited: retry), or null (no problem / not connected). Yahoo-era codes
+     ('reauth', 'blocked', 'signin') are still recognised for old saved states. */
+  function syncProblem(st) {
     if (!st) return null;
     if (st.connected) return null;
+    if (st.code === 'sleeper_user_not_found' || st.httpStatus === 404) return 'user';
     if (st.reauth || st.code === 'yahoo_reauth') return 'reauth';
     if (st.httpStatus === 401) return 'signin';
     if (st.code === 'yahoo_app_blocked') return 'blocked';
-    if (st.httpStatus === 0 || st.httpStatus >= 500 || st.httpStatus === 429 || st.code === 'yahoo_upstream' || st.code === 'yahoo_misconfigured') return 'down';
+    if (st.code === 'yahoo_disabled') return null;
+    if (st.httpStatus === 0 || st.httpStatus >= 500 || st.httpStatus === 429 || /^sleeper_(upstream|timeout|rate_limited)$/.test(String(st.code || '')) || st.code === 'yahoo_upstream' || st.code === 'yahoo_misconfigured') return 'down';
     if (st.httpStatus) return 'down';
     return null;
   }
@@ -1114,9 +1171,9 @@
     return t ? { pick: pick, startedAt: t, pausedLeft: null } : null;
   }
 
-  /* Reset Draft: clears the picks marked on this device (and Yahoo-match
-     overrides, as the old reset did) for this league only. Settings, slot,
-     Yahoo picks and the league key stay. { state, cleared, undo }. */
+  /* Reset Draft: clears the picks marked on this device (and match overrides,
+     as the old reset did) for this league only. Settings, slot, synced picks
+     and the league key stay. { state, cleared, undo }. */
   function resetDraftCount(st) { return st && Array.isArray(st.manual) ? st.manual.length : 0; }
   function resetDraftState(st, now) {
     var undo = { manual: (st.manual || []).slice(), overrides: Object.assign({}, st.overrides || {}) };
@@ -1127,18 +1184,18 @@
     return Object.assign({}, st, { manual: undo.manual.slice(), overrides: Object.assign({}, undo.overrides), updatedAt: now || Date.now() });
   }
 
-  /* ----------------------------------------------------- yahoo league map */
+  /* ------------------------------------------------------ league settings */
 
-  // Yahoo roster_positions → settings.slots/bench. Accepts [{position,count}],
-  // ['G','G',...] or {G:2,...}. PG/SG/SF/PF/C/F-C make it a position-aware
-  // league; unknown starter positions count as UTIL.
-  function settingsFromYahoo(league, myTeamKey, teams, prev) {
+  // roster_positions → settings.slots/bench. Accepts Sleeper's ['PG','SG',…,
+  // 'BN','IR'], Yahoo's [{position,count}] or {G:2,...}. PG/SG/SF/PF/C/F-C make
+  // it a position-aware league; unknown starter positions count as UTIL.
+  function settingsFromLeague(league, myTeamKey, teams, prev) {
     var s = normalizeSettings(prev);
     if (!league) return s;
     var num = parseInt(league.num_teams, 10);
     if (num > 1) s.teams = Math.min(20, num);
     var rp = league.roster_positions;
-    // An empty list ([] or {}) means Yahoo didn't send positions: keep current settings.
+    // An empty list ([] or {}) means the league didn't send positions: keep current settings.
     if (rp && (Array.isArray(rp) ? rp.length : Object.keys(rp).length)) {
       var counts = {};
       if (Array.isArray(rp)) rp.forEach(function (x) {
@@ -1147,13 +1204,13 @@
         if (pos) counts[pos] = (counts[pos] || 0) + c;
       });
       else Object.keys(rp).forEach(function (k) { counts[k] = parseInt(rp[k], 10) || 0; });
-      // Yahoo names → slot types: Util → UTIL, F/C → FC, IL/IL+/IR → il, BN → bench.
+      // Names → slot types: Util → UTIL, F/C → FC, IL/IL+/IR → il, BN → bench, TAXI/NA ignored.
       var slots = {}, bench = 0, il = 0, unknown = 0;
       Object.keys(counts).forEach(function (k0) {
         var k = String(k0).toUpperCase().replace(/\s+/g, '');
         var n = counts[k0] || 0;
-        if (k === 'BN') { bench += n; return; }
-        if (k === 'IL' || k === 'IL+' || k === 'IR' || k === 'NA') { if (k !== 'NA') il += n; return; }
+        if (k === 'BN' || k === 'BENCH') { bench += n; return; }
+        if (k === 'IL' || k === 'IL+' || k === 'IR' || k === 'NA' || k === 'TAXI') { if (k !== 'NA' && k !== 'TAXI') il += n; return; }
         if (k === 'UTIL' || k === 'UTILITY') k = 'UTIL';
         else if (k === 'F/C' || k === 'C/F') k = 'FC';
         if (SLOT_TYPES.indexOf(k) < 0) { unknown += n; return; }
@@ -1169,44 +1226,81 @@
       }
       s.bench = Math.min(15, bench);
       s.il = Math.min(5, il);
-      s.rounds = undefined; // re-derive from Yahoo's roster (IL not drafted); Yahoo's pick list governs once live
+      s.rounds = undefined; // re-derive from the roster (IL not drafted); the league's pick list governs once live
     }
-    if (myTeamKey && Array.isArray(teams)) {
-      var mine = teams.filter(function (t) { return t.team_key === myTeamKey; })[0];
+    if (myTeamKey != null && Array.isArray(teams)) {
+      var mine = teams.filter(function (t) { return t && String(t.team_key) === String(myTeamKey); })[0];
       var dp = mine && parseInt(mine.draft_position, 10);
       if (dp >= 1 && dp <= s.teams) s.mySlot = dp;
     }
     return normalizeSettings(s);
   }
 
-  /* Has Yahoo told us where I pick? Live (connected, non-auction) leagues only:
-     my team's draft_position, my team_key in Yahoo's published pick order, or
-     a Yahoo pick already credited to me. */
-  function yahooSlotKnown(o) {
-    o = o || {};
-    if (!o.live || !o.myTeamKey) return false;
-    var n = (o.settings && o.settings.teams) || 0;
-    var mine = (o.teams || []).filter(function (t) { return t && t.team_key === o.myTeamKey; })[0];
-    var dp = mine && parseInt(mine.draft_position, 10);
-    if (dp >= 1 && (!n || dp <= n)) return true;
-    if (yahooOrderSlot(o.yahoo, o.myTeamKey, n)) return true;
-    return (o.picks || []).some(function (p) { return p && p.source === 'yahoo' && p.mine; });
+  /* Sleeper league + draft → settings. The league's roster_positions give the
+     slots (settingsFromLeague); the draft adds teams, rounds, the reversal round
+     and my slot (draft_order / slot_to_roster_id → teams[].draft_position).
+     Sleeper's draft.settings.slots_* are used when the league sent no positions.
+       league  /api/nba/sleeper/league `league` ({ num_teams, roster_positions, reserve_slots })
+       draft   its `draft` ({ teams, rounds, reversal_round, pick_timer, slots, type }) | null
+       teams   its `teams` (draft_position per team_key), myTeamKey my roster id */
+  function settingsFromSleeper(league, draft, myTeamKey, teams, prev) {
+    var lg = league ? { num_teams: league.num_teams, roster_positions: league.roster_positions } : null;
+    if (lg && (!lg.roster_positions || !lg.roster_positions.length) && draft && draft.slots) {
+      var rp = [];
+      Object.keys(draft.slots).forEach(function (k) { for (var i = 0; i < (draft.slots[k] || 0); i++) rp.push(k === 'IL' ? 'IR' : k); });
+      lg.roster_positions = rp;
+    }
+    var s = settingsFromLeague(lg, myTeamKey, teams, prev);
+    if (league && !(parseInt(s.il, 10) > 0) && parseInt(league.reserve_slots, 10) > 0) s.il = Math.min(5, parseInt(league.reserve_slots, 10));
+    var o = { teams: s.teams, mySlot: s.mySlot, slots: s.slots, bench: s.bench, il: s.il, rounds: s.rounds, thirdRoundReversal: !!(prev && prev.thirdRoundReversal), reversalRound: prev && prev.reversalRound };
+    if (draft) {
+      var dt = parseInt(draft.teams, 10);
+      if (dt > 1) o.teams = Math.min(20, dt);
+      var rounds = parseInt(draft.rounds, 10);
+      if (rounds > 0) o.rounds = rounds;
+      // Sleeper's reversal_round wins over any manual 3RR choice (0 = plain snake).
+      var rr = parseInt(draft.reversal_round, 10) || 0;
+      o.thirdRoundReversal = rr === 3;
+      o.reversalRound = rr >= 2 && rr !== 3 ? rr : undefined;
+    }
+    o.mySlot = Math.min(o.mySlot, o.teams);
+    return normalizeSettings(o);
   }
 
-  /* My round-1 pick in Yahoo's published order (= my draft slot), or null. */
-  function yahooOrderSlot(yahoo, myTeamKey, teams) {
-    if (!yahoo || !Array.isArray(yahoo.order) || !myTeamKey) return null;
+  // Pick timer seconds from a Sleeper draft (draft.settings.pick_timer), or null.
+  function sleeperPickSeconds(draft) {
+    var n = draft && parseInt(draft.pick_timer, 10);
+    return n > 0 ? Math.min(600, n) : null;
+  }
+
+  /* Has the league told us where I pick? Live (connected, non-auction) leagues
+     only: my team's draft_position, my team_key in the published pick order, or
+     a synced pick already credited to me. */
+  function syncSlotKnown(o) {
+    o = o || {};
+    if (!o.live || o.myTeamKey == null || o.myTeamKey === '') return false;
+    var n = (o.settings && o.settings.teams) || 0;
+    var mine = (o.teams || []).filter(function (t) { return t && String(t.team_key) === String(o.myTeamKey); })[0];
+    var dp = mine && parseInt(mine.draft_position, 10);
+    if (dp >= 1 && (!n || dp <= n)) return true;
+    if (syncOrderSlot(o.sync || o.yahoo, o.myTeamKey, n)) return true;
+    return (o.picks || []).some(function (p) { return p && (p.source === 'sync' || p.source === 'yahoo') && p.mine; });
+  }
+
+  /* My round-1 pick in the league's published order (= my draft slot), or null. */
+  function syncOrderSlot(sync, myTeamKey, teams) {
+    if (!sync || !Array.isArray(sync.order) || myTeamKey == null || myTeamKey === '') return null;
     var best = null;
-    yahoo.order.forEach(function (x) {
+    sync.order.forEach(function (x) {
       var p = x && parseInt(x.pick, 10);
-      if (x && x.team_key === myTeamKey && p >= 1 && (!teams || p <= teams) && (best == null || p < best)) best = p;
+      if (x && x.team_key != null && String(x.team_key) === String(myTeamKey) && p >= 1 && (!teams || p <= teams) && (best == null || p < best)) best = p;
     });
     return best;
   }
 
-  /* Hold the picker (render nothing) while Yahoo may still supply the slot, so
-     the chips don't flash on reload: /status not back yet on a device that has
-     used Yahoo (capped at SLOT_HOLD_STATUS_MS so manual boards barely wait), or
+  /* Hold the picker (render nothing) while the league may still supply the slot,
+     so the chips don't flash on reload: /status not back yet on a device that has
+     connected before (capped at SLOT_HOLD_STATUS_MS so manual boards barely wait), or
      a connected league whose first draft poll hasn't landed (SLOT_HOLD_LEAGUE_MS).
      o: { statusResolved, maybeConnected, sinceBootMs, leagueLoading, sinceLeagueMs } */
   var SLOT_HOLD_STATUS_MS = 1000, SLOT_HOLD_LEAGUE_MS = 4000;
@@ -1216,14 +1310,15 @@
     return !!o.leagueLoading && (o.sinceLeagueMs || 0) < SLOT_HOLD_LEAGUE_MS;
   }
 
-  /* "Which pick are you?" control. mode: 'yahoo' = synced (no chips), 'pick' =
-     chips open, 'chosen' = collapsed with a Change button, 'hold' = hidden while
-     Yahoo status loads (see slotPickerHold). chips = 1..teams. */
+  /* "Which pick are you?" control. mode: 'synced' = the league supplied it (no
+     chips), 'pick' = chips open, 'chosen' = collapsed with a Change button,
+     'hold' = hidden while the connection status loads (see slotPickerHold).
+     chips = 1..teams. */
   function slotPickerView(settings, o) {
     o = o || {};
     var st = normalizeSettings(settings), chips = [];
     for (var i = 1; i <= st.teams; i++) chips.push(i);
-    var mode = o.yahooKnown ? 'yahoo' : o.hold ? 'hold' : (o.chosen && !o.open ? 'chosen' : 'pick');
+    var mode = (o.syncKnown || o.yahooKnown) ? 'synced' : o.hold ? 'hold' : (o.chosen && !o.open ? 'chosen' : 'pick');
     return { mode: mode, slot: st.mySlot, teams: st.teams, chips: mode === 'pick' ? chips : [] };
   }
 
@@ -1232,7 +1327,7 @@
   function storageKey(leagueKey) { return STORAGE_PREFIX + (leagueKey || 'manual'); }
 
   function emptyState(leagueKey, settings) {
-    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), settingsSource: null, slotChosen: false, manual: [], overrides: {}, yahoo: null, updatedAt: 0 };
+    return { v: STATE_VERSION, leagueKey: leagueKey || null, settings: normalizeSettings(settings), settingsSource: null, slotChosen: false, manual: [], overrides: {}, sync: null, updatedAt: 0 };
   }
 
   function serializeState(st) {
@@ -1245,7 +1340,7 @@
       manual: (st.manual || []).filter(function (m) { return m && m.playerId != null; })
         .map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name || undefined }; }),
       overrides: st.overrides || {},
-      yahoo: st.yahoo ? { status: st.yahoo.status, picks: st.yahoo.picks || [], unmatched: st.yahoo.unmatched || [], polledAt: st.yahoo.polledAt || null } : null,
+      sync: st.sync ? { status: st.sync.status, picks: st.sync.picks || [], unmatched: st.sync.unmatched || [], order: st.sync.order || null, draft: st.sync.draft || null, polledAt: st.sync.polledAt || null } : null,
       updatedAt: st.updatedAt || Date.now()
     });
   }
@@ -1270,12 +1365,13 @@
       v: STATE_VERSION,
       leagueKey: leagueKey || null,
       settings: normalizeSettings(o.settings || defaults),
-      // 'user' = edited in the League dialog (kept); anything else follows the league profile / Yahoo.
+      // 'user' = edited in the League dialog (kept); anything else follows the league profile / the league.
       settingsSource: o.settingsSource === 'user' ? 'user' : null,
       slotChosen: typeof o.slotChosen === 'boolean' ? o.slotChosen : legacySlotChosen(o.settings),
       manual: Array.isArray(o.manual) ? o.manual.filter(function (m) { return m && m.playerId != null; }).map(function (m) { return { playerId: String(m.playerId), mine: !!m.mine, at: m.at || 0, name: m.name }; }) : [],
       overrides: o.overrides && typeof o.overrides === 'object' ? o.overrides : {},
-      yahoo: o.yahoo && Array.isArray(o.yahoo.picks) ? o.yahoo : null,
+      // Boards saved while the site was Yahoo-first kept their picks under `yahoo`.
+      sync: o.sync && Array.isArray(o.sync.picks) ? o.sync : o.yahoo && Array.isArray(o.yahoo.picks) ? o.yahoo : null,
       updatedAt: o.updatedAt || 0
     };
   }
@@ -1288,14 +1384,22 @@
     if (!failures) return POLL_MS;
     return Math.min(30000, POLL_MS * Math.pow(2, failures));
   }
-  // Hidden tab: during a live Yahoo draft keep polling (slower) so the "your
-  // pick" title countdown / beep still fires while the user sits in Yahoo's
-  // draft room; otherwise pause until the tab is visible again.
+  // Hidden tab: during a live draft keep polling (slower) so the "your pick"
+  // title countdown / beep still fires while the user sits in Sleeper's draft
+  // room; otherwise pause until the tab is visible again. 4 s while drafting,
+  // 10 s hidden, exponential backoff to 30 s on errors (pollDelay).
   var HIDDEN_POLL_MS = 10000;
-  function pollPlan(hidden, yahooStatus, failures) {
+  // Visible tab, draft not running (predraft / complete): poll gently (12 s)
+  // so a scheduled draft is noticed when it starts without hammering Sleeper;
+  // once the scheduled start is within SOON_MS (or already past) the live rate
+  // applies so the first pick shows up within seconds. opts: { startTime, now }.
+  var IDLE_POLL_MS = 12000, SOON_MS = 15 * 60 * 1000;
+  function pollPlan(hidden, status, failures, opts) {
     var d = pollDelay(failures);
-    if (!hidden) return { run: true, delay: d };
-    if (yahooStatus !== 'drafting') return { run: false, delay: d };
+    var st = opts && opts.startTime, now = (opts && opts.now) || Date.now();
+    var soon = status === 'predraft' && st > 0 && st - now <= SOON_MS;
+    if (!hidden) return { run: true, delay: status === 'drafting' || soon ? d : Math.max(d, IDLE_POLL_MS) };
+    if (status !== 'drafting' && !soon) return { run: false, delay: d };
     return { run: true, delay: Math.max(d, HIDDEN_POLL_MS) };
   }
 
@@ -1344,17 +1448,18 @@
     isLegacy: isLegacy, slotTypes: slotTypes, settingsFromProfile: settingsFromProfile, profilePickSeconds: profilePickSeconds,
     roundOf: roundOf, slotForPick: slotForPick, snakeOrder: snakeOrder, picksForSlot: picksForSlot, nextPickFor: nextPickFor,
     eligFor: eligFor, posTokens: posTokens, slotElig: slotElig, canFill: canFill, displayPositions: displayPositions,
-    yahooPosString: yahooPosString, playerKey: playerKey, yahooPidFromKey: yahooPidFromKey,
+    posString: posString, playerKey: playerKey, legacyKey: legacyKey, yahooPidFromKey: yahooPidFromKey, reversalOf: reversalOf,
     assignSlots: assignSlots, starterTotal: starterTotal, filledSlot: filledSlot,
     injuryFactor: injuryFactor, injuryShort: injuryShort,
     bestAvailable: bestAvailable, balanceWarnings: balanceWarnings, slotSupply: slotSupply, slotPulse: slotPulse,
     cheatSheet: cheatSheet, myPicksSnake: myPicksSnake,
-    mergePicks: mergePicks, settingsFromYahoo: settingsFromYahoo, yahooSlotKnown: yahooSlotKnown, yahooOrderSlot: yahooOrderSlot, slotPickerView: slotPickerView,
+    mergePicks: mergePicks, settingsFromLeague: settingsFromLeague, settingsFromSleeper: settingsFromSleeper, sleeperPickSeconds: sleeperPickSeconds,
+    syncSlotKnown: syncSlotKnown, syncOrderSlot: syncOrderSlot, slotPickerView: slotPickerView,
     slotPickerHold: slotPickerHold, SLOT_HOLD_STATUS_MS: SLOT_HOLD_STATUS_MS, SLOT_HOLD_LEAGUE_MS: SLOT_HOLD_LEAGUE_MS, legacySlotChosen: legacySlotChosen,
-    openSlots: openSlots, yahooClock: yahooClock, isAuction: isAuction,
-    leagueChoice: leagueChoice, leagueSupport: leagueSupport, leagueSummary: leagueSummary, scoringLabel: scoringLabel, yahooProblem: yahooProblem,
+    openSlots: openSlots, syncClock: syncClock, isAuction: isAuction,
+    leagueChoice: leagueChoice, leagueSupport: leagueSupport, leagueSummary: leagueSummary, draftTimeText: draftTimeText, scoringLabel: scoringLabel, syncProblem: syncProblem,
     DEFAULT_PICK_SECONDS: DEFAULT_PICK_SECONDS, normalizeTimerSeconds: normalizeTimerSeconds, timerState: timerState, restoreTimerStart: restoreTimerStart,
-    rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS,
+    rememberTimerStart: rememberTimerStart, pollPlan: pollPlan, HIDDEN_POLL_MS: HIDDEN_POLL_MS, IDLE_POLL_MS: IDLE_POLL_MS, SOON_MS: SOON_MS,
     clockKey: clockKey, newClock: newClock, isPaused: isPaused, clockLeftMs: clockLeftMs, pauseClock: pauseClock, resumeClock: resumeClock,
     resetClock: resetClock, advanceClock: advanceClock, clockView: clockView, serializeClock: serializeClock, restoreClock: restoreClock,
     resetDraftCount: resetDraftCount, resetDraftState: resetDraftState, undoResetDraft: undoResetDraft,

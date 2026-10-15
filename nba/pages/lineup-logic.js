@@ -282,7 +282,11 @@
     return 'Updated ' + Math.round(h / 24) + 'd ago';
   }
 
-  // Yahoo team page from a team key ("466.l.242808.t.3").
+  // Sleeper league page (lineups are set in the Sleeper app / sleeper.com).
+  function sleeperLeagueUrl(leagueId) {
+    return /^\d+$/.test(String(leagueId || '')) ? 'https://sleeper.com/leagues/' + leagueId + '/team' : 'https://sleeper.com/';
+  }
+  // Yahoo team page from a team key ("466.l.242808.t.3"); legacy.
   function yahooTeamUrl(teamKey) {
     var m = /\.l\.(\d+)\.t\.(\d+)$/.exec(String(teamKey || ''));
     return m ? 'https://basketball.fantasysports.yahoo.com/nba/' + m[1] + '/' + m[2] : 'https://basketball.fantasysports.yahoo.com/nba';
@@ -290,7 +294,7 @@
 
   return {
     fmtDate: fmtDate, fmtRange: fmtRange, weekOptions: weekOptions, suggestions: suggestions,
-    slotsFit: slotsFit, applyMoves: applyMoves, freshness: freshness, yahooTeamUrl: yahooTeamUrl,
+    slotsFit: slotsFit, applyMoves: applyMoves, freshness: freshness, yahooTeamUrl: yahooTeamUrl, sleeperLeagueUrl: sleeperLeagueUrl,
     STORAGE_PREFIX: STORAGE_PREFIX, MAX_ROSTER: MAX_ROSTER, SLOT_CHOICES: SLOT_CHOICES,
     slotChoices: slotChoices, slotGroup: slotGroup, scoringText: scoringText, slotListText: slotListText, countWord: countWord,
     normName: normName, searchPlayers: searchPlayers, parseRosterText: parseRosterText,

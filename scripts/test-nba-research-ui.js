@@ -164,7 +164,7 @@ test('marketReading in plain English', () => {
   const r = L.marketReading(60, { marketRank: 40, adpDelta: -20, label: 'reach' });
   assert.strictEqual(r.tone, 'reach');
   assert.ok(/market likes him more/i.test(r.text), r.text);
-  assert.ok(/Yahoo ranks him #264/.test(L.marketReading(238, { marketRank: null, yahooPreRank: 264 }).text));
+  assert.ok(/Preseason rank #264/.test(L.marketReading(238, { marketRank: null, yahooPreRank: 264 }).text));
   assert.strictEqual(L.marketReading(null, null).tone, 'none');
 });
 const jokic = {

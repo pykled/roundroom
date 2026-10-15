@@ -490,7 +490,7 @@ async function call(server, method, path, body, headers = {}) {
   const fakeAuth = (req, res, next) => (fakeGetAuth(req).userId ? next() : res.status(401).json({ error: 'Sign in required' }));
   const app = express();
   app.use('/', createNbaRouter({
-    auth: fakeAuth, getAuth: fakeGetAuth, apiCached, env: { YAHOO_CLIENT_ID: 'x', YAHOO_CLIENT_SECRET: 'y' },
+    auth: fakeAuth, getAuth: fakeGetAuth, apiCached, env: { YAHOO_CLIENT_ID: 'x', YAHOO_CLIENT_SECRET: 'y' }, yahooEnabled: true, // legacy Yahoo path
     loadModel: () => model, makeClient: fakeClient, log: { error() {}, warn() {} },
   }));
   const server = await listen(app);

@@ -117,10 +117,10 @@ const nbaBlock = (home.match(/<aside id="nba-banner"[\s\S]*?<\/aside>/) || [''])
   (home.match(/<section id="nba"[\s\S]*?<\/section>/) || [''])[0];
 ok(nbaBlock.length > 500, 'NBA blocks found');
 const nbaText = nbaBlock.replace(/<[^>]+>/g, ' ');
-for (const w of ['Sleeper', 'football', 'QB', 'RB', 'WR', 'TE', 'touchdown', 'PPR', 'superflex', 'FLEX', 'NFL', 'VORP']) {
+for (const w of ['Yahoo', 'football', 'QB', 'RB', 'WR', 'TE', 'touchdown', 'PPR', 'superflex', 'FLEX', 'NFL', 'VORP']) {
   ok(!new RegExp(`\\b${w}\\b`, 'i').test(nbaText), `NBA copy free of "${w}"`);
 }
-ok(/High Score/.test(nbaText) && /best game/i.test(nbaText) && /Yahoo/.test(nbaText), 'NBA copy names High Score, best game, Yahoo');
+ok(/High Score/.test(nbaText) && /best game/i.test(nbaText) && /Sleeper/.test(nbaText), 'NBA copy names High Score, best game, Sleeper');
 
 // ---------- 3. nav.js ----------
 // Minimal DOM stub: enough of Element for enhance() (class/id/attr selectors,

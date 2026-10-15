@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Waiver Targets | Pocket</title>
-<meta name="description" content="Waiver and streaming targets for Yahoo fantasy basketball: free agents ranked by how much they add to your best weekly lineup, add/drop pairs and a 4-game-week streamer calendar.">
+<meta name="description" content="Waiver and streaming targets for Sleeper fantasy basketball: free agents ranked by how much they add to your best weekly lineup, add/drop pairs and a 4-game-week streamer calendar.">
 <link rel="canonical" href="https://pocketff.com/nba/waivers">
 <meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
 <meta property="og:title" content="NBA High Score Waiver Targets | Pocket">
-<meta property="og:description" content="Add/drop pairs and a 4-game-week streamer calendar for Yahoo fantasy basketball.">
+<meta property="og:description" content="Add/drop pairs and a 4-game-week streamer calendar for Sleeper fantasy basketball.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pocketff.com/nba/waivers">
 <meta property="og:image" content="https://pocketff.com/og.png">
@@ -213,7 +213,7 @@
 <main class="nu-shell" id="wv-app">
   <header class="nu-page-head nu-page-head--court">
     <div class="nu-page-head__text">
-      <div class="nu-eyebrow" id="wv-eyebrow">Yahoo fantasy basketball · Waivers</div>
+      <div class="nu-eyebrow" id="wv-eyebrow">Fantasy basketball · Waivers</div>
       <h1 class="nu-page-head__title">Waivers</h1>
       <p class="nu-page-head__sub">Who to pick up, who to let go, and when the 4-game weeks land.</p>
     </div>
@@ -223,7 +223,7 @@
   </header>
 
   <div class="wv-controls" id="wv-controls">
-    <a id="wv-connect" class="nu-btn nu-btn--yahoo nu-btn--sm" href="/nba/auth/login" hidden><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a>
+    <button type="button" id="wv-connect" class="nu-btn nu-btn--sleeper nu-btn--sm" hidden><span class="nu-y" aria-hidden="true">S</span>Connect Sleeper</button>
     <select id="wv-source" class="nu-select wv-src" aria-label="League" hidden></select>
     <div class="nu-seg" id="wv-horizon" role="group" aria-label="Rank by">
       <button type="button" data-h="1" aria-pressed="true">This Week</button>
@@ -292,7 +292,7 @@
   </div>
 
 
-  <p class="wv-foot">Projections are estimates, not guarantees. Pocket isn't affiliated with Yahoo or the NBA.</p>
+  <p class="wv-foot">Projections are estimates, not guarantees. Pocket isn't affiliated with Sleeper or the NBA.</p>
 
   <div class="nu-actionbar wv-actionbar" id="wv-actionbar" hidden>
     <div class="nu-actionbar__info"><b id="wv-ab-title"></b><span id="wv-ab-sub"></span></div>
@@ -309,7 +309,7 @@
       <div class="nu-field"><label for="wv-adds-used">Adds used</label><input class="nu-input" type="number" id="wv-adds-used" inputmode="numeric" min="0" max="99" placeholder="0"></div>
       <div class="nu-field"><label for="wv-priority">Waiver spot</label><input class="nu-input" type="number" id="wv-priority" inputmode="numeric" min="1" max="20" placeholder="#"></div>
     </div>
-    <p class="nu-hint" style="margin:0 0 var(--nu-5)">Find both on Yahoo's team page. Your spot sets how much a waiver claim costs.</p>
+    <p class="nu-hint" style="margin:0 0 var(--nu-5)">Find both in your league's waiver settings. Your spot sets how much a waiver claim costs.</p>
     <div class="nu-section__head"><h3 class="nu-section__title">Add Players</h3></div>
     <label class="nu-search"><span id="wv-search-ic"></span><input class="nu-input" id="wv-search" type="search" placeholder="Search players to add" autocomplete="off" aria-label="Search players to add" aria-controls="wv-results"></label>
     <ul class="wv-results" id="wv-results" role="listbox" aria-label="Search results"></ul>
@@ -344,7 +344,7 @@
   <div class="nu-sheet__foot"><button type="button" class="nu-btn nu-btn--primary" data-nu-close>Got It</button></div>
 </div>
 
-<script defer src="/nba/pages/yahoo-chip.js"></script>
+<script src="/nba/pages/sleeper-chip.js"></script>
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="/nba/pages/waivers-logic.js"></script>
 <script src="/nba/pages/waivers.js"></script>

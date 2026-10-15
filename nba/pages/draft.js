@@ -1,6 +1,9 @@
-/* Pocket NBA — draft board controller.
-   Works with no Yahoo connection (manual tracking, localStorage per league) and
-   upgrades to Yahoo-first live sync when /api/nba/yahoo/status says connected.
+/* Pocket NBA — draft board controller (Sleeper-first).
+   Works with no connection (manual tracking, localStorage per league) and
+   upgrades to live Sleeper sync once a Sleeper username is remembered on the
+   device (sleeper-chip.js → /api/nba/sleeper/*). Sleeper's API is public, so
+   there is no sign-in: picks, draft order, slot, rounds, timer and the
+   reversal round come from the league's draft and win over manual settings.
    Pure logic lives in draft-logic.js (window.NbaDraft); the look comes from the
    design system (nba-ui.css + window.NbaUI) plus draft-board.css.
    Board rows are keyed DOM nodes (built once per player, then only their state
@@ -22,25 +25,25 @@
     // league profile (GET /api/nba/league-profile); null until loaded / if unavailable
     profile: null, profileErr: false,
     state: L.emptyState(null),
-    // yahoo
-    connected: false, leagues: [], leagueKey: null, league: null, teams: [], myTeamKey: null,
+    // sleeper
+    connected: false, username: null, userId: null, leagues: [], leagueKey: null, league: null, draft: null, teams: [], myTeamKey: null,
     sync: 'off',            // off | connecting | live | degraded
     failures: 0, lastOk: 0, nextPollAt: 0, pollTimer: null, lastErr: '',
-    auction: false, signedOut: false, yahooDown: false,
-    // league picker / Yahoo notices: leagueMode from L.leagueChoice, problem from L.yahooProblem
-    leagueMode: null, pickerOpen: false, yahooProblem: null, support: { recos: true, kind: null, label: '' },
-    // slot picker hold (no chip flash while Yahoo may still supply the slot)
-    statusResolved: false, bootAt: Date.now(), maybeYahoo: false, leagueReady: true, leagueLoadAt: 0, slotHoldTimer: null,
+    auction: false, signedOut: false, syncDown: false,
+    // league picker / sync notices: leagueMode from L.leagueChoice, problem from L.syncProblem
+    leagueMode: null, pickerOpen: false, syncProblem: null, support: { recos: true, kind: null, label: '' },
+    // slot picker hold (no chip flash while the league may still supply the slot)
+    statusResolved: false, bootAt: Date.now(), maybeConnected: false, leagueReady: true, leagueLoadAt: 0, slotHoldTimer: null,
     // pick timer: restarts whenever the pick on the clock changes (unless paused).
     // lk = league the clock belongs to; saved per league (L.clockKey).
     timer: { lk: undefined, pick: null, startedAt: 0, pausedLeft: null, beeped: false },
     // ui
     pos: 'ALL', q: '', showTaken: false, tierMax: 0, hideOut: false, sort: 'rank', view: 'board', sheetId: null, matching: null, slotOpen: false, pulse: [],
-    merged: { picks: [], unmatched: [], confirmedManual: [] }, lastYahooCount: -1
+    merged: { picks: [], unmatched: [], confirmedManual: [] }, lastSyncCount: -1
   };
   try { var sp = localStorage.getItem(SORT_PREF); if (sp) S.sort = sp; } catch (e) {}
-  // Has this device used Yahoo? (league pref is only written while connected, or we're back from OAuth.)
-  try { S.maybeYahoo = localStorage.getItem(LEAGUE_PREF) !== null || /[?&]yahoo=connected/.test(location.search); } catch (e) {}
+  // Has this device connected Sleeper? (username / league pref are only written while connected.)
+  try { S.maybeConnected = localStorage.getItem('pocket-nba-sleeper') !== null || localStorage.getItem(LEAGUE_PREF) !== null; } catch (e) {}
 
   /* ------------------------------------------------------------ utils */
   var esc = U.esc;
@@ -56,20 +59,20 @@
     return w[w.length - 1] || '';
   }
   function pill(x, low, why) {
-    return '<span class="nu-pos' + (low ? ' is-est' : '') + '" data-pos="' + esc(x === 'FC' ? 'F' : x) + '"' + (low ? ' title="Not confirmed by Yahoo (' + esc(why) + ')"' : '') + '>' + esc(x === 'UTIL' ? 'UTL' : slotLabel(x)) + '</span>';
+    return '<span class="nu-pos' + (low ? ' is-est' : '') + '" data-pos="' + esc(x === 'FC' ? 'F' : x) + '"' + (low ? ' title="Estimated position (' + esc(why) + ')"' : '') + '>' + esc(x === 'UTIL' ? 'UTL' : slotLabel(x)) + '</span>';
   }
-  // Yahoo position pills; dashed + "?" when eligibility isn't confirmed by Yahoo.
+  // Position pills from the league's eligibility; dashed + "?" when only estimated.
   function posPills(p) {
     if (L.isLegacy(S.state.settings)) {
       var e = (p.elig || []).filter(function (x) { return x !== 'UTIL'; });
       if (!e.length) e = ['UTIL'];
       return '<span class="nu-pos-group">' + e.map(function (x) { return pill(x); }).join('') + '</span>';
     }
-    var el = L.slotElig(p), list = L.displayPositions(p), low = el.source !== 'yahoo' || el.low;
+    var el = L.slotElig(p), list = L.displayPositions(p), low = el.source !== 'league' || el.low;
     if (!list.length) list = ['UTIL'];
-    var why = el.source !== 'yahoo' ? 'estimated positions' : 'eligibility source: ' + (p.eligConfidence == null ? 'unknown' : p.eligConfidence);
+    var why = el.source !== 'league' ? 'estimated positions' : 'eligibility source: ' + (p.eligConfidence == null ? 'unknown' : p.eligConfidence);
     return '<span class="nu-pos-group">' + list.map(function (x) { return pill(x, low, why); }).join('') + '</span>' +
-      (low ? '<span class="nd-elig-badge" title="Positions not confirmed by Yahoo (' + esc(why) + ')" aria-label="Positions not confirmed by Yahoo">?</span>' : '');
+      (low ? '<span class="nd-elig-badge" title="Positions not confirmed by Sleeper (' + esc(why) + ')" aria-label="Positions not confirmed by Sleeper">?</span>' : '');
   }
   function vorpTxt(p) { return typeof p.vorp === 'number' && isFinite(p.vorp) ? (p.vorp >= 0 ? '+' : '') + p.vorp.toFixed(1) : null; }
   // Preseason "Rest" DTD tags are dropped (L.draftInjury); real injuries stay.
@@ -90,8 +93,8 @@
     return 'Team ' + slot;
   }
   function teamNameForKey(key, slot) {
-    if (key && key === S.myTeamKey) return 'You';
-    var t = (S.teams || []).filter(function (x) { return x.team_key === key; })[0];
+    if (key != null && key !== '' && S.myTeamKey != null && String(key) === String(S.myTeamKey)) return 'You';
+    var t = (S.teams || []).filter(function (x) { return key != null && String(x.team_key) === String(key); })[0];
     return t && t.name ? t.name : teamName(slot);
   }
   // One toast at a time: fast drafting must never stack notices over the board.
@@ -125,22 +128,22 @@
   }
 
   function recompute() {
-    var y = S.connected && S.leagueKey ? S.state.yahoo : null;
+    var y = S.connected && S.leagueKey ? S.state.sync : null;
     S.merged = L.mergePicks(y, S.state.manual, { settings: S.state.settings, myTeamKey: S.myTeamKey, overrides: S.state.overrides, playersById: S.byId, byYahooPid: S.byYahooPid, alias: S.alias });
     if (S.merged.confirmedManual.length) {
       var gone = {}; S.merged.confirmedManual.forEach(function (id) { gone[id] = 1; });
       S.state.manual = S.state.manual.filter(function (m) { return !gone[String(m.playerId)]; });
       save();
     }
-    // Live: if Yahoo didn't give a draft position, learn my slot from my first pick.
-    if (y && S.myTeamKey) {
-      // ...or from my round-1 pick in Yahoo's published order (before any picks).
-      var me = (S.teams || []).filter(function (t) { return t && t.team_key === S.myTeamKey; })[0];
+    // Live: if the league didn't give a draft position, learn my slot from my first pick.
+    if (y && S.myTeamKey != null) {
+      // ...or from my round-1 pick in the published order (before any picks).
+      var me = (S.teams || []).filter(function (t) { return t && String(t.team_key) === String(S.myTeamKey); })[0];
       var dp = me && parseInt(me.draft_position, 10);
-      var os = !(dp >= 1 && dp <= S.state.settings.teams) && L.yahooOrderSlot(y, S.myTeamKey, S.state.settings.teams);
+      var os = !(dp >= 1 && dp <= S.state.settings.teams) && L.syncOrderSlot(y, S.myTeamKey, S.state.settings.teams);
       if (os && os !== S.state.settings.mySlot) { S.state.settings.mySlot = os; save(); }
-      var first = S.merged.picks.filter(function (p) { return p.source === 'yahoo' && p.mine; })[0];
-      if (first && first.slot !== S.state.settings.mySlot) { S.state.settings.mySlot = first.slot; save(); }
+      var first = S.merged.picks.filter(function (p) { return p.source === 'sync' && p.mine; })[0];
+      if (first && first.slot !== S.state.settings.mySlot && !(dp >= 1)) { S.state.settings.mySlot = first.slot; save(); }
     }
   }
 
@@ -159,29 +162,29 @@
     var t = takenMap();
     return S.players.filter(function (p) { return !t[p.id]; });
   }
-  function liveYahoo() { return S.connected && S.leagueKey && !S.auction; }
+  function liveSync() { return S.connected && S.leagueKey && !S.auction; }
   function pendingCount() { return S.merged.picks.filter(function (p) { return p.source === 'manual'; }).length; }
-  /* Who's on the clock. Live Yahoo leagues use Yahoo's own pick order (team_key
+  /* Who's on the clock. Live leagues use Sleeper's own pick order (team_key
      per pick: keepers and traded picks come out right); manual mode, or a
-     Yahoo league that hasn't published an order, assumes a snake. */
+     league whose draft order isn't set yet, assumes a snake. */
   function clockInfo() {
     var st = S.state.settings;
-    var yc = liveYahoo() ? L.yahooClock(S.state.yahoo, S.myTeamKey, pendingCount()) : null;
+    var yc = liveSync() ? L.syncClock(S.state.sync, S.myTeamKey, pendingCount()) : null;
     if (yc) {
-      // Yahoo's own pick list is the truth for the draft length (14 vs 16 rounds).
+      // The league's own pick list is the truth for the draft length (13 vs 14 rounds).
       return { cur: yc.cur, total: yc.total > 0 ? yc.total : L.totalPicks(st), done: yc.done, round: yc.round || (yc.done ? L.draftRounds(st) : L.roundOf(yc.cur, st.teams)),
         slot: null, teamKey: yc.teamKey, onMe: yc.onMe, myNext: yc.myNext, myAfter: yc.myAfter,
         myNextRound: yc.myNextRound || (yc.myNext ? L.roundOf(yc.myNext, st.teams) : null),
-        awayN: yc.awayN, gapNow: yc.gapNow, gapNext: yc.gapNext, fromYahoo: true };
+        awayN: yc.awayN, gapNow: yc.gapNow, gapNext: yc.gapNext, fromSync: true };
     }
     var cur = currentPick(), total = L.totalPicks(st);
     var done = cur > total;
-    var slot = done ? null : L.slotForPick(cur, st.teams, st.thirdRoundReversal);
+    var slot = done ? null : L.slotForPick(cur, st.teams, L.reversalOf(st));
     var mine = L.nextPickFor(st.mySlot, cur, st);
     var after = mine ? L.nextPickFor(st.mySlot, mine + 1, st) : null;
     return { cur: cur, total: total, done: done, round: done ? L.draftRounds(st) : L.roundOf(cur, st.teams), slot: slot, teamKey: null, onMe: slot === st.mySlot, myNext: mine, myAfter: after,
       myNextRound: mine ? L.roundOf(mine, st.teams) : null,
-      awayN: mine ? mine - cur : null, gapNow: after ? after - cur - 1 : 0, gapNext: mine && after ? after - mine - 1 : 0, fromYahoo: false };
+      awayN: mine ? mine - cur : null, gapNow: after ? after - cur - 1 : 0, gapNext: mine && after ? after - mine - 1 : 0, fromSync: false };
   }
   function clockTeamName(ci) { return ci.teamKey ? teamNameForKey(ci.teamKey, null) : teamName(ci.slot); }
 
@@ -194,8 +197,8 @@
     if (mine == null) mine = ci.onMe;
     S.state.manual.push({ playerId: id, mine: !!mine, at: Date.now() });
     save(); recompute(); render();
-    var live = liveYahoo();
-    toast((mine ? 'You took ' : clockTeamName(ci) + ' took ') + p.name + (live ? ' · waiting for Yahoo' : ''),
+    var live = liveSync();
+    toast((mine ? 'You took ' : clockTeamName(ci) + ' took ') + p.name + (live ? ' · waiting for Sleeper' : ''),
       { tone: mine ? 'good' : undefined, action: !mine ? null : { label: 'Undo', onClick: function () { if (S.state.manual.length && String(S.state.manual[S.state.manual.length - 1].playerId) === String(id)) undo(); } } });
   }
   function undo() {
@@ -217,7 +220,7 @@
     S.matching = { key: playerKey, name: name };
     if (U.sheet.isOpen()) U.sheet.close(true);
     var bar = $('nd-matchbar');
-    bar.innerHTML = '<span>Tap the board player who is <b>' + esc(name) + '</b> (Yahoo pick).</span><button type="button" class="nu-btn nu-btn--sm" id="nd-match-cancel">Cancel</button>';
+    bar.innerHTML = '<span>Tap the board player who is <b>' + esc(name) + '</b> (Sleeper pick).</span><button type="button" class="nu-btn nu-btn--sm" id="nd-match-cancel">Cancel</button>';
     bar.hidden = false;
     $('nd-match-cancel').onclick = endMatch;
     S.showTaken = false; $('nd-search').value = L.normName(name).split(' ').slice(-1)[0] || ''; S.q = $('nd-search').value;
@@ -252,29 +255,30 @@
 
   function renderHead() {
     var st = V.st, secs = timerSeconds();
-    $('nd-eyebrow').textContent = leagueName() + ' · Yahoo High Score';
+    $('nd-eyebrow').textContent = leagueName() + ' · High Score';
     $('nd-sub').innerHTML = '<span class="nd-status__lg">' + esc(leagueName()) + ' · </span><b>Slot ' + esc(st.mySlot) + '</b> of ' + esc(st.teams) + ' · ' + esc(L.draftRounds(st)) + ' rounds' + (secs ? ' · ' + esc(secs) + 's picks' : '') +
       '<span class="nd-status__more"> · ' + esc(L.starterCount(st)) + ' starters + ' + esc(st.bench) + ' BN' + (st.il ? ' + ' + esc(st.il) + ' IL' : '') + '</span>';
   }
 
-  /* "Which pick are you?" Chips 1..teams while Yahoo hasn't given the slot;
-     one line + Change once chosen; the synced slot once Yahoo knows it. */
-  function slotKnownFromYahoo() {
-    return L.yahooSlotKnown({ live: liveYahoo(), myTeamKey: S.myTeamKey, teams: S.teams, settings: S.state.settings, yahoo: S.state.yahoo, picks: S.merged.picks });
+  /* "Which pick are you?" Chips 1..teams while the league hasn't given the slot
+     (Sleeper: draft order not set yet); one line + Change once chosen; the
+     synced slot once Sleeper knows it. */
+  function slotKnownFromSync() {
+    return L.syncSlotKnown({ live: liveSync(), myTeamKey: S.myTeamKey, teams: S.teams, settings: S.state.settings, sync: S.state.sync, picks: S.merged.picks });
   }
   function slotHold() {
     var now = Date.now();
-    var hold = L.slotPickerHold({ statusResolved: S.statusResolved, maybeConnected: S.maybeYahoo, sinceBootMs: now - S.bootAt,
-      leagueLoading: !!liveYahoo() && !S.leagueReady, sinceLeagueMs: now - S.leagueLoadAt });
-    // Re-check when the cap runs out, even if Yahoo never answers.
+    var hold = L.slotPickerHold({ statusResolved: S.statusResolved, maybeConnected: S.maybeConnected, sinceBootMs: now - S.bootAt,
+      leagueLoading: !!liveSync() && !S.leagueReady, sinceLeagueMs: now - S.leagueLoadAt });
+    // Re-check when the cap runs out, even if Sleeper never answers.
     clearTimeout(S.slotHoldTimer);
     if (hold) S.slotHoldTimer = setTimeout(renderSlotPick, S.statusResolved ? L.SLOT_HOLD_LEAGUE_MS - (now - S.leagueLoadAt) + 20 : L.SLOT_HOLD_STATUS_MS - (now - S.bootAt) + 20);
     return hold;
   }
   function renderSlotPick() {
-    var el = $('nd-slotpick'), v = L.slotPickerView(S.state.settings, { yahooKnown: slotKnownFromYahoo(), hold: slotHold(), chosen: S.state.slotChosen, open: S.slotOpen });
+    var el = $('nd-slotpick'), v = L.slotPickerView(S.state.settings, { syncKnown: slotKnownFromSync(), hold: slotHold(), chosen: S.state.slotChosen, open: S.slotOpen });
     el.setAttribute('data-mode', v.mode);
-    // Choosing between Yahoo leagues: the slot depends on which one, so ask that first.
+    // Choosing between leagues: the slot depends on which one, so ask that first.
     if (v.mode === 'hold' || pickingLeague()) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
     if (v.mode === 'pick') {
@@ -283,13 +287,13 @@
           return '<button type="button" class="nu-chip nd-slotpick__chip nu-num" data-act="slot" data-slot="' + n + '" aria-pressed="' + (S.state.slotChosen && n === v.slot) + '" aria-label="Pick ' + n + ' of ' + v.teams + '">' + n + '</button>';
         }).join('') + '</div>';
     } else {
-      el.innerHTML = '<span class="nd-slotpick__txt">' + (v.mode === 'yahoo' ? 'Your pick: ' : 'You pick ') + '<b>#' + esc(v.slot) + '</b> of ' + esc(v.teams) +
-        (v.mode === 'yahoo' ? ' <span class="nu-hint">· synced from Yahoo</span>' : '') + '</span>' +
+      el.innerHTML = '<span class="nd-slotpick__txt">' + (v.mode === 'synced' ? 'Your pick: ' : 'You pick ') + '<b>#' + esc(v.slot) + '</b> of ' + esc(v.teams) +
+        (v.mode === 'synced' ? ' <span class="nu-hint">· synced from Sleeper</span>' : '') + '</span>' +
         (v.mode === 'chosen' ? '<button type="button" class="nu-btn nu-btn--sm nd-slotpick__change" data-act="slot-change" aria-label="Change draft slot (now pick ' + esc(v.slot) + ')">Change</button>' : '');
     }
   }
   function chooseSlot(n) {
-    if (slotKnownFromYahoo()) return;
+    if (slotKnownFromSync()) return;
     S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: n }));
     S.state.slotChosen = true; S.slotOpen = false;
     save(); recompute(); render();
@@ -334,14 +338,14 @@
   function timelineHtml(ci, st) {
     if (ci.done || S.auction) return '';
     var items = [];
-    if (ci.fromYahoo) {
-      L.openSlots(S.state.yahoo).slice(pendingCount(), pendingCount() + 26).forEach(function (o) {
-        var t = (S.teams || []).filter(function (x) { return x.team_key === o.team_key; })[0];
-        items.push({ pick: o.pick, me: !!(o.team_key && o.team_key === S.myTeamKey), round: o.round || L.roundOf(o.pick, st.teams), who: t ? t.name : '' });
+    if (ci.fromSync) {
+      L.openSlots(S.state.sync).slice(pendingCount(), pendingCount() + 26).forEach(function (o) {
+        var t = (S.teams || []).filter(function (x) { return o.team_key != null && String(x.team_key) === String(o.team_key); })[0];
+        items.push({ pick: o.pick, me: !!(o.team_key != null && S.myTeamKey != null && String(o.team_key) === String(S.myTeamKey)), round: o.round || L.roundOf(o.pick, st.teams), who: t ? t.name : '' });
       });
     } else {
       for (var p = ci.cur; p <= Math.min(ci.total, ci.cur + 25); p++) {
-        var s = L.slotForPick(p, st.teams, st.thirdRoundReversal);
+        var s = L.slotForPick(p, st.teams, L.reversalOf(st));
         items.push({ pick: p, me: s === st.mySlot, round: L.roundOf(p, st.teams), who: teamName(s) });
       }
     }
@@ -415,7 +419,7 @@
       }).join('') + '</div>';
   }
 
-  // Market (Yahoo-first consensus) rank + reach/value delta; empty cell when absent.
+  // Market (consensus ADP) rank + reach/value delta; empty cell when absent.
   function mktCell(p) {
     if (p.marketRank == null) return '<span class="nd-mkt nu-muted">—</span>';
     var lab = p.label === 'value' || p.label === 'reach' ? p.label : '';
@@ -434,12 +438,12 @@
     el.setAttribute('data-act', 'sheet');
     el.setAttribute('data-id', p.id);
     el.innerHTML =
-      '<span class="nd-c-rk"><b>' + esc(p.rank) + '</b>' + (p.yahooPreRank != null ? '<small title="Yahoo pre-season rank">Y' + esc(p.yahooPreRank) + '</small>' : '') + '</span>' +
+      '<span class="nd-c-rk"><b>' + esc(p.rank) + '</b></span>' +
       '<button type="button" class="nd-row-main nd-c-pl" data-act="sheet" data-id="' + esc(p.id) + '" aria-label="' + esc(p.name + ', ' + (p.team || '') + ', value ' + n1(p.hsValue) + (p.injury ? ', ' + p.injury : '')) + '">' +
         avatar(p, 'md', { teamBadge: true }) +
         '<span class="nd-who"><span class="nd-name">' + esc(p.name) + '</span>' +
         '<span class="nd-meta">' + posPills(p) + '<span class="nd-tm">' + esc(p.team || 'FA') + '</span>' + gamesChip(p) + injBadge(p) +
-          (p.noLogData ? '<span class="nd-flag" title="No game-log data: value estimated from Yahoo projection">EST</span>' : '') +
+          (p.noLogData ? '<span class="nd-flag" title="No game-log data: value estimated from a preseason projection">EST</span>' : '') +
           '<span class="nd-takenby"></span></span></span>' +
       '</button>' +
       '<span class="nd-c-tier">' + U.tierBadge(p.tier) + '</span>' +
@@ -477,8 +481,7 @@
     value: function (a, b) { return (b.hsValue || 0) - (a.hsValue || 0) || a.rank - b.rank; },
     ceiling: function (a, b) { return (b.ceiling || 0) - (a.ceiling || 0) || a.rank - b.rank; },
     vorp: function (a, b) { return (typeof b.vorp === 'number' ? b.vorp : -1e9) - (typeof a.vorp === 'number' ? a.vorp : -1e9) || a.rank - b.rank; },
-    market: function (a, b) { return (a.marketRank == null ? 1e9 : a.marketRank) - (b.marketRank == null ? 1e9 : b.marketRank) || a.rank - b.rank; },
-    yahoo: function (a, b) { return (a.yahooPreRank == null ? 1e9 : a.yahooPreRank) - (b.yahooPreRank == null ? 1e9 : b.yahooPreRank) || a.rank - b.rank; }
+    market: function (a, b) { return (a.marketRank == null ? 1e9 : a.marketRank) - (b.marketRank == null ? 1e9 : b.marketRank) || a.rank - b.rank; }
   };
   var sortedCache = { key: null, list: null };
   function sortedPlayers() {
@@ -546,7 +549,7 @@
     if (tsel.getAttribute('data-sig') !== String(keys.length)) { tsel.innerHTML = want; tsel.setAttribute('data-sig', String(keys.length)); }
     tsel.value = String(S.tierMax || 0);
     $('nd-sort').value = SORTS[S.sort] ? S.sort : 'rank';
-    var derived = S.players.length && S.players.filter(function (p) { return L.slotElig(p).source !== 'yahoo'; }).length > S.players.length / 2;
+    var derived = S.players.length && S.players.filter(function (p) { var e = L.slotElig(p); return e.source !== 'league' || e.low; }).length > S.players.length / 2;
     $('nd-elig-note').hidden = !(derived && !L.isLegacy(st));
   }
 
@@ -579,7 +582,7 @@
       html += '<div class="nd-sub-h"><span class="nu-label">IL</span><span class="nu-hint">injured players only</span></div><div class="nd-bench">';
       a.il.forEach(function (p) {
         html += '<div class="nd-slot nd-slot--bn is-filled"><span class="nd-slot__pos" data-fam="UTIL">IL</span><button type="button" class="nd-slot__who" data-act="sheet" data-id="' + esc(p.id) + '">' + avatar(p, 'xs') + '<span class="nd-slot__nm">' + esc(p.name) + '</span></button>' +
-          (isOut(p) ? injBadge(p) : '<span class="nd-flag" title="Healthy players can’t sit on IL in Yahoo">NOT IL</span>') + '<span class="nd-slot__v nu-num">' + n1(p.hsValue) + '</span></div>';
+          (isOut(p) ? injBadge(p) : '<span class="nd-flag" title="Healthy players can’t sit in an IR spot on Sleeper">NOT IL</span>') + '<span class="nd-slot__v nu-num">' + n1(p.hsValue) + '</span></div>';
       });
       for (var j = a.il.length; j < st.il; j++) html += '<div class="nd-slot nd-slot--bn is-open"><span class="nd-slot__pos" data-fam="UTIL">IL</span><span class="nd-slot__open">Open</span></div>';
       html += '</div>';
@@ -601,8 +604,8 @@
     if (!picks.length) return '<div class="nu-hint nd-picks-empty">No picks yet. Tap Draft on the board as players go.</div>';
     return picks.map(function (p) {
       var pl = p.playerId && S.byId[p.playerId];
-      var flag = p.source === 'manual' && !p.confirmed && liveYahoo() ? '<span class="nd-flag" title="Marked here; Yahoo has not confirmed it yet">PENDING</span>'
-        : !p.playerId ? '<span class="nd-flag um">REVIEW</span>' : '';
+      var flag = p.source === 'manual' && !p.confirmed && liveSync() ? '<span class="nd-flag" title="Marked here; Sleeper has not confirmed it yet">PENDING</span>'
+        : !p.playerId ? '<span class="nd-flag um">REVIEW</span>' : p.keeper ? '<span class="nd-flag" title="Keeper">K</span>' : '';
       var ctl = p.source === 'manual'
         ? '<button type="button" class="nd-mini-btn" data-act="mine-toggle" data-id="' + esc(p.playerId) + '" aria-pressed="' + p.mine + '" aria-label="' + (p.mine ? 'Mark ' + esc(p.name) + ' as another team\'s pick' : 'Mark ' + esc(p.name) + ' as my pick') + '">★</button>' +
           '<button type="button" class="nd-mini-btn" data-act="remove" data-id="' + esc(p.playerId) + '" aria-label="Remove pick ' + esc(p.name) + '">✕</button>'
@@ -621,7 +624,7 @@
     var el = $('nd-review');
     if (!um.length) { el.hidden = true; return; }
     el.hidden = false;
-    $('nd-review-sum').textContent = um.length + ' Yahoo pick' + (um.length > 1 ? 's' : '') + ' to review';
+    $('nd-review-sum').textContent = um.length + ' Sleeper pick' + (um.length > 1 ? 's' : '') + ' to review';
     $('nd-review-list').innerHTML = um.map(function (u) {
       return '<div class="nd-pick"><span class="n nu-num">' + (u.pick ? '#' + u.pick : '—') + '</span><span class="nm">' + esc(u.name) + '</span>' +
         '<button type="button" class="nu-btn nu-btn--sm nd-match-btn" data-act="start-match" data-key="' + esc(u.player_key) + '" data-name="' + esc(u.name) + '">Match</button></div>';
@@ -634,33 +637,34 @@
     if (S.connected && S.leagueKey && S.auction) {
       set('off', 'Auction · manual');
       banner.className = 'nd-banner';
-      banner.innerHTML = U.callout('info', '<b>Auction drafts aren’t supported yet — manual mode.</b> “' + esc((S.league && S.league.name) || S.leagueKey) + '” is an auction league, so Yahoo picks aren’t synced here. Mark players as they’re won (★ for yours); rankings and roster fit still work.');
+      banner.innerHTML = U.callout('info', '<b>Auction drafts aren’t supported yet — manual mode.</b> “' + esc((S.league && S.league.name) || S.leagueKey) + '” is an auction league, so Sleeper picks aren’t synced here. Mark players as they’re won (★ for yours); rankings and roster fit still work.');
       banner.hidden = false;
       return;
     }
     if (!S.connected || !S.leagueKey) {
-      if (S.yahooDown && !S.connected) set('error', 'Yahoo unavailable');
-      else if (S.connected) set('off', 'Yahoo connected');
+      if (S.syncDown && S.connected) set('error', 'Sleeper unavailable');
       else set('off', 'Manual board');
       if (S.sync !== 'degraded') banner.hidden = true;
       return;
     }
-    var y = S.state.yahoo, ago = S.lastOk ? L.agoText(Date.now() - S.lastOk) : '';
+    var y = S.state.sync, ago = S.lastOk ? L.agoText(Date.now() - S.lastOk) : '';
     if (S.sync === 'degraded') {
       var wait = Math.max(0, Math.round((S.nextPollAt - Date.now()) / 1000));
-      set('error', 'Yahoo sync paused');
+      set('error', 'Sync paused');
       banner.className = 'nd-banner';
-      banner.innerHTML = '<div class="nu-callout nu-callout--warn nd-degraded" role="alert">' + U.icon.alert + '<div><b>Can’t reach Yahoo' + (S.lastErr ? ' (' + esc(S.lastErr) + ')' : '') + '.</b> Keep tapping Draft as picks happen; they’re marked pending until Yahoo confirms. ' +
+      banner.innerHTML = '<div class="nu-callout nu-callout--warn nd-degraded" role="alert">' + U.icon.alert + '<div><b>Can’t reach Sleeper' + (S.lastErr ? ' (' + esc(S.lastErr) + ')' : '') + '.</b> Keep tapping Draft as picks happen; they’re marked pending until Sleeper confirms. ' +
         (S.lastOk ? 'Last sync ' + esc(ago) + ' · ' : '') + 'retry in <span class="nu-num">' + wait + 's</span>.</div><button type="button" class="nu-btn nu-btn--sm" id="nd-retry">Retry Now</button></div>';
       banner.hidden = false;
       $('nd-retry').onclick = function () { poll(true); };
     } else {
       banner.hidden = true;
       var status = y && y.status;
-      var txt = S.sync === 'connecting' ? 'Connecting to Yahoo…'
-        : status === 'postdraft' ? 'Yahoo draft complete'
-        : status === 'predraft' ? 'Yahoo · waiting for draft'
-        : 'Live from Yahoo';
+      var when = y && y.draft && y.draft.start_time && status === 'predraft' ? L.draftTimeText(y.draft.start_time) : '';
+      var txt = S.sync === 'connecting' ? 'Connecting…'
+        : status === 'postdraft' ? 'Draft complete'
+        : status === 'predraft' ? (when ? 'Drafts ' + when : 'Waiting · Sleeper')
+        : y && y.paused ? 'Paused · Sleeper'
+        : 'Live · Sleeper';
       set(S.sync === 'connecting' ? 'syncing' : S.sync === 'live' ? 'connected' : 'off', esc(txt) + (S.lastOk && S.sync === 'live' ? ' <span class="nd-ago nu-num">· ' + esc(ago) + '</span>' : ''));
     }
   }
@@ -685,8 +689,8 @@
   /* ------------------------------------------------------ cheat sheet */
   function myRemainingPicks(ci) {
     var st = S.state.settings;
-    if (ci.fromYahoo) {
-      return L.openSlots(S.state.yahoo).slice(pendingCount()).filter(function (o) { return o.team_key && o.team_key === S.myTeamKey; })
+    if (ci.fromSync) {
+      return L.openSlots(S.state.sync).slice(pendingCount()).filter(function (o) { return o.team_key != null && S.myTeamKey != null && String(o.team_key) === String(S.myTeamKey); })
         .map(function (o) { return { pick: o.pick, round: o.round || L.roundOf(o.pick, st.teams) }; });
     }
     return ci.done ? [] : L.myPicksSnake(st, ci.cur);
@@ -708,13 +712,14 @@
   function renderCheat() {
     var el = $('nd-cheat'), st = V.st, ci = V.ci;
     if (!S.players.length) { el.innerHTML = U.skeleton(6); return; }
-    var yahooOrder = !!ci.fromYahoo, slotKnown = yahooOrder || slotKnownFromYahoo() || S.state.slotChosen;
+    var syncOrder = !!ci.fromSync, slotKnown = syncOrder || slotKnownFromSync() || S.state.slotChosen;
+    var rrLocked = liveSync() && S.draft; // Sleeper's reversal_round wins
     var setLine = '<div class="nd-cs-set"><span class="nd-cs-set__txt"><b>' + esc(st.teams) + ' Teams</b> · ' + (slotKnown ? 'Pick <b>#' + esc(st.mySlot) + '</b>' : 'No pick chosen') + ' · ' + esc(L.draftRounds(st)) + ' Rounds · ' +
-      (yahooOrder ? 'Yahoo’s pick order' : 'Snake, 3rd-round reversal <b>' + (st.thirdRoundReversal ? 'On' : 'Off') + '</b>') + '</span>' +
-      (yahooOrder ? '' : '<button type="button" class="nu-chip nd-cs-rr" data-act="cs-rr" aria-pressed="' + !!st.thirdRoundReversal + '">3RR ' + (st.thirdRoundReversal ? 'On' : 'Off') + '</button>') +
+      (syncOrder ? 'Sleeper’s pick order' + (st.thirdRoundReversal ? ' (3RR)' : '') : 'Snake, 3rd-round reversal <b>' + (st.thirdRoundReversal ? 'On' : 'Off') + '</b>' + (rrLocked ? ' <span class="nu-hint">· from Sleeper</span>' : '')) + '</span>' +
+      (syncOrder || rrLocked ? '' : '<button type="button" class="nu-chip nd-cs-rr" data-act="cs-rr" aria-pressed="' + !!st.thirdRoundReversal + '">3RR ' + (st.thirdRoundReversal ? 'On' : 'Off') + '</button>') +
       '<button type="button" class="nu-btn nu-btn--sm" data-act="cs-settings">Change</button></div>';
     var html = '<div class="nd-cheat-head"><div><h2 class="nu-title">Cheat Sheet</h2>' +
-      '<p class="nu-hint">Who you can realistically get at each of your picks. The odds are an estimate from ADP (Yahoo-first market rank), not a guarantee; real drafts swing a few picks early and 10-20 picks later.</p></div>' +
+      '<p class="nu-hint">Who you can realistically get at each of your picks. The odds are an estimate from ADP (consensus market rank), not a guarantee; real drafts swing a few picks early and 10-20 picks later.</p></div>' +
       '<button type="button" class="nu-btn nu-btn--sm" data-act="print">Print</button></div>' + setLine;
     if (!slotKnown) {
       html += '<section class="nu-card nd-cs-ask"><p class="nd-slotpick__q">Which pick are you?</p><p class="nu-hint">Choose your round-1 spot to see who should be there at each of your picks.</p>' +
@@ -754,7 +759,8 @@
     el.innerHTML = html;
   }
   function toggleRR() {
-    S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { thirdRoundReversal: !S.state.settings.thirdRoundReversal }));
+    if (liveSync() && S.draft) { toast('Pick order comes from Sleeper for this league'); return; }
+    S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { thirdRoundReversal: !S.state.settings.thirdRoundReversal, reversalRound: undefined }));
     save(); recompute(); render();
     toast('3rd-round reversal ' + (S.state.settings.thirdRoundReversal ? 'on' : 'off'));
   }
@@ -767,9 +773,12 @@
   }
 
   /* ------------------------------------------------------ pick timer */
-  // Seconds per pick: the user's setting, else the Yahoo league's
-  // draft_pick_time, else the league profile's draft.pickSeconds (90). 0 = off.
+  // Seconds per pick: the Sleeper draft's pick_timer when live (the league's
+  // real clock wins), else the user's setting, else the league profile's
+  // draft.pickSeconds (90). 0 = off.
   function timerSeconds() {
+    var live = liveSync() && S.draft && L.sleeperPickSeconds(S.draft);
+    if (live) return live;
     var v = null; try { v = localStorage.getItem(TIMER_PREF); } catch (e) {}
     if (v != null && v !== '') return L.normalizeTimerSeconds(v);
     if (S.league && S.league.draft_pick_time > 0) return L.normalizeTimerSeconds(S.league.draft_pick_time);
@@ -777,11 +786,11 @@
   }
   function renderTimer(ci) {
     var el = $('nd-timer'), mb = $('nd-mb-timer'), pause = $('nd-pause'); if (!el) return;
-    var yStatus = S.state.yahoo && S.state.yahoo.status;
-    // Yahoo says predraft: quiet even with keepers on the board, unless the
+    var yStatus = S.state.sync && S.state.sync.status;
+    // Sleeper says predraft: quiet even with keepers on the board, unless the
     // user is already marking picks by hand.
     var off = S.auction || ci.done || !timerSeconds() ||
-      (liveYahoo() && yStatus === 'predraft' && !S.merged.picks.some(function (p) { return p.source === 'manual'; }));
+      (liveSync() && yStatus === 'predraft' && !S.merged.picks.some(function (p) { return p.source === 'manual'; }));
     if (off) { el.hidden = true; mb.hidden = true; pause.hidden = true; document.title = baseTitle; return; }
     // Restart when the pick on the clock changes. Manual board, first pick:
     // idle until the user taps the timer (we can't know when the draft starts).
@@ -795,6 +804,11 @@
       S.timer.lk = S.leagueKey; S.timer.beeped = false;
       setClock(c);
     }
+    // Live Sleeper draft: the clock for the pick on the clock started when the
+    // previous pick landed (draft.last_picked), so the countdown matches the
+    // draft room instead of when this tab noticed the pick. Paused stays paused.
+    var lp = liveSync() && S.state.sync && S.state.sync.draft && S.state.sync.status === 'drafting' && !pendingCount() ? S.state.sync.draft.last_picked : null;
+    if (lp > 0 && !L.isPaused(S.timer) && S.timer.pick === ci.cur && S.timer.startedAt !== lp && lp <= Date.now() + 5000) { S.timer.beeped = S.timer.beeped && S.timer.startedAt > lp; setClock({ pick: ci.cur, startedAt: lp, pausedLeft: null }); }
     var t = L.clockView(S.timer, timerSeconds(), Date.now());
     el.hidden = false;
     el.className = 'nd-timer ' + t.level + (ci.onMe ? ' me' : '');
@@ -902,30 +916,45 @@
   function renderFirstRun() {
     var el = $('nd-firstrun'); if (!el) return;
     var done = false; try { done = localStorage.getItem(FIRSTRUN_PREF) === '1'; } catch (e) {}
-    var show = !done && !S.connected && !S.merged.picks.length && !S.yahooDown;
+    var show = !done && !S.connected && !S.merged.picks.length;
     el.hidden = !show;
     document.body.classList.toggle('nd-firstvisit', show);
     if (!show) return;
-    $('nd-fr-connect-sub').textContent = S.signedOut ? 'Sign in to Pocket first (free), then approve read-only access on Yahoo.' : 'You’ll approve read-only access on Yahoo, then come straight back.';
+    var inp = $('nd-fr-user');
+    if (inp && !inp.value) { var pre = ''; try { pre = (window.PocketSleeper && window.PocketSleeper.user() ? window.PocketSleeper.user().username : localStorage.getItem('rr_username')) || ''; } catch (e) {} inp.value = pre; }
   }
   function dismissFirstRun() { try { localStorage.setItem(FIRSTRUN_PREF, '1'); } catch (e) {} renderFirstRun(); }
 
-  // /nba?yahoo=… after the OAuth round trip: say what happened, then tidy the URL.
-  var YAHOO_MSG = {
-    connected: 'Yahoo connected — pick your league above',
-    disconnected: 'Yahoo disconnected',
-    signin: 'Sign in to Pocket first, then connect Yahoo',
-    denied: 'Yahoo access was not granted — manual board is ready',
-    error: 'Couldn’t finish connecting Yahoo — try again',
-    misconfigured: 'Yahoo is unavailable on our side right now — manual board is ready'
-  };
-  function handleYahooParam() {
-    var m = /[?&]yahoo=([a-z]+)/.exec(location.search);
-    if (!m || !YAHOO_MSG[m[1]]) return;
-    setTimeout(function () { toast(YAHOO_MSG[m[1]]); }, 300);
-    if (m[1] === 'signin') setTimeout(function () { if (window.Clerk && window.Clerk.openSignIn) window.Clerk.openSignIn({ redirectUrl: '/nba/auth/login' }); }, 1200);
-    if (m[1] === 'connected') dismissFirstRun();
-    try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])yahoo=[a-z]+&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
+  // Connect from the setup card (or the league notice): resolve the username,
+  // remember it on this device, then load leagues. Errors show inline.
+  function connectSleeper(username, errEl, btn) {
+    if (!window.PocketSleeper) return Promise.resolve();
+    if (errEl) errEl.textContent = '';
+    if (btn) btn.disabled = true;
+    return window.PocketSleeper.connect(username).then(function () {
+      dismissFirstRun();
+      if (btn) btn.disabled = false;
+      // 'pocket-nba:account' re-runs initSleeper
+    }, function (e) {
+      if (btn) btn.disabled = false;
+      var msg = e && e.status === 404 ? 'No Sleeper user named “' + String(username).replace(/^@/, '') + '”. Check the spelling.'
+        : e && e.status === 429 ? 'Sleeper is rate-limiting us. Try again in a few seconds.'
+        : e && (e.status >= 500 || !e.status) ? 'Sleeper isn’t responding right now. Try again in a moment, or use the manual board.'
+        : (e && e.message) || 'Couldn’t connect.';
+      if (errEl) errEl.textContent = msg; else toast(msg);
+    });
+  }
+
+  // /nba?connect=sleeper (old Yahoo links land here): open the connect form.
+  // /nba?yahoo=… (bookmarks from the Yahoo era): just tidy the URL.
+  function handleConnectParam() {
+    var m = /[?&](connect|yahoo)=([a-z]+)/.exec(location.search);
+    if (!m) return;
+    if (m[1] === 'connect' && m[2] === 'sleeper') setTimeout(function () {
+      if (!S.connected) { toast('Connect with your Sleeper username'); if (window.PocketSleeper && window.PocketSleeper.openConnect) window.PocketSleeper.openConnect(); }
+    }, 400);
+    else if (m[1] === 'yahoo') setTimeout(function () { toast('Pocket NBA now syncs with Sleeper — connect with your Sleeper username'); }, 300);
+    try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])(connect|yahoo)=[a-z]+&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) {}
   }
 
   /* -------------------------------------------------- player sheet */
@@ -955,7 +984,7 @@
       '<div class="nd-ph">' + avatar(p, 'xl', { teamBadge: true, eager: true }) +
         '<div class="nd-ph__text"><h2 class="nd-ph__name" id="nd-p-name" tabindex="-1">' + esc(p.name) + '</h2>' +
         '<div class="nd-meta nd-ph__meta">' + posPills(p) + U.teamLogo(p.team, { size: 'sm' }) + '<span class="nd-tm">' + esc(p.team || 'FA') + '</span>' + gamesChip(p) + injBadge(p) + U.tierBadge(p.tier) + '</div>' +
-        '<div class="nu-hint nd-ph__src">' + esc(L.yahooPosString(p) ? 'Yahoo ' + L.yahooPosString(p) : 'Est. ' + (Array.isArray(p.pos) ? p.pos.join('/') : (p.pos || '—'))) + (t ? ' · drafted #' + t.pick + ' by ' + esc(t.mine ? 'you' : teamNameForKey(t.team_key, t.slot)) + (t.source === 'manual' && !t.confirmed && liveYahoo() ? ' (pending Yahoo)' : '') : '') + '</div></div>' +
+        '<div class="nu-hint nd-ph__src">' + esc(L.posString(p) ? (String(p.eligConfidence || '').toLowerCase() === 'sleeper' ? 'Sleeper ' : '') + L.posString(p) : 'Est. ' + (Array.isArray(p.pos) ? p.pos.join('/') : (p.pos || '—'))) + (t ? ' · drafted #' + t.pick + ' by ' + esc(t.mine ? 'you' : teamNameForKey(t.team_key, t.slot)) + (t.source === 'manual' && !t.confirmed && liveSync() ? ' (pending Sleeper)' : '') : '') + '</div></div>' +
       '</div>' +
       '<button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm nd-ph__x" data-nu-close type="button" aria-label="Close player details">' + U.icon.close + '</button>';
     var lo = Math.max(0, Math.floor(Math.min(p.floor || 0, p.hsValue || 0) - 4)), hi = Math.ceil(Math.max(p.ceiling || 0, p.hsValue || 0) + 4);
@@ -963,7 +992,7 @@
       '<dt>Board rank</dt><dd>#' + esc(p.rank) + ' · T' + esc(p.tier) + '</dd>' +
       (p.posRank != null ? '<dt>Position rank</dt><dd>#' + esc(p.posRank) + '</dd>' : '') +
       '<dt>Market rank</dt><dd>' + (p.marketRank != null ? '#' + esc(p.marketRank) + (p.label && p.label !== 'fair' ? ' · ' + esc(p.label) + (typeof p.adpDelta === 'number' && p.adpDelta ? ' ' + (p.adpDelta > 0 ? '+' : '') + esc(p.adpDelta) : '') : '') : '—') + '</dd>' +
-      '<dt>Yahoo rank</dt><dd>' + (p.yahooPreRank != null ? '#' + esc(p.yahooPreRank) : '—') + (p.yahooPctRos != null ? ' · ' + esc(p.yahooPctRos) + '% rostered' : '') + '</dd>' +
+      (p.yahooPreRank != null ? '<dt>Preseason rank</dt><dd>#' + esc(p.yahooPreRank) + (p.yahooPctRos != null ? ' · ' + esc(p.yahooPctRos) + '% rostered' : '') + '</dd>' : '') +
       '</dl>';
     $('nd-sheet-body').innerHTML =
       (reco ? '<p class="nd-why"><span class="nu-eyebrow">Why now</span> ' + esc(reco.reason) + '</p>' : '') +
@@ -977,8 +1006,8 @@
         U.rangeBand({ min: lo, max: hi, lo: p.floor, hi: p.ceiling, mark: p.hsValue, labels: ['Floor ' + n0(p.floor), 'Ceiling ' + n0(p.ceiling)], ariaLabel: 'Floor ' + n0(p.floor) + ', ceiling ' + n0(p.ceiling) + ', best-game value ' + n1(p.hsValue) }) + '</div>' : '') +
       '<div id="nd-p-detail" class="nd-pdetail"></div>' +
       '<div class="nd-psec">' + ranks + '</div>' +
-      (p.marketRank != null ? '<p class="nu-hint">Market = Yahoo-first consensus' + (p.contested ? ' (sources disagree)' : '') + '. A sanity check only; the board never sorts by it unless you choose to.</p>' : '') +
-      (p.source === 'yahoo-only' ? '<p class="nu-hint">No game-log data: this player is in Yahoo’s pool but not in our NBA data feed, so the value is a conservative estimate from Yahoo’s projected fantasy points per game.</p>'
+      (p.marketRank != null ? '<p class="nu-hint">Market = consensus ADP across sites' + (p.contested ? ' (sources disagree)' : '') + '. A sanity check only; the board never sorts by it unless you choose to.</p>' : '') +
+      (p.source === 'yahoo-only' ? '<p class="nu-hint">No game-log data: this player isn’t in our NBA data feed, so the value is a conservative estimate from a preseason projection.</p>'
         : p.source && p.source !== 'logs' ? '<p class="nu-hint">' + (p.source === 'rookie' ? 'Rookie: value is projection-only (no NBA game logs yet), so the range is wider than it looks.' : 'Projection-only: not enough recent game logs for a measured spread.') + '</p>' : '') +
       '<a class="nd-full" href="/nba/research?player=' + encodeURIComponent(researchId(p)) + '">Full profile <span aria-hidden="true">→</span></a>';
     renderSheetDetail(p);
@@ -986,7 +1015,7 @@
     if (S.matching) acts.innerHTML = '<button type="button" class="nu-btn nu-btn--primary" data-act="match" data-id="' + esc(p.id) + '">This is ' + esc(S.matching.name) + '</button>';
     else if (t) acts.innerHTML = t.source === 'manual'
       ? '<button type="button" class="nu-btn" data-act="remove" data-id="' + esc(p.id) + '">Remove Pick</button><button type="button" class="nu-btn" data-act="mine-toggle" data-id="' + esc(p.id) + '">' + (t.mine ? 'Not Mine' : 'Mine') + '</button>'
-      : '<button type="button" class="nu-btn" disabled>Drafted on Yahoo</button>';
+      : '<button type="button" class="nu-btn" disabled>Drafted on Sleeper</button>';
     else if (ci.done) acts.innerHTML = '<button type="button" class="nu-btn" disabled>Draft Complete</button>';
     else acts.innerHTML = ci.onMe
       ? '<button type="button" class="nu-btn" data-act="other" data-id="' + esc(p.id) + '">Other Team</button><button type="button" class="nu-btn nu-btn--primary" data-act="mine" data-id="' + esc(p.id) + '">Draft to My Team</button>'
@@ -1052,12 +1081,14 @@
     f.rr.checked = !!st.thirdRoundReversal;
     f.timer.value = timerSeconds();
     f.teams.disabled = !!live;
-    // Locked whenever the picker says "synced from Yahoo" (draft_position, round-1 order or a Yahoo pick of mine).
-    f.mySlot.disabled = slotKnownFromYahoo();
+    // Locked whenever the picker says "synced from Sleeper" (draft_position, round-1 order or a synced pick of mine).
+    f.mySlot.disabled = slotKnownFromSync();
+    f.rr.disabled = !!(live && S.draft); // Sleeper's reversal_round wins
+    f.timer.disabled = !!(live && S.draft && L.sleeperPickSeconds(S.draft));
     $('nd-profile-reset').hidden = !!live || S.state.settingsSource !== 'user';
     $('nd-settings-hint').textContent = live
-      ? 'Loaded from Yahoo league “' + ((S.league && S.league.name) || S.leagueKey) + '”. Reset clears only picks marked on this device.'
-      : 'Manual draft tracking. Defaults come from ' + leagueName() + ' (' + st.teams + ' teams, ' + L.starterCount(st) + ' starters, ' + L.rosterSize(st) + ' roster spots, ' + L.draftRounds(st) + ' draft rounds: Yahoo doesn’t draft IL spots). Check the round count in Yahoo’s draft room; with Yahoo connected its pick order wins.';
+      ? 'Loaded from Sleeper league “' + ((S.league && S.league.name) || S.leagueKey) + '”' + (S.draft ? ': ' + st.teams + ' teams, ' + L.draftRounds(st) + ' rounds, ' + (L.sleeperPickSeconds(S.draft) ? L.sleeperPickSeconds(S.draft) + 's picks, ' : '') + (st.thirdRoundReversal ? '3rd-round reversal on' : 'plain snake') + '. Those fields follow Sleeper.' : '.') + ' Reset clears only picks marked on this device.'
+      : 'Manual draft tracking. Defaults come from ' + leagueName() + ' (' + st.teams + ' teams, ' + L.starterCount(st) + ' starters, ' + L.rosterSize(st) + ' roster spots, ' + L.draftRounds(st) + ' draft rounds: IR spots aren’t drafted). Check the round count in your draft room; with Sleeper connected its settings win.';
     U.sheet.open('nd-settings', { initialFocus: 'input[name=mySlot]:not([disabled]), input[name=timer]' });
   }
   function onSettingsSave() {
@@ -1067,16 +1098,16 @@
       Array.prototype.forEach.call(f.querySelectorAll('input[name^="slot_"]'), function (i) { slots[i.name.slice(5)] = i.value; });
       S.state.settings = L.normalizeSettings({ teams: f.teams.value, mySlot: f.mySlot.value, slots: slots, bench: f.bench.value, il: f.il.value, rounds: f.rounds.value, thirdRoundReversal: f.rr.checked });
       S.state.settingsSource = 'user';
-    } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value, thirdRoundReversal: f.rr.checked }));
+    } else S.state.settings = L.normalizeSettings(Object.assign({}, S.state.settings, { mySlot: f.mySlot.value, thirdRoundReversal: f.rr.disabled ? S.state.settings.thirdRoundReversal : f.rr.checked, reversalRound: f.rr.disabled ? S.state.settings.reversalRound : undefined }));
     if (!f.mySlot.disabled) S.state.slotChosen = true;
-    try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {}
+    if (!f.timer.disabled) { try { localStorage.setItem(TIMER_PREF, String(L.normalizeTimerSeconds(f.timer.value))); } catch (e) {} }
     S.timer.beeped = false;
     if (S.timer.startedAt || L.isPaused(S.timer)) setClock(L.resetClock(curClock(), timerSeconds(), Date.now())); // new pick time applies now
     U.sheet.close();
     save(); recompute(); render(); toast('League settings saved', { tone: 'good' });
   }
 
-  /* ----------------------------------------------------------- yahoo */
+  /* --------------------------------------------------------- sleeper */
   function api(url) {
     return fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) {
       if (!r.ok) {
@@ -1088,20 +1119,20 @@
     });
   }
 
-  function yahooStatus() {
-    // One shared /status fetch with the nav chip (yahoo-chip.js) when present.
-    if (window.PocketYahoo) return window.PocketYahoo.status();
-    return api('/api/nba/yahoo/status').catch(function (e) { return { connected: false, leagues: [], httpStatus: e.status || 0, code: e.code }; });
+  function sleeperStatus() {
+    // One shared status fetch with the nav chip (sleeper-chip.js) when present.
+    if (window.PocketSleeper) return window.PocketSleeper.status();
+    return Promise.resolve({ connected: false, leagues: [] });
   }
 
-  function initYahoo() {
-    return yahooStatus().then(function (st) {
+  function initSleeper() {
+    return sleeperStatus().then(function (st) {
       S.connected = !!(st && st.connected);
+      S.username = (st && st.username) || null; S.userId = (st && st.userId) || null;
       S.leagues = (st && st.leagues) || [];
-      S.signedOut = !!(st && st.httpStatus === 401);
-      S.yahooProblem = L.yahooProblem(st);
-      S.yahooDown = S.yahooProblem === 'down' || S.yahooProblem === 'blocked';
-    }).catch(function () { S.connected = false; S.leagues = []; S.yahooProblem = 'down'; S.yahooDown = true; }).then(function () {
+      S.syncProblem = st && st.connected && (st.httpStatus || st.code) ? 'down' : L.syncProblem(st);
+      S.syncDown = S.syncProblem === 'down';
+    }).catch(function () { S.connected = false; S.leagues = []; S.syncProblem = 'down'; S.syncDown = true; }).then(function () {
       S.statusResolved = true;
       var pref = null; try { pref = localStorage.getItem(LEAGUE_PREF); } catch (e) {}
       var choice = S.connected ? L.leagueChoice(S.leagues, pref) : { mode: 'none', key: null };
@@ -1117,7 +1148,7 @@
     var sel = $('nd-league');
     if (!S.connected || !S.leagues.length || S.leagueMode === 'pick') { sel.hidden = true; return; }
     sel.innerHTML = S.leagues.map(function (l) {
-      return '<option value="' + esc(l.league_key) + '">' + esc(l.name) + ' · ' + esc(l.num_teams) + ' teams' + (l.draft_status === 'postdraft' ? ' · drafted' : '') + '</option>';
+      return '<option value="' + esc(l.league_key) + '">' + esc(l.name) + ' · ' + esc(l.num_teams) + ' teams' + (l.draft_status === 'postdraft' ? ' · drafted' : l.draft_status === 'drafting' ? ' · drafting' : '') + '</option>';
     }).join('') + '<option value="">Manual board (no league)</option>';
     sel.value = value == null ? '' : value;
     sel.hidden = false;
@@ -1138,7 +1169,7 @@
   function selectLeague(key, opts) {
     var remember = !opts || opts.remember !== false;
     stopPolling();
-    S.leagueKey = key; S.league = null; S.teams = []; S.myTeamKey = null; S.failures = 0; S.lastOk = 0; S.lastYahooCount = -1; S.auction = false;
+    S.leagueKey = key; S.league = null; S.draft = null; S.teams = []; S.myTeamKey = null; S.failures = 0; S.lastOk = 0; S.lastSyncCount = -1; S.auction = false;
     S.support = L.leagueSupport(key ? leagueMeta(key) : null, null);
     S.slotOpen = false; S.leagueReady = !(key && S.connected); S.leagueLoadAt = Date.now();
     try { if (S.connected && remember) localStorage.setItem(LEAGUE_PREF, key || ''); } catch (e) {}
@@ -1146,35 +1177,43 @@
     load(key, L.DEFAULT_SETTINGS);
     if (!key) { S.sync = 'off'; applyProfile(); recompute(); render(); return Promise.resolve(); }
     S.sync = 'connecting'; recompute(); render();
-    return api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(key)).then(function (d) {
+    return api('/api/nba/sleeper/league?league_id=' + encodeURIComponent(key) + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '')).then(function (d) {
       if (key !== S.leagueKey) return;
-      S.league = d.league || null; S.teams = d.teams || []; S.myTeamKey = d.myTeamKey || null;
-      // Yahoo's roster_positions win; the profile fills anything Yahoo leaves out.
+      S.league = d.league || null; S.draft = d.draft || null; S.teams = d.teams || []; S.myTeamKey = d.myTeamKey != null ? String(d.myTeamKey) : null;
+      // Sleeper's roster_positions + draft settings win; the profile fills anything Sleeper leaves out.
       var base = S.profile ? L.settingsFromProfile(S.profile, S.state.settings) : S.state.settings;
-      S.state.settings = L.settingsFromYahoo(S.league, S.myTeamKey, S.teams, base);
-      S.support = L.leagueSupport(Object.assign({}, leagueMeta(key), S.league), null);
+      S.state.settings = L.settingsFromSleeper(S.league, S.draft, S.myTeamKey, S.teams, base);
+      S.support = L.leagueSupport(Object.assign({}, leagueMeta(key), d.support || {}, { auction: !!(d.support && d.support.auction), scoring_type: d.support && d.support.scoring_type }), null);
       S.auction = S.support.kind === 'auction';
+      if (!S.myTeamKey) S.lastErr = '';
       save();
     }).catch(function (e) {
       if (key !== S.leagueKey) return;
       S.lastErr = errText(e, 'league');
+      S.failures = 1;
     }).then(function () {
       if (key !== S.leagueKey) return;
       recompute(); render();
-      if (S.auction) { S.sync = 'off'; stopPolling(); return; } // auction: manual mode, no Yahoo pick sync
+      if (S.auction) { S.sync = 'off'; stopPolling(); return; } // auction: manual mode, no pick sync
+      if (!S.draft || !S.draft.draft_id) {
+        // No draft on Sleeper yet (league still being set up) or the league call failed: retry on the poll schedule.
+        if (!S.lastErr) { S.lastErr = 'no draft on Sleeper yet'; }
+        S.failures = Math.max(1, S.failures); S.sync = 'degraded'; S.leagueReady = true; schedulePoll(); renderSync(); renderSlotPick();
+        return;
+      }
       poll(true);
     });
   }
 
-  // Short reason for the "Can't reach Yahoo (…)" banner, from the API error code.
+  // Short reason for the "Can't reach Sleeper (…)" banner, from the API error code.
   function errText(e, what) {
     switch (e && e.code) {
-      case 'yahoo_app_blocked': return 'Yahoo hasn’t approved Pocket’s API access yet';
-      case 'yahoo_upstream': return 'Yahoo is having trouble';
-      case 'yahoo_misconfigured': return 'Yahoo app issue on our side';
-      case 'yahoo_reauth': return 'Yahoo sign-in expired — reconnect';
-      case 'yahoo_rate_limited': return 'Yahoo rate limit';
-      case 'yahoo_not_connected': return 'Yahoo not connected';
+      case 'sleeper_upstream': return 'Sleeper is having trouble';
+      case 'sleeper_timeout': return 'Sleeper timed out';
+      case 'sleeper_rate_limited': return 'Sleeper rate limit';
+      case 'sleeper_not_found': return (what || 'draft') + ' not found on Sleeper';
+      case 'sleeper_user_not_found': return 'Sleeper user not found';
+      case 'sleeper_bad_request': return 'bad request';
     }
     return e && e.status ? (what ? what + ' ' : 'HTTP ') + e.status : 'offline';
   }
@@ -1183,7 +1222,7 @@
     return !!(S.connected && S.leagues.length && ((S.leagueMode === 'pick' && !S.leagueKey) || S.pickerOpen));
   }
 
-  /* League picker + Yahoo notices, above the slot picker. One panel, one message. */
+  /* League picker + sync notices, above the slot picker. One panel, one message. */
   function renderLeaguePick() {
     var el = $('nd-leaguepick');
     if (!el) return;
@@ -1192,51 +1231,51 @@
     var sw = $('nd-league-switch');
     if (sw) sw.hidden = !(S.connected && S.leagues.length > 1 && !pickingLeague());
     var html = '', mode = '';
-    var reconnect = '<a class="nu-btn nu-btn--sm" href="/nba/auth/login">Reconnect Yahoo</a>';
-    if (S.yahooProblem === 'blocked') {
+    var switchAcct = '<button type="button" class="nu-btn nu-btn--sm" data-act="sleeper-switch">Switch Sleeper Account</button>';
+    if (S.syncProblem === 'down' && S.connected) {
       mode = 'notice';
-      html = U.callout('warn', '<b>Yahoo sync is unavailable.</b> Yahoo hasn’t approved Pocket’s access to its Fantasy API yet, so leagues and live picks can’t load. Your connection is kept. The board works in manual mode: pick your slot and tap Draft as picks happen.');
-    } else if (S.yahooProblem === 'down') {
+      html = U.callout('error', '<b>Sleeper isn’t responding right now.</b> Manual mode works meanwhile; your username (@' + esc(S.username || '') + ') is kept on this device.') +
+        '<button type="button" class="nu-btn nu-btn--sm" data-act="sleeper-retry">Try Again</button>';
+    } else if (S.syncProblem === 'user') {
       mode = 'notice';
-      html = U.callout('error', '<b>Yahoo isn’t responding right now.</b> Manual mode works meanwhile; your connection is kept.') +
-        '<button type="button" class="nu-btn nu-btn--sm" data-act="yahoo-retry">Try Again</button>';
-    } else if (S.yahooProblem === 'reauth') {
-      mode = 'notice';
-      html = U.callout('warn', '<b>Yahoo sign-in expired.</b> Reconnect to load your leagues and live picks.') + reconnect;
+      html = U.callout('warn', '<b>That Sleeper username no longer resolves.</b> Enter it again to load your leagues and live picks.') + switchAcct;
     } else if (S.connected && !S.leagues.length) {
       mode = 'notice';
-      html = U.callout('info', '<b>No NBA leagues on this Yahoo account for this season.</b> Joined with a different Yahoo account? Reconnect with that one. Manual mode works meanwhile.') + reconnect;
+      html = U.callout('info', '<b>No NBA leagues on @' + esc(S.username || 'this Sleeper account') + ' for this season.</b> Joined with a different Sleeper username? Switch to that one. Manual mode works meanwhile.') + switchAcct;
     } else if (pickingLeague()) {
       mode = 'pick';
-      html = '<div class="nd-leaguepick__head"><span class="nd-slotpick__q">Which league are you drafting?</span><span class="nu-hint">' + S.leagues.length + ' NBA leagues on your Yahoo account</span></div>' +
-        '<div class="nd-leaguepick__list" role="group" aria-label="Yahoo leagues">' + S.leagues.map(function (l) {
+      html = '<div class="nd-leaguepick__head"><span class="nd-slotpick__q">Which league are you drafting?</span><span class="nu-hint">' + S.leagues.length + ' NBA leagues on @' + esc(S.username || 'your Sleeper account') + '</span></div>' +
+        '<div class="nd-leaguepick__list" role="group" aria-label="Sleeper leagues">' + S.leagues.map(function (l) {
           var sup = L.leagueSupport(l, null);
           return '<button type="button" class="nd-leaguepick__opt" data-act="league" data-league="' + esc(l.league_key) + '" aria-pressed="' + (S.leagueKey === l.league_key) + '">' +
             '<span class="nd-leaguepick__nm">' + esc(l.name || l.league_key) + '</span>' +
-            '<span class="nd-leaguepick__meta">' + esc(L.leagueSummary(l)) + (sup.kind === 'categories' ? ' · <span class="nd-leaguepick__flag">tracker only</span>' : '') + '</span></button>';
+            '<span class="nd-leaguepick__meta">' + esc(L.leagueSummary(l)) + (sup.kind === 'categories' ? ' · <span class="nd-leaguepick__flag">tracker only</span>' : sup.kind === 'auction' ? ' · <span class="nd-leaguepick__flag">manual</span>' : '') + '</span></button>';
         }).join('') +
-        '<button type="button" class="nd-leaguepick__opt nd-leaguepick__opt--manual" data-act="league" data-league="" aria-pressed="' + (S.pickerOpen && !S.leagueKey) + '"><span class="nd-leaguepick__nm">Manual board</span><span class="nd-leaguepick__meta">No Yahoo sync</span></button></div>';
+        '<button type="button" class="nd-leaguepick__opt nd-leaguepick__opt--manual" data-act="league" data-league="" aria-pressed="' + (S.pickerOpen && !S.leagueKey) + '"><span class="nd-leaguepick__nm">Manual board</span><span class="nd-leaguepick__meta">No Sleeper sync</span></button></div>';
     } else if (S.connected && S.leagueKey && S.support.kind === 'categories') {
       mode = 'notice';
       var nm = (S.league && S.league.name) || (leagueMeta(S.leagueKey) || {}).name || 'This league';
       html = U.callout('info', '<b>Recommendations are off for this league.</b> “' + esc(nm) + '” uses ' + esc(S.support.label) + ' scoring, and Pocket’s values are built for points leagues. Picks still sync, so the board works as a tracker.');
+    } else if (S.connected && S.leagueKey && S.league && !S.myTeamKey && S.sync !== 'connecting') {
+      mode = 'notice';
+      html = U.callout('info', '<b>@' + esc(S.username || '') + ' doesn’t own a team in “' + esc(S.league.name || S.leagueKey) + '”.</b> Picks still sync; choose your draft slot below so the board knows which picks are yours.');
     }
     el.hidden = !html;
     el.setAttribute('data-mode', mode);
     if (el._html !== html) { el.innerHTML = html; el._html = html; }
   }
 
-  function retryYahoo() {
-    S.yahooProblem = null; renderLeaguePick();
-    if (window.PocketYahoo) window.PocketYahoo.refresh();
-    initYahoo();
+  function retrySleeper() {
+    S.syncProblem = null; renderLeaguePick();
+    if (window.PocketSleeper) window.PocketSleeper.refresh().then(initSleeper);
+    else initSleeper();
   }
 
   function stopPolling() { clearTimeout(S.pollTimer); S.pollTimer = null; }
   function schedulePoll() {
     stopPolling();
     if (!S.connected || !S.leagueKey || S.auction) return;
-    var plan = L.pollPlan(document.hidden, S.state.yahoo && S.state.yahoo.status, S.failures);
+    var plan = L.pollPlan(document.hidden, S.state.sync && S.state.sync.status, S.failures, { startTime: S.draft && S.draft.start_time });
     S.nextPollAt = Date.now() + plan.delay;
     if (!plan.run) return; // resumes on visibilitychange
     S.pollTimer = setTimeout(function () { poll(true); }, plan.delay);
@@ -1245,27 +1284,52 @@
   function poll(force) {
     if (!S.connected || !S.leagueKey || S.auction || inflight) return;
     if (document.hidden && !force) return;
-    inflight = true;
     var key = S.leagueKey;
-    api('/api/nba/yahoo/draft?league_key=' + encodeURIComponent(key)).then(function (d) {
+    if (!S.draft || !S.draft.draft_id) {
+      // The league had no draft (or failed to load): reload the league instead of polling a draft.
+      if (S.league) { inflight = true; api('/api/nba/sleeper/league?league_id=' + encodeURIComponent(key) + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '')).then(function (d) {
+        if (key !== S.leagueKey) return;
+        S.league = d.league || S.league; S.draft = d.draft || null; S.teams = d.teams || S.teams; S.myTeamKey = d.myTeamKey != null ? String(d.myTeamKey) : S.myTeamKey;
+        if (S.draft) { S.state.settings = L.settingsFromSleeper(S.league, S.draft, S.myTeamKey, S.teams, S.state.settings); save(); S.lastErr = ''; S.failures = 0; }
+      }).catch(function (e) { if (key === S.leagueKey) { S.failures++; S.lastErr = errText(e, 'league'); } }).then(function () {
+        inflight = false;
+        if (key !== S.leagueKey) return;
+        if (S.draft && S.draft.draft_id) { recompute(); render(); poll(true); } else { S.failures = Math.max(1, S.failures); S.sync = 'degraded'; schedulePoll(); renderSync(); }
+      }); }
+      else selectLeague(key, { remember: false });
+      return;
+    }
+    inflight = true;
+    var did = S.draft.draft_id;
+    api('/api/nba/sleeper/draft?draft_id=' + encodeURIComponent(did)).then(function (d) {
       if (key !== S.leagueKey) return;
-      var before = S.lastYahooCount;
+      var before = S.lastSyncCount;
       if (L.isAuction(null, d)) {
-        S.auction = true; S.state.yahoo = null; S.sync = 'off';
+        S.auction = true; S.state.sync = null; S.sync = 'off';
         save(); recompute(); render(); return;
       }
-      S.state.yahoo = { status: d.status, picks: d.picks || [], unmatched: d.unmatched || [], order: d.order || null, polledAt: d.polledAt || new Date().toISOString() };
+      S.state.sync = { status: d.status, paused: !!d.paused, picks: d.picks || [], unmatched: d.unmatched || [], order: d.order || null, draft: d.draft || S.draft, polledAt: d.polledAt || new Date().toISOString() };
+      if (d.draft) {
+        // Draft settings can change until the draft starts (order set, rounds edited): keep settings in step.
+        var changed = JSON.stringify(d.draft.slot_to_roster_id || null) !== JSON.stringify(S.draft.slot_to_roster_id || null) || d.draft.rounds !== S.draft.rounds || d.draft.teams !== S.draft.teams || d.draft.reversal_round !== S.draft.reversal_round;
+        S.draft = d.draft;
+        if (changed) {
+          var teams = S.teams.slice();
+          if (d.draft.slot_to_roster_id) { var inv = {}; Object.keys(d.draft.slot_to_roster_id).forEach(function (sl) { inv[String(d.draft.slot_to_roster_id[sl])] = +sl; }); teams = teams.map(function (t) { return Object.assign({}, t, { draft_position: inv[String(t.team_key)] != null ? inv[String(t.team_key)] : t.draft_position }); }); S.teams = teams; }
+          S.state.settings = L.settingsFromSleeper(S.league, S.draft, S.myTeamKey, S.teams, S.state.settings);
+        }
+      }
       S.leagueReady = true; S.failures = 0; S.lastOk = Date.now(); S.sync = 'live'; S.lastErr = '';
       save(); recompute(); render();
-      var n = S.state.yahoo.picks.length;
+      var n = S.state.sync.picks.length;
       if (before >= 0 && n > before) {
-        var last = S.merged.picks.filter(function (p) { return p.source === 'yahoo'; }).pop();
+        var last = S.merged.picks.filter(function (p) { return p.source === 'sync'; }).pop();
         if (last) toast('Pick ' + last.pick + ': ' + last.name + ' → ' + (last.mine ? 'you' : teamNameForKey(last.team_key, last.slot)));
         if (!reduceMotion) Array.prototype.forEach.call(document.querySelectorAll('.nd-pick'), function (el) {
           if (+el.getAttribute('data-pick') > before) el.classList.add('flash');
         });
       }
-      S.lastYahooCount = n;
+      S.lastSyncCount = n;
     }).catch(function (e) {
       if (key !== S.leagueKey) return;
       S.failures++; S.lastErr = errText(e);
@@ -1333,7 +1397,8 @@
       var b = e.target.closest('[data-act]');
       if (!b) return;
       if (b.getAttribute('data-act') === 'league') chooseLeague(b.getAttribute('data-league') || null);
-      else if (b.getAttribute('data-act') === 'yahoo-retry') retryYahoo();
+      else if (b.getAttribute('data-act') === 'sleeper-retry') retrySleeper();
+      else if (b.getAttribute('data-act') === 'sleeper-switch') { if (window.PocketSleeper && window.PocketSleeper.openConnect) window.PocketSleeper.openConnect(); }
     });
     $('nd-league-switch').onclick = function () { S.pickerOpen = true; render(); };
     // League chosen from the nav chip.
@@ -1346,9 +1411,18 @@
     $('nd-timer').onclick = function () { if (L.isPaused(S.timer)) togglePause(); else restartClock(); };
     $('nd-fr-manual').onclick = function () { dismissFirstRun(); toast('Manual board: tap Draft as picks happen'); };
     $('nd-fr-close').onclick = function () { dismissFirstRun(); };
-    $('nd-fr-connect').onclick = function (e) {
-      if (S.signedOut && window.Clerk && window.Clerk.openSignIn) { e.preventDefault(); window.Clerk.openSignIn({ redirectUrl: '/nba/auth/login' }); }
-    };
+    $('nd-fr-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var inp = $('nd-fr-user'), name = (inp.value || '').trim().replace(/^@/, '');
+      if (!name) { $('nd-fr-err').textContent = 'Enter your Sleeper username.'; inp.focus(); return; }
+      connectSleeper(name, $('nd-fr-err'), $('nd-fr-connect'));
+    });
+    // Connected / switched / disconnected from the nav chip (or the setup card): re-run the league flow.
+    window.addEventListener('pocket-nba:account', function (e) {
+      var act = e.detail && e.detail.action;
+      S.statusResolved = false; S.maybeConnected = true;
+      initSleeper().then(function () { recompute(); render(); if (act === 'connect' && S.connected) toast(S.leagues.length ? (S.leagues.length === 1 ? 'Connected @' + S.username + ' · ' + S.leagues[0].name : 'Connected @' + S.username + ' — pick your league') : 'Connected @' + S.username + ' · no NBA leagues this season', { tone: 'good' }); });
+    });
     document.addEventListener('keydown', function (e) {
       var tag = document.activeElement && document.activeElement.tagName;
       if (e.key === 'Escape' && S.matching && !U.sheet.isOpen()) endMatch();
@@ -1384,7 +1458,7 @@
   function initClerk() {
     var key = window.__clerk_publishable_key;
     if (!key || key.indexOf('PLACEHOLDER') >= 0) return;
-    // The NbaUI nav has no auth slots of its own: add them next to the Yahoo chip.
+    // The NbaUI nav has no auth slots of its own: add them next to the Sleeper chip.
     var auth = document.querySelector('#rr-nav .rr-auth');
     if (auth && !$('user-btn-mount')) auth.insertAdjacentHTML('beforeend', '<div id="user-btn-mount"></div><button id="rr-sign-in" class="nu-btn nu-btn--sm" type="button" hidden>Sign In</button>');
     var s = document.createElement('script');
@@ -1408,16 +1482,17 @@
   function loadPlayers() {
     return api('/api/nba/players?profile=' + encodeURIComponent((S.profile && S.profile.leagueId) || '242808')).then(function (d) {
       var list = (d && d.players) || [];
-      // Board identity = Yahoo player id when present (Yahoo draft sync speaks
-      // Yahoo player_keys), else the Sleeper id. Sleeper ids stay as aliases so
-      // picks/overrides saved before the switch still resolve.
+      // Board identity = the Sleeper id (Sleeper draft sync speaks Sleeper
+      // player_ids). Boards saved while the site was Yahoo-first used 'y<pid>'
+      // ids: those stay as aliases so saved picks/overrides still resolve.
       S.byYahooPid = {}; S.alias = {};
       S.hasMarket = list.some(function (p) { return p.marketRank != null; });
       list.forEach(function (p) {
         p.sleeperId = p.source !== 'yahoo-only' && p.id != null && p.id !== '' ? String(p.id) : null;
         p.id = L.playerKey(p);
+        var legacy = L.legacyKey(p);
         if (p.yahooPid != null && p.yahooPid !== '') S.byYahooPid[String(p.yahooPid)] = p.id;
-        if (p.sleeperId && p.sleeperId !== p.id && !S.alias[p.sleeperId]) S.alias[p.sleeperId] = p.id;
+        if (legacy && legacy !== p.id && !S.alias[legacy]) S.alias[legacy] = p.id;
       });
       list.sort(function (a, b) { return (a.rank || 1e9) - (b.rank || 1e9) || (b.hsValue || 0) - (a.hsValue || 0); });
       S.players = list; S.asOf = d.asOf;
@@ -1430,7 +1505,7 @@
     });
   }
 
-  // Rewrite saved Sleeper ids (manual picks, match overrides) to board ids.
+  // Rewrite legacy ids (manual picks, match overrides saved as 'y<pid>') to board ids.
   function migrateIds() {
     var changed = false, a = S.alias;
     S.state.manual.forEach(function (m) { var k = m && m.playerId != null && a[String(m.playerId)]; if (k) { m.playerId = k; changed = true; } });
@@ -1448,10 +1523,10 @@
   }
 
   bind();
-  handleYahooParam();
+  handleConnectParam();
   initClerk();
   load(null, L.DEFAULT_SETTINGS);
   recompute(); render();
   var profileP = loadProfile();
-  Promise.all([loadPlayers(), profileP.then(initYahoo)]).then(function () { recompute(); render(); });
+  Promise.all([loadPlayers(), profileP.then(initSleeper)]).then(function () { recompute(); render(); });
 })();

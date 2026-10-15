@@ -4,12 +4,14 @@
 //
 //   GET  /nba/trade                                    page
 //   POST /api/nba/trade/evaluate                       manual mode, public, rate + size limited
-//        body { give[], get[], myRoster[], partnerRoster?[], leagueRostered?[], settings?, league_key?, league_id? }
-//        ids are Sleeper ids or Yahoo player_keys (keys need a signed-in, Yahoo-connected user + league_key)
-//   GET  /api/nba/trade/context?league_key=&team_key=  Yahoo-first rosters (auth)
-// League profile (L1): league_key / league_id (default 242808) picks the profile;
-// the board is valued under its scoring and the evaluator uses its slots, roster
-// size, IL, playoff weeks and trade rules. Yahoo roster_positions override slots.
+//        body { give[], get[], myRoster[], partnerRoster?[], leagueRostered?[], settings?, sleeper_league_id?, league_key?, league_id? }
+//        ids are Sleeper ids. sleeper_league_id loads the Sleeper league's roster shape + every
+//        roster (replacement level). Yahoo player_keys only work when yahooEnabled.
+//   GET  /api/nba/trade/context?league_id=[&user_id=]  Sleeper rosters (public data; team_key = roster_id)
+//   GET  /api/nba/trade/context?league_key=&team_key=  Yahoo rosters (auth; only when yahooEnabled, else 410)
+// League profile (L1): league_id (default 242808) picks the profile; the board
+// is valued under its scoring and the evaluator uses its slots, roster size, IL,
+// playoff weeks and trade rules. The league's roster_positions override slots.
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -41,15 +43,15 @@ function createRateLimit({ windowMs = 60 * 1000, max = 40, now = () => Date.now(
   };
 }
 
-// Yahoo roster_positions → { slots: {PG,SG,G,SF,PF,F,C,FC,UTIL,BN,IL}, rosterSize (active spots) }.
-// Yahoo names its slots like the profile does (PG…C, Util, BN, IL, IL+). A
-// High Score league's frontcourt slot shows as F with no SF/PF/C slots: FC.
+// roster_positions → { slots: {PG,SG,G,SF,PF,F,C,FC,UTIL,BN,IL}, rosterSize (active spots) }.
+// Accepts Yahoo's [{position,count}] and Sleeper's ['PG','SG',…,'BN','IR'].
+// A High Score league's frontcourt slot shows as F with no SF/PF/C slots: FC.
 function rosterShape(positions) {
   const slots = { PG: 0, SG: 0, G: 0, SF: 0, PF: 0, F: 0, C: 0, FC: 0, UTIL: 0, BN: 0, IL: 0 };
   let seen = false;
   for (const rp of positions || []) {
-    const pos = String(rp.position || '').toUpperCase();
-    const n = Number(rp.count) || 0;
+    const pos = String(typeof rp === 'string' ? rp : rp.position || '').toUpperCase();
+    const n = typeof rp === 'string' ? 1 : Number(rp.count) || 0;
     seen = true;
     if (/^IL|^IR/.test(pos)) slots.IL += n;
     else if (pos === 'BN') slots.BN += n;
@@ -66,9 +68,43 @@ function rosterShape(positions) {
 function createTradeRoutes({
   auth, getAuth, apiCached, modelPlayers, matcher, clientFor, sendYahooError,
   env = process.env, log = console, rateLimit = createRateLimit(),
+  sleeper = null, yahooEnabled = false,
 } = {}) {
   const router = express.Router();
   const userId = req => ((getAuth && getAuth(req)) || {}).userId || null;
+  const { errorResponse: sleeperErr } = require('../sleeper/client');
+  const SL_ID_RE = /^\d{1,24}$/;
+
+  // Sleeper league → the same context shape the page / evaluator already use.
+  async function sleeperContext(lid, uid) {
+    const ctx = await sleeper.leagueContext(lid, uid);
+    const board = await modelPlayers(undefined, undefined).catch(() => ({ players: [] }));
+    const byId = new Map((board.players || []).map(p => [String(p.id), p]));
+    const unmatched = [];
+    const teams = ctx.teams.map(t => ({
+      team_key: t.team_key, name: t.name, mine: t.team_key === ctx.myTeamKey,
+      players: t.players.map(id => {
+        const p = byId.get(id);
+        if (!p) unmatched.push({ team_key: t.team_key, player_key: id, name: `Player ${id}` });
+        return { player_key: id, sleeperId: p ? String(p.id) : null, name: p ? p.name : `Player ${id}`, selected_position: t.reserve.includes(id) ? 'IL' : 'BN', status: p ? p.injury || null : null };
+      }),
+    }));
+    const lg = ctx.league, st = lg.settings || {};
+    const shape = rosterShape(lg.roster_positions);
+    // Sleeper keeps IR spots in settings.reserve_slots, not roster_positions.
+    if (shape && !shape.slots.IL && Number(st.reserve_slots) > 0) shape.slots.IL = Number(st.reserve_slots);
+    return {
+      source: 'sleeper',
+      league: {
+        league_id: String(lg.league_id), league_key: String(lg.league_id), name: lg.name || null, num_teams: Number(lg.total_rosters) || teams.length,
+        current_week: st.leg || null, start_week: st.start_week || 1, end_week: null,
+        playoff_start_week: st.playoff_week_start || null, trade_deadline: st.trade_deadline ?? null,
+        scoring_type: lg.scoring_settings ? 'points' : null,
+        settings: { teams: Number(lg.total_rosters) || teams.length, ...(shape || {}) },
+      },
+      myTeamKey: ctx.myTeamKey, teams, unmatched,
+    };
+  }
 
   router.get('/nba/trade', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -113,6 +149,28 @@ function createTradeRoutes({
     });
   }
 
+  router.get('/api/nba/trade/context', (req, res, next) => {
+    if (req.query.league_id == null) return next();
+    rateLimit(req, res, async () => {
+      res.setHeader('Cache-Control', 'private, no-store');
+      const lid = String(req.query.league_id || '');
+      if (!SL_ID_RE.test(lid)) return res.status(400).json({ error: 'Invalid league_id' });
+      const uid = req.query.user_id != null && SL_ID_RE.test(String(req.query.user_id)) ? String(req.query.user_id) : null;
+      const tk = req.query.team_key != null && req.query.team_key !== '' ? String(req.query.team_key) : null;
+      if (tk && !/^\d{1,3}$/.test(tk)) return res.status(400).json({ error: 'Invalid team_key' });
+      if (!sleeper) return res.status(503).json({ error: 'Sleeper sync unavailable' });
+      try {
+        const ctx = await sleeperContext(lid, uid);
+        if (tk && !ctx.teams.some(t => t.team_key === tk)) return res.status(404).json({ error: 'Team not in league' });
+        res.json({ ...ctx, myTeamKey: tk || ctx.myTeamKey });
+      } catch (err) { const e = sleeperErr(err); if (e.status >= 500) log.error('[nba] trade sleeper:', err && err.message); res.status(e.status).json(e.body); }
+    });
+  });
+  router.get('/api/nba/trade/context', (req, res, next) => {
+    if (yahooEnabled) return next();
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(410).json({ error: 'Yahoo sync is no longer offered; use league_id (Sleeper)', code: 'yahoo_disabled' });
+  });
   router.get('/api/nba/trade/context', auth, async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');
     const uid = userId(req);
@@ -151,6 +209,8 @@ function createTradeRoutes({
     if (!lists.give.length && !lists.get.length) return badBody(res, 'Add players to give or get');
     const lk = b.league_key != null && b.league_key !== '' ? String(b.league_key) : null;
     if (lk && !LEAGUE_KEY_RE.test(lk)) return badBody(res, 'Invalid league_key');
+    const slid = b.sleeper_league_id != null && b.sleeper_league_id !== '' ? String(b.sleeper_league_id) : null;
+    if (slid && !SL_ID_RE.test(slid)) return badBody(res, 'Invalid sleeper_league_id');
     const settings = b.settings && typeof b.settings === 'object' && !Array.isArray(b.settings) ? { ...b.settings } : {};
     const warnings = [];
     const lid = b.league_id != null && b.league_id !== '' ? String(b.league_id) : null;
@@ -163,23 +223,26 @@ function createTradeRoutes({
       return res.status(503).json({ error: 'NBA player data unavailable' });
     }
 
-    // Yahoo enrichment: league settings, every roster (replacement level) and player_key resolution.
+    // League enrichment: settings, every roster (replacement level) and (Yahoo) player_key resolution.
     const all = Object.values(lists).filter(Boolean).flat();
     const keys = all.filter(id => PLAYER_KEY_RE.test(id));
     let ctx = null;
     const uid = userId(req);
-    if (lk && uid) {
+    if (slid && sleeper) {
+      try { ctx = await sleeperContext(slid, null); } catch (err) { warnings.push('Sleeper league unavailable; used defaults'); }
+    } else if (lk && uid && yahooEnabled) {
       try { ctx = await loadContext(uid, lk); } catch (err) {
         if (keys.length) return sendYahooError(res, err, uid);
         warnings.push('Yahoo league unavailable; used defaults');
       }
     }
+    if (keys.length && !yahooEnabled) return res.status(400).json({ error: 'Yahoo player keys are no longer supported; use Sleeper ids', code: 'yahoo_disabled' });
     if (keys.length && !ctx) return res.status(400).json({ error: 'Yahoo player keys need a connected Yahoo league (send league_key while signed in), or use Sleeper ids', code: 'player_keys_need_yahoo' });
     if (ctx) {
       const keyMap = new Map();
       for (const t of ctx.teams) for (const p of t.players) if (p.sleeperId) keyMap.set(p.player_key, p.sleeperId);
       const missing = keys.filter(k => !keyMap.has(k));
-      if (missing.length) {
+      if (missing.length && ctx.source !== 'sleeper') {
         try {
           const c = clientFor(uid);
           const match = await matcher();

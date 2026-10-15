@@ -301,7 +301,7 @@ async function freePort() {
   };
   const app = express();
   app.use('/', createNbaRouter({
-    auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached, env: ENV, store,
+    auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached, env: ENV, store, yahooEnabled: true, // legacy module tests
     loadModel: () => fakeModel,
     makeClient: opts => createClient({ ...opts, limiter: noWait, fetchImpl: async url => resp(200, yahooFixtureFor(url)) }),
     exchangeCode: async args => { exchangeArgs = args; return { ...fx('token.json'), expires_at: Date.now() + 3600e3 }; },
@@ -339,7 +339,7 @@ async function freePort() {
     });
     await test('/api/nba/health', async () => {
       const r = await get('/api/nba/health');
-      assert.deepStrictEqual(await r.json(), { ok: true, yahooConfigured: true, modelAsOf: null });
+      assert.deepStrictEqual(await r.json(), { ok: true, sleeper: true, yahooEnabled: true, yahooConfigured: true, modelAsOf: null });
     });
     await test('/api/nba/players proxies model; bad week 400', async () => {
       const j = await (await get('/api/nba/players?week=1')).json();
@@ -473,7 +473,7 @@ async function freePort() {
       }
       assert.match((await body('/sitemap.xml'))[1], /<loc>https:\/\/pocketff\.com\/nba<\/loc>/);
       const [sts, stb] = await body('/api/nba/yahoo/status');
-      assert.strictEqual(sts, 200); assert.deepStrictEqual(JSON.parse(stb), { connected: false, signedIn: false });
+      assert.strictEqual(sts, 200); assert.deepStrictEqual(JSON.parse(stb), { connected: false, disabled: true, code: 'yahoo_disabled' }); // Yahoo off by default on the real server
       // Assets revalidate (no stale 1 h cache); NBA pages pin ?v=<content hash>; CSP allows ESPN headshots.
       for (const p of ['/shared/styles.css', '/shared/nav.js', '/nba/pages/nba-ui.css', '/nba/pages/nba-ui.js']) {
         const r = await fetch(sbase + p);
@@ -694,7 +694,7 @@ async function freePort() {
     const gApiCached = async (key, ttl, fn) => { const e = gCache.get(key); if (e && e.exp > Date.now()) return e.v; const v = await fn(); gCache.set(key, { v, exp: Date.now() + ttl }); return v; };
     const gApp = express();
     gApp.use('/', createNbaRouter({
-      auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: gApiCached, env: ENV, store: gStore,
+      auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: gApiCached, env: ENV, store: gStore, yahooEnabled: true,
       loadModel: () => fakeModel, log: gLog, diagnoseCooldownMs: 0,
       makeClient: opts => createClient({ ...opts, limiter: noWait, sleep: fastSleep,
         refresh: async () => { const e = new Error('Yahoo token endpoint 401 (' + mode + ')'); e.status = mode === 'invalid_grant' ? 400 : 401; e.code = mode; throw e; },

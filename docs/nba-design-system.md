@@ -103,7 +103,7 @@ Contrast (checked by the test, WCAG): every text token ≥ 4.5:1 on every surfac
 - `.nu-kv` definition list (`<dl class="nu-kv"><dt>Floor</dt><dd>39.3</dd>…`).
 
 ### Buttons
-`.nu-btn` (secondary, default) · `--primary` (orange, ONE per view region) · `--ghost` · `--danger` · `--yahoo` (+ `<span class="nu-y">Y!</span>`) · sizes `--sm` (36px visual, 44px hit) `--lg` (52) · `--block` · `--icon` (square; needs `aria-label`). Loading: `aria-busy="true"`. Disabled: `disabled`. Count bubble: `<span class="nu-count">3</span>` inside a button.
+`.nu-btn` (secondary, default) · `--primary` (orange, ONE per view region) · `--ghost` · `--danger` · `--sleeper` (+ `<span class="nu-y">S</span>`; `.nu-y--sleeper` dark mark on a primary button) · `.nu-connect-form` (inline username input + button, 44px) · sizes `--sm` (36px visual, 44px hit) `--lg` (52) · `--block` · `--icon` (square; needs `aria-label`). Loading: `aria-busy="true"`. Disabled: `disabled`. Count bubble: `<span class="nu-count">3</span>` inside a button.
 ```html
 <button class="nu-btn nu-btn--primary">Draft Jokić</button>
 <button class="nu-btn nu-btn--icon" aria-label="League settings">${NbaUI.icon.settings}</button>
@@ -150,7 +150,7 @@ Contrast (checked by the test, WCAG): every text token ≥ 4.5:1 on every surfac
 - `emptyState({ title, body, action })` → `.nu-empty` with the ball glyph.
 - `skeleton(n, { kind: 'row'|'tile'|'card' })` → shimmer placeholders, same geometry as the real rows (no layout jump). Render immediately, replace on data.
 - `toast(msg, { tone: 'good'|'bad', timeout, action: { label, onClick } })` → polite live region, max 3, above tab/action bar.
-- `statusChip(state, label, href)` → `.nu-status-chip[data-state=connected|syncing|error|off]` for the nav slot `#nu-nav-status` (yahoo-chip.js also renders there).
+- `statusChip(state, label, href)` → `.nu-status-chip[data-state=connected|syncing|error|off]` for the nav slot `#nu-nav-status` (sleeper-chip.js also renders there).
 
 ### Sheet (bottom sheet ≤768, centered modal ≥769)
 ```html

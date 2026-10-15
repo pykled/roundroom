@@ -81,7 +81,7 @@
         <button class="nu-btn">Secondary</button>
         <button class="nu-btn nu-btn--ghost">How it works</button>
         <button class="nu-btn nu-btn--danger">Disconnect</button>
-        <a class="nu-btn nu-btn--yahoo" href="#buttons"><span class="nu-y">Y!</span>Connect Yahoo</a>
+        <a class="nu-btn nu-btn--sleeper" href="#buttons"><span class="nu-y">S</span>Connect Sleeper</a>
         <button class="nu-btn nu-btn--icon" aria-label="League settings" id="sg-icon-btn"></button>
       </div>
       <div class="sg-demo">
@@ -128,7 +128,7 @@
           <button data-value="this" aria-pressed="true">This week</button><button data-value="next" aria-pressed="false">Next</button><button data-value="ros" aria-pressed="false">Rest of season</button>
         </div>
         <div class="nu-seg nu-seg--accent nu-seg--block" role="group" aria-label="Roster source" id="sg-seg2">
-          <button data-value="yahoo" aria-pressed="true">Yahoo</button><button data-value="manual" aria-pressed="false">Manual</button>
+          <button data-value="sleeper" aria-pressed="true">Sleeper</button><button data-value="manual" aria-pressed="false">Manual</button>
         </div>
       </div>
     </div>
@@ -137,7 +137,7 @@
   <!-- PLAYERS -->
   <section class="sg-sec" id="players">
     <h2>Players</h2>
-    <p class="sg-lead">A face on every player. Chain: Sleeper → ESPN (needs <code>espnId</code> + CSP) → Yahoo → initials on a team-tinted disc. Last two: Yahoo-only player with no image source, and a Sleeper id that 404s.</p>
+    <p class="sg-lead">A face on every player. Chain: Sleeper → ESPN (needs <code>espnId</code> + CSP) → initials on a team-tinted disc. Last two: projection-only player with no image source, and a Sleeper id that 404s.</p>
     <div class="nu-card nu-stack">
       <div class="sg-demo" id="sg-avatars"></div>
       <div class="nu-divider"></div>
@@ -198,7 +198,7 @@
     <div class="sg-demo" style="margin-top:var(--nu-3)">
       <button class="nu-btn" id="sg-toast">Show toast</button>
       <button class="nu-btn" id="sg-toast-undo">Toast with undo</button>
-      <span class="nu-status-chip" data-state="connected"><span class="nu-dot" aria-hidden="true"></span>Yahoo connected</span>
+      <span class="nu-status-chip" data-state="connected"><span class="nu-dot" aria-hidden="true"></span>Sleeper connected</span>
       <span class="nu-status-chip" data-state="syncing"><span class="nu-dot" aria-hidden="true"></span>Syncing</span>
       <span class="nu-status-chip" data-state="error"><span class="nu-dot" aria-hidden="true"></span>Reconnect</span>
       <span class="nu-status-chip" data-state="off"><span class="nu-dot" aria-hidden="true"></span>Not connected</span>
@@ -296,8 +296,8 @@
       return '<div class="nu-row nu-row--compact"><span class="nu-slot">' + U.posPill(p.pos[0]) + '</span>' + U.playerCell(p, { size: 'sm' }) + '<span class="nu-row__end"><span class="nu-row__num"><b>' + U.fmt.score(p.hsValue) + '</b></span></span></div>';
     }).join('');
     $('sg-skel').innerHTML = U.skeleton(5);
-    $('sg-callouts').innerHTML = U.callout('', '<b>Tip:</b> tap a day to mark it as today; earlier days count as played.') + U.callout('info', 'Synced with Yahoo 2 min ago.') +
-      U.callout('warn', '<b>Bench forfeit:</b> benching Jokić now wipes his Monday 71.2.') + U.callout('error', '<b>Yahoo sign-in expired.</b> Reconnect to load your roster.') + U.callout('success', 'Lineup saved.');
+    $('sg-callouts').innerHTML = U.callout('', '<b>Tip:</b> tap a day to mark it as today; earlier days count as played.') + U.callout('info', 'Synced with Sleeper 2 min ago.') +
+      U.callout('warn', '<b>Bench forfeit:</b> benching Jokić now wipes his Monday 71.2.') + U.callout('error', '<b>Sleeper isn’t responding.</b> Manual mode works meanwhile.') + U.callout('success', 'Lineup saved.');
     $('sg-empty').innerHTML = U.emptyState({ title: 'No players match', body: 'Clear a filter or search by team (e.g. "DEN").', action: '<button class="nu-btn nu-btn--sm">Clear filters</button>' });
     $('sg-focus').innerHTML = '<div class="nu-card__head"><span class="nu-eyebrow">Your pick now · Fills C</span><span class="nu-label">Round 1 · Pick 1</span></div>' +
       '<div class="nu-row-flex" style="gap:var(--nu-4);align-items:center">' + U.playerCell(j, { lg: true, teamBadge: true }) + '<span class="nu-spacer"></span>' +
@@ -327,7 +327,7 @@
   U.tabs($('sg-tabs'));
   U.segmented($('sg-seg')); U.segmented($('sg-seg2'));
   $('sg-switch').addEventListener('click', function () { this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
-  $('sg-toast').addEventListener('click', function () { U.toast('Lineup saved to Yahoo', { tone: 'good' }); });
+  $('sg-toast').addEventListener('click', function () { U.toast('Lineup saved', { tone: 'good' }); });
   $('sg-toast-undo').addEventListener('click', function () { U.toast('Drafted Nikola Jokić', { action: { label: 'Undo', onClick: function () { U.toast('Pick undone'); } } }); });
   $('sg-open-sheet').addEventListener('click', function () { U.sheet.open('sg-player-sheet'); });
   $('sg-open-settings').addEventListener('click', function () { U.sheet.open('sg-settings', { initialFocus: '#sg-teams' }); });

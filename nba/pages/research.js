@@ -109,7 +109,7 @@
         '<button type="button" class="nu-btn nu-btn--icon rs-dir" data-f="dir" aria-label="' + (asc ? 'Ascending: lowest first. Switch to highest first' : 'Descending: highest first. Switch to lowest first') + '" title="' + (asc ? 'Lowest first' : 'Highest first') + '"><span aria-hidden="true">' + (asc ? '↑' : '↓') + '</span></button></div></div>' +
       '<div class="nu-field rs-f-team"><label for="' + px + '-team">Team</label><select class="nu-select" id="' + px + '-team" data-f="team">' + teamOpts + '</select></div>' +
       '<div class="nu-field rs-f-inj"><label for="' + px + '-inj">Health</label><select class="nu-select" id="' + px + '-inj" data-f="inj">' + injOpts + '</select></div>' +
-      '<div class="rs-f-yahoo"><span class="rs-f-yahoo__t" id="' + px + '-yo-l">Yahoo-only<small>No game logs</small></span>' +
+      '<div class="rs-f-yahoo"><span class="rs-f-yahoo__t" id="' + px + '-yo-l">Projection-only pool<small>No game logs</small></span>' +
         '<button type="button" class="nu-switch" role="switch" data-f="src" aria-checked="' + (state.src === 'yahoo-only') + '" aria-labelledby="' + px + '-yo-l"></button></div>';
   }
   function renderControls() {
@@ -145,8 +145,8 @@
     { key: 'floor', label: 'Floor', title: 'Floor: a poor night (10th percentile)', cls: 'rs-c-floor' },
     { key: 'last5Delta', label: 'Form', title: 'Last 5 games vs season average', cls: 'rs-c-form' },
     { key: 'marketRank', label: 'Market', title: 'Draft-market rank and model-vs-market badge', cls: 'rs-c-mkt' },
-    { key: 'yahooPreRank', label: 'Y! rk', title: 'Yahoo pre-season rank', cls: 'rs-c-y' },
-    { key: 'yahooPctRos', label: '%Ros', title: 'Share of Yahoo leagues rostering him', cls: 'rs-c-ros' },
+    { key: 'yahooPreRank', label: 'Pre rk', title: 'Preseason rank', cls: 'rs-c-y' },
+    { key: 'yahooPctRos', label: '%Ros', title: 'Share of leagues rostering him (preseason)', cls: 'rs-c-ros' },
   ];
   function th(c) {
     var on = state.sort === c.key, aria = on ? (state.dir === 'asc' ? 'ascending' : 'descending') : 'none';
@@ -185,7 +185,7 @@
           '<div><dt>Floor</dt><dd>' + n1(p.floor) + '</dd></div>' +
           '<div><dt>Form</dt><dd>' + formHtml(p.last5Delta) + '</dd></div>' +
           '<div><dt>Mkt</dt><dd class="rs-card__mkt"' + mk + '>' + esc(fmt.rank(p.marketRank)) + '</dd></div>' +
-          '<div><dt>Y!</dt><dd>' + esc(fmt.rank(p.yahooPreRank)) + '</dd></div>' +
+          '<div><dt>Pre</dt><dd>' + esc(fmt.rank(p.yahooPreRank)) + '</dd></div>' +
         '</dl></a></li>';
     }).join('') + '</ol>';
   }
@@ -333,7 +333,7 @@
         '<h2 class="rs-hero__name" id="rs-name-' + ctx + '" tabindex="-1">' + esc(id.name || 'Player') + '</h2>' +
         '<div class="rs-hero__meta">' + U.posPill(pos.list || []) + (t ? '<span class="rs-team">' + U.teamLogo(t, { size: 'md' }) + '<span>' + esc(TEAM_NAMES[t] || t) + '</span></span>' : '<span>Free agent</span>') + '</div>' +
         (bits.length ? '<div class="rs-hero__bio">' + bits.map(esc).join('<span class="nu-sep" aria-hidden="true"></span>') + '</div>' : '') +
-        (pos.yahooElig && pos.yahooElig.length ? '<div class="rs-hero__elig"><span class="nu-label">Yahoo slots</span>' + U.posPill(pos.yahooElig) + '</div>' : '') +
+        (pos.yahooElig && pos.yahooElig.length ? '<div class="rs-hero__elig"><span class="nu-label">Slots</span>' + U.posPill(pos.yahooElig) + '</div>' : '') +
       '</div></header>' + injHtml;
   }
   function tilesHtml(d) {
@@ -392,14 +392,14 @@
     var kv = '<dl class="rs-kv4">' +
       '<div><dt>Our rank</dt><dd>' + esc(fmt.rank(v.rank)) + '</dd></div>' +
       '<div><dt>Market</dt><dd>' + esc(fmt.rank(m.marketRank)) + '</dd></div>' +
-      '<div><dt>Yahoo rank</dt><dd>' + esc(fmt.rank(m.yahooPreRank)) + '</dd></div>' +
+      '<div><dt>Preseason rank</dt><dd>' + esc(fmt.rank(m.yahooPreRank)) + '</dd></div>' +
       '<div><dt>Rostered</dt><dd>' + (m.yahooPctRos == null ? '—' : esc(Math.round(m.yahooPctRos) + '%')) + '</dd></div></dl>';
     return section('Market vs. Model', '<div class="nu-card rs-market">' + kv + '<p class="rs-market__read" data-tone="' + r.tone + '">' + (m.label ? U.valueBadge(m.label, m.strong) : '') + '<span>' + esc(r.text) + '</span></p>' +
       (m.contested ? '<p class="nu-hint">Drafters disagree a lot on him, so his draft spot is hard to predict.</p>' : '') + '</div>');
   }
   function similarHtml(d) {
     var s = d.similar || [];
-    if (!s.length) return section('Similar Players', '<p class="nu-hint">' + esc(d.source === 'yahoo-only' ? 'Not available for Yahoo-only players (no game logs to compare).' : 'No close matches.') + '</p>');
+    if (!s.length) return section('Similar Players', '<p class="nu-hint">' + esc(d.source === 'yahoo-only' ? 'Not available for projection-only players (no game logs to compare).' : 'No close matches.') + '</p>');
     return section('Similar Players', '<div class="nu-list rs-similar">' + s.map(function (p) {
       return '<a class="nu-row nu-row--compact" href="' + esc(playerHref(p.id)) + '" data-open="' + esc(p.id) + '">' +
         '<div class="nu-player">' + avatarOf(p, 'md') + '<div class="nu-player__text"><span class="nu-player__name">' + esc(p.name) + '</span><span class="nu-player__meta rs-sim-why">' + esc(String(p.reason || '').replace(/^shares \w+ · /, '').replace(/HS value/g, 'Best gm').replace(/pts\/game/g, 'avg')) + '</span></div></div>' +
@@ -476,7 +476,7 @@
       out.push(section('Season Line', '<div class="nu-table-wrap"><table class="nu-table nu-table--compact rs-line"><caption class="nu-sr">Season per-game stats and projection, scored with league settings</caption><thead>' + h2 + '</thead><tbody>' + b2 + '</tbody></table></div>' +
         '<p class="nu-hint">Score = league points per game with this league’s scoring, including double-double and triple-double bonuses.</p>'));
     } else if (pj) {
-      out.push(section('Projection', '<p class="rs-body">' + esc(pj.note || 'Estimate only.') + (pj.yahooFanPts != null ? ' Yahoo projects ' + esc(Math.round(pj.yahooFanPts)) + ' fantasy points for the season.' : '') + '</p>'));
+      out.push(section('Projection', '<p class="rs-body">' + esc(pj.note || 'Estimate only.') + (pj.yahooFanPts != null ? ' Preseason projection: ' + esc(Math.round(pj.yahooFanPts)) + ' fantasy points for the season.' : '') + '</p>'));
     }
     if (d.splits && (d.splits.home || d.splits.away)) {
       var sp = d.splits;
@@ -676,7 +676,7 @@
   function loadMeta() {
     return getJson('/api/nba/research/meta').then(function (m) {
       meta = m;
-      if (m.leagueName) $('rs-eyebrow').textContent = m.leagueName + ' · Yahoo High Score';
+      if (m.leagueName) $('rs-eyebrow').textContent = m.leagueName + ' · High Score';
       if (m.players) $('rs-sub').textContent = m.players + ' players valued by the one game that counts: their best game of each matchup week.';
       if (m.asOf) {
         var f = $('rs-fresh');

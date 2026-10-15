@@ -328,7 +328,7 @@ t('nav markup keeps shared/nav.js contract', () => {
   assert.strictEqual((n.nav.match(/aria-current="page"/g) || []).length, 2); // NBA switch + Lineup
   assert.ok(/href="\/nba\/lineup" class="rr-link active"/.test(n.nav));
   assert.strictEqual((n.tabbar.match(/<a /g) || []).length, 5);
-  assert.ok(/data-nba-yahoo-chip/.test(n.nav));
+  assert.ok(/data-nba-sleeper-chip/.test(n.nav));
   // shared/nav.js treats every link as NBA (no NFL link-set swap)
   const PN = require('../shared/nav.js');
   assert.strictEqual(PN.sportFor('/nba/research'), 'nba');

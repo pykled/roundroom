@@ -72,7 +72,8 @@ async function listen(app) {
 function makeApp(opts, { gzip = false } = {}) {
   const app = express();
   if (gzip) app.use(compression()); // as server.js does, before the router hook
-  app.use('/', createNbaRouter({ auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: memCache(), env: ENV, loadModel: () => fakeModel, log: { error() {}, warn() {} }, ...opts }));
+  // yahooEnabled: these are the legacy Yahoo module's own tests (off by default on the site).
+  app.use('/', createNbaRouter({ auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: memCache(), env: ENV, loadModel: () => fakeModel, log: { error() {}, warn() {} }, yahooEnabled: true, ...opts }));
   app.use(express.static(ROOT));
   return app;
 }
@@ -267,7 +268,7 @@ async function freePort() {
     try {
       const app = express();
       app.use('/', createNbaRouter({
-        auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: memCache(), env: ENV, store, loadModel: () => fakeModel, diagnoseCooldownMs: 0,
+        auth: fakeAuth, getAuth: fakeGetAuth, db: null, apiCached: memCache(), env: ENV, store, loadModel: () => fakeModel, diagnoseCooldownMs: 0, yahooEnabled: true,
         exchangeCode: args => oauth.exchangeCode(args, { env: ENV, fetchImpl: tokenFetch }),
         makeClient: o => createClient({ ...o, limiter: noWait, sleep: async () => {}, refresh: rt => oauth.refreshTokens(rt, { env: ENV, fetchImpl: tokenFetch }),
           fetchImpl: async (url, init) => resp(401, { error: { description: 'echo ' + init.headers.Authorization } }) }),
@@ -318,30 +319,30 @@ async function freePort() {
 
   console.log('draft-day logic (nba/pages/draft-logic.js)');
   const T = k => '466.l.1.t.' + k;
-  await test('yahooClock: keeper slot + traded picks → Yahoo owner on the clock, not the snake', () => {
+  await test('syncClock: keeper slot + traded picks → the league\'s owner on the clock, not the snake', () => {
     const y = {
       status: 'drafting',
       picks: [{ pick: 1, team_key: T(1) }, { pick: 2, team_key: T(2) }, { pick: 3, team_key: T(3) }, { pick: 7, team_key: T(2) }],
       order: [4, 5, 6, 8, 9, 10, 11, 12].map(p => ({ pick: p, round: Math.ceil(p / 4), team_key: T({ 4: 1, 5: 1, 6: 3, 8: 4, 9: 4, 10: 2, 11: 3, 12: 4 }[p]) })),
     };
-    let c = L.yahooClock(y, T(1), 0);
+    let c = L.syncClock(y, T(1), 0);
     assert.strictEqual(c.cur, 4); assert.strictEqual(c.teamKey, T(1)); assert.strictEqual(c.onMe, true);
     assert.strictEqual(L.slotForPick(4, 4), 4, 'the snake would have said slot 4');
     assert.strictEqual(c.myAfter, 5); assert.strictEqual(c.gapNow, 0, 'back-to-back');
-    c = L.yahooClock(y, T(4), 0);
+    c = L.syncClock(y, T(4), 0);
     assert.strictEqual(c.onMe, false); assert.strictEqual(c.myNext, 8); assert.strictEqual(c.awayN, 3, 'picks 4,5,6 come first (7 is a keeper)');
     assert.strictEqual(c.myAfter, 9); assert.strictEqual(c.gapNext, 0);
-    c = L.yahooClock(y, T(1), 2); // two local picks pending
+    c = L.syncClock(y, T(1), 2); // two local picks pending
     assert.strictEqual(c.cur, 6); assert.strictEqual(c.teamKey, T(3));
-    assert.strictEqual(L.yahooClock({ status: 'drafting', picks: [{ pick: 1 }], order: [] }, T(1), 0), null, 'no order → snake fallback');
-    assert.strictEqual(L.yahooClock({ status: 'postdraft', picks: [{ pick: 1 }], order: [] }, T(1), 0).done, true);
-    assert.strictEqual(L.yahooClock(null, T(1), 0), null);
+    assert.strictEqual(L.syncClock({ status: 'drafting', picks: [{ pick: 1 }], order: [] }, T(1), 0), null, 'no order → snake fallback');
+    assert.strictEqual(L.syncClock({ status: 'postdraft', picks: [{ pick: 1 }], order: [] }, T(1), 0).done, true);
+    assert.strictEqual(L.syncClock(null, T(1), 0), null);
   });
-  await test('mergePicks with Yahoo order: pending manual picks fill the next open Yahoo slots with their owner', () => {
+  await test('mergePicks with the league order: pending manual picks fill the next open slots with their owner', () => {
     const y = { picks: [{ pick: 1, round: 1, team_key: T(1), player_key: 'a', sleeperId: '1' }, { pick: 3, round: 1, team_key: T(3), player_key: 'k', sleeperId: '3' }],
       order: [{ pick: 2, round: 1, team_key: T(1) }, { pick: 4, round: 1, team_key: T(2) }] };
     const m = L.mergePicks(y, [{ playerId: '9', mine: true }, { playerId: '8' }, { playerId: '7' }], { settings: { teams: 4 }, myTeamKey: T(1) });
-    assert.deepStrictEqual(m.picks.map(p => [p.pick, p.source, p.team_key || null]), [[1, 'yahoo', T(1)], [2, 'manual', T(1)], [3, 'yahoo', T(3)], [4, 'manual', T(2)], [5, 'manual', null]]);
+    assert.deepStrictEqual(m.picks.map(p => [p.pick, p.source, p.team_key || null]), [[1, 'sync', T(1)], [2, 'manual', T(1)], [3, 'sync', T(3)], [4, 'manual', T(2)], [5, 'manual', null]]);
     const plain = L.mergePicks({ picks: [{ pick: 1, sleeperId: '1' }] }, [{ playerId: '2' }], { settings: { teams: 4 } });
     assert.deepStrictEqual(plain.picks.map(p => p.pick), [1, 2], 'no order → unchanged behaviour');
   });
@@ -366,30 +367,46 @@ async function freePort() {
     assert.strictEqual(L.normalizeTimerSeconds(99999), 600);
     assert.strictEqual(L.timerState(t0, 90, t0).text, '1:30');
   });
-  await test('settingsFromYahoo: empty roster_positions keeps bench/slots (Checker C2)', () => {
+  await test('settingsFromLeague: empty roster_positions keeps bench/slots (Checker C2)', () => {
     const prev = { teams: 12, mySlot: 3, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4 };
-    assert.deepStrictEqual(L.settingsFromYahoo({ num_teams: 12, roster_positions: [] }, null, null, prev), L.normalizeSettings(prev));
-    assert.deepStrictEqual(L.settingsFromYahoo({ num_teams: 12, roster_positions: {} }, null, null, prev).bench, 4);
-    assert.strictEqual(L.settingsFromYahoo({ num_teams: 12, roster_positions: [{ position: 'G', count: 2 }, { position: 'BN', count: 3 }] }, null, null, prev).bench, 3);
+    assert.deepStrictEqual(L.settingsFromLeague({ num_teams: 12, roster_positions: [] }, null, null, prev), L.normalizeSettings(prev));
+    assert.deepStrictEqual(L.settingsFromLeague({ num_teams: 12, roster_positions: {} }, null, null, prev).bench, 4);
+    assert.strictEqual(L.settingsFromLeague({ num_teams: 12, roster_positions: [{ position: 'G', count: 2 }, { position: 'BN', count: 3 }] }, null, null, prev).bench, 3);
   });
 
   console.log('UI wiring');
-  await test('draft page: chip script loaded before draft.js; no GET logout link anywhere; chip disconnects via POST', () => {
+  await test('draft page: Sleeper chip loaded before draft.js; no Yahoo OAuth links; chip never calls Yahoo', () => {
     const html = fs.readFileSync(path.join(ROOT, 'nba/pages/draft.html'), 'utf8');
-    assert.ok(html.indexOf('/nba/pages/yahoo-chip.js') > 0 && html.indexOf('/nba/pages/yahoo-chip.js') < html.indexOf('/nba/pages/draft.js'));
-    for (const f of ['draft.html', 'draft.js', 'yahoo-chip.js']) assert.ok(!/href=["']\/nba\/auth\/logout/.test(fs.readFileSync(path.join(ROOT, 'nba/pages', f), 'utf8')), f);
-    const chip = fs.readFileSync(path.join(ROOT, 'nba/pages/yahoo-chip.js'), 'utf8');
-    assert.match(chip, /fetch\('\/nba\/auth\/logout', \{ method: 'POST', credentials: 'same-origin'/);
-    assert.match(html, /id="nd-timer"/); assert.match(html, /id="nd-firstrun"/); assert.match(html, /name="timer"/);
+    assert.ok(html.indexOf('/nba/pages/sleeper-chip.js') > 0 && html.indexOf('/nba/pages/sleeper-chip.js') < html.indexOf('/nba/pages/draft.js'));
+    assert.ok(!fs.existsSync(path.join(ROOT, 'nba/pages/yahoo-chip.js')), 'yahoo-chip.js removed');
+    for (const f of ['draft.html', 'draft.js', 'sleeper-chip.js', 'lineup.html', 'trade.html', 'waivers.html', 'research.html']) assert.ok(!/\/nba\/auth\/(login|logout)/.test(fs.readFileSync(path.join(ROOT, 'nba/pages', f), 'utf8')), f + ' links Yahoo OAuth');
+    const chip = fs.readFileSync(path.join(ROOT, 'nba/pages/sleeper-chip.js'), 'utf8');
+    assert.match(chip, /\/api\/nba\/sleeper\/user\?username=/);
+    assert.ok(!/api\/nba\/yahoo/.test(chip));
+    assert.match(html, /id="nd-timer"/); assert.match(html, /id="nd-firstrun"/); assert.match(html, /name="timer"/); assert.match(html, /id="nd-fr-user"/);
     const js = fs.readFileSync(path.join(ROOT, 'nba/pages/draft.js'), 'utf8');
-    for (const k of ['connected', 'disconnected', 'signin', 'denied', 'error', 'misconfigured']) assert.ok(new RegExp('\\b' + k + ':').test(js), 'handles ?yahoo=' + k);
+    assert.ok(/connect=sleeper/.test(js), 'handles ?connect=sleeper (old OAuth links land there)');
+    assert.ok(!/api\/nba\/yahoo/.test(js), 'draft.js never calls the Yahoo API');
     new Function(js); new Function(chip); // parse
   });
-  await test('yahoo-chip.js is served from /nba/pages (deny list still blocks server files)', async () => {
+  await test('sleeper-chip.js is served from /nba/pages (deny list blocks server files incl. nba/sleeper)', async () => {
     const { srv, base } = await listen(makeApp({}));
     try {
-      assert.strictEqual((await raw(base, '/nba/pages/yahoo-chip.js')).status, 200);
-      for (const p of ['/nba/yahoo/diagnose.js', '/nba/yahoo/nonces.js']) assert.strictEqual((await raw(base, p)).status, 404, p);
+      assert.strictEqual((await raw(base, '/nba/pages/sleeper-chip.js')).status, 200);
+      for (const p of ['/nba/yahoo/diagnose.js', '/nba/yahoo/nonces.js', '/nba/sleeper/client.js', '/nba/sleeper/map.js', '/nba/routes/sleeper.js']) assert.strictEqual((await raw(base, p)).status, 404, p);
+    } finally { srv.close(); }
+  });
+  await test('Yahoo off (default): OAuth → /nba?connect=sleeper, API → 410 / disabled status', async () => {
+    const { srv, base } = await listen(makeApp({ yahooEnabled: false }));
+    try {
+      const r = await raw(base, '/nba/auth/login', { headers: { 'x-test-user': 'user_A' } });
+      assert.strictEqual(r.status, 302); assert.strictEqual(r.headers.location, '/nba?connect=sleeper');
+      assert.strictEqual((await raw(base, '/nba/auth/logout', { method: 'POST', headers: { 'x-test-user': 'user_A', 'sec-fetch-site': 'same-origin' } })).status, 410);
+      const st = await raw(base, '/api/nba/yahoo/status', { headers: { 'x-test-user': 'user_A' } });
+      assert.strictEqual(st.status, 200); assert.deepStrictEqual(JSON.parse(st.body), { connected: false, disabled: true, code: 'yahoo_disabled' });
+      assert.strictEqual((await raw(base, '/api/nba/yahoo/draft?league_key=466.l.1', { headers: { 'x-test-user': 'user_A' } })).status, 410);
+      const h = JSON.parse((await raw(base, '/api/nba/health')).body);
+      assert.strictEqual(h.yahooEnabled, false); assert.strictEqual(h.sleeper, true);
     } finally { srv.close(); }
   });
 
@@ -454,8 +471,14 @@ async function freePort() {
       getTeams: async () => [], getDraftResults: async () => ({ picks: [] }),
     } }).then(r => assert.deepStrictEqual(r.leagues[0].settings.extra, { uses_faab: '1' }));
   });
-  await test('pollPlan: hidden tab keeps polling (≥10s) only during a live draft', () => {
-    assert.deepStrictEqual(L.pollPlan(false, 'predraft', 0), { run: true, delay: 4000 });
+  await test('pollPlan: hidden tab keeps polling (≥10s) only during a live draft; idle visible tab polls gently', () => {
+    assert.deepStrictEqual(L.pollPlan(false, 'drafting', 0), { run: true, delay: 4000 });
+    assert.deepStrictEqual(L.pollPlan(false, 'predraft', 0), { run: true, delay: L.IDLE_POLL_MS }, 'scheduled draft: 20 s visible polling');
+    assert.deepStrictEqual(L.pollPlan(false, 'postdraft', 0), { run: true, delay: L.IDLE_POLL_MS });
+    const t0 = 1e12;
+    assert.deepStrictEqual(L.pollPlan(false, 'predraft', 0, { startTime: t0 + 5 * 60 * 1000, now: t0 }), { run: true, delay: 4000 }, 'draft starts in 5 min: live rate');
+    assert.deepStrictEqual(L.pollPlan(false, 'predraft', 0, { startTime: t0 + 60 * 60 * 1000, now: t0 }), { run: true, delay: L.IDLE_POLL_MS }, 'draft in an hour: idle rate');
+    assert.deepStrictEqual(L.pollPlan(true, 'predraft', 0, { startTime: t0 - 1000, now: t0 }), { run: true, delay: L.HIDDEN_POLL_MS }, 'hidden tab, draft overdue: keep polling');
     assert.deepStrictEqual(L.pollPlan(true, 'drafting', 0), { run: true, delay: L.HIDDEN_POLL_MS });
     assert.deepStrictEqual(L.pollPlan(true, 'drafting', 3), { run: true, delay: 30000 });
     assert.strictEqual(L.pollPlan(true, 'predraft', 0).run, false);
@@ -488,7 +511,7 @@ async function freePort() {
   await test('openSlots: a slot Yahoo lists twice counts once', () => {
     const y = { status: 'drafting', picks: [], order: [{ pick: 1, team_key: T(1) }, { pick: 1, team_key: T(1) }, { pick: 2, team_key: T(2) }] };
     assert.deepStrictEqual(L.openSlots(y).map(o => o.pick), [1, 2]);
-    assert.strictEqual(L.yahooClock(y, T(1), 0).myAfter, null);
+    assert.strictEqual(L.syncClock(y, T(1), 0).myAfter, null);
   });
 
   console.log('server.js (spawned real server)');

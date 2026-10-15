@@ -4,7 +4,7 @@
    Valuation itself is server-side (nba/model/trade.js); this module only
    shapes state, requests and display strings.
 
-   state { mode: 'manual'|'yahoo', leagueKey, myTeamKey, partnerKey,
+   state { mode: 'manual'|'sleeper', leagueKey (Sleeper league_id), myTeamKey (roster_id), partnerKey,
            myRoster: [id], give: [id], get: [id] } */
 (function (root, factory) {
   var api = factory();
@@ -44,11 +44,11 @@
 
   function canEvaluate(state) { return !!(state && (state.give.length || state.get.length)); }
 
-  // POST /api/nba/trade/evaluate body. Yahoo mode adds the partner's roster and league.
+  // POST /api/nba/trade/evaluate body. League mode adds the partner's roster and league.
   function requestBody(state, ctx) {
     var body = { give: state.give.slice(), get: state.get.slice(), myRoster: uniq(state.myRoster.concat(state.give)) };
-    if (state.mode === 'yahoo' && ctx && state.leagueKey) {
-      body.league_key = state.leagueKey;
+    if ((state.mode === 'sleeper' || state.mode === 'yahoo') && ctx && state.leagueKey) {
+      if (state.mode === 'sleeper') body.sleeper_league_id = state.leagueKey; else body.league_key = state.leagueKey;
       var partner = teamOf(ctx, state.partnerKey);
       if (partner) body.partnerRoster = rosterIds(partner);
     }
@@ -111,7 +111,7 @@
     var o;
     try { o = JSON.parse(raw); } catch (e) { return st; }
     if (!o || typeof o !== 'object' || o.v !== 1) return st;
-    st.mode = o.mode === 'yahoo' ? 'yahoo' : 'manual';
+    st.mode = o.mode === 'sleeper' ? 'sleeper' : 'manual'; // Yahoo-era saved states fall back to manual
     st.leagueKey = typeof o.leagueKey === 'string' ? o.leagueKey : null;
     st.myTeamKey = typeof o.myTeamKey === 'string' ? o.myTeamKey : null;
     st.partnerKey = typeof o.partnerKey === 'string' ? o.partnerKey : null;

@@ -47,8 +47,8 @@
 .nd-page .nd-slotpick { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nu-2) var(--nu-3); margin-bottom: var(--nu-3); padding: var(--nu-3); border: 1px solid var(--nu-line); border-radius: var(--nu-r-md); background: var(--nu-s1); font-size: var(--nu-fs-sm); color: var(--nu-text-2); min-width: 0; }
 .nd-page .nd-slotpick[hidden] { display: none; }
 .nd-page .nd-slotpick[data-mode="pick"] { border-color: var(--nu-accent-line); background: linear-gradient(180deg, var(--nu-accent-soft), transparent 70%), var(--nu-s1); }
-.nd-page .nd-slotpick[data-mode="chosen"], .nd-page .nd-slotpick[data-mode="yahoo"] { padding: 0 0 0 var(--nu-3); justify-content: space-between; }
-.nd-page .nd-slotpick[data-mode="yahoo"] { min-height: 44px; }
+.nd-page .nd-slotpick[data-mode="chosen"], .nd-page .nd-slotpick[data-mode="synced"] { padding: 0 0 0 var(--nu-3); justify-content: space-between; }
+.nd-page .nd-slotpick[data-mode="synced"] { min-height: 44px; }
 .nd-page .nd-slotpick__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--nu-2); width: 100%; }
 .nd-page .nd-slotpick__q { color: var(--nu-text); font-weight: 700; font-size: var(--nu-fs-body); }
 .nd-page .nd-slotpick__chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
@@ -57,7 +57,7 @@
 .nd-page .nd-slotpick__txt { min-width: 0; }
 .nd-page .nd-slotpick__txt b { color: var(--nu-text); font-weight: 700; }
 .nd-page .nd-slotpick__change { min-height: var(--nu-tap); border: 0; border-left: 1px solid var(--nu-line); border-radius: 0 var(--nu-r-md) var(--nu-r-md) 0; }
-/* League picker / Yahoo notices (reuses the .nd-slotpick card). */
+/* League picker / sync notices (reuses the .nd-slotpick card). */
 .nd-page .nd-leaguepick[data-mode="pick"] { border-color: var(--nu-accent-line); background: linear-gradient(180deg, var(--nu-accent-soft), transparent 70%), var(--nu-s1); }
 .nd-page .nd-leaguepick[data-mode="notice"] { padding: 0; border: 0; background: none; gap: var(--nu-2); }
 .nd-page .nd-leaguepick[data-mode="notice"] .nu-callout { flex: 1 1 100%; margin: 0; }
@@ -86,6 +86,13 @@
 .nd-page .nd-setup__opt p { font-size: var(--nu-fs-sm); color: var(--nu-text-2); line-height: 1.5; margin: 0; max-width: 52ch; }
 .nd-page .nd-setup__opt p b { color: var(--nu-text); }
 .nd-page .nd-setup__opt + .nd-setup__opt { padding-left: var(--nu-4); border-left: 1px solid var(--nu-line); }
+.nd-page .nd-setup__form { display: flex; gap: var(--nu-2); align-items: stretch; width: 100%; max-width: 420px; }
+.nd-page .nd-setup__form .nu-input { flex: 1 1 160px; min-width: 0; min-height: 44px; font-size: 16px; }
+.nd-page .nd-setup__form .nu-btn { min-height: 44px; white-space: nowrap; }
+.nd-page .nd-setup__opt .nu-btn { min-height: 44px; }
+.nd-page .nd-degraded .nu-btn, .nd-page .nd-leaguepick .nu-btn { min-height: 44px; }
+.nd-page .nd-setup__err:empty { display: none; }
+.nd-page .nd-setup__err { color: var(--nu-danger, #f87171); }
 
 /* ── Draft clock (sticky) ─────────────────────────────────────────────── */
 .nd-page .nd-clock {

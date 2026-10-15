@@ -81,17 +81,20 @@ async function loadBoard(o) {
 
 function fromValued(players) {
   const list = players.map(p => ({
-    // Yahoo-first: Yahoo positions/eligibility when the model has them (H1),
-    // else the profile-shaped elig, else Sleeper positions mapped (low confidence).
+    // Positions follow the eligibility source: Sleeper fantasy_positions when the
+    // profile is Sleeper-first (eligConfidence 'sleeper'), else Yahoo's positions
+    // when the model has them, else the profile-shaped elig / mapped positions.
     id: String(p.id), name: p.name, team: p.team,
-    pos: Array.isArray(p.yahooPos) && p.yahooPos.length ? p.yahooPos : p.pos || [],
+    pos: p.eligConfidence === 'sleeper' && Array.isArray(p.pos) && p.pos.length ? p.pos : Array.isArray(p.yahooPos) && p.yahooPos.length ? p.yahooPos : p.pos || [],
     elig: Array.isArray(p.yahooElig) && p.yahooElig.length ? p.yahooElig : p.elig && p.elig.includes('PG') ? p.elig : L.eligibility(p.pos || []),
     eligYahoo: Array.isArray(p.yahooElig) && p.yahooElig.length > 0 && (p.eligConfidence == null || p.eligConfidence === 'yahoo'),
+    eligSleeper: Array.isArray(p.yahooElig) && p.yahooElig.length > 0 && p.eligConfidence === 'sleeper',
     injury: p.injury || null, outForSeason: !!p.outForSeason,
     mean: p.mean, sd: p.sd, ceiling: p.ceiling, floor: p.floor, value: p.hsValue != null ? p.hsValue : p.value,
     games: p.games, source: p.source,
   }));
   fromValued.yahooShare = list.length ? list.filter(p => p.eligYahoo).length / list.length : 0;
+  fromValued.sleeperShare = list.length ? list.filter(p => p.eligSleeper).length / list.length : 0;
   return L.finish(list);
 }
 
@@ -151,7 +154,7 @@ async function main() {
     profile: o.profile, weights: b.weights, valueSource: b.valueSource, asOf: b.asOf || null,
     generatedAt: new Date().toISOString(), count: players.length, tdAlsoCountsDD: o.tdAlsoDD,
     rounds: (() => { try { const pr = require('../nba/league-profile').getProfile(o.profile); return (pr && pr.draft && pr.draft.rounds) || 14; } catch { return 14; } })(),
-    eligSource: b.valueSource.startsWith('profile') && fromValued.yahooShare > 0.5 ? 'yahoo' : 'sleeper',
+    eligSource: b.valueSource.startsWith('profile') && fromValued.yahooShare > 0.5 ? 'yahoo' : b.valueSource.startsWith('profile') && fromValued.sleeperShare > 0.5 ? 'sleeper-league' : 'sleeper',
   };
   meta.scoringText = scoringText(b.weights);
   fs.mkdirSync(o.out, { recursive: true });
@@ -595,7 +598,7 @@ function goTab(t){ setTab(t); window.scrollTo(0, 0); }
   });
   var foot = '<b>' + esc(document.querySelector(".banner").textContent) + '</b><br>Scoring: ' + esc(M.scoringText) +
     '<br>values: ' + esc(M.valueSource) + '<br>generated <span id="gen">' + esc(M.generatedAt) + '</span> · data as-of ' + esc(M.asOf || "unknown") + " · " + P.length + " players" +
-    '<br>Scoring-weight values are projections, not guarantees. ' + (M.eligSource === 'yahoo' ? 'Positions/eligibility from the Yahoo league snapshot.' : 'Eligibility estimated from NBA positions (low confidence) until Yahoo positions are known; check the Yahoo draft room for exact slots.') + ' ' + ROUNDS + ' draft rounds (Yahoo does not draft IL). Triple-double games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the double-double bonus (unverified assumption).";
+    '<br>Scoring-weight values are projections, not guarantees. ' + (M.eligSource === 'yahoo' ? 'Positions/eligibility from the league site snapshot.' : M.eligSource === 'sleeper-league' ? 'Positions/eligibility from Sleeper (the league site).' : 'Eligibility estimated from NBA positions (low confidence); check your draft room for exact slots.') + ' ' + ROUNDS + ' draft rounds (IR spots are not drafted). Triple-double games ' + (M.tdAlsoCountsDD ? "also" : "do not also") + " earn the double-double bonus (unverified assumption).";
   $("foot").innerHTML = foot;
   recompute();
   setTab("board");

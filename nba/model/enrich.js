@@ -110,7 +110,7 @@ function enrichPlayers(data, opts = {}) {
 
   return {
     ...data, players: all,
-    market: market ? { available: true, asOf: market.asOf || null, builtAt: market.builtAt || null, label: 'market (Yahoo-first)', matched: players.filter(p => p.marketRank != null).length } : { available: false },
+    market: market ? { available: true, asOf: market.asOf || null, builtAt: market.builtAt || null, label: 'market (consensus)', matched: players.filter(p => p.marketRank != null).length } : { available: false },
     yahooOnly: { count: extra.length, fit: VALUE_FIT },
   };
 }

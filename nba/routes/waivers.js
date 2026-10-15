@@ -1,7 +1,11 @@
 // Pocket NBA waivers / streaming API (stream F). Mounted with one line in nba/router.js:
 //   router.use(require('./routes/waivers')({ auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers, log }));
 //
-//   GET  /api/nba/waivers?league_key=&team_key=&weeks=1|2|4[&week=][&priority=][&adds_used=]   (Clerk auth; Yahoo-first)
+//   GET  /api/nba/waivers?league_id=&roster_id=&weeks=1|2|4[&week=][&priority=][&adds_used=][&user_id=]   (Sleeper; public data, rate limited)
+//        roster = the Sleeper roster's players (model ids), IL = its `reserve`, pool = every model player on no
+//        roster in the league, priority = roster.settings.waiver_position (rolling / reverse-standings leagues),
+//        FAAB = league.settings.waiver_type 2. Sleeper does not expose weekly adds used → from the query or unknown.
+//   GET  /api/nba/waivers?league_key=&team_key=&weeks=…   (Yahoo; only when yahooEnabled, else 410)
 //   POST /api/nba/waivers/manual { roster:[ids], pool?:[ids], exclude?:[ids], waivers?:[ids], weeks?, week?,
 //        rosterSize?, priority?, addsUsed?, league_id? }
 //        (public, rate limited, 16 KB body cap; no pool → every model player not on the roster)
@@ -167,10 +171,20 @@ async function teamWaiverState(client, teamKey) {
 module.exports = function waiversRoutes({
   auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers,
   loadData = defaultLoadData, log = console, rate = RATE, now, env = process.env,
+  sleeper = null, yahooEnabled = false,
 } = {}) {
   const router = express.Router();
   // Express 4 doesn't catch async handler rejections; route them to the JSON error handler.
   const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+  const { errorResponse: sleeperErr } = require('../sleeper/client');
+  // Sleeper waiver_type: 0 rolling priority, 1 reverse standings, 2 FAAB (docs.sleeper.com).
+  const sleeperRules = lg => {
+    const st = (lg && lg.settings) || {};
+    const wt = st.waiver_type != null ? Number(st.waiver_type) : null;
+    return { waiver_type: wt, waiver_rule: wt === 2 ? 'faab' : wt === 1 ? 'reverse-standings' : wt === 0 ? 'rolling' : null, waiver_time: st.waiver_clear_days ?? null,
+      uses_faab: wt == null ? null : wt === 2, waiver_budget: st.waiver_budget ?? null, daily_waivers: st.daily_waivers != null ? !!Number(st.daily_waivers) : null,
+      max_weekly_adds: null, max_adds: null };
+  };
 
   router.get('/nba/waivers', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -202,6 +216,68 @@ module.exports = function waiversRoutes({
   }
   const intIn = (v, lo, hi) => { if (v == null || v === '') return undefined; const n = Number(v); return Number.isInteger(n) && n >= lo && n <= hi ? n : null; };
 
+  // ---- Sleeper (public league data) -----------------------------------------
+  router.get('/api/nba/waivers', (req, res, next) => {
+    if (req.query.league_id == null) return next();
+    res.setHeader('Cache-Control', 'private, no-store');
+    const wait = limited(String(req.ip || (req.socket && req.socket.remoteAddress) || 'anon'));
+    if (wait) { res.setHeader('Retry-After', String(wait)); return res.status(429).json({ error: 'Too many requests — retry shortly' }); }
+    wrap(async () => {
+      const lid = String(req.query.league_id || '');
+      const rid = String(req.query.roster_id || '');
+      if (!/^\d{1,24}$/.test(lid)) return res.status(400).json({ error: 'Invalid league_id' });
+      if (!/^\d{1,3}$/.test(rid)) return res.status(400).json({ error: 'Invalid roster_id' });
+      if (!sleeper) return res.status(503).json({ error: 'Sleeper sync unavailable' });
+      const horizon = parseHorizon(req.query.weeks);
+      if (horizon == null) return res.status(400).json({ error: 'weeks must be 1, 2 or 4' });
+      const week = parseWeek(req.query.week);
+      if (week === null) return res.status(400).json({ error: 'Invalid week' });
+      const qPriority = intIn(req.query.priority, 1, 20);
+      const qAdds = intIn(req.query.adds_used, 0, 99);
+      if (qPriority === null || qAdds === null) return res.status(400).json({ error: 'Invalid priority or adds_used' });
+      const uid = req.query.user_id != null && /^\d{1,24}$/.test(String(req.query.user_id)) ? String(req.query.user_id) : null;
+      const lc = LC.profileFor({ leagueId: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      let b;
+      try { ({ b } = await board(lc)); } catch (err) {
+        if (err.status !== 503) log.error('[nba] waivers model:', err.message);
+        return res.status(503).json({ error: 'NBA player data unavailable' });
+      }
+      let ctx;
+      try { ctx = await sleeper.leagueContext(lid, uid); } catch (err) { const e = sleeperErr(err); return res.status(e.status).json(e.body); }
+      const team = ctx.teams.find(t => t.team_key === rid);
+      if (!team) return res.status(404).json({ error: 'Roster not in league', code: 'sleeper_not_found' });
+      const byId = new Map(b.players.map(p => [String(p.id), p]));
+      const unmatched = { roster: [], freeAgents: [] };
+      const roster = [], ilIds = [];
+      for (const id of team.players) {
+        const p = byId.get(id);
+        if (!p) { unmatched.roster.push({ player_key: id, name: `Player ${id}` }); continue; }
+        roster.push(p);
+        if (team.reserve.includes(id)) ilIds.push(String(p.id));
+      }
+      const owned = new Set(ctx.teams.flatMap(t => t.players));
+      const pool = b.players.filter(p => !owned.has(String(p.id)));
+      const data = loadData();
+      const rosterSize = rosterSizeFrom({ roster_positions: ctx.league.roster_positions }) || Math.max(R.activeSpots(lc.profile), roster.length - ilIds.length);
+      const priority = qPriority ?? (team.settings && Number.isFinite(Number(team.settings.waiver_position)) ? Number(team.settings.waiver_position) : undefined);
+      const addsUsed = qAdds ?? undefined;
+      const out = analyze({ roster, pool, b, horizon, week, rosterSize, data, ilIds, lc, waiverIds: [], priority, addsUsed });
+      out.priority.source = qPriority != null ? 'input' : priority != null ? 'sleeper' : null;
+      out.adds.source = qAdds != null ? 'input' : null;
+      res.json({
+        mode: 'sleeper', league_id: lid, roster_id: rid, team_name: team.name, league_name: ctx.league.name || null, asOf: b.asOf || null,
+        rules: sleeperRules(ctx.league), weekDates: weekDates(data, null, lc.profile, lc.profileId),
+        freeAgentCount: pool.length, unmatched, ...out,
+      });
+    })(req, res, next);
+  });
+
+  // ---- Yahoo (legacy; off unless NBA_YAHOO_ENABLED=1) ------------------------
+  router.get('/api/nba/waivers', (req, res, next) => {
+    if (yahooEnabled) return next();
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(410).json({ error: 'Yahoo sync is no longer offered; use league_id + roster_id (Sleeper) or the manual roster', code: 'yahoo_disabled' });
+  });
   router.get('/api/nba/waivers', auth, wrap(async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');
     const uid = userId(req);

@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Draft Board | Pocket</title>
-<meta name="description" content="Live draft board for Yahoo High Score fantasy basketball. Players ranked by expected best game of the week, with slot-aware best-available picks, a 90-second pick clock and live Yahoo draft sync.">
+<meta name="description" content="Live draft board for High Score fantasy basketball on Sleeper. Players ranked by expected best game of the week, with slot-aware best-available picks, a pick clock and live Sleeper draft sync from your username.">
 <link rel="canonical" href="https://pocketff.com/nba">
 <meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
 <meta property="og:title" content="NBA High Score Draft Board | Pocket">
-<meta property="og:description" content="Draft board for Yahoo High Score fantasy basketball: best-game value, slot balance and live Yahoo sync.">
+<meta property="og:description" content="Draft board for High Score fantasy basketball: best-game value, slot balance and live Sleeper draft sync.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pocketff.com/nba">
 <meta property="og:image" content="https://pocketff.com/og.png">
@@ -37,7 +37,7 @@
 <main class="nu-shell nd-shell" id="app">
   <header class="nd-head">
     <div class="nd-head__text">
-      <div class="nu-eyebrow nd-eyebrow"><span class="nu-ball" aria-hidden="true"></span><span id="nd-eyebrow">Yahoo High Score</span></div>
+      <div class="nu-eyebrow nd-eyebrow"><span class="nu-ball" aria-hidden="true"></span><span id="nd-eyebrow">High Score</span></div>
       <h1 class="page-title">NBA Draft Board</h1>
     </div>
     <div class="nd-head__actions">
@@ -58,15 +58,15 @@
   <div class="nd-status" id="nd-status">
     <span id="nd-sync" class="nd-sync" role="status" aria-live="polite"></span>
     <span class="nd-status__txt" id="nd-sub"></span>
-    <select id="nd-league" class="nu-select nd-league" aria-label="Yahoo league" hidden></select>
-    <button type="button" class="nd-status__edit" id="nd-league-switch" aria-label="Switch Yahoo league" hidden>Leagues</button>
+    <select id="nd-league" class="nu-select nd-league" aria-label="Sleeper league" hidden></select>
+    <button type="button" class="nd-status__edit" id="nd-league-switch" aria-label="Switch Sleeper league" hidden>Leagues</button>
     <button type="button" class="nd-status__edit" id="nd-slot-edit" aria-label="Change league settings">Edit</button>
   </div>
 
-  <!-- "Which league?" when Yahoo has several, or a Yahoo notice (down / not approved / no leagues / categories). -->
-  <section id="nd-leaguepick" class="nd-slotpick nd-leaguepick" aria-label="Yahoo league" hidden></section>
+  <!-- "Which league?" when the Sleeper account has several, or a sync notice (down / no leagues / categories / not in league). -->
+  <section id="nd-leaguepick" class="nd-slotpick nd-leaguepick" aria-label="Sleeper league" hidden></section>
 
-  <!-- "Which pick are you?": only when Yahoo hasn't supplied the draft slot. -->
+  <!-- "Which pick are you?": only when Sleeper hasn't supplied the draft slot (order not set yet). -->
   <section id="nd-slotpick" class="nd-slotpick" aria-label="Your draft slot" hidden></section>
 
   <div id="nd-banner" class="nd-banner" role="alert" hidden></div>
@@ -81,9 +81,13 @@
     </div>
     <div class="nd-setup__opts">
       <div class="nd-setup__opt">
-        <p><b>Sync with Yahoo.</b> Loads your league’s slots, draft order and pick timer, then fills in every pick live. Read-only.</p>
-        <a id="nd-fr-connect" class="nu-btn nu-btn--yahoo nu-btn--sm" href="/nba/auth/login"><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a>
-        <p class="nu-hint" id="nd-fr-connect-sub"></p>
+        <p><b>Sync with Sleeper.</b> Enter your Sleeper username to load your league’s slots, draft order, rounds and pick timer, then every pick fills in live. Read-only, no password.</p>
+        <form id="nd-fr-form" class="nd-setup__form" novalidate>
+          <label class="nu-sr" for="nd-fr-user">Sleeper username</label>
+          <input id="nd-fr-user" class="nu-input" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Sleeper username" aria-describedby="nd-fr-err">
+          <button id="nd-fr-connect" class="nu-btn nu-btn--primary nu-btn--sm nu-btn--sleeper" type="submit"><span class="nu-y nu-y--sleeper" aria-hidden="true">S</span>Connect Sleeper</button>
+        </form>
+        <p class="nu-hint nd-setup__err" id="nd-fr-err" role="alert"></p>
       </div>
       <div class="nd-setup__opt">
         <p><b>Or track it by hand.</b> Set your draft slot under League, then tap <b>Draft</b> as picks happen. Saved on this device.</p>
@@ -135,7 +139,6 @@
               <option value="ceiling">Sort: Ceiling</option>
               <option value="vorp">Sort: VORP</option>
               <option value="market">Sort: Market rank</option>
-              <option value="yahoo">Sort: Yahoo rank</option>
             </select>
           </div>
           <div class="nu-chip-row nu-chip-row--scroll nd-chips">
@@ -145,7 +148,7 @@
             <button id="nd-show-taken" class="nu-chip" type="button" aria-pressed="false">Show Drafted</button>
           </div>
         </div>
-        <p class="nu-hint nd-elig-note" id="nd-elig-note" hidden>Dashed position tags are estimates until Yahoo eligibility loads. Check a player’s Yahoo positions before counting on a slot.</p>
+        <p class="nu-hint nd-elig-note" id="nd-elig-note" hidden>Dashed position tags are estimates. Check a player’s positions in your Sleeper league before counting on a slot.</p>
 
         <div class="nd-table" id="nd-table">
           <div class="nd-thead" aria-hidden="true">
@@ -164,7 +167,7 @@
       </section>
       <details id="nd-review" class="nd-review" hidden>
         <summary id="nd-review-sum"></summary>
-        <p class="nu-hint">Yahoo picks the board couldn't match to a player. They count as drafted for their team; match them so the player leaves the board.</p>
+        <p class="nu-hint">Sleeper picks the board couldn't match to a player. They count as drafted for their team; match them so the player leaves the board.</p>
         <div id="nd-review-list"></div>
       </details>
       <section class="nu-card nd-picks-card" aria-labelledby="nd-picks-h">
@@ -176,7 +179,7 @@
 
   <section class="nd-about-seo">
     <h2 class="nu-label">How the High Score Draft Board Ranks Players</h2>
-    <p class="nu-hint">In Yahoo High Score leagues only each starter's single best game of the week counts, scored with your league's own stat values. The board ranks players by the expected value of that best game over a typical week, so volatile players with big ceilings and teams with four-game weeks rise. The best-available pick weighs what each player adds to your open starter slots (PG, SG, G, SF, PF, F, C, UTIL, using Yahoo's position eligibility) against what will still be there at your next turn, and flags positions that are running dry.</p>
+    <p class="nu-hint">In High Score leagues only each starter's single best game of the week counts, scored with your league's own stat values. The board ranks players by the expected value of that best game over a typical week, so volatile players with big ceilings and teams with four-game weeks rise. The best-available pick weighs what each player adds to your open starter slots (PG, SG, G, SF, PF, F, C, UTIL, using Sleeper's position eligibility) against what will still be there at your next turn, and flags positions that are running dry. Connect your Sleeper username and the league's draft order, rounds, pick clock and every pick sync in live.</p>
   </section>
 </main>
 
@@ -219,7 +222,7 @@
         <label class="nu-field"><span class="nu-field__label">My draft slot</span><input class="nu-input" name="mySlot" type="number" inputmode="numeric" min="1" max="20" required></label>
         <label class="nu-field"><span class="nu-field__label">Pick timer (sec, 0 = off)</span><input class="nu-input" name="timer" type="number" inputmode="numeric" min="0" max="600"></label>
       </div>
-      <label class="nd-check"><input type="checkbox" name="rr"><span><b>Third-Round Reversal (3RR)</b><span class="nu-hint">Round 3 runs in the same order as round 2, then the snake resumes (the last pick in round 1 gets the first picks of rounds 2 and 3). Leave off unless your league turned it on; with Yahoo connected, Yahoo’s own pick order wins.</span></span></label>
+      <label class="nd-check"><input type="checkbox" name="rr"><span><b>Third-Round Reversal (3RR)</b><span class="nu-hint">Round 3 runs in the same order as round 2, then the snake resumes (the last pick in round 1 gets the first picks of rounds 2 and 3). Leave off unless your league turned it on; with Sleeper connected, the league’s own reversal setting and pick order win.</span></span></label>
       <div class="nu-label nd-fields-h">Roster slots</div>
       <div class="nd-fields nd-slot-fields" id="nd-slot-fields"></div>
       <button type="button" class="nd-link" id="nd-profile-reset" hidden>Use the League Profile Again</button>
@@ -261,10 +264,10 @@
     <button class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="nu-sheet__body">
     <ol class="nd-about-list">
-      <li><span><b>Set your draft slot.</b> Tap <b>League</b> and enter the number of teams and where you pick. With Yahoo connected, your league fills this in for you.</span></li>
+      <li><span><b>Set your draft slot.</b> Tap <b>League</b> and enter the number of teams and where you pick. With Sleeper connected, your league fills this in for you once the draft order is set.</span></li>
       <li><span><b>Tap every pick.</b> When anyone takes a player, find him (search or the position chips) and tap <b>Draft</b>. Tapped the wrong one? <b>Undo</b> takes back the last pick.</span></li>
-      <li><span><b>Yahoo live sync or manual.</b> Connected to Yahoo, picks fill in by themselves every few seconds (read-only: Pocket can’t draft for you). Manual board: you tap each pick, and it’s saved on this device.</span></li>
-      <li><span><b>Watch the clock bar.</b> It shows the round, the pick, who’s up and how many picks until yours. It turns orange when you’re on the clock. <b>Pause</b> stops the pick timer (picks you mark stay paused until <b>Resume</b>); <b>Reset</b> restarts the timer or clears the draft. Yahoo’s draft room is the official timer.</span></li>
+      <li><span><b>Sleeper live sync or manual.</b> Connected with your Sleeper username, picks fill in by themselves every few seconds (read-only: Pocket can’t draft for you). Manual board: you tap each pick, and it’s saved on this device.</span></li>
+      <li><span><b>Watch the clock bar.</b> It shows the round, the pick, who’s up and how many picks until yours. It turns orange when you’re on the clock. <b>Pause</b> stops the pick timer (picks you mark stay paused until <b>Resume</b>); <b>Reset</b> restarts the timer or clears the draft. Sleeper’s draft room is the official timer.</span></li>
       <li><span><b>Use the top pick card.</b> It suggests the best player for your open lineup spots, ranked by his expected best game of the week, the only game High Score counts. Tap a name for details.</span></li>
     </ol>
     <p class="nu-hint nd-about-foot">Values use your league’s scoring and roster slots. Players drafted by anyone leave the board. Shortcuts: <span class="nu-kbd">/</span> search · <span class="nu-kbd">c</span> cheat sheet · <span class="nu-kbd">⌘Z</span> undo.</p>
@@ -284,7 +287,7 @@
 </footer>
 
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
-<script src="/nba/pages/yahoo-chip.js"></script>
+<script src="/nba/pages/sleeper-chip.js"></script>
 <script src="/nba/pages/draft-logic.js"></script>
 <script src="/nba/pages/draft.js"></script>
 </body>

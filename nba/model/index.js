@@ -32,8 +32,9 @@ function profileMeta(p, vorpMeta, yahooMeta) {
     replacement: vorpMeta ? vorpMeta.replacement : null,
     draftedPool: vorpMeta ? vorpMeta.poolSize : null,
     unverified: unverifiedFor(p),
+    positionSource: p.positionSource || 'sleeper',
     yahoo: yahooMeta ? {
-      source: yahooMeta.source, fetchedAt: yahooMeta.fetchedAt, matched: yahooMeta.matched, total: yahooMeta.total,
+      source: yahooMeta.source, positionSource: yahooMeta.positionSource, fetchedAt: yahooMeta.fetchedAt, matched: yahooMeta.matched, total: yahooMeta.total,
       matchRate: yahooMeta.matchRate, unmatchedCount: yahooMeta.unmatched.length,
       unmatchedTop: yahooMeta.unmatched.filter(u => u.preRank != null && u.preRank <= 300),
     } : null,

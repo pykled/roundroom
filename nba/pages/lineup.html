@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Lineup | Pocket</title>
-<meta name="description" content="Weekly lineup picker for Yahoo High Score fantasy basketball: best starters by expected best game, banked scores, bench-forfeit warnings and matchup win probability.">
+<meta name="description" content="Weekly lineup picker for High Score fantasy basketball on Sleeper: best starters by expected best game, banked scores, bench-forfeit warnings and matchup win probability.">
 <link rel="canonical" href="https://pocketff.com/nba/lineup">
 <meta name="theme-color" content="#1a110b">
 <link rel="icon" href="/favicon.png" type="image/png">
@@ -219,17 +219,17 @@
 <main class="nu-shell" id="app">
   <header class="nu-page-head nu-page-head--court">
     <div class="nu-page-head__text">
-      <div class="nu-eyebrow" id="ln-eyebrow">Yahoo High Score · Lineup</div>
+      <div class="nu-eyebrow" id="ln-eyebrow">High Score · Lineup</div>
       <h1 class="nu-page-head__title" id="ln-title">Weekly Lineup</h1>
       <p class="nu-page-head__sub" id="ln-sub">Each starter scores his single best game of the matchup week.</p>
     </div>
     <div class="nu-page-head__actions">
       <div class="nu-seg" id="ln-mode" role="group" aria-label="Roster source" hidden>
-        <button type="button" data-mode="yahoo" aria-pressed="false">Yahoo</button>
+        <button type="button" data-mode="sleeper" aria-pressed="false">Sleeper</button>
         <button type="button" data-mode="manual" aria-pressed="false">Manual</button>
       </div>
-      <select id="ln-league" class="nu-select" aria-label="Yahoo league" hidden></select>
-      <a class="nu-btn nu-btn--yahoo nu-btn--sm" id="ln-connect" href="/nba/auth/login" hidden><span class="nu-y">Y!</span>Connect Yahoo</a>
+      <select id="ln-league" class="nu-select" aria-label="Sleeper league" hidden></select>
+      <button type="button" class="nu-btn nu-btn--sleeper nu-btn--sm" id="ln-connect" hidden><span class="nu-y">S</span>Connect Sleeper</button>
       <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="about">How It Works</button>
     </div>
   </header>
@@ -250,7 +250,7 @@
 
   <div id="ln-actionbar" class="ln-actionbar-wrap"></div>
 
-  <p class="ln-foot">Expected = average best single game from today to the end of the matchup week under <span id="ln-foot-scoring">league scoring</span>, with injuries, rest and the real NBA schedule built in. Range = 10th–90th percentile of 2,000 simulations. Benching a starter mid-week wipes his earlier games (<a href="https://help.yahoo.com/kb/SLN37162.html" target="_blank" rel="noopener">Yahoo rules</a>).</p>
+  <p class="ln-foot">Expected = average best single game from today to the end of the matchup week under <span id="ln-foot-scoring">league scoring</span>, with injuries, rest and the real NBA schedule built in. Range = 10th–90th percentile of 2,000 simulations. Benching a starter mid-week wipes his earlier games (<a href="https://help.yahoo.com/kb/SLN37162.html" target="_blank" rel="noopener">Sleeper rules</a>).</p>
 </main>
 
 <!-- sheets -->
@@ -284,7 +284,7 @@
     <div><h3>Benching Wipes Points</h3><p>If you bench a starter mid-week, every game he played so far stops counting. Put him back later and only games from then on count. That's why some moves come with a note about what you'd give up.</p></div>
     <div><h3>Expected Best Game</h3><p>For each player we simulate his remaining games (injury status, back-to-backs, games left on the real schedule) and take the average of his best one, never below the score he has already banked.</p></div>
     <div><h3>Week Total and Range</h3><p>The big number is your expected total with the best lineup. The bar shows the middle 80% of 2,000 simulated weeks. Win probability uses the same simulations for your opponent's best lineup.</p></div>
-    <div><h3>Banked Scores</h3><p>Yahoo doesn't share per-game scores yet, so mid-week tap <b>Banked</b> on a starter and type his best game so far. It is saved on this device.</p></div>
+    <div><h3>Banked Scores</h3><p>Pocket doesn't read per-game scores from your league yet, so mid-week tap <b>Banked</b> on a starter and type his best game so far. It is saved on this device.</p></div>
     <div><h3>Data</h3><p id="ln-about-data">Projections refresh daily.</p></div>
   </div>
 </div>
@@ -299,8 +299,8 @@
     </nav>
   </div>
 </footer>
+<script src="/nba/pages/sleeper-chip.js"></script>
 <script src="/nba/pages/lineup-logic.js"></script>
 <script src="/nba/pages/lineup.js"></script>
-<script defer src="/nba/pages/yahoo-chip.js"></script>
 </body>
 </html>

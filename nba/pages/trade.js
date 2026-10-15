@@ -1,7 +1,7 @@
 /* Pocket NBA — trade calculator controller (stream E, UI rebuilt in P4 on nba-ui).
    Board from /api/nba/players?profile=242808, verdict from POST /api/nba/trade/evaluate,
-   Yahoo rosters from /api/nba/yahoo/status + /api/nba/trade/context.
-   Works fully without Yahoo (manual roster, persisted in localStorage). */
+   Sleeper rosters from the nav chip's status (sleeper-chip.js) + /api/nba/trade/context?league_id=.
+   Works fully without Sleeper (manual roster, persisted in localStorage). */
 (function () {
   'use strict';
   var L = window.NbaTrade, U = window.NbaUI;
@@ -9,7 +9,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var PROFILE = '242808';
   var S = {
-    st: L.emptyState(), players: [], byId: {}, ctx: null, connected: false, leagues: [], profileName: null,
+    st: L.emptyState(), players: [], byId: {}, ctx: null, connected: false, userId: null, username: null, leagues: [], profileName: null,
     result: null, busy: false, seq: 0, timer: null, error: null, loading: true, pickSide: null
   };
 
@@ -40,9 +40,9 @@
     b.hidden = false;
   }
 
-  function myTeam() { return S.st.mode === 'yahoo' ? L.teamOf(S.ctx, S.st.myTeamKey) : null; }
-  function partnerTeam() { return S.st.mode === 'yahoo' ? L.teamOf(S.ctx, S.st.partnerKey) : null; }
-  function isYahoo() { return S.st.mode === 'yahoo' && !!S.ctx; }
+  function myTeam() { return S.st.mode === 'sleeper' ? L.teamOf(S.ctx, S.st.myTeamKey) : null; }
+  function partnerTeam() { return S.st.mode === 'sleeper' ? L.teamOf(S.ctx, S.st.partnerKey) : null; }
+  function isYahoo() { return S.st.mode === 'sleeper' && !!S.ctx; } // "league mode" (name kept for the diff)
   function byValue(list) { return list.slice().sort(function (a, b) { return (b.hsValue || 0) - (a.hsValue || 0); }); }
   function rosterPlayers() { return byValue(S.st.myRoster.map(function (id) { return S.byId[id]; }).filter(Boolean)); }
   function partnerPlayers() { var t = partnerTeam(); return t ? byValue(L.rosterIds(t).map(function (id) { return S.byId[id]; }).filter(Boolean)) : []; }
@@ -87,7 +87,7 @@
       $('nt-' + side + '-sum').textContent = list.length ? list.length + ' · ' + f1(sum) + ' pts/wk' : '';
     });
 
-    // partner picker (Yahoo)
+    // partner picker (league mode)
     var sel = $('nt-partner');
     sel.hidden = !yahoo;
     if (yahoo) {
@@ -104,11 +104,11 @@
 
   function renderMode() {
     var yahoo = isYahoo();
-    $('nt-mode-tag').textContent = yahoo ? 'Yahoo league' : 'Manual';
+    $('nt-mode-tag').textContent = yahoo ? 'Sleeper league' : 'Manual';
     var p = partnerTeam();
     $('nt-mode-note').textContent = yahoo ? (p ? 'Real rosters on both sides' : 'Pick a partner for their real roster') : 'A typical team stands in for the other side';
     $('nt-roster-count').textContent = String(S.st.myRoster.length);
-    $('nt-eyebrow').textContent = (S.profileName ? S.profileName + ' · ' : '') + 'Yahoo High Score';
+    $('nt-eyebrow').textContent = (S.profileName ? S.profileName + ' · ' : '') + 'High Score';
   }
 
   /* --------------------------------------------------------- candidates */
@@ -216,7 +216,7 @@
     $('nt-roster-tools').hidden = yahoo;
     $('nt-import').hidden = yahoo;
     $('nt-roster-clear').hidden = yahoo || !mine.length;
-    $('nt-roster-hint').textContent = yahoo ? 'Loaded from your Yahoo team.' : 'The calculator needs your whole team to know who would start. Add all 14 players, bench included.';
+    $('nt-roster-hint').textContent = yahoo ? 'Loaded from your Sleeper team.' : 'The calculator needs your whole team to know who would start. Add all 14 players, bench included.';
     $('nt-roster-n').textContent = mine.length + ' player' + (mine.length === 1 ? '' : 's') + (yahoo ? '' : ' · ' + Math.max(0, 14 - mine.length) + ' to go');
     if (!yahoo && mine.length >= 14) $('nt-roster-n').textContent = mine.length + ' players';
     var html = mine.map(function (p) {
@@ -243,7 +243,7 @@
   function emptyVerdict() {
     var st = S.st, n = st.myRoster.length, yahoo = isYahoo();
     var steps = [
-      { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Yahoo.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add Players') + '</button>' },
+      { done: n >= 9, html: yahoo ? '<b>Your roster</b> is loaded from Sleeper.' : '<b>Add your roster</b> so we know who starts. <button type="button" class="nu-btn nu-btn--sm nu-btn--ghost" data-act="roster" style="margin-left:4px">' + (n ? n + '/14 added' : 'Add Players') + '</button>' },
       { done: st.give.length > 0, html: '<b>Pick who you give.</b> Tap “Add” under You Give.' },
       { done: st.get.length > 0, html: yahoo ? '<b>Pick a partner and who you get.</b>' : '<b>Pick who you get.</b> Any player works.' }
     ];
@@ -302,7 +302,7 @@
       '<p class="nt-oneliner">' + esc(L.oneLiner(r, r.them.estimated ? 'a typical team' : (partnerTeam() ? partnerTeam().name : 'they'))) + '</p>' +
       '<div class="nt-vstats">' + tile('You', r.you, L.signed(r.you.ros, 0) + ' season total') + tile(who, r.them, L.signed(r.them.ros, 0) + ' season total') + '</div>' +
       rangesHtml(r) + fairHtml(r) +
-      '<div class="nt-likely" data-l="' + esc(r.them.likely) + '"><span class="nu-dot" aria-hidden="true"></span><span>' + esc(L.likelyText(r.them.likely, r.them.estimated)) + '.' + (r.them.estimated ? ' Connect Yahoo for their real roster.' : '') + '</span></div>' +
+      '<div class="nt-likely" data-l="' + esc(r.them.likely) + '"><span class="nu-dot" aria-hidden="true"></span><span>' + esc(L.likelyText(r.them.likely, r.them.estimated)) + '.' + (r.them.estimated ? ' Connect Sleeper for their real roster.' : '') + '</span></div>' +
       '<div class="nt-vactions"><button type="button" class="nu-btn" data-act="copy">Copy Trade Summary</button><button type="button" class="nu-btn nu-btn--ghost" data-act="clear">Clear Trade</button></div>';
     renderWhy(r); renderLineup(r); renderWeeks(r); renderRules(r.meta && r.meta.rules); renderBar();
   }
@@ -411,24 +411,28 @@
 
   function change(fn) { fn(); save(); render(); schedule(); }
 
-  /* ------------------------------------------------------ yahoo */
-  function initYahoo() {
-    // One shared status fetch with the nav chip (yahoo-chip.js) when it's loaded.
-    var status = window.PocketYahoo && window.PocketYahoo.status ? window.PocketYahoo.status() : api('/api/nba/yahoo/status');
+  /* ------------------------------------------------------ sleeper */
+  function initSleeper() {
+    // One shared status fetch with the nav chip (sleeper-chip.js) when it's loaded.
+    var status = window.PocketSleeper && window.PocketSleeper.status ? window.PocketSleeper.status() : Promise.resolve({ connected: false });
     return status.then(function (s) {
-      S.connected = !!(s && s.connected); S.leagues = (s && s.leagues) || [];
+      S.connected = !!(s && s.connected); S.leagues = (s && s.leagues) || []; S.userId = (s && s.userId) || null; S.username = (s && s.username) || null;
+      if (s && s.connected && (s.httpStatus || s.code)) banner('Sleeper isn’t responding right now. Manual mode still works.', 'error');
     }).catch(function () { S.connected = false; S.leagues = []; }).then(function () {
       var sel = $('nt-league');
       if (!S.connected || !S.leagues.length) {
         $('nt-connect').hidden = S.connected;
         sel.hidden = true;
-        if (S.st.mode === 'yahoo') { S.st.mode = 'manual'; S.st.give = []; S.st.get = []; S.st.myRoster = []; save(); }
+        if (S.st.mode === 'sleeper') { S.st.mode = 'manual'; S.st.give = []; S.st.get = []; S.st.myRoster = []; save(); }
         return;
       }
+      $('nt-connect').hidden = true;
       sel.innerHTML = S.leagues.map(function (l) { return '<option value="' + esc(l.league_key) + '">' + esc(l.name) + ' · ' + esc(l.num_teams) + ' teams</option>'; }).join('') +
         '<option value="">Manual (no league)</option>';
-      var pick = S.st.mode === 'yahoo' && S.leagues.some(function (l) { return l.league_key === S.st.leagueKey; }) ? S.st.leagueKey
-        : S.st.mode === 'manual' && S.st.leagueKey === '' ? '' : S.leagues[0].league_key;
+      var pref = null; try { pref = localStorage.getItem('pocket-nba-league'); } catch (e) {}
+      var pick = S.st.mode === 'sleeper' && S.leagues.some(function (l) { return l.league_key === S.st.leagueKey; }) ? S.st.leagueKey
+        : S.st.mode === 'manual' && S.st.leagueKey === '' ? ''
+        : S.leagues.some(function (l) { return l.league_key === pref; }) ? pref : S.leagues[0].league_key;
       sel.value = pick; sel.hidden = false;
       return selectLeague(pick || null);
     });
@@ -436,31 +440,32 @@
 
   function selectLeague(key) {
     if (!key) {
-      if (S.st.mode === 'yahoo') { S.st = Object.assign(L.emptyState(), { leagueKey: '' }); }
+      if (S.st.mode === 'sleeper') { S.st = Object.assign(L.emptyState(), { leagueKey: '' }); }
       S.st.leagueKey = ''; S.ctx = null; save(); render(); schedule(); return Promise.resolve();
     }
-    var same = S.st.mode === 'yahoo' && S.st.leagueKey === key;
+    var same = S.st.mode === 'sleeper' && S.st.leagueKey === key;
     banner(null);
-    return api('/api/nba/trade/context?league_key=' + encodeURIComponent(key)).then(function (ctx) {
+    return api('/api/nba/trade/context?league_id=' + encodeURIComponent(key) + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '')).then(function (ctx) {
+      if (!ctx.myTeamKey) { var e0 = new Error('@' + (S.username || 'you') + ' doesn’t own a team in this league'); e0.code = 'not_in_league'; throw e0; }
       S.ctx = ctx;
       var st = S.st;
-      st.mode = 'yahoo'; st.leagueKey = key; st.myTeamKey = ctx.myTeamKey;
+      st.mode = 'sleeper'; st.leagueKey = key; st.myTeamKey = ctx.myTeamKey;
       st.myRoster = L.rosterIds(L.teamOf(ctx, ctx.myTeamKey));
       if (!same || !L.teamOf(ctx, st.partnerKey) || st.partnerKey === st.myTeamKey) st.partnerKey = null;
       var theirs = st.partnerKey ? L.rosterIds(L.teamOf(ctx, st.partnerKey)) : [];
       st.give = st.give.filter(function (id) { return st.myRoster.indexOf(id) >= 0; });
       st.get = st.get.filter(function (id) { return theirs.indexOf(id) >= 0; });
-      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Yahoo player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and ' + (ctx.unmatched.length > 1 ? 'are' : 'is') + ' left out.');
+      if (ctx.unmatched && ctx.unmatched.length) banner(ctx.unmatched.length + ' Sleeper player' + (ctx.unmatched.length > 1 ? 's' : '') + ' couldn\'t be matched to the model and ' + (ctx.unmatched.length > 1 ? 'are' : 'is') + ' left out.');
       save(); render(); schedule();
     }).catch(function (e) {
       S.ctx = null; S.st.mode = 'manual'; S.st.leagueKey = '';
       $('nt-league').value = '';
-      banner(e.code === 'yahoo_reauth' || e.code === 'yahoo_not_connected' ? 'Yahoo needs reconnecting. Manual mode still works.' : 'Couldn\'t load the Yahoo league (' + (e.status || 'network') + '). Manual mode still works.', 'error');
+      banner(e.code === 'not_in_league' ? e.message + '. Manual mode still works.' : e.status === 429 ? 'Sleeper is rate-limiting us. Try again in a few seconds; manual mode still works.' : 'Couldn\'t load the Sleeper league (' + (e.status || 'network') + '). Manual mode still works.', 'error');
       save(); render(); schedule();
     });
   }
 
-  /* ------------------------------------------------------ clerk (keeps the session fresh for Yahoo calls) */
+  /* ------------------------------------------------------ clerk (account button in the nav) */
   function initClerk() {
     var key = window.__clerk_publishable_key;
     if (!key || key.indexOf('PLACEHOLDER') >= 0) return;
@@ -575,8 +580,12 @@
     }).then(function () {
       S.loading = false;
       render();
-      return initYahoo();
+      return initSleeper();
     }).then(function () { render(); schedule(); });
   }
+  // Connect / switch / disconnect from the nav chip → reload league mode.
+  window.addEventListener('pocket-nba:account', function () { initSleeper().then(function () { render(); schedule(); }); });
+  var connectBtn = $('nt-connect');
+  if (connectBtn) connectBtn.addEventListener('click', function (e) { e.preventDefault(); if (window.PocketSleeper && window.PocketSleeper.openConnect) window.PocketSleeper.openConnect(); });
   boot();
 })();

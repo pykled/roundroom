@@ -1,4 +1,4 @@
-/* Pocket NBA waivers page controller. Yahoo-first (GET /api/nba/waivers);
+/* Pocket NBA waivers page controller. Sleeper-first (GET /api/nba/waivers?league_id=&roster_id=);
    falls back to manual mode (POST /api/nba/waivers/manual) with a roster kept
    in localStorage. Pure helpers live in waivers-logic.js (window.NbaWaivers);
    markup comes from the design system (window.NbaUI, docs/nba-design-system.md).
@@ -22,9 +22,9 @@
   var S = {
     prefs: L.prefs(store.get(L.PREFS_KEY)),
     manual: L.loadManual(store.get(L.MANUAL_KEY)),
-    leagues: [],
-    source: 'manual',          // 'manual' | league_key
-    teamKey: null,
+    leagues: [], userId: null, username: null,
+    source: 'manual',          // 'manual' | league_key (Sleeper league_id)
+    teamKey: null,             // Sleeper roster_id
     result: null,              // primary horizon
     alt: null,                 // { id: netGain } for the secondary horizon
     altH: 4,
@@ -56,9 +56,9 @@
   function callout(tone, html) { $('wv-callout').innerHTML = html ? U.callout(tone, html) : ''; }
 
   /* ------------------------------------------------------------ helpers */
-  // Board players carry Yahoo positions in yahooPos; engine rows put them in pos.
+  // Board players carry league positions in yahooPos (field name is historical); engine rows put them in pos.
   function posOf(x) { var a = x ? (x.yahooPos && x.yahooPos.length ? x.yahooPos : x.pos && x.pos.length ? x.pos : x.elig) : []; return (a || []).filter(function (e) { return e !== 'UTIL'; }); }
-  // Merge an engine row with the board player (sleeper id for the headshot, espnId, Yahoo positions).
+  // Merge an engine row with the board player (sleeper id for the headshot, espnId, positions).
   function person(x) {
     var b = x && S.byId[String(x.id)];
     return { id: x && x.id, name: (x && x.name) || (b && b.name), team: (x && x.team) || (b && b.team), injury: x && x.injury !== undefined ? x.injury : b && b.injury, espnId: b && b.espnId, headshot: b && b.headshot, sleeperId: b && b.sleeperId };
@@ -116,12 +116,12 @@
         '<span class="nu-stat__value">' + esc(a.left) + '<small>of ' + esc(a.max) + ' left</small></span>' +
         '<div class="wv-pips" style="--n:' + a.max + '" aria-hidden="true">' + pips + '</div>' +
         (manual ? '<span class="nu-stat__sub">' + (S.manual.addsUsed != null ? S.manual.addsUsed + ' used' : '0 used') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-adds-used">Set</button></span>'
-          : '<span class="nu-stat__sub">' + (a.source === 'yahoo' ? 'From Yahoo' : a.known ? '' : 'Yahoo didn\'t report adds used') + (a.seasonMax == null ? ' · no season cap' : '') + '</span>') + '</div>';
+          : '<span class="nu-stat__sub">' + (a.source === 'yahoo' || a.source === 'sleeper' ? 'From your league' : a.known ? '' : 'Sleeper doesn\'t report adds used; set it under Your Roster') + (a.seasonMax == null ? ' · no season cap' : '') + '</span>') + '</div>';
     }
     var prTile = '<div class="nu-stat"><span class="nu-stat__label">Waiver priority</span>' +
       '<span class="nu-stat__value">' + (pr.position ? '#' + esc(pr.position) + '<small>of ' + esc(pr.teams) + '</small>' : '—') + '</span>' +
       (manual ? '<span class="nu-stat__sub">' + (pr.position ? (pr.rolling ? 'A claim sends you last' : 'Priority list') : 'Not set') + '<button type="button" class="nu-btn nu-btn--ghost nu-btn--sm wv-set" data-open-roster data-focus="#wv-priority">Set</button></span>'
-        : '<span class="nu-stat__sub">' + esc(pr.position ? (pr.rolling ? 'Rolling list: a claim sends you last' : 'Priority list') : 'Not reported by Yahoo') + '</span>') + '</div>';
+        : '<span class="nu-stat__sub">' + esc(pr.position ? (pr.rolling ? 'Rolling list: a claim sends you last' : 'Priority list') : 'Not reported by your league') + '</span>') + '</div>';
     var best = (r.pairs || [])[0];
     var bestTile = U.statTile({ label: 'Best gain ' + (r.midWeek ? 'rest of week' : 'this week'), value: best ? L.fmtGain(best.netGain) : '—', tone: best ? 'accent' : null, sub: best ? 'Add ' + best.add.name : 'No swap helps' });
     el.innerHTML = addsTile + prTile + bestTile.replace('class="nu-stat', 'class="wv-tile-best nu-stat');
@@ -284,7 +284,7 @@
     var un = r && r.unmatched;
     var names = un ? (un.roster || []).concat(un.freeAgents || []).map(function (u) { return u.name; }).filter(Boolean) : [];
     $('wv-unmatched').hidden = !names.length;
-    $('wv-unmatched-body').textContent = names.length ? names.length + ' Yahoo player' + (names.length > 1 ? 's' : '') + ' not in our model, left out of the ranking: ' + names.slice(0, 8).join(', ') + (names.length > 8 ? '…' : '') : '';
+    $('wv-unmatched-body').textContent = names.length ? names.length + ' league player' + (names.length > 1 ? 's' : '') + ' not in our model, left out of the ranking: ' + names.slice(0, 8).join(', ') + (names.length > 8 ? '…' : '') : '';
   }
 
   function renderRules(r) {
@@ -292,7 +292,7 @@
     $('wv-rules-h').hidden = !notes.length;
     $('wv-rules').innerHTML = notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('');
     var name = r && r.profile && r.profile.name;
-    $('wv-eyebrow').textContent = (name ? name + ' · ' : 'Yahoo fantasy basketball · ') + (S.source === 'manual' ? 'Manual roster' : 'Waivers');
+    $('wv-eyebrow').textContent = (name ? name + ' · ' : 'Fantasy basketball · ') + (S.source === 'manual' ? 'Manual roster' : 'Waivers');
   }
 
   function renderManual() {
@@ -367,7 +367,7 @@
       if (my !== S.seq) return;
       var r = pair[0];
       S.loading = false; S.result = r; S.alt = pair[1] ? L.gainsById(pair[1]) : null; S.altH = altHorizon(S.prefs.horizon); S.shown = PAGE;
-      if (r && r.mode === 'yahoo' && r.rules && r.rules.uses_faab) callout('info', '<b>FAB league.</b> Waiver claims are blind bids; free agents can be added straight away.');
+      if (r && r.mode !== 'manual' && r.rules && r.rules.uses_faab) callout('info', '<b>FAAB league.</b> Waiver claims are blind bids' + (r.rules.waiver_budget != null ? ' from a $' + esc(r.rules.waiver_budget) + ' budget' : '') + '; free agents can be added straight away.');
       else if (r && r.mode !== 'manual') callout(null, '');
       renderAll();
       U.stagger($('wv-list'));
@@ -375,8 +375,11 @@
     var fail = function (e) {
       if (my !== S.seq) return;
       S.loading = false; S.result = null;
-      if (e.code === 'yahoo_not_connected' || e.code === 'yahoo_reauth') {
-        callout('error', '<b>Yahoo needs reconnecting.</b> <a href="/nba/auth/login">Connect Yahoo</a> or switch to Manual roster.');
+      if (e.code === 'sleeper_not_found' || e.status === 404) {
+        callout('error', '<b>Couldn’t find your team in that Sleeper league.</b> Switch account from the Sleeper menu in the nav, or use the Manual roster.');
+      } else if (e.status === 429) {
+        callout('error', '<b>Sleeper is rate-limiting us.</b> Try again in a few seconds. <button type="button" class="nu-btn nu-btn--sm" id="wv-retry">Retry</button>');
+        var b2 = $('wv-retry'); if (b2) b2.onclick = load;
       } else {
         callout('error', '<b>Couldn\'t rank free agents.</b> ' + esc(e.message) + ' <button type="button" class="nu-btn nu-btn--sm" id="wv-retry">Retry</button>');
         var b = $('wv-retry'); if (b) b.onclick = load;
@@ -396,12 +399,12 @@
       return Promise.all([req(h), req(ah).catch(function () { return null; })]).then(done, fail);
     }
     var lk = S.source;
-    var tkP = S.teamKey ? Promise.resolve(S.teamKey) : api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(lk)).then(function (j) {
-      if (!j.myTeamKey) throw new Error('No team of yours in this league.');
-      S.teamKey = j.myTeamKey; return S.teamKey;
+    var tkP = S.teamKey ? Promise.resolve(S.teamKey) : api('/api/nba/sleeper/league?league_id=' + encodeURIComponent(lk) + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '')).then(function (j) {
+      if (!j.myTeamKey) { var e = new Error('@' + (S.username || 'you') + ' doesn’t own a team in this league. Use the Manual roster.'); e.status = 404; throw e; }
+      S.teamKey = String(j.myTeamKey); return S.teamKey;
     });
     return tkP.then(function (tk) {
-      var url = function (hz) { return '/api/nba/waivers?league_key=' + encodeURIComponent(lk) + '&team_key=' + encodeURIComponent(tk) + '&weeks=' + hz + (S.prefs.week ? '&week=' + S.prefs.week : ''); };
+      var url = function (hz) { return '/api/nba/waivers?league_id=' + encodeURIComponent(lk) + '&roster_id=' + encodeURIComponent(tk) + '&weeks=' + hz + (S.prefs.week ? '&week=' + S.prefs.week : '') + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : ''); };
       return Promise.all([api(url(h)), api(url(ah)).catch(function () { return null; })]);
     }).then(done, fail);
   }
@@ -426,14 +429,18 @@
   function boot() {
     renderControls();
     skeleton();
-    // One shared status fetch with the nav's Yahoo chip (yahoo-chip.js) when it's on the page.
-    var statusP = (window.PocketYahoo && window.PocketYahoo.status ? Promise.resolve(window.PocketYahoo.status()) : api('/api/nba/yahoo/status'))
+    S.teamKey = null;
+    // One shared status fetch with the nav's Sleeper chip (sleeper-chip.js) when it's on the page.
+    var statusP = (window.PocketSleeper && window.PocketSleeper.status ? Promise.resolve(window.PocketSleeper.status()) : Promise.resolve({ connected: false }))
       .then(function (st) { return st || { connected: false }; }, function () { return { connected: false }; });
     return Promise.all([statusP, ensurePlayers()]).then(function (res) {
       var st = res[0];
       S.leagues = st.connected && Array.isArray(st.leagues) ? st.leagues : [];
+      S.userId = st.userId || null; S.username = st.username || null;
       $('wv-connect').hidden = !!st.connected;
+      if (st.connected && (st.httpStatus || st.code)) callout('error', '<b>Sleeper isn’t responding right now.</b> Manual roster works meanwhile.');
       var pref = S.prefs.source;
+      if (!S.leagues.some(function (l) { return l.league_key === pref; })) { var lp = null; try { lp = localStorage.getItem('pocket-nba-league'); } catch (e) {} if (lp && S.leagues.some(function (l) { return l.league_key === lp; })) pref = lp; }
       if (S.leagues.length && pref !== 'manual') {
         S.source = S.leagues.some(function (l) { return l.league_key === pref; }) ? pref : S.leagues[0].league_key;
       } else S.source = 'manual';
@@ -444,7 +451,7 @@
 
   /* ------------------------------------------------------------- copy */
   function copy(text, btn) {
-    var ok = function () { U.toast('Claim copied. Paste it in Yahoo or your notes.', { tone: 'good' }); if (btn) { btn.setAttribute('data-done', '1'); } };
+    var ok = function () { U.toast('Claim copied. Paste it in Sleeper or your notes.', { tone: 'good' }); if (btn) { btn.setAttribute('data-done', '1'); } };
     var fallback = function () {
       var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.select();
@@ -596,7 +603,6 @@
           var btn = $('rr-sign-in');
           if (clerk.user) {
             clerk.mountUserButton($('user-btn-mount')); if (btn) btn.hidden = true;
-            if (!S.leagues.length) boot(); // session was not ready for the first status call
           } else if (btn) { btn.hidden = false; btn.onclick = function () { clerk.openSignIn({ redirectUrl: '/nba/waivers' }); }; }
         });
       } catch (e) { console.warn('Clerk init failed', e); }
@@ -607,7 +613,10 @@
   bind();
   renderControls();
   skeleton();
-  // Deferred scripts (nav.js, yahoo-chip.js) have run by DOMContentLoaded.
+  window.addEventListener('pocket-nba:account', function () { S.teamKey = null; boot(); });
+  var connectBtn = $('wv-connect');
+  if (connectBtn) connectBtn.addEventListener('click', function (e) { e.preventDefault(); if (window.PocketSleeper && window.PocketSleeper.openConnect) window.PocketSleeper.openConnect(); });
+  // Deferred scripts (nav.js) have run by DOMContentLoaded; sleeper-chip.js loads synchronously.
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(); initClerk(); });
   else { boot(); initClerk(); }
 }());

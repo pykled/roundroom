@@ -1,7 +1,8 @@
 /* Pocket NBA — weekly lineup picker controller (stream D, UI rebuilt in P3).
-   Yahoo-first: when /api/nba/yahoo/status says connected, the roster (and the
-   week's opponent) come from Yahoo via GET /api/nba/lineup. Otherwise manual
-   mode: build a roster with search/paste (localStorage), scored by
+   Sleeper-first: when a Sleeper username is remembered on this device
+   (sleeper-chip.js), the roster (and the week's opponent) come from the Sleeper
+   league via GET /api/nba/lineup?league_id=&roster_id=. Otherwise manual mode:
+   build a roster with search/paste (localStorage), scored by
    POST /api/nba/lineup/manual. Pure helpers live in lineup-logic.js; every
    component comes from nba-ui.js (NbaUI). */
 (function () {
@@ -16,6 +17,7 @@
   var ROSTER_CAP = 16; // 242808: 14 active + 2 IL (the manual API takes up to 20)
 
   function maxWeek() { return S.profile && S.profile.weeks && S.profile.weeks.length ? S.profile.weeks.length : 25; }
+  // League profile id: the stored profile (Dillon's league) for values/weeks; a Sleeper league id has no stored profile.
   function leagueId() { var m = /\.l\.(\d+)$/.exec(S.leagueKey || ''); return S.mode === 'yahoo' && m ? m[1] : DEFAULT_LEAGUE; }
   function slotListOf() { return (S.result && S.result.spots && S.result.spots.slots) || (S.profile && profileSlots(S.profile)) || ['G', 'G', 'FC', 'FC', 'FC', 'UTIL']; }
   function profileSlots(p) {
@@ -27,7 +29,7 @@
 
   var S = {
     players: [], byId: {}, currentWeek: 1, week: null, day: null, profile: null, asOf: null,
-    mode: 'manual', connected: false, leagues: [], leagueKey: null, myTeamKey: null,
+    mode: 'manual', connected: false, userId: null, username: null, leagues: [], leagueKey: null, myTeamKey: null, teamName: null,
     manual: L.emptyManual(), yahooBanked: {},
     result: null, error: null, loading: true, seq: 0,
     q: '', oq: '', showPaste: false, unknown: [], sheetSlot: null
@@ -45,9 +47,10 @@
   function store(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function saveManual() { S.manual.updatedAt = Date.now(); store(L.storageKey('manual'), L.serialize(S.manual)); }
-  function yahooScope() { return 'yahoo:' + S.leagueKey; }
+  function synced() { return S.mode === 'sleeper'; }
+  function yahooScope() { return 'sleeper:' + S.leagueKey; }
   function saveYahooBanked() { store(L.storageKey(yahooScope()), JSON.stringify(S.yahooBanked)); }
-  function bankedMap() { return L.bankedFor(S.mode === 'yahoo' ? S.yahooBanked : S.manual.banked, S.week); }
+  function bankedMap() { return L.bankedFor(synced() ? S.yahooBanked : S.manual.banked, S.week); }
 
   /* ------------------------------------------------------------ data */
   function loadPlayers() {
@@ -69,8 +72,8 @@
     S.loading = true; S.error = null;
     renderResult(); renderBar();
     var p;
-    if (S.mode === 'yahoo' && S.leagueKey && S.myTeamKey) {
-      var q = '/api/nba/lineup?league_key=' + encodeURIComponent(S.leagueKey) + '&team_key=' + encodeURIComponent(S.myTeamKey) + '&week=' + S.week;
+    if (synced() && S.leagueKey && S.myTeamKey) {
+      var q = '/api/nba/lineup?league_id=' + encodeURIComponent(S.leagueKey) + '&roster_id=' + encodeURIComponent(S.myTeamKey) + '&week=' + S.week + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '');
       if (S.day != null) q += '&day=' + S.day;
       var bq = L.bankedQuery(L.bankedFor(S.yahooBanked, S.week));
       if (bq) q += '&banked=' + encodeURIComponent(bq);
@@ -87,9 +90,9 @@
     }).catch(function (e) {
       if (seq !== S.seq) return;
       S.loading = false; S.error = e;
-      if (S.mode === 'yahoo' && (e.code === 'yahoo_not_connected' || e.code === 'yahoo_reauth' || e.status === 401)) {
-        S.connected = false; S.mode = 'manual';
-        banner('error', 'Yahoo needs reconnecting, so this is manual mode. <a href="/nba/auth/login">Reconnect Yahoo</a>.');
+      if (synced() && (e.status === 404 || e.code === 'sleeper_not_found' || e.code === 'yahoo_disabled')) {
+        S.mode = 'manual';
+        banner('error', 'Couldn’t find your team in that Sleeper league, so this is manual mode. Switch account from the Sleeper menu in the nav if the username is wrong.');
         return refresh();
       }
       renderAll();
@@ -98,37 +101,37 @@
   var debounceT = null;
   function refreshSoon() { clearTimeout(debounceT); debounceT = setTimeout(refresh, 250); }
 
-  function initYahoo() {
-    // Share the nav chip's status fetch (yahoo-chip.js) instead of asking twice.
-    var st0 = window.PocketYahoo && window.PocketYahoo.status ? window.PocketYahoo.status() : api('/api/nba/yahoo/status');
+  function initSleeper() {
+    // Share the nav chip's status fetch (sleeper-chip.js) instead of asking twice.
+    var st0 = window.PocketSleeper && window.PocketSleeper.status ? window.PocketSleeper.status() : Promise.resolve({ connected: false });
     return st0.then(function (st) {
-      if (!st || !st.connected) { if (st && st.reauth) banner('info', 'Your Yahoo login expired. <a href="/nba/auth/login">Reconnect</a> to load your roster.'); return; }
-      S.connected = true;
+      S.connected = !!(st && st.connected); S.userId = (st && st.userId) || null; S.username = (st && st.username) || null;
+      if (!S.connected) return;
+      if (st.httpStatus || st.code) { banner('error', 'Sleeper isn’t responding right now (' + esc(st.error || st.code || 'offline') + '). Manual mode works meanwhile.'); return; }
       S.leagues = st.leagues || [];
-      if (!S.leagues.length) return;
+      if (!S.leagues.length) { banner('info', 'No NBA leagues on @' + esc(S.username || 'your Sleeper account') + ' this season. Switch account from the Sleeper menu in the nav, or build a roster below.'); return; }
       var pref = read(LEAGUE_PREF);
       S.leagueKey = S.leagues.some(function (l) { return l.league_key === pref; }) ? pref : S.leagues[0].league_key;
       return loadLeague();
-    }).catch(function () { /* signed out / any error → manual */ });
+    }).catch(function () { /* any error → manual */ });
   }
   function loadLeague() {
-    return api('/api/nba/yahoo/league?league_key=' + encodeURIComponent(S.leagueKey)).then(function (d) {
-      S.myTeamKey = d.myTeamKey || null;
+    return api('/api/nba/sleeper/league?league_id=' + encodeURIComponent(S.leagueKey) + (S.userId ? '&user_id=' + encodeURIComponent(S.userId) : '')).then(function (d) {
+      S.myTeamKey = d.myTeamKey != null ? String(d.myTeamKey) : null;
       S.teamName = null;
-      (d.teams || []).forEach(function (t) { if (t.team_key === S.myTeamKey) S.teamName = t.name; });
-      var cw = d.league && Number(d.league.current_week);
-      if (cw >= 1 && cw <= maxWeek() && S.week == null) S.week = cw;
+      (d.teams || []).forEach(function (t) { if (String(t.team_key) === S.myTeamKey) S.teamName = t.name; });
       try { S.yahooBanked = JSON.parse(read(L.storageKey(yahooScope())) || '{}') || {}; } catch (e) { S.yahooBanked = {}; }
-      if (S.myTeamKey && read(MODE_PREF) !== 'manual') S.mode = 'yahoo';
+      if (S.myTeamKey && read(MODE_PREF) !== 'manual') S.mode = 'sleeper';
+      if (!S.myTeamKey) banner('info', '@' + esc(S.username || '') + ' doesn’t own a team in “' + esc((d.league && d.league.name) || S.leagueKey) + '”, so this is manual mode.');
     }).catch(function (e) {
-      banner('error', 'Couldn’t load your Yahoo league (' + esc(e.message) + '). Using manual mode.');
+      banner('error', 'Couldn’t load your Sleeper league (' + esc(e.message) + '). Using manual mode.');
     });
   }
 
   /* ------------------------------------------------------------ small renderers */
   function banner(tone, html) { $('ln-banners').insertAdjacentHTML('beforeend', U.callout(tone, html)); }
   function full(p) { var b = p && S.byId[String(p.id)]; return b ? Object.assign({}, b, p, { team: p.team || b.team, injury: p.injury !== undefined ? p.injury : b.injury }) : (p || {}); }
-  // Yahoo positions (PG, SG, SF, PF, C) when we have them.
+  // League positions (PG, SG, SF, PF, C) when we have them.
   function posOf(p) { var b = p && S.byId[String(p.id)]; return (b && (b.yahooPos || b.pos)) || (p && (p.yahooPos || (p.pos && p.pos.length ? p.pos : p.elig))) || []; }
   function pills(p, max) { var l = posOf(p).filter(function (x) { return x !== 'UTIL'; }); return U.posPill(max ? l.slice(0, max) : l); }
   function pips(left, week) { return '<span class="ln-pips" aria-hidden="true">' + L.gamePips(left, week).map(function (c) { return '<i class="' + c + '"></i>'; }).join('') + '</span>'; }
@@ -143,9 +146,9 @@
     var win = (r && r.window) || (wk ? { start: wk.start, end: wk.end, days: wk.days, playoffs: wk.playoffs } : null);
     $('ln-title').textContent = 'Week ' + S.week + ' Lineup';
     var name = (r && r.profile && r.profile.name) || (S.profile && S.profile.name);
-    $('ln-eyebrow').textContent = (name ? name + ' · ' : '') + 'Yahoo High Score';
+    $('ln-eyebrow').textContent = (name ? name + ' · ' : '') + 'High Score';
     var sl = slotListOf();
-    var src = S.mode === 'yahoo' ? 'From Yahoo' + (S.teamName ? ' · ' + S.teamName : '') : 'Manual roster';
+    var src = synced() ? 'From Sleeper' + (S.teamName ? ' · ' + S.teamName : '') : 'Manual roster';
     $('ln-sub').textContent = src + ' · ' + L.countWord(sl.length) + ' starters (' + L.slotListText(sl) + '), each scores his single best game of the week.';
     // week stepper
     $('ln-week-label').textContent = 'Week ' + S.week + (win && win.days > 7 ? ' · ' + win.days + ' days' : '') + (win && win.playoffs ? ' · Playoffs' : '') + (S.week === S.currentWeek ? ' · Now' : '');
@@ -155,7 +158,7 @@
     $('ln-mode').hidden = !S.connected || !S.myTeamKey;
     Array.prototype.forEach.call($('ln-mode').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)); });
     var lg = $('ln-league');
-    lg.hidden = !(S.connected && S.mode === 'yahoo' && S.leagues.length > 1);
+    lg.hidden = !(S.connected && synced() && S.leagues.length > 1);
     if (!lg.hidden) {
       lg.innerHTML = S.leagues.map(function (l) { return '<option value="' + esc(l.league_key) + '">' + esc(l.name || l.league_key) + '</option>'; }).join('');
       lg.value = S.leagueKey;
@@ -228,7 +231,7 @@
         '<div class="ln-hero__vs"><span>You ' + n1(t.expected) + '</span><span>Them ' + n1(r.matchup.opponentExpected) + '</span></div>' +
         (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" data-act="opp" style="margin-left:-12px">Edit Opponent</button></div>' : '');
     } else {
-      h += '<div class="nu-label">Win probability</div><p class="nu-hint" style="line-height:1.5">' + (S.mode === 'yahoo' ? 'No opponent found for this week.' : 'Add your opponent’s players to see your odds this week.') + '</p>' +
+      h += '<div class="nu-label">Win probability</div><p class="nu-hint" style="line-height:1.5">' + (synced() ? 'No opponent found for this week.' : 'Add your opponent’s players to see your odds this week.') + '</p>' +
         (S.mode === 'manual' ? '<div><button type="button" class="nu-btn nu-btn--sm" data-act="opp">Add Opponent</button></div>' : '');
     }
     h += '</div>';
@@ -258,7 +261,7 @@
     var extra = r.diff.length - sug.length;
     if (extra > 0) h += '<div class="ln-also">+' + extra + ' smaller move' + (extra > 1 ? 's' : '') + ' included in Apply All.</div>';
     if (r.moved && r.moved.length) h += '<div class="ln-also">Also shuffles ' + r.moved.map(function (m) { return esc(m.name) + ' ' + m.from + '→' + m.to; }).join(', ') + '. Active-to-active moves should keep banked games.</div>';
-    if (S.mode === 'yahoo') h += '<div class="ln-also">Make these moves in Yahoo; Pocket can’t edit your lineup.</div>';
+    if (synced()) h += '<div class="ln-also">Make these moves in Sleeper; Pocket can’t edit your lineup.</div>';
     return h + '</section>';
   }
 
@@ -312,7 +315,7 @@
     return '<div class="ln-empty"><section class="nu-card nu-card--focus"><div class="nu-card__head"><h2 class="nu-card__title">Build Your Roster</h2><span class="ln-cap">0/' + rosterCap() + '</span></div>' +
       '<div class="ln-builder" data-builder>' + builderInner() + '</div></section>' +
       '<aside class="nu-card"><h2 class="nu-card__title" style="margin-bottom:var(--nu-4)">How It Works</h2><ol class="ln-empty__how">' +
-      '<li><span><b>Add your players.</b> Search by name or paste your Yahoo roster. Not connected to Yahoo? This is the way in.</span></li>' +
+      '<li><span><b>Add your players.</b> Search by name or paste your roster. Not connected to Sleeper? This is the way in.</span></li>' +
       '<li><span><b>Set who is starting now</b> (' + esc(L.slotListText(sl)) + '), so swaps and forfeits are checked.</span></li>' +
       '<li><span><b>Get your moves.</b> We pick the ' + L.countWord(sl.length) + ' starters with the highest expected best game and tell you exactly what to change.</span></li></ol></aside></div>';
   }
@@ -436,7 +439,7 @@
     } else if (r.current && r.diff.length) {
       info = '<b>' + r.diff.length + ' move' + (r.diff.length > 1 ? 's' : '') + ' · ' + L.sign(r.gain) + ' expected</b><span>' + n1(r.current.expected) + ' now → ' + n1(r.total.expected) + ' with the best lineup</span>';
       btn = S.mode === 'manual' ? '<button type="button" class="nu-btn nu-btn--primary" data-apply="all">Apply All</button>'
-        : '<a class="nu-btn nu-btn--primary" href="' + esc(L.yahooTeamUrl(S.myTeamKey)) + '" target="_blank" rel="noopener">Set in Yahoo</a>';
+        : '<a class="nu-btn nu-btn--primary" href="' + esc(L.sleeperLeagueUrl(S.leagueKey)) + '" target="_blank" rel="noopener">Set in Sleeper</a>';
     } else {
       info = '<b>Lineup is set · ' + n1(r.total.expected) + ' expected</b><span>' + (r.matchup ? L.winText(r.matchup.winProb) + ' to win this week' : 'Check back daily as games are played') + '</span>';
       btn = S.mode === 'manual' ? '<button type="button" class="nu-btn" data-act="roster">Edit Roster</button>' : '';
@@ -487,7 +490,7 @@
   }
   function saveBank(input) {
     var id = input.dataset.bank;
-    if (S.mode === 'yahoo') { S.yahooBanked = L.setBanked(S.yahooBanked, S.week, id, input.value); saveYahooBanked(); }
+    if (synced()) { S.yahooBanked = L.setBanked(S.yahooBanked, S.week, id, input.value); saveYahooBanked(); }
     else { S.manual.banked = L.setBanked(S.manual.banked, S.week, id, input.value); saveManual(); }
     refreshSoon();
   }
@@ -581,10 +584,12 @@
   /* ------------------------------------------------------------ boot */
   S.manual = L.deserialize(read(L.storageKey('manual')));
   var qs = new URLSearchParams(location.search);
-  if (qs.get('yahoo') === 'signin') banner('info', 'Sign in first, then connect Yahoo.');
   renderResult();
   function boot() {
-  Promise.all([loadPlayers().catch(function (e) { banner('error', 'Player data unavailable (' + esc(e.message) + ').'); }), initYahoo()]).then(loadProfile).then(function () {
+  $('ln-banners').innerHTML = '';
+  S.leagueKey = null; S.myTeamKey = null; S.leagues = [];
+  if (S.mode === 'sleeper') S.mode = 'manual';
+  Promise.all([loadPlayers().catch(function (e) { banner('error', 'Player data unavailable (' + esc(e.message) + ').'); }), initSleeper()]).then(loadProfile).then(function () {
     var qw = Number(qs.get('week'));
     if (qw >= 1 && qw <= maxWeek()) S.week = qw;
     var qd = qs.get('day');
@@ -594,6 +599,10 @@
     return refresh();
   });
   }
-  // after deferred scripts (yahoo-chip.js) so the Yahoo status fetch is shared
+  // Connect / switch / disconnect from the nav chip → re-run the league flow.
+  window.addEventListener('pocket-nba:account', function () { S.result = null; boot(); });
+  var connectBtn = $('ln-connect');
+  if (connectBtn) connectBtn.addEventListener('click', function (e) { e.preventDefault(); if (window.PocketSleeper && window.PocketSleeper.openConnect) window.PocketSleeper.openConnect(); });
+  // after sleeper-chip.js so the Sleeper status fetch is shared
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

@@ -119,7 +119,7 @@ t('starters full → bench reason', () => {
   eq(b[0].slot, 'BENCH'); ok(/bench/.test(b[0].reason));
 });
 
-console.log('yahoo merge');
+console.log('live pick merge (Sleeper sync shape; team_key = roster id, player_key = Sleeper id)');
 const yahoo = {
   status: 'drafting',
   picks: [
@@ -129,10 +129,10 @@ const yahoo = {
   ],
   unmatched: [{ player_key: 'nba.p.2', name: { full: 'Rookie X' } }, { player_key: 'nba.p.9', name: { full: 'Ghost' } }]
 };
-t('yahoo is truth; manual duplicates confirmed and pruned', () => {
+t('synced picks are truth; manual duplicates confirmed and pruned', () => {
   const m = L.mergePicks(yahoo, [{ playerId: '300', mine: false }, { playerId: '400', mine: true }], { settings: DEF, myTeamKey: 't.3' });
   eq(m.picks.map(p => [p.pick, p.playerId, p.source, p.confirmed, p.mine]), [
-    [1, '100', 'yahoo', true, false], [2, null, 'yahoo', true, false], [3, '300', 'yahoo', true, true], [4, '400', 'manual', false, true]
+    [1, '100', 'sync', true, false], [2, null, 'sync', true, false], [3, '300', 'sync', true, true], [4, '400', 'manual', false, true]
   ]);
   eq(m.confirmedManual, ['300']);
   eq(m.unmatched.map(u => u.player_key), ['nba.p.2', 'nba.p.9']);
@@ -152,8 +152,8 @@ t('duplicate pick numbers / players from a flaky poll are ignored', () => {
   const m = L.mergePicks(y, [], { settings: DEF });
   eq(m.picks.length, 2); eq(m.picks[1].playerId, null); eq(m.unmatched.length, 1);
 });
-t('settingsFromYahoo maps roster_positions + draft position', () => {
-  const s = L.settingsFromYahoo({ num_teams: 12, roster_positions: [{ position: 'G', count: 2 }, { position: 'F', count: 3 }, { position: 'Util', count: 1 }, { position: 'BN', count: 4 }, { position: 'IL', count: 2 }] },
+t('settingsFromLeague maps roster_positions + draft position', () => {
+  const s = L.settingsFromLeague({ num_teams: 12, roster_positions: [{ position: 'G', count: 2 }, { position: 'F', count: 3 }, { position: 'Util', count: 1 }, { position: 'BN', count: 4 }, { position: 'IL', count: 2 }] },
     't.7', [{ team_key: 't.7', draft_position: 7 }]);
   eq(s, { teams: 12, mySlot: 7, slots: { G: 2, F: 3, UTIL: 1 }, bench: 4, il: 2, rounds: 10 });
 });
@@ -208,12 +208,15 @@ t('settingsFromProfile maps slots/BN/IL/teams and keeps my slot', () => {
   const hs = L.settingsFromProfile({ teams: 10, slots: { G: 2, F: 3, UTIL: 1, BN: 4 } }, null);
   eq(L.isLegacy(hs), true); eq(L.rosterSize(hs), 10);
 });
-t('settingsFromYahoo: 242808 roster_positions → position-aware slots', () => {
+t('settingsFromLeague: 242808 roster_positions → position-aware slots (Yahoo + Sleeper shapes)', () => {
   const rp = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C'].map(p => ({ position: p, count: 1 }))
     .concat([{ position: 'Util', count: 2 }, { position: 'BN', count: 5 }, { position: 'IL', count: 2 }]);
-  const s = L.settingsFromYahoo({ num_teams: 12, roster_positions: rp }, 't.3', [{ team_key: 't.3', draft_position: 3 }], LP);
+  const s = L.settingsFromLeague({ num_teams: 12, roster_positions: rp }, 't.3', [{ team_key: 't.3', draft_position: 3 }], LP);
   eq(s, { teams: 12, mySlot: 3, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 2 }, bench: 5, il: 2, rounds: 14 });
-  const fc = L.settingsFromYahoo({ num_teams: 10, roster_positions: [{ position: 'G', count: 2 }, { position: 'F/C', count: 3 }, { position: 'Util', count: 1 }] }, null, null, LP);
+  // Sleeper's flat list (real league 1411447094215991296): 9 starters + 4 BN, IR via settings.
+  const sl = L.settingsFromLeague({ num_teams: 12, roster_positions: ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL', 'UTIL', 'BN', 'BN', 'BN', 'BN'] }, '1', [{ team_key: '1', draft_position: 8 }], LP);
+  eq(sl, { teams: 12, mySlot: 8, slots: { PG: 1, SG: 1, G: 1, SF: 1, PF: 1, F: 1, C: 1, UTIL: 3 }, bench: 4, il: 0, rounds: 14 });
+  const fc = L.settingsFromLeague({ num_teams: 10, roster_positions: [{ position: 'G', count: 2 }, { position: 'F/C', count: 3 }, { position: 'Util', count: 1 }] }, null, null, LP);
   eq(fc.slots, { G: 2, FC: 3, UTIL: 1 });
 });
 t('normalizeSettings: position mode clamps; zeroed types drop out', () => {
@@ -258,9 +261,9 @@ t('generic Yahoo tokens: G → SG,G (not PG); F → SF,PF,F; G/F and F/C strings
   eq(E(Object.assign(Q(3, 'X', 50), { pos: 'F/C' })), ['PF', 'F', 'FC', 'C', 'UTIL']);
   eq(L.posTokens('G/F, c'), ['GF', 'C']);
 });
-t('yahooElig wins over pos; derived eligibility is low confidence', () => {
+t('league eligibility (yahooElig) wins over pos; derived eligibility is low confidence', () => {
   const y = Q(1, 'C', 50, { yahooElig: ['PF', 'F', 'C', 'UTIL'], eligConfidence: 0.95 });
-  eq(E(y), ['PF', 'F', 'C', 'UTIL']); eq(L.slotElig(y).source, 'yahoo'); eq(L.slotElig(y).low, false);
+  eq(E(y), ['PF', 'F', 'C', 'UTIL']); eq(L.slotElig(y).source, 'league'); eq(L.slotElig(y).low, false);
   const d = Q(2, 'PG', 50);
   eq(L.slotElig(d).source, 'derived'); eq(L.slotElig(d).low, true);
   eq(L.slotElig(Q(3, 'PG', 50, { yahooElig: ['PG'], eligConfidence: 'low' })).low, true);
@@ -465,10 +468,13 @@ t('settingsSource survives a round trip; anything else resets to null', () => {
   eq(L.deserializeState(L.serializeState(st), null).settings.il, 2);
 });
 
-console.log('yahoo-first identity + eligibility');
-t('playerKey: Yahoo id wins, Sleeper id is the fallback', () => {
-  eq(L.playerKey({ id: '1007', yahooPid: '10094' }), 'y10094');
-  eq(L.playerKey({ id: '1007', yahooPid: 10094 }), 'y10094');
+console.log('Sleeper-first identity + eligibility');
+t('playerKey: the Sleeper id is the board id; legacyKey gives the Yahoo-era alias', () => {
+  eq(L.playerKey({ id: '1007', yahooPid: '10094' }), '1007');
+  eq(L.legacyKey({ id: '1007', yahooPid: '10094' }), 'y10094');
+  eq(L.legacyKey({ id: '1007', yahooPid: 10094 }), 'y10094');
+  eq(L.legacyKey({ id: '1007' }), null);
+  eq(L.playerKey({ id: 'y4390', yahooPid: '4390', source: 'yahoo-only' }), 'y4390');
   eq(L.playerKey({ id: '1007' }), '1007');
   eq(L.playerKey({ id: 1007, yahooPid: '' }), '1007');
   eq(L.yahooPidFromKey('466.p.5352'), '5352');
@@ -507,20 +513,22 @@ t('mergePicks without Yahoo indexes behaves as before (Sleeper-keyed board)', ()
   const m = L.mergePicks({ picks: [{ pick: 1, player_key: '466.p.5', sleeperId: '77', name: 'X' }] }, [{ playerId: 88 }], { settings: st });
   eq(m.picks.map(p => p.playerId), ['77', '88']);
 });
-t('yahooPosString: Yahoo string, from yahoo pos or yahooElig; null without Yahoo data', () => {
-  eq(L.yahooPosString({ yahooElig: ['PG', 'SG', 'G', 'UTIL'] }), 'PG,SG');
-  eq(L.yahooPosString({ yahooPos: 'sf, pf', yahooElig: ['C'] }), 'SF,PF');
-  eq(L.yahooPosString({ yahooElig: ['UTIL'] }), null);
-  eq(L.yahooPosString({ pos: ['PG'] }), null);
-  eq(L.displayPositions({ yahooElig: ['PF', 'F', 'C', 'UTIL'], pos: ['C'] }), ['PF', 'C'], 'Yahoo beats Sleeper pos');
+t('posString: league position string from Sleeper pos (confirmed), yahoo pos or yahooElig; null without data', () => {
+  eq(L.posString({ yahooElig: ['PG', 'SG', 'G', 'UTIL'] }), 'PG,SG');
+  eq(L.posString({ yahooPos: 'sf, pf', yahooElig: ['C'] }), 'SF,PF');
+  eq(L.posString({ pos: ['PF', 'SF', 'SG'], yahooPos: 'SG,SF', eligConfidence: 'sleeper' }), 'SG,SF,PF', 'Sleeper-confirmed: Sleeper pos wins');
+  eq(L.posString({ yahooElig: ['UTIL'] }), null);
+  eq(L.posString({ pos: ['PG'] }), null);
+  eq(L.displayPositions({ yahooElig: ['PF', 'F', 'C', 'UTIL'], pos: ['C'] }), ['PF', 'C'], 'league eligibility beats raw pos');
   eq(L.displayPositions({ pos: ['C'] }), ['C']);
 });
-t("eligConfidence: 'yahoo' is confirmed; other strings / low numbers flag low", () => {
+t("eligConfidence: 'sleeper' / 'yahoo' are confirmed; 'sleeper-mapped', other strings / low numbers flag low", () => {
   const lowOf = c => L.slotElig({ yahooElig: ['C', 'UTIL'], eligConfidence: c }).low;
   eq(lowOf('yahoo'), false);
   eq(lowOf('YAHOO'), false);
   eq(lowOf(undefined), false);
-  eq(lowOf('sleeper'), true);
+  eq(lowOf('sleeper'), false);
+  eq(lowOf('sleeper-mapped'), true);
   eq(lowOf('inferred'), true);
   eq(lowOf('low'), true);
   eq(lowOf(0.97), false);
@@ -536,7 +544,7 @@ t('real snapshot: every Yahoo position string maps to legal slots (C-only never 
   JSON.parse(fs.readFileSync(f, 'utf8')).players.forEach(y => {
     const elig = Array.from(new Set(y.pos.split(',').flatMap(x => tok[x] || []).concat('UTIL')));
     const p = { id: 'x', yahooPid: y.pid, yahooElig: elig, eligConfidence: 'yahoo', hsValue: 1 };
-    eq(L.yahooPosString(p), y.pos, y.name);
+    eq(L.posString(p), y.pos, y.name);
     if (y.pos === 'C') ok(!L.canFill(p, 'F', st) && L.canFill(p, 'C', st), y.name + ' C-only');
   });
 });
@@ -571,7 +579,7 @@ t('rounds: profile draft.rounds wins; League dialog value persists; Yahoo roster
   const st = L.normalizeSettings(Object.assign({}, LP, { rounds: 16 }));
   eq(L.totalPicks(st), 192);
   eq(L.deserializeState(L.serializeState(Object.assign(L.emptyState(null, st), { settings: st })), null, st).settings.rounds, 16);
-  const y = L.settingsFromYahoo({ num_teams: 10, roster_positions: [{ position: 'PG', count: 1 }, { position: 'C', count: 1 }, { position: 'BN', count: 3 }, { position: 'IL', count: 1 }] }, null, null, st);
+  const y = L.settingsFromLeague({ num_teams: 10, roster_positions: [{ position: 'PG', count: 1 }, { position: 'C', count: 1 }, { position: 'BN', count: 3 }, { position: 'IL', count: 1 }] }, null, null, st);
   eq(y.rounds, 5);
   // a full 14-round roster gets no recommendation and no negative picks-left warnings
   const full = []; for (let i = 0; i < 14; i++) full.push(Q('r' + i, ['PG', 'SG', 'SF', 'PF', 'C'][i % 5], 40 - i));

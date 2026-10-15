@@ -231,17 +231,31 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
     for (const pos of [[], 'XYZ', ['PG'], ['C'], 'G/F', ['SF', 'PF']]) assert.ok(sl(pos).includes('UTIL'), JSON.stringify(pos));
     assert.deepStrictEqual(sl([]), ['UTIL']);
   });
-  await test('board: Yahoo positions are the eligibility source; Sleeper only as flagged fallback', () => {
-    assert.deepStrictEqual(byId['1658'].yahooElig, ['C', 'UTIL']); // Jokić: Yahoo 'C' → no F slot
+  await test('board (Sleeper-first profile): Sleeper fantasy_positions are the eligibility source; Yahoo snapshot only adds identity', () => {
+    assert.deepStrictEqual(byId['1658'].yahooElig, ['C', 'UTIL']); // Jokić: Sleeper 'C' → no F slot
+    assert.strictEqual(P.positionSource, 'sleeper');
     for (const p of board.players) {
+      assert.strictEqual(p.eligConfidence, 'sleeper', p.name);
+      assert.deepStrictEqual(p.yahooElig, Slots.slotsForPositions(p.pos).filter(s => s !== 'FC'), p.name);
+    }
+    // Flagg: Sleeper lists PG/SG/SF (Yahoo had SG,SF,PF) → on a Sleeper league he is PG-eligible.
+    const flagg = board.players.find(p => p.name === 'Cooper Flagg');
+    assert.ok(flagg.yahooElig.includes('PG') && flagg.yahooPos && flagg.yahooPid, flagg.yahooElig.join(','));
+    assert.strictEqual(board.yahooMeta.positionSource, 'sleeper');
+  });
+  await test('board (positionSource yahoo): Yahoo positions override eligibility; Sleeper only as flagged fallback', () => {
+    const yb = buildBoard(data, { now, profile: Object.assign(LP.getProfile('242808'), { positionSource: 'yahoo' }) });
+    const yById = Object.fromEntries(yb.players.map(p => [p.id, p]));
+    assert.deepStrictEqual(yById['1658'].yahooElig, ['C', 'UTIL']);
+    for (const p of yb.players) {
       assert.ok(['yahoo', 'sleeper-mapped'].includes(p.eligConfidence));
       assert.strictEqual(p.eligConfidence === 'yahoo', p.yahooPos != null, p.name);
       if (p.eligConfidence === 'yahoo') assert.deepStrictEqual(p.yahooElig, Slots.slotsForPositions(p.yahooPos).filter(s => s !== 'FC'), p.name);
     }
-    // Flagg: Sleeper said PG/SG/SF; Yahoo says SG,SF,PF → PF-eligible, not PG.
-    const flagg = board.players.find(p => p.name === 'Cooper Flagg');
+    const flagg = yb.players.find(p => p.name === 'Cooper Flagg');
     assert.strictEqual(flagg.eligConfidence, 'yahoo');
     assert.ok(flagg.yahooElig.includes('PF') && !flagg.yahooElig.includes('PG'), flagg.yahooElig.join(','));
+    assert.strictEqual(yb.yahooMeta.positionSource, 'yahoo');
   });
 
   console.log('VORP by slot');
@@ -392,7 +406,8 @@ const close = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
       assert.ok(j.profile.yahoo.matched > 550 && j.profile.yahoo.matchRate > 0.75, JSON.stringify(j.profile.yahoo));
       const jok = j.players.find(p => p.id === '1658');
       assert.strictEqual(jok.yahooPid, '5352');
-      assert.strictEqual(jok.eligConfidence, 'yahoo');
+      assert.strictEqual(jok.eligConfidence, 'sleeper');
+      assert.strictEqual(j.profile.positionSource, 'sleeper');
       assert.ok(j.players[0].yahooElig && 'vorp' in j.players[0]);
       const b = await get('/api/nba/players?profile=242808', { 'if-none-match': a.headers.etag });
       assert.strictEqual(b.status, 304);

@@ -425,7 +425,7 @@ function makeApp({ rateLimit, state = {} } = {}) {
     clientFor: fakeYahoo(state),
     sendYahooError: (res, err) => (err.code === 'not_connected' ? res.status(409).json({ code: 'yahoo_not_connected' }) : res.status(502).json({ error: 'Yahoo request failed' })),
     log: { error() {}, warn() {} },
-    env: {},
+    env: {}, yahooEnabled: true, // legacy Yahoo path tests
   };
   if (rateLimit) deps.rateLimit = rateLimit;
   app.use(createTradeRoutes(deps));
@@ -549,7 +549,8 @@ t('route: mounted through nba/router (one line) — page + evaluate', async () =
     ok(/Trade/.test(await page.text()));
     const r = await call(s, 'POST', '/api/nba/trade/evaluate', { body: { myRoster: ids(A), give: [A[1].id], get: [B[0].id] } });
     eq(r.status, 200); ok(r.json.verdict);
-    eq((await call(s, 'GET', '/api/nba/trade/context?league_key=466.l.77')).status, 401);
+    eq((await call(s, 'GET', '/api/nba/trade/context?league_key=466.l.77')).status, 410, 'Yahoo off by default → 410');
+    eq((await call(s, 'GET', '/api/nba/trade/context?league_id=abc')).status, 400, 'Sleeper context validates league_id');
     eq((await fetch(`http://127.0.0.1:${s.address().port}/nba/routes/trade.js`)).status, 404);
   } finally { s.close(); }
 });

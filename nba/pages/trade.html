@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Trade Calculator | Pocket</title>
-<meta name="description" content="Trade calculator for Yahoo High Score fantasy basketball. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
+<meta name="description" content="Trade calculator for High Score fantasy basketball on Sleeper. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
 <link rel="canonical" href="https://pocketff.com/nba/trade">
 <meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
@@ -233,7 +233,7 @@
 <main class="nu-shell nu-stack nu-stack--lg" id="nt-app">
   <header class="nu-page-head nu-page-head--court">
     <div class="nu-page-head__text">
-      <div class="nu-eyebrow" id="nt-eyebrow">Yahoo High Score · Trade</div>
+      <div class="nu-eyebrow" id="nt-eyebrow">High Score · Trade</div>
       <h1 class="nu-page-head__title">Trade Calculator</h1>
       <p class="nu-page-head__sub">Accept, counter or decline, judged on your starting lineup for the rest of the season.</p>
     </div>
@@ -243,8 +243,8 @@
   </header>
 
   <div class="nt-mode" id="nt-mode">
-    <a id="nt-connect" class="nu-btn nu-btn--yahoo nu-btn--sm" href="/nba/auth/login" hidden><span class="nu-y" aria-hidden="true">Y!</span>Connect Yahoo</a>
-    <select class="nu-select" id="nt-league" aria-label="Yahoo league" hidden></select>
+    <button type="button" id="nt-connect" class="nu-btn nu-btn--sleeper nu-btn--sm" hidden><span class="nu-y" aria-hidden="true">S</span>Connect Sleeper</button>
+    <select class="nu-select" id="nt-league" aria-label="Sleeper league" hidden></select>
     <span class="nu-tag" id="nt-mode-tag">Manual</span>
     <span class="nt-mode__note" id="nt-mode-note"></span>
     <span class="nu-spacer"></span>
@@ -388,6 +388,6 @@
 <script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
 <script src="/nba/pages/trade-logic.js"></script>
 <script src="/nba/pages/trade.js"></script>
-<script defer src="/nba/pages/yahoo-chip.js"></script>
+<script src="/nba/pages/sleeper-chip.js"></script>
 </body>
 </html>

@@ -40,6 +40,12 @@ const HALIMSANITY = {
   // default "13 rounds" = 10 active + 3 BN with 2 IL). 9 starters + 5 BN = 14,
   // 168 picks. The draft room's pick list wins once Yahoo is connected.
   draft: { type: 'snake', pickSeconds: 90, rounds: 14 },
+  // The league drafts and sets lineups on Sleeper (2026-10-15: Sleeper league
+  // 1411447094215991296, draft 1411447094215991297; 30 s picks, 13 rounds,
+  // 3rd-round reversal), so slot eligibility follows Sleeper's fantasy_positions.
+  // The Yahoo snapshot still supplies preseason rank / % rostered for the market layer.
+  positionSource: 'sleeper',
+  sleeperLeagueId: '1411447094215991296',
   scoring: { pts: 1, reb: 1.2, ast: 1.5, stl: 3, blk: 3, to: -1, pf: -1, tech: -1, dd: 5, td: 3 },
   // Yahoo's stat feed records Double-Doubles and Triple-Doubles as two separate
   // stats, and a triple-double game also satisfies the double-double definition
@@ -68,6 +74,7 @@ const HIGH_SCORE_DEFAULT = {
   teams: 10,
   aggregation: 'high-score',
   draft: { type: 'snake', pickSeconds: 90 },
+  positionSource: 'sleeper',
   scoring: { pts: 1, reb: 1, ast: 2, stl: 3, blk: 3, to: 0, pf: 0, tech: 0, dd: 0, td: 0 },
   flags: { tdAlsoCountsDD: true },
   slots: { PG: 0, SG: 0, G: 2, SF: 0, PF: 0, F: 0, FC: 3, C: 0, UTIL: 1, BN: 4, IL: 0 },

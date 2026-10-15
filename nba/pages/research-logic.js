@@ -37,8 +37,8 @@
     { key: 'last5Delta', label: 'Last-5 form', short: 'Form', dir: 'desc' },
     { key: 'adpDelta', label: 'Model vs market gap', short: 'Gap', dir: 'desc' },
     { key: 'marketRank', label: 'Market rank', short: 'Mkt', dir: 'asc' },
-    { key: 'yahooPreRank', label: 'Yahoo pre-rank', short: 'Y! rk', dir: 'asc' },
-    { key: 'yahooPctRos', label: '% rostered on Yahoo', short: '%Ros', dir: 'desc' },
+    { key: 'yahooPreRank', label: 'Preseason rank', short: 'Pre rk', dir: 'asc' },
+    { key: 'yahooPctRos', label: '% rostered (preseason)', short: '%Ros', dir: 'desc' },
     { key: 'minDelta', label: 'Minutes trend', short: 'Min ±', dir: 'desc' },
     { key: 'hsThisWeek', label: 'This week’s best-game value', short: 'This wk', dir: 'desc' },
     { key: 'gamesThisWeek', label: 'Games this week', short: 'Gms', dir: 'desc' },
@@ -103,7 +103,7 @@
     if (st.player) add('player', st.player);
     return parts.length ? '?' + parts.join('&') : '';
   }
-  // the /api/nba/research URL for the table (pos chips filter by Yahoo slot eligibility)
+  // the /api/nba/research URL for the table (pos chips filter by slot eligibility)
   function tableQuery(st, pageSize) {
     var n = pageSize || PAGE_SIZE, page = num(st.page) && st.page > 0 ? st.page : 1;
     var parts = ['sort=' + encodeURIComponent(st.sort || DEFAULT.sort), 'dir=' + (st.dir || defaultDir(st.sort)), 'limit=' + n, 'offset=' + (page - 1) * n];
@@ -226,7 +226,7 @@
     market = market || {};
     var mr = market.marketRank, d = market.adpDelta;
     if (!num(mr) || !num(rank)) {
-      if (num(market.yahooPreRank)) return { tone: 'none', text: 'No draft-market rank yet. Yahoo ranks him #' + market.yahooPreRank + ' before the season.' };
+      if (num(market.yahooPreRank)) return { tone: 'none', text: 'No draft-market rank yet. Preseason rank #' + market.yahooPreRank + '.' };
       return { tone: 'none', text: 'No draft-market data for this player.' };
     }
     if (!num(d)) d = mr - rank;
@@ -266,7 +266,7 @@
       else if (fm.dir === 'down') out.push('Finished last season cold (last 5 games ' + signed(f.last5Delta) + ' under his average)' + (role ? ' with ' + role : '') + '.');
     }
     if (d.source === 'rookie') out.push('Rookie: no NBA games yet, so these numbers come from his projection and are less certain.');
-    if (d.source === 'yahoo-only') out.push('Not in our stats feed, so there are no game logs. His value is estimated from Yahoo’s projection.');
+    if (d.source === 'yahoo-only') out.push('Not in our stats feed, so there are no game logs. His value is estimated from a preseason projection.');
     if (d.injury && d.injury.status) out.push('Currently listed ' + d.injury.status + (d.injury.bodyPart ? ' (' + d.injury.bodyPart + (d.injury.notes ? ', ' + d.injury.notes.toLowerCase() : '') + ')' : '') + '.');
     return out;
   }
@@ -310,7 +310,7 @@
   // section unavailable? -> reason string or null
   function unavailable(d, key) { return d && d.unavailable && d.unavailable[key] ? String(d.unavailable[key]) : null; }
 
-  var SOURCE_LABEL = { logs: null, 'projection-only': 'Projection only', rookie: 'Rookie', 'yahoo-only': 'Yahoo only' };
+  var SOURCE_LABEL = { logs: null, 'projection-only': 'Projection only', rookie: 'Rookie', 'yahoo-only': 'No game logs' };
 
   return {
     SLOTS: SLOTS, INJ: INJ, SOURCES: SOURCES, SORTS: SORTS, SORT_KEYS: SORT_KEYS, DEFAULT: DEFAULT, PAGE_SIZE: PAGE_SIZE, SOURCE_LABEL: SOURCE_LABEL,

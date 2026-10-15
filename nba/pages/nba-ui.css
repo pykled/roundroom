@@ -393,10 +393,16 @@ body.nba-ui {
 .nba-ui .nu-btn--primary[aria-busy="true"]::before { border-color: var(--nu-accent-ink) var(--nu-accent-ink) transparent transparent; }
 .nba-ui .nu-btn .nu-count { font-family: var(--nu-mono); font-size: var(--nu-fs-xs); padding: 2px 6px; border-radius: var(--nu-r-pill); background: rgba(0,0,0,0.22); }
 
-/* Yahoo connect button (brand purple is allowed only here) */
-.nba-ui .nu-btn--yahoo { background: rgba(124,58,237,0.16); border-color: rgba(167,139,250,0.45); color: #ddd6fe; }
-.nba-ui .nu-btn--yahoo:hover { background: rgba(124,58,237,0.26); border-color: rgba(167,139,250,0.7); }
-.nba-ui .nu-y { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: #6001d2; color: #fff; font-size: 0.68rem; font-weight: 800; }
+/* Sleeper connect button + "S" mark (Sleeper navy is allowed only here) */
+.nba-ui .nu-btn--sleeper { background: rgba(45,58,99,0.35); border-color: rgba(120,140,200,0.55); color: #e6ebff; }
+.nba-ui .nu-btn--sleeper:hover { background: rgba(45,58,99,0.55); border-color: rgba(120,140,200,0.8); }
+.nba-ui .nu-btn--primary.nu-btn--sleeper { background: var(--nu-accent, #f7711f); border-color: transparent; color: var(--nu-ink, #1c0b02); }
+.nba-ui .nu-y { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: #2d3a63; color: #fff; font-size: 0.68rem; font-weight: 800; }
+.nba-ui .nu-y--sleeper { background: #1c0b02; color: #fff; }
+/* Inline username form (setup card / tool pages): input + button on one line, stacked on phones. */
+.nba-ui .nu-connect-form { display: flex; gap: var(--nu-2); align-items: center; flex-wrap: wrap; }
+.nba-ui .nu-connect-form .nu-input { min-height: 44px; min-width: 0; flex: 1 1 180px; font-size: 16px; }
+.nba-ui .nu-connect-form .nu-btn { min-height: 44px; }
 
 /* forms */
 .nba-ui .nu-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }

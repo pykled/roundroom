@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-/* Tests for Yahoo league selection + league support flags + /status problem
+/* Tests for league selection + league support flags + connection problem
    mapping (nba/pages/draft-logic.js: leagueChoice, leagueSupport, leagueSummary,
-   yahooProblem) and the slot picker sized from the chosen league.
+   syncProblem) and the slot picker sized from the chosen league. Sleeper league
+   summaries (api /api/nba/sleeper/leagues) and the Yahoo-era shape both map.
    Run: node scripts/test-nba-league-picker.js   (exit 0 = all pass) */
 'use strict';
 const path = require('path');
@@ -47,31 +48,49 @@ console.log('leagueSummary');
 t('teams · status · scoring', () => eq(L.leagueSummary(CAT), '12 teams · Draft not started · H2H categories'));
 t('drafted roto', () => eq(L.leagueSummary(ROTO), '8 teams · Drafted · Rotisserie'));
 t('missing fields are skipped', () => eq(L.leagueSummary({ name: 'x' }), ''));
+const SL = { league_key: '1411447094215991296', name: 'HALIMSANITY 26-27', num_teams: 12, draft_status: 'postdraft', scoring_type: 'points', draft_type: 'snake', reversal_round: 3, pick_timer: 30, rounds: 13 };
+t('Sleeper summary: points + 3RR', () => eq(L.leagueSummary(SL), '12 teams · Drafted · Points · 3RR'));
+t('Sleeper scheduled draft shows the start time', () => {
+  const start = Date.UTC(2026, 9, 20, 2, 0, 0);
+  const s = L.leagueSummary(Object.assign({}, SL, { draft_status: 'predraft', draft_start: start, reversal_round: 0 }), new Date(start));
+  eq(s, '12 teams · Drafts ' + L.draftTimeText(start, new Date(start)) + ' · Points');
+  eq(L.draftTimeText(start, new Date(start)), new Date(start).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
+  eq(L.draftTimeText(null), '');
+});
+t('Sleeper auction flagged', () => eq(L.leagueSummary(Object.assign({}, SL, { auction: true, draft_type: 'auction', reversal_round: 0 })), '12 teams · Auction · Drafted · Points'));
+t('Sleeper categories league: tracker only', () => eq(L.leagueSupport(Object.assign({}, SL, { scoring_type: 'categories' })), { recos: false, kind: 'categories', label: 'Categories' }));
+t('Sleeper auction league: manual', () => eq(L.leagueSupport(Object.assign({}, SL, { auction: true })).kind, 'auction'));
+t('Sleeper points league: recos on', () => eq(L.leagueSupport(SL), { recos: true, kind: null, label: 'Points' }));
+t('auction from the draft payload (type)', () => eq(L.isAuction(null, { draft: { type: 'auction' } }), true));
 
-console.log('yahooProblem');
-t('connected: none', () => eq(L.yahooProblem({ connected: true, leagues: [] }), null));
-t('not connected, no error: none', () => eq(L.yahooProblem({ connected: false }), null));
-t('Yahoo refuses the app: blocked', () => eq(L.yahooProblem({ connected: false, httpStatus: 503, code: 'yahoo_app_blocked' }), 'blocked'));
-t('upstream 5xx: down', () => eq(L.yahooProblem({ connected: false, httpStatus: 502, code: 'yahoo_upstream' }), 'down'));
-t('legacy bare 502: down', () => eq(L.yahooProblem({ connected: false, httpStatus: 502 }), 'down'));
-t('network failure: down', () => eq(L.yahooProblem({ connected: false, httpStatus: 0 }), 'down'));
-t('expired token: reauth', () => eq(L.yahooProblem({ connected: false, reauth: true }), 'reauth'));
-t('signed out: signin', () => eq(L.yahooProblem({ connected: false, httpStatus: 401 }), 'signin'));
+console.log('syncProblem');
+t('connected: none', () => eq(L.syncProblem({ connected: true, leagues: [] }), null));
+t('not connected, no error: none', () => eq(L.syncProblem({ connected: false }), null));
+t('Sleeper username gone: user', () => eq(L.syncProblem({ connected: false, httpStatus: 404, code: 'sleeper_user_not_found' }), 'user'));
+t('Sleeper upstream 5xx: down', () => eq(L.syncProblem({ connected: false, httpStatus: 502, code: 'sleeper_upstream' }), 'down'));
+t('Sleeper timeout: down', () => eq(L.syncProblem({ connected: false, httpStatus: 504, code: 'sleeper_timeout' }), 'down'));
+t('Sleeper rate limit: down', () => eq(L.syncProblem({ connected: false, httpStatus: 429, code: 'sleeper_rate_limited' }), 'down'));
+t('Yahoo disabled status: no problem (manual board)', () => eq(L.syncProblem({ connected: false, code: 'yahoo_disabled' }), null));
+t('legacy: Yahoo refuses the app: blocked', () => eq(L.syncProblem({ connected: false, httpStatus: 503, code: 'yahoo_app_blocked' }), 'blocked'));
+t('legacy bare 502: down', () => eq(L.syncProblem({ connected: false, httpStatus: 502 }), 'down'));
+t('network failure: down', () => eq(L.syncProblem({ connected: false, httpStatus: 0 }), 'down'));
+t('legacy expired token: reauth', () => eq(L.syncProblem({ connected: false, reauth: true }), 'reauth'));
+t('legacy signed out: signin', () => eq(L.syncProblem({ connected: false, httpStatus: 401 }), 'signin'));
 
 console.log('slot picker follows the chosen league');
 [[HS, 10], [CAT, 12], [ROTO, 8]].forEach(([lg, n]) => t(lg.name + ': ' + n + ' slot chips', () => {
-  const st = L.settingsFromYahoo(lg, null, [], L.DEFAULT_SETTINGS);
+  const st = L.settingsFromLeague(lg, null, [], L.DEFAULT_SETTINGS);
   eq(st.teams, n);
   eq(L.slotPickerView(st, {}).chips.length, n);
 }));
 t('draft_position from THIS league sets the slot', () => {
   const teams = [{ team_key: '466.l.2.t.1', draft_position: 3 }, { team_key: '466.l.2.t.7', draft_position: 11 }];
-  const st = L.settingsFromYahoo(CAT, '466.l.2.t.7', teams, L.DEFAULT_SETTINGS);
+  const st = L.settingsFromLeague(CAT, '466.l.2.t.7', teams, L.DEFAULT_SETTINGS);
   eq(st.mySlot, 11);
-  eq(L.yahooSlotKnown({ live: true, myTeamKey: '466.l.2.t.7', teams, settings: st }), true);
+  eq(L.syncSlotKnown({ live: true, myTeamKey: '466.l.2.t.7', teams, settings: st }), true);
 });
 t('different roster slots per league', () => {
-  const a = L.settingsFromYahoo(Object.assign({ roster_positions: [{ position: 'PG', count: 1 }, { position: 'SG', count: 1 }, { position: 'C', count: 2 }, { position: 'Util', count: 2 }, { position: 'BN', count: 3 }] }, CAT), null, [], L.DEFAULT_SETTINGS);
+  const a = L.settingsFromLeague(Object.assign({ roster_positions: [{ position: 'PG', count: 1 }, { position: 'SG', count: 1 }, { position: 'C', count: 2 }, { position: 'Util', count: 2 }, { position: 'BN', count: 3 }] }, CAT), null, [], L.DEFAULT_SETTINGS);
   eq(a.slots, { PG: 1, SG: 1, C: 2, UTIL: 2 }); eq(a.bench, 3);
 });
 

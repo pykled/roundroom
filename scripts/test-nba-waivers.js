@@ -419,6 +419,7 @@ function mkRouter(opts = {}) {
     auth: fakeAuth, getAuth: fakeGetAuth, apiCached: passCache, loadModel: () => fakeModel(players),
     clientFor: () => fakeClient(calls, opts), loadData: () => null, log: { error() {}, warn() {} },
     sendYahooError: (res, err) => res.status(err.code === 'not_connected' ? 409 : 502).json({ error: 'y', code: err.code }),
+    yahooEnabled: true, // legacy Yahoo path tests
   }, opts.deps || {}));
   return { r, calls };
 }
@@ -768,8 +769,9 @@ test('mounted via nba/router.js: page + manual route reachable', async () => {
     const res = await fetch(s.base + '/api/nba/waivers/manual', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ roster: ['1', '2'] }) });
     assert.strictEqual(res.status, 200);
     const g = await fetch(s.base + '/api/nba/waivers?league_key=466.l.1&team_key=466.l.1.t.3', { headers: { 'x-user': 'u1' } });
-    assert.strictEqual(g.status, 409, 'no tokens → yahoo_not_connected');
-    assert.strictEqual((await g.json()).code, 'yahoo_not_connected');
+    assert.strictEqual(g.status, 410, 'Yahoo off by default → 410 yahoo_disabled');
+    assert.strictEqual((await g.json()).code, 'yahoo_disabled');
+    assert.strictEqual((await fetch(s.base + '/api/nba/waivers?league_id=abc&roster_id=1')).status, 400, 'Sleeper path validates league_id');
   } finally { await s.close(); }
 });
 

@@ -105,7 +105,7 @@
   // Chain (measured, docs/nba-design-system.md "Player images"):
   //   1. Sleeper  sleepercdn.com/content/nba/players/thumb/{sleeperId}.jpg   (all Sleeper-id players)
   //   2. ESPN     a.espncdn.com/i/headshots/nba/players/full/{espnId}.png    (needs espnId from the API + CSP)
-  //   3. Yahoo    player.headshot (absolute https URL from the Yahoo API)       (needs API + CSP)
+  //   3. other    player.headshot (absolute https URL from a league API)        (needs API + CSP)
   //   4. initials (always rendered underneath)
   // `size` >= 96px asks Sleeper for the full-size image instead of the thumb.
   var SIZE_PX = { xs: 24, sm: 32, md: 40, lg: 56, xl: 96, hero: 128 };
@@ -126,7 +126,7 @@
     if (p.headshot && /^https:\/\//.test(String(p.headshot))) out.push(String(p.headshot));
     return out;
   }
-  function srcKind(url) { return /espncdn/.test(url) ? 'espn' : /sleepercdn/.test(url) ? 'sleeper' : 'yahoo'; }
+  function srcKind(url) { return /espncdn/.test(url) ? 'espn' : /sleepercdn/.test(url) ? 'sleeper' : 'other'; }
   function avatar(p, opts) {
     opts = opts || {};
     p = p || {};
@@ -375,7 +375,7 @@
         '<a href="/nba" class="rr-logo"><span class="nu-ball" aria-hidden="true"></span>Pocket</a>' +
         '<div class="rr-sport" role="group" aria-label="Sport">' + sportSwitch + '</div>' +
         '<div class="rr-links">' + links + '</div>' +
-        '<div class="rr-auth"><span class="nu-nav-status" id="nu-nav-status" data-nba-yahoo-chip></span></div>' +
+        '<div class="rr-auth"><span class="nu-nav-status" id="nu-nav-status" data-nba-sleeper-chip></span></div>' +
         '<button class="nav-hamburger" type="button" aria-label="Open menu" aria-controls="rr-nav" aria-expanded="false">&#9776;</button>' +
         '</nav>',
       tabbar: '<nav class="nu-tabbar" aria-label="NBA tools">' + tabs + '</nav>',
@@ -410,7 +410,7 @@
   // statusChip(state, label) -> nav status chip; state: connected|syncing|error|off
   function statusChip(state, label, href) {
     var tag = href ? 'a' : 'span';
-    return '<' + tag + ' class="nu-status-chip" data-state="' + esc(state || 'off') + '"' + (href ? ' href="' + esc(href) + '"' : '') + '><span class="nu-dot" aria-hidden="true"></span>' + esc(label || 'Yahoo') + '</' + tag + '>';
+    return '<' + tag + ' class="nu-status-chip" data-state="' + esc(state || 'off') + '"' + (href ? ' href="' + esc(href) + '"' : '') + '><span class="nu-dot" aria-hidden="true"></span>' + esc(label || 'Sleeper') + '</' + tag + '>';
   }
 
   // ---- browser behaviours -------------------------------------------------

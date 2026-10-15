@@ -1,11 +1,13 @@
 // Yahoo player-list snapshot (data/nba/yahoo-snapshot-<leagueId>.json, written
-// from Dillon's real league) → canonical identity + positions on the board.
+// from Dillon's league while it lived on Yahoo) → extra identity on the board.
 //
-// Yahoo is the source of truth for positions/eligibility: a matched player's
-// yahooElig comes from the snapshot's `pos` ('PG,SG', 'PF,C', ...) via the
-// contract slot table and eligConfidence = 'yahoo'. Unmatched players keep the
-// Sleeper-mapped fallback. Also exposes yahooPid, yahooPreRank, yahooPctRos and
-// yahooFanPts (Yahoo's league-scored 2025-26 total) for the market-blend stream.
+// Positions / eligibility follow the profile's positionSource:
+//   'sleeper' (default; the leagues draft on Sleeper): eligibility stays the
+//     Sleeper fantasy_positions the board was built from (eligConfidence
+//     'sleeper'); the snapshot only adds yahooPid / yahooPreRank / yahooPctRos /
+//     yahooFanPts / yahooPos (market layer + preseason rank).
+//   'yahoo': the snapshot's `pos` ('PG,SG', 'PF,C', ...) overrides eligibility
+//     via the contract slot table and eligConfidence = 'yahoo' (Yahoo leagues).
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -47,13 +49,16 @@ function matchSnapshot(snap, players) {
 }
 
 // Mutates players in place (must run before slot VORP). profileSlots: Set of the
-// profile's slot names, or null for all slots. Returns match meta for the API.
-function applyYahoo(players, { leagueId, profileSlots } = {}) {
+// profile's slot names, or null for all slots. positionSource: 'sleeper' | 'yahoo'.
+// Returns match meta for the API.
+function applyYahoo(players, { leagueId, profileSlots, positionSource = 'sleeper' } = {}) {
   const snap = loadSnapshot(leagueId);
+  const sleeperFirst = positionSource !== 'yahoo';
   for (const p of players) {
     p.yahooPid = null; p.yahooPreRank = null; p.yahooPctRos = null; p.yahooFanPts = null; p.yahooPos = null;
+    if (sleeperFirst && p.eligConfidence === 'sleeper-mapped') p.eligConfidence = 'sleeper';
   }
-  if (!snap) return { source: null, matched: 0, total: 0, matchRate: 0, unmatched: [] };
+  if (!snap) return { source: null, positionSource: sleeperFirst ? 'sleeper' : 'yahoo', matched: 0, total: 0, matchRate: 0, unmatched: [] };
   const { bySleeper, unmatched } = matchSnapshot(snap, players);
   for (const p of players) {
     const m = bySleeper.get(p.id);
@@ -64,7 +69,7 @@ function applyYahoo(players, { leagueId, profileSlots } = {}) {
     p.yahooPreRank = Number.isFinite(y.preRank) ? y.preRank : null;
     p.yahooPctRos = Number.isFinite(y.pctRos) ? y.pctRos : null;
     p.yahooFanPts = Number.isFinite(y.fanPts) ? y.fanPts : null;
-    if (p.yahooPos.length) {
+    if (p.yahooPos.length && !sleeperFirst) {
       const el = Slots.slotsForPositions(p.yahooPos);
       p.yahooElig = profileSlots ? el.filter(s => profileSlots.has(s)) : el;
       p.eligConfidence = 'yahoo';
@@ -72,7 +77,7 @@ function applyYahoo(players, { leagueId, profileSlots } = {}) {
   }
   const total = snap.players.length;
   return {
-    source: `yahoo-snapshot-${snap.leagueId || leagueId}`,
+    source: `yahoo-snapshot-${snap.leagueId || leagueId}`, positionSource: sleeperFirst ? 'sleeper' : 'yahoo',
     fetchedAt: snap.fetchedAt || null,
     matched: bySleeper.size,
     total,

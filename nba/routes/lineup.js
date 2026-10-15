@@ -1,9 +1,13 @@
 // Weekly lineup picker API (stream D). Mounted from nba/router.js with one line:
-//   router.use(require('./routes/lineup')({ auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError, log }));
+//   router.use(require('./routes/lineup')({ auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError, log, sleeper, yahooEnabled }));
 //
-//   GET  /api/nba/lineup?league_key=&team_key=&week=[&day=][&banked=id:score,…][&locked=id,…][&opp=0]
-//        Yahoo-first, signed-in only: loads the roster (and this week's opponent)
-//        from Yahoo, maps players to the model with matchYahooPlayer.
+//   GET  /api/nba/lineup?league_id=&roster_id=&week=[&day=][&banked=id:score,…][&locked=id,…][&opp=0][&user_id=]
+//        Sleeper-first (public data, rate-limited): the roster comes from the
+//        league's rosters (player ids are the model's ids; `reserve` = IL), the
+//        opponent from /league/{id}/matchups/{week}. Sleeper has no daily
+//        lineup slots for NBA, so every active player enters as BN and the
+//        optimizer assigns slots; `locked` pins a player.
+//   GET  /api/nba/lineup?league_key=&team_key=&week=   (Yahoo; only when yahooEnabled, else 410)
 //   POST /api/nba/lineup/manual  { roster:[{id,slot?,banked?,locked?,gamesLeft?}] | ids:[…], week?, day?, opponent?:[ids], league_id? }
 //        No auth; rate-limited per IP and size-limited.
 // League profile (L1): the league id in league_key (or league_id, default 242808)
@@ -105,9 +109,12 @@ function replacementFrom(players, profile) {
 function createLineupRoutes({
   auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError,
   log = console, weekDates = defaultWeekDates, now = () => new Date(), rate = RATE,
+  sleeper = null, yahooEnabled = false,
 } = {}) {
   if (typeof auth !== 'function' || typeof modelPlayers !== 'function') throw new Error('lineup routes: deps missing');
   const router = express.Router();
+  const sleeperLimiter = createRateLimiter(rate);
+  const { errorResponse: sleeperErr } = require('../sleeper/client');
 
   async function board(week, profileId) {
     const data = await modelPlayers(week, profileId || undefined);
@@ -140,6 +147,88 @@ function createLineupRoutes({
     return Math.max(1, Number((await modelPlayers(null)).currentWeek) || 1);
   }
 
+  // ---- Sleeper (public league data) ----------------------------------------
+  router.get('/api/nba/lineup', (req, res, next) => {
+    if (req.query.league_id == null) return next();
+    sleeperLimiter(req, res, async () => {
+      res.setHeader('Cache-Control', 'private, no-store');
+      const lid = String(req.query.league_id || '');
+      const rid = String(req.query.roster_id || '');
+      if (!/^\d{1,24}$/.test(lid)) return res.status(400).json({ error: 'Invalid league_id' });
+      if (!/^\d{1,3}$/.test(rid)) return res.status(400).json({ error: 'Invalid roster_id' });
+      if (!sleeper) return res.status(503).json({ error: 'Sleeper sync unavailable' });
+      let week = parseIntIn(req.query.week, 1, 30);
+      if (Number.isNaN(week)) return res.status(400).json({ error: 'Invalid week' });
+      const day = parseIntIn(req.query.day, 0, 14);
+      if (Number.isNaN(day)) return res.status(400).json({ error: 'Invalid day' });
+      const uid = req.query.user_id != null && /^\d{1,24}$/.test(String(req.query.user_id)) ? String(req.query.user_id) : null;
+      // Profile: the stored one for Dillon's league id (Yahoo-era id kept for 242808's
+      // custom scoring/weeks), else High Score defaults; `league_id` may name a profile too.
+      const lc = LC.profileFor({ leagueId: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      let model, b;
+      try {
+        model = loadModel();
+        if (week == null) week = await defaultWeek(lc);
+        b = await board(week, lc.profileId);
+      } catch (err) { log.error('[nba] lineup model:', err.message); return res.status(503).json({ error: 'NBA player data unavailable' }); }
+      let ctx;
+      try { ctx = await sleeper.leagueContext(lid, uid); } catch (err) { const e = sleeperErr(err); return res.status(e.status).json(e.body); }
+      const team = ctx.teams.find(t => t.team_key === rid);
+      if (!team) return res.status(404).json({ error: 'Roster not in league', code: 'sleeper_not_found' });
+      // The Sleeper league's roster shape wins over the stored profile's slots
+      // (scoring and matchup weeks stay with the profile): UTIL×3 / BN×4 / IR×2 in Dillon's league.
+      const counts = require('../sleeper/map').rosterPositionCounts(ctx.league.roster_positions);
+      if (Object.keys(counts).some(k => k !== 'BN' && k !== 'IL')) {
+        const slots = { PG: 0, SG: 0, G: 0, SF: 0, PF: 0, F: 0, C: 0, UTIL: 0, BN: 0, IL: 0 };
+        for (const [k, n] of Object.entries(counts)) { if (k in slots) slots[k] += n; else if (k === 'FC' || k === 'F/C') slots.FC = (slots.FC || 0) + n; else slots.UTIL += n; }
+        if (!slots.IL && Number((ctx.league.settings || {}).reserve_slots) > 0) slots.IL = Number(ctx.league.settings.reserve_slots);
+        lc.profile = { ...lc.profile, slots, name: ctx.league.name || lc.profile.name, teams: Number(ctx.league.total_rosters) || lc.profile.teams };
+        lc.profile.starters = R.starterCount(lc.profile); lc.profile.rosterSize = R.activeSpots(lc.profile) + R.ilSlots(lc.profile);
+      }
+      const byId = new Map(b.players.map(p => [String(p.id), p]));
+      const banked = parseBanked(req.query.banked);
+      const locked = parseIds(req.query.locked);
+      const toRoster = (t, extras) => t.players.map(id => {
+        const p = byId.get(id);
+        const il = t.reserve.includes(id);
+        return { id: p ? String(p.id) : `s:${id}`, player_key: id, name: p ? p.name : `Player ${id}`, slot: il ? 'IL' : 'BN', matched: !!p, matchConfidence: p ? 1 : 0, ...(extras && p ? extras(String(p.id)) : {}) };
+      });
+      const roster = toRoster(team, id => ({ banked: banked.get(id), locked: locked.has(id) }));
+      let opponent = null, matchupError = null;
+      if (req.query.opp !== '0') {
+        try {
+          const ms = await apiCached(`nba:sl:matchups:${lid}:${week}`, 5 * 60 * 1000, () => sleeper.client.leagueMatchups(lid, week));
+          const mine = ms.find(m => m && String(m.roster_id) === rid);
+          const opp = mine && mine.matchup_id != null ? ms.find(m => m && m.matchup_id === mine.matchup_id && String(m.roster_id) !== rid) : null;
+          const ot = opp ? ctx.teams.find(t => t.team_key === String(opp.roster_id)) : null;
+          if (ot) opponent = { name: ot.name, team_key: ot.team_key, roster: toRoster(ot).filter(r => r.matched) };
+        } catch (err) { matchupError = 'Opponent roster unavailable'; }
+      }
+      const c = clock(week, req.query, lc);
+      let out;
+      try {
+        out = recommend({
+          roster: withGameDays(roster.map(r => (r.matched ? r : { id: r.id, name: r.name, slot: r.slot })), b.players, c.window),
+          players: b.players, week, currentWeek: b.currentWeek, weekLength: c.weekLength, day: c.day, profile: lc.profile,
+          opponent: opponent ? { ...opponent, roster: withGameDays(opponent.roster, b.players, c.window) } : null,
+          options: { replacement: replacementFrom(b.players, lc.profile) },
+        });
+      } catch (err) { log.error('[nba] lineup sleeper:', err.message); return res.status(500).json({ error: 'Could not build the lineup' }); }
+      res.json({
+        source: 'sleeper', league_id: lid, roster_id: rid, team_name: team.name, league_name: ctx.league.name || null, dates: c.dates, currentWeek: b.currentWeek, ...meta(lc, c), ...out,
+        roster: roster.map(r => ({ id: r.matched ? r.id : null, player_key: r.player_key, name: r.name, slot: r.slot, matchConfidence: r.matchConfidence })),
+        unmatched: roster.filter(r => !r.matched).map(r => ({ player_key: r.player_key, name: r.name, slot: r.slot })),
+        ...(matchupError ? { matchupError } : {}),
+      });
+    });
+  });
+
+  // ---- Yahoo (legacy; off unless NBA_YAHOO_ENABLED=1) ----------------------
+  router.get('/api/nba/lineup', (req, res, next) => {
+    if (yahooEnabled) return next();
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(410).json({ error: 'Yahoo sync is no longer offered; use league_id + roster_id (Sleeper) or the manual lineup', code: 'yahoo_disabled' });
+  });
   router.get('/api/nba/lineup', auth, async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');
     const uid = (getAuth(req) || {}).userId;
