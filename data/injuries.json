@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-15T17:12:38.245Z",
+  "fetched_at": "2026-10-15T21:33:41.053Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -469,13 +469,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Calf"
-    },
-    {
-      "name": "Darnell Mooney",
-      "position": "WR",
-      "team": "NYG",
-      "status": "Questionable",
-      "body_part": "Neck"
     },
     {
       "name": "Darren Carrington",
@@ -968,6 +961,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Jalen Hurts",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Calf"
+    },
+    {
       "name": "Jalen McMillan",
       "position": "WR",
       "team": "TB",
@@ -1168,13 +1168,6 @@
       "position": "WR",
       "team": "NO",
       "status": "IR",
-      "body_part": "Hamstring"
-    },
-    {
-      "name": "Josh Downs",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
       "body_part": "Hamstring"
     },
     {
@@ -1486,6 +1479,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Mike Evans",
+      "position": "WR",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Ribs"
+    },
+    {
       "name": "Mike Williams",
       "position": "WR",
       "team": null,
@@ -1519,13 +1519,6 @@
       "team": "JAX",
       "status": "Questionable",
       "body_part": "Back"
-    },
-    {
-      "name": "Nick Vannett",
-      "position": "TE",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Nikola Kalinic",
@@ -1673,13 +1666,6 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Knee - PCL"
-    },
-    {
-      "name": "Rico Dowdle",
-      "position": "RB",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Toe"
     },
     {
       "name": "River Cracraft",
@@ -2114,6 +2100,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Zay Flowers",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Toe"
     }
   ]
 }
