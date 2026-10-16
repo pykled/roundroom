@@ -4,10 +4,11 @@
    Offline (NBA_MODEL_OFFLINE=1), no framework. Run: node scripts/test-nba-spec-contract.js (exit 0 = pass).
 
    Two layers of checks:
-   1. The fixtures themselves have the contract shape (so B and C can build against them today).
-   2. profileFromSleeper (real) reproduces the pinned profile fixture; every other shared
-      function is checked against the same shape validators ONCE it stops throwing
-      NOT_IMPLEMENTED. Stream A turns those on by implementing them; nothing to edit here. */
+   1. The fixtures themselves have the contract shape (so B and C can build against them).
+   2. The live shared layer (Stream A): profileFromSleeper reproduces the pinned profile
+      fixture, and leagueContext / signalsFor / analyzeRoster / injury-eta outputs pass the
+      same shape validators. Nothing is skipped any more: a function that throws
+      NOT_IMPLEMENTED (a stub coming back) fails. Behaviour tests: scripts/test-nba-shared.js. */
 'use strict';
 process.env.NBA_MODEL_OFFLINE = '1';
 const path = require('path');
@@ -19,7 +20,7 @@ const SIG = require(path.join(ROOT, 'nba', 'model', 'signals.js'));
 const RA = require(path.join(ROOT, 'nba', 'model', 'roster-analysis.js'));
 const ETA = require(path.join(ROOT, 'nba', 'model', 'injury-eta.js'));
 
-let pass = 0, fail = 0, skipped = 0;
+let pass = 0, fail = 0;
 const queue = [];
 function t(name, fn) { queue.push([name, fn]); }
 function ok(v, msg) { if (!v) throw new Error(msg || 'expected truthy'); }
@@ -32,10 +33,10 @@ const noNaN = (o, where = 'root') => {
   if (Array.isArray(o)) return o.forEach((x, i) => noNaN(x, `${where}[${i}]`));
   if (o && typeof o === 'object') for (const k of Object.keys(o)) noNaN(o[k], `${where}.${k}`);
 };
-// Run `fn` only when the shared function is implemented; count as skipped otherwise.
-function whenImplemented(fn) {
-  const skip = e => { if (e && e.code === 'NOT_IMPLEMENTED') { skipped++; return 'SKIPPED'; } throw e; };
-  try { return Promise.resolve(fn()).catch(skip); } catch (e) { return skip(e); }
+// Stream A is in: a NOT_IMPLEMENTED stub is a failure, with a clear message.
+function implemented(fn) {
+  const stub = e => { if (e && e.code === 'NOT_IMPLEMENTED') throw new Error('shared layer stub is back: ' + e.message); throw e; };
+  try { return Promise.resolve(fn()).catch(stub); } catch (e) { return stub(e); }
 }
 
 /* ------------------------------------------------------------ shape validators */
@@ -257,7 +258,7 @@ t('roster-analysis tier matrix matches the NFL one', () => {
   eq(RA.assessTier(5, 0, 0, 0, 0), 'solid', 'no slot → solid');
   eq(RA.tierStatus('critical'), 'need'); eq(RA.tierStatus('loaded'), 'surplus'); eq(RA.tierStatus('solid'), 'neutral');
 });
-t('[A] leagueContext (live) has the contract shape', () => whenImplemented(() => {
+t('[A] leagueContext (live) has the contract shape', () => implemented(() => {
   const m = require(path.join(ROOT, 'nba', 'model'));
   const prof = fx('profile-from-sleeper.expected.json');
   return m.getPlayers({ profile: prof }).then(d => {
@@ -265,7 +266,7 @@ t('[A] leagueContext (live) has the contract shape', () => whenImplemented(() =>
     validateLeagueContext(c); eq(c.teams.length, 12); eq(c.myRosterId, '1');
   });
 }));
-t('[A] signalsFor (live) has the contract shape for every board player', () => whenImplemented(() => {
+t('[A] signalsFor (live) has the contract shape for every board player', () => implemented(() => {
   const m = require(path.join(ROOT, 'nba', 'model'));
   const Data = require(path.join(ROOT, 'nba', 'model', 'data.js'));
   const prof = fx('profile-from-sleeper.expected.json');
@@ -278,7 +279,7 @@ t('[A] signalsFor (live) has the contract shape for every board player', () => w
     const jok = map.get('1658'); ok(jok && jok.value.ros > 60, 'Jokić');
   });
 }));
-t('[A] analyzeRoster (live) has the contract shape', () => whenImplemented(() => {
+t('[A] analyzeRoster (live) has the contract shape', () => implemented(() => {
   const m = require(path.join(ROOT, 'nba', 'model'));
   const T = require(path.join(ROOT, 'nba', 'model', 'trade.js'));
   const prof = fx('profile-from-sleeper.expected.json');
@@ -291,7 +292,7 @@ t('[A] analyzeRoster (live) has the contract shape', () => whenImplemented(() =>
     validateRosterAnalysis(r); eq(r.lineup.starters.length, 10);
   });
 }));
-t('[A] injury-eta: matchEta / applyEtaToAvailability (live) follow the §4.3 rule', () => whenImplemented(() => {
+t('[A] injury-eta: matchEta / applyEtaToAvailability (live) follow the §4.3 rule', () => implemented(() => {
   const doc = { source: ETA.URL, fetchedAt: '2026-10-15T00:00:00Z', rows: fx('espn-injuries-sample.json').rows.map(r => ({ ...r, norm: null })) };
   const prof = fx('profile-from-sleeper.expected.json');
   const butler = { id: 'x', name: 'Jimmy Butler', team: 'GSW', injury: 'Out' };
@@ -306,11 +307,10 @@ t('[A] injury-eta: matchEta / applyEtaToAvailability (live) follow the §4.3 rul
 (async () => {
   for (const [name, fn] of queue) {
     try {
-      const r = await fn();
-      if (r === 'SKIPPED') console.log('  ~ ' + name + ' (skipped: not implemented yet)');
-      else { pass++; console.log('  ✓ ' + name); }
+      await fn();
+      pass++; console.log('  ✓ ' + name);
     } catch (e) { fail++; console.log('  ✗ ' + name + '\n      ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join('\n      ') : e)); }
   }
-  console.log(`\n${pass} passed, ${fail} failed, ${skipped} skipped (Stream A turns these on)`);
+  console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 })();
