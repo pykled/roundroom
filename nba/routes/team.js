@@ -150,7 +150,8 @@ function createTeamRoutes({
     const src = {};
     const ctxArgs = { league: raw.league, users: raw.users, rosters: raw.rosters, draft: raw.draft, board: board.players, profile, userId: uid, currentWeek: board.currentWeek };
     const mu = await matchups(lid, board.currentWeek);
-    const ctx = TA.viaShared(src, 'leagueContext', () => LS.leagueContext({ ...ctxArgs, matchups: mu }), () => TA.leagueContextLocal({ ...ctxArgs, matchups: mu }));
+    // Shared leagueContext carries a profile summary (weeks = count); the analysis needs the full profile.
+    const ctx = { ...TA.viaShared(src, 'leagueContext', () => LS.leagueContext({ ...ctxArgs, matchups: mu }), () => TA.leagueContextLocal({ ...ctxArgs, matchups: mu })), profile };
     if (rosterId && !ctx.teams.some(t => t.rosterId === rosterId)) throw new HttpError(404, 'Team not in league', 'team_not_found');
     const mine = ctx.myRosterId;
     const ctxView = rosterId ? { ...ctx, myRosterId: rosterId } : ctx;
