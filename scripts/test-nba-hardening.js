@@ -516,7 +516,8 @@ async function freePort() {
 
   console.log('server.js (spawned real server)');
   await test('real server: players gzip + ETag/304, GET logout 405, no secret in stdout', async () => {
-    const env = { ...process.env, ...ENV, DATABASE_URL: '' };
+    // Yahoo is off by default since the Sleeper-first switch; these checks cover the Yahoo-enabled server.
+    const env = { ...process.env, ...ENV, DATABASE_URL: '', NBA_YAHOO_ENABLED: '1' };
     const envFile = path.join(ROOT, '.env.local');
     if (!env.CLERK_PUBLISHABLE_KEY && fs.existsSync(envFile)) {
       for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) { const m = line.match(/^(CLERK_[A-Z_]+)=(.*)$/); if (m) env[m[1]] = m[2]; }
