@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-16T13:22:19.553Z",
+  "fetched_at": "2026-10-16T18:13:06.192Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -47,7 +47,7 @@
       "name": "Adonai Mitchell",
       "position": "WR",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Finger"
     },
     {
@@ -61,7 +61,7 @@
       "name": "AJ Dillon",
       "position": "RB",
       "team": "CAR",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -131,7 +131,7 @@
       "name": "Ashton Dulin",
       "position": "WR",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -145,7 +145,7 @@
       "name": "Baker Mayfield",
       "position": "QB",
       "team": "TB",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Thumb"
     },
     {
@@ -201,7 +201,7 @@
       "name": "Breece Hall",
       "position": "RB",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -483,13 +483,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Darren Waller",
-      "position": "TE",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Toe"
     },
     {
       "name": "David Martin-Robinson",
@@ -1349,7 +1342,7 @@
       "name": "Lamar Jackson",
       "position": "QB",
       "team": "BAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1939,13 +1932,6 @@
       "team": "DET",
       "status": "Out",
       "body_part": "Knee - MCL"
-    },
-    {
-      "name": "Tommy Tremble",
-      "position": "TE",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Ribs"
     },
     {
       "name": "Tra Barnett",
