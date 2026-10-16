@@ -1,0 +1,302 @@
+{
+ "_note": "Two Signals objects (contract §3.3). Numbers from the real board of 2026-10-15 under the Sleeper profile; market fields from market.json (2026-10-14).",
+ "currentWeek": 1,
+ "horizon": "ros",
+ "players": [
+  {
+   "id": "1658",
+   "name": "Nikola Jokić",
+   "team": "DEN",
+   "pos": [
+    "C"
+   ],
+   "elig": [
+    "C",
+    "UTIL"
+   ],
+   "source": "logs",
+   "sampleGames": 65,
+   "statSeason": 2025,
+   "value": {
+    "ros": 73.2,
+    "now": 66.4,
+    "next": 73.1,
+    "mean": 62.9,
+    "sd": 16.4,
+    "ceiling": 84.8,
+    "floor": 39.3,
+    "cv": 0.261,
+    "ceilingShare": 0.348,
+    "vorp": 47.6,
+    "vorpRank": 1,
+    "rank": 1,
+    "tier": 1,
+    "blended": 73.2
+   },
+   "form": {
+    "last5": 64.6,
+    "seasonMean": 65.3,
+    "ratio": 0.99,
+    "delta": -0.7,
+    "label": null,
+    "games": 65,
+    "lastGameDate": "2026-04-12",
+    "stale": true
+   },
+   "minutes": {
+    "mpg": 34.8,
+    "last5": 33.9,
+    "delta": -0.9,
+    "trend": "flat",
+    "projected": 35.4,
+    "roleShift": 1.0170000000000001
+   },
+   "usage": {
+    "fga": null,
+    "fta": null,
+    "usageRate": null,
+    "trend": null,
+    "_note": "null until Stream D (format-3 logs)"
+   },
+   "availability": {
+    "a0": 0.8,
+    "status": null,
+    "bodyPart": null,
+    "notes": null,
+    "eta": null,
+    "outForSeason": false,
+    "byWeek": {
+     "1": 0.8,
+     "2": 0.8,
+     "3": 0.8,
+     "4": 0.8,
+     "5": 0.8,
+     "6": 0.8,
+     "7": 0.8,
+     "8": 0.8,
+     "9": 0.8,
+     "10": 0.8,
+     "11": 0.8,
+     "12": 0.8,
+     "13": 0.8,
+     "14": 0.8,
+     "15": 0.8,
+     "16": 0.8,
+     "17": 0.8,
+     "18": 0.8,
+     "19": 0.8,
+     "20": 0.8,
+     "21": 0.8,
+     "22": 0.8,
+     "23": 0.8
+    },
+    "expectedGamesMissed": 14.8
+   },
+   "schedule": {
+    "gamesByWeek": {
+     "1": 2,
+     "2": 3,
+     "3": 3,
+     "4": 3,
+     "5": 4,
+     "6": 3,
+     "7": 2,
+     "8": 3,
+     "9": 3,
+     "10": 4,
+     "11": 4,
+     "12": 3,
+     "13": 5,
+     "14": 3,
+     "15": 4,
+     "16": 4,
+     "17": 4,
+     "18": 1,
+     "19": 2,
+     "20": 3,
+     "21": 4,
+     "22": 4,
+     "23": 3
+    },
+    "gamesRemaining": 74,
+    "gamesThisWeek": 2,
+    "heavyWeeks": 9,
+    "lightWeeks": 4,
+    "playoffGames": 11,
+    "b2bNext2": null
+   },
+   "market": {
+    "rank": null,
+    "adpDelta": null,
+    "label": null,
+    "contested": false,
+    "confidence": null,
+    "yahooPreRank": null,
+    "pctRos": null,
+    "impliedValue": null,
+    "weight": 0.3
+   },
+   "bio": {
+    "age": 31,
+    "exp": 11,
+    "rookie": false
+   },
+   "uncertainty": 0.1,
+   "flags": [
+    "stale-stats"
+   ]
+  },
+  {
+   "id": "1000",
+   "name": "Jimmy Butler",
+   "team": "GSW",
+   "pos": [
+    "PF",
+    "SF",
+    "SG"
+   ],
+   "elig": [
+    "SG",
+    "G",
+    "SF",
+    "PF",
+    "F",
+    "UTIL"
+   ],
+   "source": "logs",
+   "sampleGames": 38,
+   "statSeason": 2025,
+   "value": {
+    "ros": 25.9,
+    "now": 0,
+    "next": 0,
+    "mean": 31.2,
+    "sd": 8.1,
+    "ceiling": 43.4,
+    "floor": 23.3,
+    "cv": 0.26,
+    "ceilingShare": 0.391,
+    "vorp": 0,
+    "vorpRank": 169,
+    "rank": 169,
+    "tier": 21,
+    "blended": 25.9
+   },
+   "form": null,
+   "minutes": {
+    "mpg": null,
+    "last5": null,
+    "delta": null,
+    "trend": null,
+    "projected": null,
+    "roleShift": null
+   },
+   "usage": {
+    "fga": null,
+    "fta": null,
+    "usageRate": null,
+    "trend": null,
+    "_note": "null until Stream D (format-3 logs)"
+   },
+   "availability": {
+    "a0": 0.54,
+    "status": "Out",
+    "bodyPart": "Knee",
+    "notes": null,
+    "eta": {
+     "returnDate": "2027-01-02",
+     "returnWeek": 11,
+     "status": "OUT",
+     "bodyPart": "Knee",
+     "detail": "Surgery",
+     "comment": "The Warriors hope to have Butler (knee) back early in 2027, per Keith Watkins of Yahoo Sports.",
+     "source": "espn",
+     "asOf": "2026-10-02T18:48Z",
+     "stale": false
+    },
+    "outForSeason": false,
+    "byWeek": {
+     "1": 0,
+     "2": 0,
+     "3": 0,
+     "4": 0.5,
+     "5": 0.5,
+     "6": 0.5,
+     "7": 0.5,
+     "8": 0.5,
+     "9": 0.5,
+     "10": 0.5,
+     "11": 0.5,
+     "12": 0.5,
+     "13": 0.5,
+     "14": 0.5,
+     "15": 0.5,
+     "16": 0.5,
+     "17": 0.5,
+     "18": 0.5,
+     "19": 0.5,
+     "20": 0.5,
+     "21": 0.5,
+     "22": 0.5,
+     "23": 0.5
+    },
+    "expectedGamesMissed": 42,
+    "_note": "byWeek shown here is the CURRENT board (ramp guess); Stream A replaces it with the ETA rule in §4.3: 0 until week 11, 0.85×a0 the week of return, then a0."
+   },
+   "schedule": {
+    "gamesByWeek": {
+     "1": 3,
+     "2": 4,
+     "3": 3,
+     "4": 3,
+     "5": 4,
+     "6": 3,
+     "7": 1,
+     "8": 3,
+     "9": 4,
+     "10": 4,
+     "11": 3,
+     "12": 3,
+     "13": 4,
+     "14": 4,
+     "15": 3,
+     "16": 4,
+     "17": 3,
+     "18": 2,
+     "19": 1,
+     "20": 4,
+     "21": 4,
+     "22": 3,
+     "23": 4
+    },
+    "gamesRemaining": 74,
+    "gamesThisWeek": 3,
+    "heavyWeeks": 10,
+    "lightWeeks": 3,
+    "playoffGames": 11,
+    "b2bNext2": null
+   },
+   "market": {
+    "rank": null,
+    "adpDelta": null,
+    "label": null,
+    "contested": false,
+    "confidence": null,
+    "yahooPreRank": null,
+    "pctRos": null,
+    "impliedValue": null,
+    "weight": 0.3
+   },
+   "bio": {
+    "age": null,
+    "exp": null,
+    "rookie": false
+   },
+   "uncertainty": 0.18,
+   "flags": [
+    "out-until-wk11",
+    "stale-stats"
+   ]
+  }
+ ]
+}

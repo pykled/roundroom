@@ -1,0 +1,670 @@
+{
+ "verdict": "Counter",
+ "you": {
+  "perWeek": 1.2,
+  "perWeekRange": [
+   -4.5,
+   6.8
+  ],
+  "ros": 28.4,
+  "rosRange": [
+   -110.3,
+   167.2
+  ],
+  "beforePerWeek": 421,
+  "afterPerWeek": 422.2
+ },
+ "them": {
+  "perWeek": -0.8,
+  "perWeekRange": [
+   -6.8,
+   5.1
+  ],
+  "ros": -20.7,
+  "rosRange": [
+   -167.3,
+   126
+  ],
+  "beforePerWeek": 416.1,
+  "afterPerWeek": 415.2,
+  "estimated": false,
+  "likely": "likely"
+ },
+ "weeks": [
+  {
+   "week": 1,
+   "weight": 1,
+   "playoff": false,
+   "you": -0.4,
+   "them": 0.4,
+   "gamesIn": 3,
+   "gamesOut": 2,
+   "replacement": 26.8
+  },
+  {
+   "week": 2,
+   "weight": 1,
+   "playoff": false,
+   "you": -3.9,
+   "them": 9.1,
+   "gamesIn": 3,
+   "gamesOut": 3,
+   "replacement": 27.7
+  },
+  {
+   "week": 3,
+   "weight": 1,
+   "playoff": false,
+   "you": 3.4,
+   "them": -3.4,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 29.6
+  },
+  {
+   "week": 4,
+   "weight": 1,
+   "playoff": false,
+   "you": 5.7,
+   "them": -5.7,
+   "gamesIn": 4,
+   "gamesOut": 3,
+   "replacement": 29.2
+  },
+  {
+   "week": 5,
+   "weight": 1,
+   "playoff": false,
+   "you": 2.1,
+   "them": -2.1,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 29.9
+  },
+  {
+   "week": 6,
+   "weight": 1,
+   "playoff": false,
+   "you": -3.7,
+   "them": 3.7,
+   "gamesIn": 3,
+   "gamesOut": 4,
+   "replacement": 28.6
+  },
+  {
+   "week": 7,
+   "weight": 1,
+   "playoff": false,
+   "you": -1,
+   "them": 1,
+   "gamesIn": 2,
+   "gamesOut": 2,
+   "replacement": 25.3
+  },
+  {
+   "week": 8,
+   "weight": 1,
+   "playoff": false,
+   "you": -0.1,
+   "them": 0.1,
+   "gamesIn": 3,
+   "gamesOut": 3,
+   "replacement": 28
+  },
+  {
+   "week": 9,
+   "weight": 1,
+   "playoff": false,
+   "you": 5.2,
+   "them": -4.7,
+   "gamesIn": 4,
+   "gamesOut": 3,
+   "replacement": 29.9
+  },
+  {
+   "week": 10,
+   "weight": 1,
+   "playoff": false,
+   "you": -2.1,
+   "them": 2.1,
+   "gamesIn": 3,
+   "gamesOut": 4,
+   "replacement": 29.5
+  },
+  {
+   "week": 11,
+   "weight": 1,
+   "playoff": false,
+   "you": 3,
+   "them": -4.6,
+   "gamesIn": 3,
+   "gamesOut": 2,
+   "replacement": 28.4
+  },
+  {
+   "week": 12,
+   "weight": 1,
+   "playoff": false,
+   "you": 0.9,
+   "them": -0.9,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 30.4
+  },
+  {
+   "week": 13,
+   "weight": 1,
+   "playoff": false,
+   "you": 1.6,
+   "them": -1.6,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 28.7
+  },
+  {
+   "week": 14,
+   "weight": 1,
+   "playoff": false,
+   "you": 0,
+   "them": 0,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 29.1
+  },
+  {
+   "week": 15,
+   "weight": 1,
+   "playoff": false,
+   "you": -0.2,
+   "them": 0.2,
+   "gamesIn": 3,
+   "gamesOut": 3,
+   "replacement": 30.1
+  },
+  {
+   "week": 16,
+   "weight": 1,
+   "playoff": false,
+   "you": 4.2,
+   "them": -4.2,
+   "gamesIn": 4,
+   "gamesOut": 3,
+   "replacement": 29.3
+  },
+  {
+   "week": 17,
+   "weight": 1,
+   "playoff": false,
+   "you": -9.6,
+   "them": 10.3,
+   "gamesIn": 2,
+   "gamesOut": 5,
+   "replacement": 29.7
+  },
+  {
+   "week": 18,
+   "weight": 1,
+   "playoff": false,
+   "you": -1,
+   "them": 1,
+   "gamesIn": 2,
+   "gamesOut": 2,
+   "replacement": 25.2
+  },
+  {
+   "week": 19,
+   "weight": 1,
+   "playoff": false,
+   "you": 1,
+   "them": -1,
+   "gamesIn": 2,
+   "gamesOut": 2,
+   "replacement": 25.7
+  },
+  {
+   "week": 20,
+   "weight": 1,
+   "playoff": false,
+   "you": 4.5,
+   "them": -4.5,
+   "gamesIn": 4,
+   "gamesOut": 4,
+   "replacement": 29.3
+  },
+  {
+   "week": 21,
+   "weight": 1.5,
+   "playoff": true,
+   "you": 4.2,
+   "them": -2.8,
+   "gamesIn": 3,
+   "gamesOut": 3,
+   "replacement": 29.7
+  },
+  {
+   "week": 22,
+   "weight": 1.5,
+   "playoff": true,
+   "you": 0.3,
+   "them": -0.3,
+   "gamesIn": 3,
+   "gamesOut": 4,
+   "replacement": 29
+  },
+  {
+   "week": 23,
+   "weight": 1.5,
+   "playoff": true,
+   "you": 8,
+   "them": -7.5,
+   "gamesIn": 4,
+   "gamesOut": 3,
+   "replacement": 29.6
+  }
+ ],
+ "lineup": {
+  "before": {
+   "starters": [
+    {
+     "slot": "PG",
+     "id": "2179",
+     "name": "LaMelo Ball",
+     "value": 47.3,
+     "replacement": false
+    },
+    {
+     "slot": "SG",
+     "id": "4737",
+     "name": "VJ Edgecombe",
+     "value": 41.7,
+     "replacement": false
+    },
+    {
+     "slot": "G",
+     "id": "2161",
+     "name": "Tyrese Haliburton",
+     "value": 41.1,
+     "replacement": false
+    },
+    {
+     "slot": "SF",
+     "id": "2284",
+     "name": "Jalen Johnson",
+     "value": 57.1,
+     "replacement": false
+    },
+    {
+     "slot": "PF",
+     "id": "2835",
+     "name": "Matas Buzelis",
+     "value": 41.9,
+     "replacement": false
+    },
+    {
+     "slot": "F",
+     "id": null,
+     "name": "Waiver add",
+     "value": 28.7,
+     "replacement": true
+    },
+    {
+     "slot": "C",
+     "id": "2728",
+     "name": "Donovan Clingan",
+     "value": 51.1,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL1",
+     "id": "2441",
+     "name": "Walker Kessler",
+     "value": 39.9,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL2",
+     "id": "1444",
+     "name": "Damian Lillard",
+     "value": 35.4,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL3",
+     "id": "1998",
+     "name": "Coby White",
+     "value": 35.2,
+     "replacement": false
+    }
+   ],
+   "bench": [
+    {
+     "id": "2461",
+     "name": "Andrew Nembhard",
+     "value": 32.9
+    },
+    {
+     "id": "4761",
+     "name": "Khaman Maluach",
+     "value": 28
+    },
+    {
+     "id": "1887",
+     "name": "Mitchell Robinson",
+     "value": 27.7
+    },
+    {
+     "id": "1526",
+     "name": "Zach LaVine",
+     "value": 24.2
+    }
+   ]
+  },
+  "after": {
+   "starters": [
+    {
+     "slot": "PG",
+     "id": "2179",
+     "name": "LaMelo Ball",
+     "value": 47.3,
+     "replacement": false
+    },
+    {
+     "slot": "SG",
+     "id": "4737",
+     "name": "VJ Edgecombe",
+     "value": 41.7,
+     "replacement": false
+    },
+    {
+     "slot": "G",
+     "id": "2161",
+     "name": "Tyrese Haliburton",
+     "value": 41.1,
+     "replacement": false
+    },
+    {
+     "slot": "SF",
+     "id": "2284",
+     "name": "Jalen Johnson",
+     "value": 57.1,
+     "replacement": false
+    },
+    {
+     "slot": "PF",
+     "id": "2835",
+     "name": "Matas Buzelis",
+     "value": 41.9,
+     "replacement": false
+    },
+    {
+     "slot": "F",
+     "id": null,
+     "name": "Waiver add",
+     "value": 28.7,
+     "replacement": true
+    },
+    {
+     "slot": "C",
+     "id": "2728",
+     "name": "Donovan Clingan",
+     "value": 51.1,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL1",
+     "id": "2441",
+     "name": "Walker Kessler",
+     "value": 39.9,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL2",
+     "id": "1583",
+     "name": "Jusuf Nurkić",
+     "value": 35.6,
+     "replacement": false
+    },
+    {
+     "slot": "UTIL3",
+     "id": "1998",
+     "name": "Coby White",
+     "value": 35.2,
+     "replacement": false
+    }
+   ],
+   "bench": [
+    {
+     "id": "2461",
+     "name": "Andrew Nembhard",
+     "value": 32.9
+    },
+    {
+     "id": "4761",
+     "name": "Khaman Maluach",
+     "value": 28
+    },
+    {
+     "id": "1887",
+     "name": "Mitchell Robinson",
+     "value": 27.7
+    },
+    {
+     "id": "1526",
+     "name": "Zach LaVine",
+     "value": 24.2
+    }
+   ]
+  },
+  "changed": [
+   "UTIL2"
+  ]
+ },
+ "players": [
+  {
+   "side": "give",
+   "id": "1444",
+   "name": "Damian Lillard",
+   "team": "POR",
+   "elig": [
+    "PG",
+    "G"
+   ],
+   "injury": null,
+   "outForSeason": false,
+   "rosValue": 35.4,
+   "forYou": 3.7,
+   "forThem": 4.1,
+   "games": 75,
+   "heavyWeeks": 10,
+   "playoffGames": 10,
+   "uncertainty": 0.25,
+   "nowValue": 28.7,
+   "signals": "Signals (see signals.example.json)",
+   "slotBefore": "UTIL2",
+   "slotAfter": "BN",
+   "fit": {
+    "group": null,
+    "tierBefore": null,
+    "tierAfter": null
+   },
+   "why": [
+    "(from signals.flags)"
+   ]
+  },
+  {
+   "side": "get",
+   "id": "1583",
+   "name": "Jusuf Nurkić",
+   "team": "UTA",
+   "elig": [
+    "C"
+   ],
+   "injury": "Out",
+   "outForSeason": false,
+   "rosValue": 35.6,
+   "forYou": 4.9,
+   "forThem": 4.9,
+   "games": 75,
+   "heavyWeeks": 10,
+   "playoffGames": 10,
+   "uncertainty": 0.18,
+   "nowValue": 9.4,
+   "signals": "Signals (see signals.example.json)",
+   "slotBefore": "BN",
+   "slotAfter": "UTIL2",
+   "fit": {
+    "group": null,
+    "tierBefore": null,
+    "tierAfter": null
+   },
+   "why": [
+    "(from signals.flags)"
+   ]
+  }
+ ],
+ "roster": {
+  "you": {
+   "size": 13,
+   "cap": 14,
+   "dropped": [],
+   "openBefore": 1,
+   "openAfter": 2
+  },
+  "them": {
+   "size": 16,
+   "cap": 16,
+   "dropped": [
+    {
+     "id": "2416",
+     "name": "Scotty Pippen",
+     "rosValue": 19.6
+    }
+   ],
+   "openBefore": 0,
+   "openAfter": 0
+  }
+ },
+ "replacement": {
+  "perWeek": 28.7,
+  "source": "league"
+ },
+ "meta": {
+  "weeks": 23,
+  "firstWeek": 1,
+  "lastWeek": 23,
+  "currentWeek": 1,
+  "playoffStartWeek": 21,
+  "playoffWeight": 1.5,
+  "fairBand": 3.2,
+  "unknown": [],
+  "notes": [],
+  "pastEnd": false,
+  "settings": {
+   "teams": 12,
+   "rosterSize": 14,
+   "il": 2,
+   "slots": {
+    "PG": 1,
+    "SG": 1,
+    "G": 1,
+    "SF": 1,
+    "PF": 1,
+    "F": 1,
+    "C": 1,
+    "FC": 0,
+    "UTIL": 3,
+    "BN": 4,
+    "IL": 2
+   },
+   "slotList": [
+    "PG",
+    "SG",
+    "G",
+    "SF",
+    "PF",
+    "F",
+    "C",
+    "UTIL",
+    "UTIL",
+    "UTIL"
+   ],
+   "starters": 10,
+   "benchShare": [
+    0.2,
+    0.117,
+    0.067,
+    0.033
+   ]
+  },
+  "rules": {
+   "tradeEnd": "2027-02-14",
+   "daysLeft": 121,
+   "open": true,
+   "review": "commissioner",
+   "protestDays": 0,
+   "draftPickTrades": false,
+   "notes": [
+    "Trade deadline 2027-02-14 (121 days left).",
+    "Trades go to the commissioner for review.",
+    "Draft picks can't be traded in this league."
+   ]
+  }
+ },
+ "consolidation": null,
+ "why": [
+  "Jusuf Nurkić starts at UTIL2: +4.9/wk.",
+  "Losing Damian Lillard costs 3.7/wk at UTIL2 (Jusuf Nurkić steps in).",
+  "Jusuf Nurkić (Out) is worth 9.4 this week, 35.6/wk over the rest of the season once healthy."
+ ],
+ "headline": "Close to even (+1.2/wk). Ask for a small add.",
+ "version": 2,
+ "options": {
+  "horizon": "ros",
+  "lean": "contend",
+  "weights": {
+   "playoff": 1.5
+  }
+ },
+ "value": {
+  "assetIn": null,
+  "assetOut": null,
+  "gap": null,
+  "gapPct": null,
+  "label": null,
+  "marketWeight": 0.3,
+  "consolidationAdj": 0,
+  "_note": "Σ value.blended of get vs give (§4.1); label Even ≤10%, Leans ≤25%, Favors ≤40%, else Lopsided"
+ },
+ "fit": {
+  "before": "RosterAnalysis",
+  "after": "RosterAnalysis",
+  "deltaByGroup": {
+   "G": {
+    "tierBefore": "solid",
+    "tierAfter": "solid",
+    "starterValueDelta": 0
+   },
+   "F": {},
+   "C": {},
+   "UTIL": {}
+  },
+  "notes": [
+   "(built from analyzeRoster before/after)"
+  ]
+ },
+ "themFit": null,
+ "summary": {
+  "headline": "Close to even (+1.2/wk). Ask for a small add.",
+  "verdictLine": null,
+  "valueLine": null,
+  "fitLine": null,
+  "notes": []
+ },
+ "dataAsOf": {
+  "board": "2026-10-14T03:15:30.579Z",
+  "market": "2026-10-14T03:43:54.197Z",
+  "injuryEta": null,
+  "logsSeason": 2025
+ },
+ "_note": "v1 response (real, rosters 1 vs 2, Damian Lillard for Jusuf Nurkić) with the v2 fields added as placeholders; v2 is a superset of v1."
+}

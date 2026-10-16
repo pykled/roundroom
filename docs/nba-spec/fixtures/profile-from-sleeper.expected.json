@@ -1,0 +1,235 @@
+{
+ "leagueId": "1411447094215991296",
+ "source": "sleeper",
+ "sleeperLeagueId": "1411447094215991296",
+ "marketSnapshotId": "242808",
+ "name": "HALIMSANITY 26-27",
+ "season": "2026",
+ "teams": 12,
+ "aggregation": "high-score",
+ "positionSource": "sleeper",
+ "scoring": {
+  "pts": 1,
+  "reb": 1.2,
+  "ast": 1.5,
+  "stl": 3,
+  "blk": 3,
+  "to": -1,
+  "pf": -1,
+  "tech": -1,
+  "ff": -1,
+  "dd": 5,
+  "td": 3
+ },
+ "flags": {
+  "tdAlsoCountsDD": true
+ },
+ "slots": {
+  "PG": 1,
+  "SG": 1,
+  "G": 1,
+  "SF": 1,
+  "PF": 1,
+  "F": 1,
+  "C": 1,
+  "FC": 0,
+  "UTIL": 3,
+  "BN": 4,
+  "IL": 2
+ },
+ "starters": 10,
+ "rosterSize": 16,
+ "weeks": [
+  {
+   "week": 1,
+   "start": "2026-10-20",
+   "end": "2026-10-25",
+   "days": 6,
+   "playoffs": false
+  },
+  {
+   "week": 2,
+   "start": "2026-10-26",
+   "end": "2026-11-01",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 3,
+   "start": "2026-11-02",
+   "end": "2026-11-08",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 4,
+   "start": "2026-11-09",
+   "end": "2026-11-15",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 5,
+   "start": "2026-11-16",
+   "end": "2026-11-22",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 6,
+   "start": "2026-11-23",
+   "end": "2026-11-29",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 7,
+   "start": "2026-11-30",
+   "end": "2026-12-06",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 8,
+   "start": "2026-12-07",
+   "end": "2026-12-13",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 9,
+   "start": "2026-12-14",
+   "end": "2026-12-20",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 10,
+   "start": "2026-12-21",
+   "end": "2026-12-27",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 11,
+   "start": "2026-12-28",
+   "end": "2027-01-03",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 12,
+   "start": "2027-01-04",
+   "end": "2027-01-10",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 13,
+   "start": "2027-01-11",
+   "end": "2027-01-17",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 14,
+   "start": "2027-01-18",
+   "end": "2027-01-24",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 15,
+   "start": "2027-01-25",
+   "end": "2027-01-31",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 16,
+   "start": "2027-02-01",
+   "end": "2027-02-07",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 17,
+   "start": "2027-02-08",
+   "end": "2027-02-14",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 18,
+   "start": "2027-02-15",
+   "end": "2027-02-21",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 19,
+   "start": "2027-02-22",
+   "end": "2027-02-28",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 20,
+   "start": "2027-03-01",
+   "end": "2027-03-07",
+   "days": 7,
+   "playoffs": false
+  },
+  {
+   "week": 21,
+   "start": "2027-03-08",
+   "end": "2027-03-14",
+   "days": 7,
+   "playoffs": true
+  },
+  {
+   "week": 22,
+   "start": "2027-03-15",
+   "end": "2027-03-21",
+   "days": 7,
+   "playoffs": true
+  },
+  {
+   "week": 23,
+   "start": "2027-03-22",
+   "end": "2027-03-28",
+   "days": 7,
+   "playoffs": true
+  }
+ ],
+ "regularSeasonWeeks": 20,
+ "playoffTeams": 6,
+ "tradeEnd": "2027-02-14",
+ "tradeDeadlineWeek": 17,
+ "maxKeepers": 1,
+ "leagueType": 0,
+ "maxAddsPerWeek": null,
+ "maxAddsPerSeason": null,
+ "waivers": {
+  "type": "rolling",
+  "days": 2,
+  "daily": false,
+  "budget": null
+ },
+ "trades": {
+  "review": "commissioner",
+  "protestDays": 0,
+  "draftPickTrades": false,
+  "maxTrades": null
+ },
+ "draft": {
+  "type": "snake",
+  "rounds": 14,
+  "pickSeconds": null,
+  "reversalRound": 0
+ },
+ "unverified": [
+  "ff (flagrant fouls) scores -1 on Sleeper but the compact game logs carry no ff column until Stream D (format 3); contributes 0 until then.",
+  "Sleeper matchup week numbering vs this Mon-Sun calendar is re-checked once week 1 has scores (2026-10-21)."
+ ]
+}

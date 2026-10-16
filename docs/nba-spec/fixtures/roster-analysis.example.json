@@ -1,0 +1,248 @@
+{
+ "_note": "analyzeRoster() example for roster 1 (pykle) under the Sleeper profile, ROS horizon, league replacement level; tiers are depth-only here because leagueAvg/strongCutoff were not passed (team page passes them).",
+ "rosterId": "1",
+ "horizon": "ros",
+ "lineup": {
+  "total": 414.9,
+  "starters": [
+   {
+    "id": "2179",
+    "name": "LaMelo Ball",
+    "slot": "PG",
+    "value": 47.3
+   },
+   {
+    "id": "4737",
+    "name": "VJ Edgecombe",
+    "slot": "SG",
+    "value": 41.7
+   },
+   {
+    "id": "2161",
+    "name": "Tyrese Haliburton",
+    "slot": "G",
+    "value": 41.1
+   },
+   {
+    "id": "2284",
+    "name": "Jalen Johnson",
+    "slot": "SF",
+    "value": 57.1
+   },
+   {
+    "id": "2835",
+    "name": "Matas Buzelis",
+    "slot": "PF",
+    "value": 41.9
+   },
+   {
+    "id": "1526",
+    "name": "Zach LaVine",
+    "slot": "F",
+    "value": 24.2
+   },
+   {
+    "id": "2728",
+    "name": "Donovan Clingan",
+    "slot": "C",
+    "value": 51.1
+   },
+   {
+    "id": "2441",
+    "name": "Walker Kessler",
+    "slot": "UTIL",
+    "value": 39.9
+   },
+   {
+    "id": "1444",
+    "name": "Damian Lillard",
+    "slot": "UTIL",
+    "value": 35.4
+   },
+   {
+    "id": "1998",
+    "name": "Coby White",
+    "slot": "UTIL",
+    "value": 35.2
+   }
+  ],
+  "bench": [
+   {
+    "id": "2461",
+    "name": "Andrew Nembhard",
+    "value": 32.9,
+    "share": 0.2
+   },
+   {
+    "id": "4761",
+    "name": "Khaman Maluach",
+    "value": 28,
+    "share": 0.11666666666666668
+   },
+   {
+    "id": "1887",
+    "name": "Mitchell Robinson",
+    "value": 27.7,
+    "share": 0.06666666666666667
+   }
+  ],
+  "holes": 0
+ },
+ "strengthRos": 415.7,
+ "strengthNow": null,
+ "benchValue": 0.8,
+ "replacement": 28.7,
+ "groups": {
+  "G": {
+   "slots": 3,
+   "rostered": 7,
+   "starterValue": 130.1,
+   "nextUp": 32.9,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "deep",
+   "status": "surplus"
+  },
+  "F": {
+   "slots": 3,
+   "rostered": 3,
+   "starterValue": 123.2,
+   "nextUp": 0,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "thin",
+   "status": "need"
+  },
+  "C": {
+   "slots": 1,
+   "rostered": 4,
+   "starterValue": 51.1,
+   "nextUp": 28,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "deep",
+   "status": "surplus"
+  },
+  "UTIL": {
+   "slots": 3,
+   "rostered": 13,
+   "starterValue": 110.5,
+   "nextUp": 32.9,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "solid",
+   "status": "neutral"
+  },
+  "PG": {
+   "slots": 1,
+   "rostered": 6,
+   "starterValue": 47.3,
+   "nextUp": null,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "solid",
+   "status": "neutral",
+   "_displayOnly": true
+  },
+  "SG": {
+   "slots": 1,
+   "rostered": 0,
+   "starterValue": 41.7,
+   "nextUp": null,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "solid",
+   "status": "neutral",
+   "_displayOnly": true
+  },
+  "SF": {
+   "slots": 1,
+   "rostered": 1,
+   "starterValue": 57.1,
+   "nextUp": null,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "solid",
+   "status": "neutral",
+   "_displayOnly": true
+  },
+  "PF": {
+   "slots": 1,
+   "rostered": 2,
+   "starterValue": 41.9,
+   "nextUp": null,
+   "leagueAvg": null,
+   "rank": null,
+   "tier": "solid",
+   "status": "neutral",
+   "_displayOnly": true
+  }
+ },
+ "needs": [
+  "F"
+ ],
+ "surplus": [
+  "G",
+  "C"
+ ],
+ "elite": [
+  {
+   "id": "2179",
+   "name": "LaMelo Ball",
+   "value": 47.3
+  },
+  {
+   "id": "2284",
+   "name": "Jalen Johnson",
+   "value": 57.1
+  },
+  {
+   "id": "2728",
+   "name": "Donovan Clingan",
+   "value": 51.1
+  }
+ ],
+ "liabilities": [
+  {
+   "id": "1526",
+   "name": "Zach LaVine",
+   "slot": "F",
+   "value": 24.2
+  }
+ ],
+ "injured": [
+  {
+   "id": "1526",
+   "name": "Zach LaVine",
+   "status": "DTD",
+   "eta": null,
+   "lostThisWeek": null
+  },
+  {
+   "id": "1998",
+   "name": "Coby White",
+   "status": "DTD",
+   "eta": null,
+   "lostThisWeek": null
+  },
+  {
+   "id": "2284",
+   "name": "Jalen Johnson",
+   "status": "DTD",
+   "eta": null,
+   "lostThisWeek": null
+  },
+  {
+   "id": "2461",
+   "name": "Andrew Nembhard",
+   "status": "DTD",
+   "eta": null,
+   "lostThisWeek": null
+  }
+ ],
+ "injuryExposure": {
+  "thisWeek": null,
+  "next2": null
+ },
+ "gamesThisWeek": 29
+}

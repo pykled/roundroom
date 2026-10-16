@@ -1,0 +1,157 @@
+{
+ "source": "https://api.sleeper.com/schedule/nba/regular/2026",
+ "fetchedAt": "2026-10-16T01:48:58.169Z",
+ "note": "first/last = dates with games listed so far; Sleeper weeks are Mon-Sun (week 1 Tue Oct 20 - Sun Oct 25). NBA Cup knockout + 2 unscheduled games/team fall in the Dec 4-11 gap (weeks 7-8).",
+ "weeks": [
+  {
+   "week": 1,
+   "first": "2026-10-20",
+   "last": "2026-10-25",
+   "games": 43
+  },
+  {
+   "week": 2,
+   "first": "2026-10-26",
+   "last": "2026-11-01",
+   "games": 49
+  },
+  {
+   "week": 3,
+   "first": "2026-11-02",
+   "last": "2026-11-08",
+   "games": 54
+  },
+  {
+   "week": 4,
+   "first": "2026-11-09",
+   "last": "2026-11-15",
+   "games": 51
+  },
+  {
+   "week": 5,
+   "first": "2026-11-16",
+   "last": "2026-11-22",
+   "games": 51
+  },
+  {
+   "week": 6,
+   "first": "2026-11-23",
+   "last": "2026-11-29",
+   "games": 48
+  },
+  {
+   "week": 7,
+   "first": "2026-11-30",
+   "last": "2026-12-03",
+   "games": 29
+  },
+  {
+   "week": 8,
+   "first": "2026-12-12",
+   "last": "2026-12-13",
+   "games": 14
+  },
+  {
+   "week": 9,
+   "first": "2026-12-14",
+   "last": "2026-12-20",
+   "games": 55
+  },
+  {
+   "week": 10,
+   "first": "2026-12-21",
+   "last": "2026-12-27",
+   "games": 53
+  },
+  {
+   "week": 11,
+   "first": "2026-12-28",
+   "last": "2027-01-03",
+   "games": 52
+  },
+  {
+   "week": 12,
+   "first": "2027-01-04",
+   "last": "2027-01-10",
+   "games": 54
+  },
+  {
+   "week": 13,
+   "first": "2027-01-11",
+   "last": "2027-01-17",
+   "games": 52
+  },
+  {
+   "week": 14,
+   "first": "2027-01-18",
+   "last": "2027-01-24",
+   "games": 52
+  },
+  {
+   "week": 15,
+   "first": "2027-01-25",
+   "last": "2027-01-31",
+   "games": 54
+  },
+  {
+   "week": 16,
+   "first": "2027-02-01",
+   "last": "2027-02-07",
+   "games": 54
+  },
+  {
+   "week": 17,
+   "first": "2027-02-08",
+   "last": "2027-02-14",
+   "games": 53
+  },
+  {
+   "week": 18,
+   "first": "2027-02-15",
+   "last": "2027-02-18",
+   "games": 30
+  },
+  {
+   "week": 19,
+   "first": "2027-02-25",
+   "last": "2027-02-28",
+   "games": 32
+  },
+  {
+   "week": 20,
+   "first": "2027-03-01",
+   "last": "2027-03-07",
+   "games": 49
+  },
+  {
+   "week": 21,
+   "first": "2027-03-08",
+   "last": "2027-03-14",
+   "games": 53
+  },
+  {
+   "week": 22,
+   "first": "2027-03-15",
+   "last": "2027-03-21",
+   "games": 52
+  },
+  {
+   "week": 23,
+   "first": "2027-03-22",
+   "last": "2027-03-28",
+   "games": 54
+  },
+  {
+   "week": 24,
+   "first": "2027-03-29",
+   "last": "2027-04-04",
+   "games": 55
+  },
+  {
+   "week": 25,
+   "first": "2027-04-05",
+   "last": "2027-04-11",
+   "games": 57
+  }
+ ]
+}
