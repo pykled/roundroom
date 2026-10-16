@@ -2010,6 +2010,7 @@ const SITEMAP_PAGES = [
   { path: '/research', lastmod: '2026-09-20', changefreq: 'weekly',  priority: '0.6' },
   { path: '/team',     lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.5' },
   { path: '/nba',      lastmod: '2026-10-15', changefreq: 'weekly',  priority: '0.8' },
+  { path: '/nba/team', lastmod: '2026-10-15', changefreq: 'weekly',  priority: '0.6' },
 ];
 
 app.get('/robots.txt', (req, res) => {

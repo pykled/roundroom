@@ -324,10 +324,10 @@ t('nav markup keeps shared/nav.js contract', () => {
   const n = UI.navHtml({ active: 'lineup' });
   assert.ok(/<nav id="rr-nav"/.test(n.nav) && /class="rr-logo"/.test(n.nav) && /class="rr-links"/.test(n.nav) && /class="nav-hamburger"/.test(n.nav));
   assert.ok(/class="rr-sport"/.test(n.nav) && /data-umami-event="nba-nav-switch"/.test(n.nav) && /data-umami-event="nfl-nav-switch"/.test(n.nav));
-  assert.strictEqual((n.nav.match(/class="rr-link[ "]/g) || []).length, 5);
+  assert.strictEqual((n.nav.match(/class="rr-link[ "]/g) || []).length, 6);
   assert.strictEqual((n.nav.match(/aria-current="page"/g) || []).length, 2); // NBA switch + Lineup
   assert.ok(/href="\/nba\/lineup" class="rr-link active"/.test(n.nav));
-  assert.strictEqual((n.tabbar.match(/<a /g) || []).length, 5);
+  assert.strictEqual((n.tabbar.match(/<a /g) || []).length, 6);
   assert.ok(/data-nba-sleeper-chip/.test(n.nav));
   // shared/nav.js treats every link as NBA (no NFL link-set swap)
   const PN = require('../shared/nav.js');
@@ -338,6 +338,7 @@ t('activeFromPath', () => {
   assert.strictEqual(UI.activeFromPath('/nba/draft/'), 'board');
   assert.strictEqual(UI.activeFromPath('/nba/research'), 'research');
   assert.strictEqual(UI.activeFromPath('/nba/waivers'), 'waivers');
+  assert.strictEqual(UI.activeFromPath('/nba/team'), 'team');
   assert.strictEqual(UI.activeFromPath('/lineup'), null);
 });
 t('browser-only helpers are inert in node', () => {

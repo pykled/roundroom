@@ -272,7 +272,7 @@ body.nba-ui {
   .nba-ui #rr-nav .rr-link[aria-current="page"]::after { display: none; }
   body.nba-ui.nu-has-tabbar { padding-bottom: calc(var(--nu-tabbar-h) + var(--nu-safe-b)); }
   .nba-ui .nu-tabbar {
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
     position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--nu-z-tabbar);
     height: calc(var(--nu-tabbar-h) + var(--nu-safe-b)); padding: 0 6px var(--nu-safe-b);
     background: rgba(12,13,16,0.86);

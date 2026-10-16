@@ -328,6 +328,7 @@
     lineup: svg('<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M4 12h16"/><circle cx="12" cy="12" r="2.6"/><path d="M8.5 3.5v2.8a3.5 3.5 0 0 0 7 0V3.5M8.5 20.5v-2.8a3.5 3.5 0 0 1 7 0v2.8"/>'),
     trade: svg('<path d="M4 8h13.5M14 4.5 17.5 8 14 11.5M20 16H6.5M10 12.5 6.5 16l3.5 3.5"/>'),
     waivers: svg('<path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="9"/>'),
+    team: svg('<path d="M5 20V10M12 20V4M19 20v-7"/><path d="M3 20h18"/>'),
     search: svg('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
     close: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
     info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
@@ -345,12 +346,13 @@
     { key: 'research', href: '/nba/research', label: 'Research', long: 'Research', icon: 'research' },
     { key: 'lineup', href: '/nba/lineup', label: 'Lineup', long: 'Lineup', icon: 'lineup' },
     { key: 'trade', href: '/nba/trade', label: 'Trade', long: 'Trade', icon: 'trade' },
+    { key: 'team', href: '/nba/team', label: 'Team', long: 'Team', icon: 'team' },
     { key: 'waivers', href: '/nba/waivers', label: 'Waivers', long: 'Waivers', icon: 'waivers' },
   ];
   function activeFromPath(pathname) {
     var p = String(pathname || '').replace(/\/+$/, '') || '/';
     if (p === '/nba' || p === '/nba/draft') return 'board';
-    var m = /^\/nba\/(research|lineup|trade|waivers)/.exec(p);
+    var m = /^\/nba\/(research|lineup|trade|team|waivers)/.exec(p);
     return m ? m[1] : null;
   }
   // navHtml({ active }) -> markup for #rr-nav + the mobile tab bar. Uses the

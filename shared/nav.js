@@ -21,6 +21,7 @@
     { href: '/nba', label: 'Draft board', match: /^\/nba(\/draft)?\/?$/ },
     { href: '/nba/lineup', label: 'Lineup', match: /^\/nba\/lineup\/?$/ },
     { href: '/nba/trade', label: 'Trade', match: /^\/nba\/trade\/?$/ },
+    { href: '/nba/team', label: 'Team', match: /^\/nba\/team\/?$/ },
     { href: '/nba/waivers', label: 'Waivers', match: /^\/nba\/waivers\/?$/ },
   ];
 
