@@ -24,12 +24,20 @@ const FRANCHISES = new Set([
 // projection file carries per-stat means + team game dates (league profiles).
 // data.js only prefers a runtime cache copy written in the same format.
 const FORMAT = 2;
+// Log files are versioned separately from the projection file. 3 = log rows
+// also carry fga, fta, tpm, ff after the tf column (usage + flagrant fouls).
+// Rows of a format-2 file are the first 12 columns of a format-3 row, so old
+// rows stay readable; consumers must treat a missing column as "unknown".
+const LOG_FORMAT = 3;
 
 // Per-game stat line stored after [epochDay, week, hs, minutes] in each log row
 // (Sleeper keys; tf = technical fouls). Projections carry STAT_KEYS_PROJ only:
 // Sleeper/Rotowire projections have no pf/tf.
 const STAT_KEYS = ['pts', 'reb', 'ast', 'stl', 'blk', 'to', 'pf', 'tf'];
 const STAT_KEYS_PROJ = ['pts', 'reb', 'ast', 'stl', 'blk', 'to'];
+// Format-3 extension columns, appended after STAT_KEYS (columns 12..15).
+// ff = flagrant fouls (-1 on Sleeper), fga/fta feed the usage proxy.
+const STAT_KEYS_EXT = ['fga', 'fta', 'tpm', 'ff'];
 
 // Legacy Yahoo High Score default per-game score (1/1/2/3/3). Kept for the
 // committed `hs` column; profile scoring lives in nba/model/score.js.
@@ -97,7 +105,7 @@ function weekMeta(rowsByWeek) {
 
 // Per-game stat rows for one season → compact log file.
 // players[pid] = { t: team of latest row, rw: {week: rostered games},
-//                  g: [[epochDay, week, hs, minutes, pts, reb, ast, stl, blk, to, pf, tf]] }
+//                  g: [[epochDay, week, hs, minutes, pts, reb, ast, stl, blk, to, pf, tf, fga, fta, tpm, ff]] }
 function compactLogs(season, rowsByWeek) {
   const { weeks, teamGames } = weekMeta(rowsByWeek);
   const players = {};
@@ -118,16 +126,18 @@ function compactLogs(season, rowsByWeek) {
       const st = r.stats || {};
       if (!(st.sp > 0)) { counts.dnp++; continue; }
       counts.played++;
-      p.g.push([epochDay(r.date), +w, hsScore(st), Math.round(st.sp / 6) / 10, ...STAT_KEYS.map(k => st[k] || 0)]);
+      p.g.push([epochDay(r.date), +w, hsScore(st), Math.round(st.sp / 6) / 10, ...STAT_KEYS.map(k => st[k] || 0), ...STAT_KEYS_EXT.map(k => st[k] || 0)]);
     }
   }
   for (const p of Object.values(players)) p.g.sort((a, b) => a[0] - b[0]);
-  return { season: String(season), format: FORMAT, generatedAt: new Date().toISOString(), weeks, teamGames, dedupe: counts, players };
+  return { season: String(season), format: LOG_FORMAT, generatedAt: new Date().toISOString(), weeks, teamGames, dedupe: counts, players };
 }
 
 // Replace the given weeks of a compact log file with freshly compacted ones.
 function mergeLogs(old, fresh) {
-  if (!old) return fresh;
+  // A log file in another format (e.g. a format-2 runtime cache) has rows without
+  // the extension columns; never splice it with format-3 rows.
+  if (!old || old.format !== fresh.format) return fresh;
   const redone = new Set(Object.keys(fresh.weeks).map(Number));
   const out = { ...fresh, weeks: { ...old.weeks, ...fresh.weeks }, teamGames: {}, players: {} };
   for (const [team, byW] of Object.entries(old.teamGames)) out.teamGames[team] = { ...byW };
@@ -200,6 +210,6 @@ function compactPlayers(raw) {
 }
 
 module.exports = {
-  FRANCHISES, FORMAT, STAT_KEYS, STAT_KEYS_PROJ, URLS, hsScore, epochDay, dayToDate, fetchJson,
+  FRANCHISES, FORMAT, LOG_FORMAT, STAT_KEYS, STAT_KEYS_EXT, STAT_KEYS_PROJ, URLS, hsScore, epochDay, dayToDate, fetchJson,
   weekMeta, compactLogs, mergeLogs, compactProjections, compactPlayers,
 };

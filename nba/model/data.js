@@ -26,9 +26,13 @@ function readJson(file) {
 // Prefer the runtime cache copy when it is newer than the committed snapshot
 // and written in the same compact format (an older deploy's cache lacks the
 // per-game stat lines that league-profile scoring needs).
-function readBest(name) {
-  const snap = readJson(path.join(SNAP_DIR, name));
-  const cache = readJson(path.join(CACHE_DIR, name));
+// minFormat: ignore any copy written in an older format (game logs need the
+// format-3 fga/fta/tpm/ff columns for usage and flagrant fouls).
+function readBest(name, minFormat = 0) {
+  let snap = readJson(path.join(SNAP_DIR, name));
+  let cache = readJson(path.join(CACHE_DIR, name));
+  if (cache && (cache.format || 0) < minFormat) cache = null;
+  if (snap && (snap.format || 0) < minFormat && cache) snap = null;
   if (cache && snap && snap.format !== cache.format) return snap;
   if (cache && (!snap || (cache.generatedAt || '') > (snap.generatedAt || ''))) return cache;
   return snap;
@@ -49,7 +53,7 @@ function load() {
   if (!players || !proj) throw new Error('nba model: snapshot missing (run node scripts/nba-ingest.js)');
   const logs = [];
   for (const season of [PROJ_SEASON - 1, PROJ_SEASON]) {
-    const l = readBest(`logs-${season}.json`);
+    const l = readBest(`logs-${season}.json`, S.LOG_FORMAT);
     if (l) logs.push(l);
   }
   data = { players: players.players, state: players.state, logs, proj, asOf: newest([players, proj, ...logs]) };
@@ -75,7 +79,9 @@ async function refresh() {
       // the last two weeks are re-fetched (stat corrections, games in progress);
       // a cold container without one backfills weeks 1..current once.
       const last = state.season_type === 'post' ? 30 : Math.max(1, state.week);
-      const prev = cur.logs.find(l => l.season === String(PROJ_SEASON));
+      // An older-format log file is dropped so the whole season backfills in format 3.
+      const prevAny = cur.logs.find(l => l.season === String(PROJ_SEASON));
+      const prev = prevAny && prevAny.format === S.LOG_FORMAT ? prevAny : null;
       const first = prev ? Math.max(1, last - 1) : 1;
       const byWeek = {};
       const got = await Promise.all(Array.from({ length: last - first + 1 }, (_, i) =>

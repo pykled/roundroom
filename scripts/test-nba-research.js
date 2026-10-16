@@ -210,7 +210,8 @@ test('scoring: a known Jokić game hand-checked under league 242808 weights', as
   // = 21 + 13*1.2 + 10*1.5 + 3 + 3 - 2 - 3 - 0 = 52.6, triple-double: +3 TD, +5 DD (tdAlsoCountsDD) = 60.6
   const lg = Data.load().logs.find(l => l.season === '2025');
   const row = lg.players['1658'].g.find(g => g[0] === 20384);
-  assert.deepStrictEqual(row.slice(4), [21, 13, 10, 1, 1, 2, 3, 0]);
+  assert.deepStrictEqual(row.slice(4, 12), [21, 13, 10, 1, 1, 2, 3, 0]);
+  assert.deepStrictEqual(row.slice(12), [23, 4, 2, 0]); // format 3: fga, fta, tpm, ff
   assert.strictEqual(PROFILE.scoring.reb, 1.2); assert.strictEqual(PROFILE.scoring.dd, 5);
   const d = (await get('/api/nba/player/1658')).json;
   const g = d.gameLog.games.find(x => x.date === '2025-10-23');
