@@ -6,6 +6,7 @@
 //   node scripts/nba-ingest.js            # use raw cache where present
 //   node scripts/nba-ingest.js --refresh  # re-download everything
 //   node scripts/nba-ingest.js --no-espn  # skip the ESPN cross-check
+//   node scripts/nba-ingest.js --logs-only # regenerate data/nba/logs-*.json only (format 3: fga/fta/tpm/ff)
 //
 // Also writes data/nba/espn-check.json: per-player game counts/dates from ESPN
 // gamelogs (All-Star game excluded) and ESPN team schedules for a few teams,
@@ -19,6 +20,7 @@ const DIR = path.join(__dirname, '..', 'data', 'nba');
 const RAW = path.join(DIR, 'raw');
 const REFRESH = process.argv.includes('--refresh');
 const NO_ESPN = process.argv.includes('--no-espn');
+const LOGS_ONLY = process.argv.includes('--logs-only');
 
 const LOG_SEASONS = [2025, 2026];
 const PROJ_SEASON = 2026;
@@ -106,6 +108,18 @@ async function espnCheck(projByWeek) {
 
 (async () => {
   const t0 = Date.now();
+  if (LOGS_ONLY) {
+    for (const season of LOG_SEASONS) {
+      console.log(`Stats ${season}…`);
+      const byWeek = await pullWeeks('stats', season);
+      if (!Object.keys(byWeek).length) continue;
+      const logs = S.compactLogs(season, byWeek);
+      console.log(`  ${Object.keys(byWeek).length} weeks, dedupe ${JSON.stringify(logs.dedupe)}`);
+      writeOut(`logs-${season}.json`, logs);
+    }
+    console.log(`done in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+    return;
+  }
   console.log('Sleeper state…');
   const state = await S.fetchJson(S.URLS.state());
 
