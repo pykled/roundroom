@@ -1,8 +1,9 @@
 // League-profile scoring. Every score computation takes the profile: no stat
 // weights are hardcoded here (nba/league-profile.js is the source of truth).
 //
-//   gameScore(line, profile)  line = { pts, reb, ast, stl, blk, to, pf, tech }
+//   gameScore(line, profile)  line = { pts, reb, ast, stl, blk, to, pf, tech, ff? }
 //   rowScore(logRow, profile) compact log row (sleeper.js): [day, week, hs, min, pts, reb, ast, stl, blk, to, pf, tf]
+//                             (format 3 appends fga, fta, tpm, ff; ff scores when present, else 0)
 //   playerExtras(rows, asOfDay)  recency-weighted pf/tech per minute + DD/TD game rates
 //   ddCurve(logFiles)            league prior P(DD|means), P(TD|means) from historical games
 //   projectedMean(statMeans, minutes, extras, curve, profile)
@@ -13,9 +14,12 @@
 'use strict';
 
 const CATS = ['pts', 'reb', 'ast', 'stl', 'blk'];
-const LINEAR = ['pts', 'reb', 'ast', 'stl', 'blk', 'to', 'pf', 'tech'];
+const LINEAR = ['pts', 'reb', 'ast', 'stl', 'blk', 'to', 'pf', 'tech', 'ff'];
 // Compact log row column of each stat (sleeper.js STAT_KEYS start at column 4; tf = tech).
 const COL = { pts: 4, reb: 5, ast: 6, stl: 7, blk: 8, to: 9, pf: 10, tech: 11 };
+// Flagrant fouls (Sleeper scores ff −1) sit at column 15 of format-3 rows
+// ([…, tf, fga, fta, tpm, ff], Stream D). Format-2 rows carry no ff → 0.
+const FF_COL = 15;
 const ROW_LEN = 12;
 
 function weightsOf(profile) {
@@ -54,6 +58,7 @@ function gameScore(line, profile) {
 function rowLine(g) {
   const line = {};
   for (const [k, c] of Object.entries(COL)) line[k] = g[c] || 0;
+  line.ff = g.length > FF_COL ? +g[FF_COL] || 0 : 0;
   return line;
 }
 function hasLine(g) { return Array.isArray(g) && g.length >= ROW_LEN; }
@@ -177,6 +182,6 @@ function projectedMean(statMeans, minutes, extras, curve, profile) {
 }
 
 module.exports = {
-  CATS, COL, ROW_LEN, gameScore, rowScore, rowLine, hasLine, doublesOf, bonusFor, expectedBonus,
+  CATS, COL, FF_COL, ROW_LEN, gameScore, rowScore, rowLine, hasLine, doublesOf, bonusFor, expectedBonus,
   ddCurve, priorDD, playerExtras, projectedMean,
 };
