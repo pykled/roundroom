@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-16T00:31:00.747Z",
+  "fetched_at": "2026-10-16T07:22:26.629Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -224,13 +224,6 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Brock Bowers",
-      "position": "TE",
-      "team": "LV",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Bryce Ford-Wheaton",
@@ -730,6 +723,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Elijah Arroyo",
+      "position": "TE",
+      "team": "SEA",
+      "status": "Doubtful",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Elijah Mitchell",
       "position": "RB",
       "team": null,
@@ -1064,6 +1064,13 @@
       "team": "GB",
       "status": "IR",
       "body_part": "Neck"
+    },
+    {
+      "name": "Jaylen Waddle",
+      "position": "WR",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Jaylin Lane",
@@ -2037,6 +2044,13 @@
       "team": "CLE",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Tyler Badie",
+      "position": "RB",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Thumb"
     },
     {
       "name": "Tyler Mabry",
