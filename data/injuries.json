@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-15T21:33:41.053Z",
+  "fetched_at": "2026-10-16T00:31:00.747Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -133,6 +133,13 @@
       "team": "IND",
       "status": "Questionable",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Austin Ekeler",
+      "position": "RB",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Chest"
     },
     {
       "name": "Baker Mayfield",
@@ -443,6 +450,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Dallen Bentley",
+      "position": "TE",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Damien Alford",
       "position": "WR",
       "team": null,
@@ -495,7 +509,7 @@
       "name": "David Montgomery",
       "position": "RB",
       "team": "HOU",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -933,6 +947,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Jacory Croskey-Merritt",
+      "position": "RB",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Jadarian Price",
       "position": "RB",
       "team": "SEA",
@@ -973,6 +994,13 @@
       "team": "TB",
       "status": "IR",
       "body_part": "Knee - PCL"
+    },
+    {
+      "name": "Jalen Milroe",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jalen Nailor",
@@ -1402,13 +1430,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Marquez Valdes-Scantling",
-      "position": "WR",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Ribs"
-    },
-    {
       "name": "Marquise Brown",
       "position": "WR",
       "team": "PHI",
@@ -1486,13 +1507,6 @@
       "body_part": "Ribs"
     },
     {
-      "name": "Mike Williams",
-      "position": "WR",
-      "team": null,
-      "status": "DNR",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Moliki Matavao",
       "position": "TE",
       "team": "NO",
@@ -1505,6 +1519,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Lower Body"
+    },
+    {
+      "name": "Montorie Foster",
+      "position": "WR",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Myles Montgomery",
@@ -1689,6 +1710,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Robert Henry",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Robert Woods",
       "position": "WR",
       "team": null,
@@ -1708,6 +1736,13 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "Sam Ehlinger",
+      "position": "QB",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Saquon Barkley",
@@ -1857,6 +1892,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Terry McLaurin",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Theo Johnson",
       "position": "TE",
       "team": "NYG",
@@ -1953,6 +1995,13 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Treylon Burks",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Treyvhon Saunders",
