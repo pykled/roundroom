@@ -344,6 +344,7 @@ function createNbaRouter({
   router.use(require('./routes/trade')({ auth, getAuth, apiCached, modelPlayers, matcher, clientFor, sendYahooError, env, log, sleeper, yahooEnabled }));
   router.use(require('./routes/waivers')({ auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers, log, env, sleeper, yahooEnabled }));
   router.use(require('./routes/research')({ modelPlayers, log }));
+  router.use(require('./routes/team')({ apiCached, loadModel, log, sleeper, env }));
   return router;
 }
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NBA Fantasy Power Rankings and Team Analysis | Pocket</title>
+<meta name="description" content="Power rankings for your Sleeper fantasy basketball league: every team ranked by its best weekly High Score lineup, with guard, forward and center weaknesses, injury exposure with return dates, and trade targets.">
+<link rel="canonical" href="https://pocketff.com/nba/team">
+<meta name="theme-color" content="#1a110b">
+<meta property="og:site_name" content="Pocket">
+<meta property="og:title" content="NBA Fantasy Power Rankings | Pocket">
+<meta property="og:description" content="Who really has the best fantasy basketball team in your league, where every team is thin, and who to trade with.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pocketff.com/nba/team">
+<meta property="og:image" content="https://pocketff.com/og.png">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sleepercdn.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/nba/pages/nba-ui.css">
+<link rel="stylesheet" href="/nba/pages/team.css">
+<script src="/nba/pages/nba-ui.js"></script>
+<script defer src="/shared/nav.js"></script>
+</head>
+<body class="sport-nba nba-ui">
+<div data-nu-nav>
+  <nav id="rr-nav" aria-label="Main">
+    <a href="/nba" class="rr-logo">Pocket</a>
+    <div class="rr-links">
+      <a href="/nba" class="rr-link">Draft Board</a>
+      <a href="/nba/research" class="rr-link">Research</a>
+      <a href="/nba/lineup" class="rr-link">Lineup</a>
+      <a href="/nba/trade" class="rr-link">Trade</a>
+      <a href="/nba/team" class="rr-link active" aria-current="page">Team</a>
+      <a href="/nba/waivers" class="rr-link">Waivers</a>
+    </div>
+  </nav>
+</div>
+<script>NbaUI.mountNav({ active: 'team' });</script>
+
+<main class="nu-shell nu-stack nu-stack--lg" id="tm-app">
+  <header class="nu-page-head nu-page-head--court">
+    <div class="nu-page-head__text">
+      <div class="nu-eyebrow" id="tm-eyebrow">High Score · Team</div>
+      <h1 class="nu-page-head__title" id="tm-title">Power Rankings</h1>
+      <p class="nu-page-head__sub" id="tm-sub">Every team ranked by its best weekly lineup, with the spots each team is short at and who to trade with.</p>
+    </div>
+    <div class="nu-page-head__actions">
+      <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="tm-how">How It Works</button>
+    </div>
+  </header>
+
+  <div class="tm-mode" id="tm-mode">
+    <button type="button" id="tm-connect" class="nu-btn nu-btn--sleeper nu-btn--sm" hidden><span class="nu-y" aria-hidden="true">S</span>Connect Sleeper</button>
+    <select class="nu-select" id="tm-league" aria-label="Sleeper league" hidden></select>
+    <select class="nu-select" id="tm-viewas" aria-label="View as team" hidden></select>
+    <span class="nu-tag" id="tm-mode-tag" hidden></span>
+    <span class="nu-spacer"></span>
+    <div class="nu-seg" id="tm-horizon" role="group" aria-label="Time frame">
+      <button type="button" data-value="ros" aria-pressed="true">Rest of Season</button>
+      <button type="button" data-value="next4" aria-pressed="false">Next 4</button>
+      <button type="button" data-value="playoffs" aria-pressed="false">Playoffs</button>
+    </div>
+  </div>
+
+  <div id="tm-banner" hidden></div>
+
+  <section class="nu-card nu-card--focus tm-me" id="tm-me" aria-labelledby="tm-me-h" hidden></section>
+
+  <section class="tm-power" id="tm-power" aria-labelledby="tm-power-h" hidden>
+    <div class="tm-section-head">
+      <h2 class="nu-card__title" id="tm-power-h">League Power Rankings</h2>
+      <span class="nu-hint" id="tm-power-note"></span>
+      <span class="nu-spacer"></span>
+      <label class="tm-sort-m"><span class="nu-sr">Sort teams by</span>
+        <select class="nu-select" id="tm-sort-m" aria-label="Sort teams by">
+          <option value="rank">Power Rank</option>
+          <option value="now">This Week</option>
+          <option value="record">Record</option>
+          <option value="pts">Points</option>
+          <option value="G">Guards</option>
+          <option value="F">Forwards</option>
+          <option value="C">Center</option>
+          <option value="inj">Injuries</option>
+          <option value="bench">Bench</option>
+        </select>
+      </label>
+    </div>
+    <div class="nu-table-wrap tm-table-wrap">
+      <table class="nu-table tm-table" id="tm-table">
+        <caption class="nu-sr">Fantasy teams ranked by projected weekly lineup value</caption>
+        <thead id="tm-thead"></thead>
+        <tbody id="tm-tbody"></tbody>
+      </table>
+    </div>
+    <ol class="tm-cards" id="tm-cards" aria-label="Fantasy teams by power rank"></ol>
+  </section>
+
+  <section class="nu-card tm-manual" id="tm-manual" aria-labelledby="tm-manual-h" hidden>
+    <div class="tm-manual__grid">
+      <div class="tm-manual__intro">
+        <div class="nu-eyebrow" id="tm-manual-eyebrow">No League Connected</div>
+        <h2 class="nu-title" id="tm-manual-h" style="margin-top:6px">See How Your Team Stacks Up</h2>
+        <p class="nu-body" style="margin-top:8px" id="tm-manual-body">Connect Sleeper to rank every team in your league. Or add your players here and we grade your roster against a typical 12-team league.</p>
+        <button type="button" class="nu-btn nu-btn--sleeper" id="tm-manual-connect" style="margin-top:var(--nu-4)"><span class="nu-y" aria-hidden="true">S</span>Connect Sleeper</button>
+      </div>
+      <div class="tm-manual__editor">
+        <div class="tm-roster-head"><span class="nu-label" id="tm-roster-n">Your Roster · 0 players</span>
+          <span class="nu-spacer"></span>
+          <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="tm-roster-import" hidden>Use My Trade Roster</button>
+          <button type="button" class="nu-btn nu-btn--ghost nu-btn--sm" id="tm-roster-clear" hidden>Clear</button></div>
+        <label class="nu-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+          <input class="nu-input" type="search" id="tm-roster-q" placeholder="Add a player to your roster" autocomplete="off" aria-label="Add a player to your roster" aria-controls="tm-roster-opts"></label>
+        <div class="tm-picklist" id="tm-roster-opts" role="listbox" aria-label="Search results"></div>
+        <ul class="tm-roster" id="tm-roster-list" aria-label="Your roster"></ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="tm-details" id="tm-details" hidden>
+    <section class="nu-card" id="tm-needs" aria-labelledby="tm-needs-h"></section>
+    <section class="nu-card" id="tm-health" aria-labelledby="tm-health-h"></section>
+    <section class="nu-card" id="tm-trade" aria-labelledby="tm-trade-h"></section>
+  </div>
+
+  <p class="tm-foot nu-hint" id="tm-foot"></p>
+</main>
+
+<!-- team detail -->
+<div class="nu-sheet nu-sheet--wide tm-detail" id="tm-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="tm-detail-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="tm-detail-t">Team</h2>
+    <button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="nu-sheet__body" id="tm-detail-body"></div>
+</div>
+
+<!-- explainer + legend -->
+<div class="nu-sheet tm-explain" id="tm-how-sheet" role="dialog" aria-modal="true" aria-labelledby="tm-how-t" hidden>
+  <div class="nu-sheet__grab" aria-hidden="true"></div>
+  <div class="nu-sheet__head"><h2 class="nu-sheet__title" id="tm-how-t">How the Power Rankings Work</h2>
+    <button type="button" class="nu-btn nu-btn--ghost nu-btn--icon nu-btn--sm" data-nu-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="nu-sheet__body">
+    <ol>
+      <li><b>Strength is your best lineup, week by week.</b> Each starter counts his best game of the week (High Score). For every remaining week we set each team's best lineup in your league's slots, using that week's games and injury news, the same way the trade calculator does.</li>
+      <li><b>Bench and open spots count a little.</b> Bench players get a small share for covering nights off, only when they beat the free-agent pool. An open roster spot is worth a waiver add.</li>
+      <li><b>Playoff weeks count 1.5×</b> in the Rest of Season view. Switch to Next 4 or Playoffs to rank on just those weeks.</li>
+      <li><b>Positions are slot groups.</b> G covers PG, SG and G, F covers SF, PF and F, C is the center slot, and UTIL takes anyone. Each group is graded on depth (healthy players for its slots) and on how its starters score against the league.</li>
+    </ol>
+    <h3>Tiers</h3>
+    <dl class="tm-legend" id="tm-legend"></dl>
+    <h3>Trade Ideas</h3>
+    <p class="nu-body">Partners are teams that are short where you have depth. Targets are one-for-one swaps from those teams that the trade calculator says help you and don't cost them much, so they have a real chance of getting accepted.</p>
+  </div>
+</div>
+
+<script>window.__clerk_publishable_key = 'PUBLISHABLE_KEY_PLACEHOLDER';</script>
+<script src="/nba/pages/team-logic.js"></script>
+<script src="/nba/pages/team.js"></script>
+<script src="/nba/pages/sleeper-chip.js"></script>
+</body>
+</html>
