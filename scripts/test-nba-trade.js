@@ -45,6 +45,7 @@ function P(id, el, v, o = {}) {
     id: String(id), name: o.name || 'P' + id, team: 'T' + (id % 30), pos: [], elig, injury: o.injury || null,
     outForSeason: !!o.ofs, hsByWeek, gamesByWeek, hsValue: vals.reduce((a, b) => a + b, 0) / vals.length,
     mean: 40, sd: 10, games: 3, rank: 0, source: o.source || 'logs', sampleGames: o.sampleGames == null ? 60 : o.sampleGames,
+    ...(o.eta ? { eta: o.eta } : {}),
   };
 }
 // A deterministic 200-player league pool: values 70 → ~20.
@@ -771,7 +772,7 @@ t('§4.6 #5 30-trade table under the Sleeper profile: Fit bounds + Value calibra
 });
 
 t('§4.6 #6 ETA: an OUT player worth 0 until week 12 is valued 0 before it and his why names week 12 (model ramp and ESPN date)', () => {
-  const star = P(902, 'F', w => (w < 12 ? 0 : 60), { name: 'Back Wk12', injury: 'OUT' });
+  const star = P(902, 'F', w => (w < 12 ? 0 : 60), { name: 'Back Wk12', injury: 'OUT', eta: { returnDate: '2027-01-11', returnWeek: 12, status: 'OUT' } });
   const players = [...base, star];
   const partner = ids(B).slice(0, 9).concat(star.id);
   const r = T.evaluateTrade({ players, currentWeek: 1, myRoster: ids(A), partnerRoster: partner, give: [A[4].id], get: [star.id], leagueRostered, today: '2026-10-20' });
