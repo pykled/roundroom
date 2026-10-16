@@ -34,6 +34,7 @@ For each week, the replacement level is 0.9 × the **3rd best** `hsByWeek[w]` am
 - "Typical week" lineup before and after (UI diff): the same DP on ROS-average values. Players who stay in the same slot group keep their row, so only real changes are highlighted.
 
 ## Market value layer: skipped (researched 2026-10-13)
+Superseded by v2 below: the Value axis blends in the preseason consensus (`data/nba/market.json`) with a weight that fades to 0 by week 11. The verdict itself still uses no market data.
 - **FantasyCalc**: `api.fantasycalc.com/values/current?sport=nba` ignores `sport` and returns NFL values. No NBA data.
 - **Sleeper trending** (`/v1/players/nba/trending/add`): works, but it is an add/drop hype count, not a trade value. It belongs to waivers (stream F) if anywhere.
 - **Yahoo ownership %**: the API has a `percent_owned` player subresource, but `nba/yahoo/client.js` doesn't request it and stream E may not edit A's client. It would only ever be a tie-break signal. Left as a follow-up for G.
@@ -99,3 +100,74 @@ Run `node scripts/nba-trade-validate.js --md`. Rosters come from a 12-team, 14-r
 30 trades: Accept 7, Counter 18, Decline 5
 
 Reading: every loss beyond 3 bands is a Decline (#6, 7, 9, 19, 21). Every gain of at least 1 band is an Accept. Near-equal swaps and small losses where the partner gains are Counter. Consolidation deals are scored by lineup impact, not raw hsValue (#13 and #22 Accept despite a raw −12/−51; #14 and #23 Counter). The positional pair #28/#29 shows the same swap is a wash for the C-heavy team and a gain for the team short a C. Verdict: **thresholds kept unchanged** (FAIR_BAND 0.75%, COUNTER_BANDS 3). With 9 starters the band scales with the weekly total on its own, and no case looked mis-labelled once the waiver-filled-hole fix was in. The test suite asserts the Decline/Accept bounds on this run.
+
+## v2: value axis, signals, team fit, horizon (Stream B, 2026-10-15)
+Spec: `docs/nba-trade-team-spec.md` §4. The response is a superset of v1 (`version: 2`); every v1 field keeps its name and meaning, so old clients keep working.
+
+### What the verdict is (unchanged) and what's new
+- **Fit axis = the verdict.** Accept / Counter / Decline on *your* lineup Δ/wk, same bands (0.75% of your weekly lineup, Decline past 3 bands).
+- **Value axis (new, league-neutral).** "Is this a fair swap of players, whoever's team they land on?" `value.assetIn/assetOut` = Σ `signals.value.blended` of the players you get / give (pts/wk, horizon-weighted, with the preseason market prior). `gap = assetIn − assetOut + consolidationAdj`.
+  - **Market prior:** `blended = (1 − w)·ros + w·impliedValue(marketRank)`, `w = 0.30·max(0, 1 − (week − 1)/10)` (0.30 in week 1, 0.15 in week 6, 0 from week 11), half for contested/thin market rows. `impliedValue(rank)` = hsValue of the board's rank-th player (linear between ranks, replacement past the board). Only the Value axis uses it; the board and the Fit axis never do.
+  - **Roster spots (consolidation):** counted by head count (IL moves are a lineup matter, already on the Fit axis). Each extra player takes a spot worth a waiver add (replacement); past the roster limit the side waives its cheapest player and loses his value above replacement; a side that frees spots gets waiver adds. Half of each side's spot effect goes into the gap so swapping perspectives negates it exactly.
+  - **Label:** `|gapPct|` ≤ 10% Even, ≤ 25% Leans, ≤ 40% Favors, else Lopsided (your way / their way). **Deviation from the spec text, on purpose:** `gapPct` is measured on value *above a waiver add*, transformed like the NFL side's `computeVORP` (`max(0, blended − replacement)^1.25`), with the denominator floored at a top-25 player (20/wk above replacement). On raw pts/wk the spec's own calibration fails: Jokić 73 for Jalen Johnson 57 is only about 24% apart in pts/wk (reads "Leans") but 48% above replacement (Lopsided). With the floor, small swaps between role players don't read lopsided. `assetIn/assetOut/gap` stay in raw pts/wk (what the page shows); `surplusIn/surplusOut/surplusGap` carry the transformed numbers.
+- **Per-player signals:** `players[].signals` (spec §3.3 shape), `slotBefore`/`slotAfter` (slot on his current team's typical lineup / on his new team's; `BN` when benched), `fit { group, tierBefore, tierAfter }` (your tier in the group he plays for you), `why[]` built only from signals fields and flags (numbers in pts/wk; ETA as "~wk N (Mon D)"; last season's stats tagged "2025-26").
+- **Team fit:** `fit { before, after, deltaByGroup, notes, leagueRelative }` for you, `themFit` for the partner when their roster is real. Tiers use the NFL matrix (`roster-analysis.js assessTier`); with every league roster known (Sleeper mode) they are league-relative (group starter value vs the league average and the top-30% cutoff, the team page's rule), otherwise depth-only.
+- **Horizon + lean** (`options`): `horizon` ros (default) / next4 / playoffs (playoff weeks only; the route answers 400 `horizon_unavailable` before week 10); `lean` contend (playoff weeks ×1.5, the v1 behaviour) / balanced (×1.0). Default lean: contend through week 4 and in manual mode; after week 4 a connected team is contend when its record is ≥ .550 or it sits inside the playoff line, else balanced (`options.leanSource` says which). The keeper lens (`rebuild`) is not built (spec Q2 default).
+- **`summary`** `{ headline, verdictLine, valueLine, fitLine, notes }` and **`dataAsOf`** `{ board, market, injuryEta, logsSeason, signals }`.
+
+### Shared layer (Stream A) and the interim stand-in
+`trade.js` calls `signals.signalsFor` and `roster-analysis.analyzeRoster` first. While they throw `NOT_IMPLEMENTED`, it uses `nba/model/trade-interim.js`, which computes the same shapes from the board, the committed logs (`research.js logStats`), the projections and `market.json` (`dataAsOf.signals = 'interim'`). Gaps until A lands: no ESPN return dates (an injured player's return week is read off the board's own ramp and labelled "model estimate"), no back-to-backs, no bio/age, no injury exposure. When A merges, nothing in B changes; the interim file becomes dead code and can be deleted. B passes `ctx.board` (the whole board) to `signalsFor` for the market rank→value curve and calls it with the traded players only.
+
+### Fit-axis change: waiver streaming for any slot below waiver level
+v1 streamed a waiver add only into a starting slot nobody could fill. v2 offers the stream for every slot (one waiver add per player who has to sit, each costing the worst bench player), so a slot only playable below waiver level is valued at the waiver add. Found by the monotonicity test (spec §4.6 #3): Dillon's real roster (13 of 14 spots, F slot otherwise filled by LaVine at 24/wk vs a 28.7 waiver add) lost up to 4.4/wk by *receiving* an extra guard who used up the open spot. The typical-lineup table shows such a slot as "Waiver add". The 30-trade table moved by ≤ 0.9/wk.
+
+### Route and page
+- `POST /api/nba/trade/evaluate` with `sleeper_league_id` builds the league's own profile from Sleeper (`profileFromSleeper`: 3 UTIL, 23 Mon–Sun weeks, playoffs 21–23, deadline week 17, 2 IL) and values the board under it (cached 10 min per league); A's `LC.profileFor({ sleeperLeagueId })` takes over automatically once it returns a Sleeper profile. Categories leagues → 400 `league_not_points`; unknown league → 404; bad `options` → 400. Every roster (IL excluded) feeds the league-relative fit tiers.
+- `GET /api/nba/trade/context` teams now carry `record` (for the lean); the raw Sleeper payload never leaves the server.
+- Page: horizon + lean controls, the value meter (driven by the Value axis, captioned "you give X, get Y in season value"), Team Fit card, Player Signals card (value, games, last-5 form, minutes, market vs model, why lines, signal chips), signal chips on each traded player row. League mode loads the board with `/api/nba/players?league_id=` (served as the default board until A wires the Sleeper profile there).
+- **Deep link** (team page "Open in Trade"): `/nba/trade?league_id=&partner=&give=&get=[&horizon=]` (ids comma-separated). Works without connecting (public league data): my team is the roster holding the `give` players; players no longer on those rosters are dropped with a banner; the URL is cleaned after it's applied.
+
+### Tests (spec §4.6) — `node scripts/test-nba-trade.js`
+1 symmetry (value gap negates exactly, 1-for-1 and n-for-m); 2 reversal (exact for equal counts; direction flips for n-for-m, whose waived player differs by side); 3 monotonic (60 random real-roster trades); 4 ±2% on each traded player of the 30 trades moves you.perWeek < 1 band, and a verdict may change only for a trade already within that move of an edge (3–4 of the 30 sit that close on any given day; they are listed in the output); 5 the table below (Fit bounds + Value calibration); 6 ETA why (model ramp and the ESPN shape from `signals.example.json`); 7 market decay; 8 byte-identical output, no NaN; 9 route (v1 body, Sleeper profile 23 weeks, categories 400, horizon 400, options 400, 404); 10 2-for-2 with both rosters, signals and league tiers ≈ 36–45 ms warm (budget 60). Browser: `python3 scripts/nba-trade-v2-screens.py` (spawns `scripts/nba-trade-mock.js`: real NBA router + offline model, Sleeper faked from the league fixtures) → `docs/nba-trade-v2/*.png` at 375 and 1280.
+
+### 30-trade table under the Sleeper profile (`node scripts/nba-trade-validate.js --md`, run 2026-10-15 PT)
+Rosters: 12-team, 13-round snake in market-consensus order on the real board under Dillon's league profile; every roster known. The board depends on the date (recency weights, injury ramps), so numbers drift a little day to day; the assertions are on the rules, not the digits.
+
+Profile: HALIMSANITY 26-27 (sleeper), 10 starters, 23 weeks, 12 teams × 13 rounds.
+
+| # | trade | give | get | raw hsValue Δ | my Δ/wk | their Δ/wk | band | verdict | partner | value out → in | value gap | value label |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 1-for-1 like-for-like (2nd best) | Devin Booker (44.2) | Deni Avdija (46.4) | 2.2 | 2.1 | -2.1 | 3.1 | Counter | likely | 45 → 45.2 | 1% | Even |
+| 2 | 1-for-1 like-for-like (5th best) | Austin Reaves (38.9) | Jaren Jackson (38.5) | -0.4 | -0.4 | 0.2 | 3 | Counter | likely | 41.4 → 39.1 | -12% | Leans their way |
+| 3 | 1-for-1 like-for-like (8th best) | Jusuf Nurkić (35.5) | Neemias Queta (35.5) | 0 | -1 | 0.9 | 3.1 | Counter | likely | 35 → 35.1 | 0% | Even |
+| 4 | 1-for-1 small upgrade (my 6th for their 5th) | Keyonte George (38.9) | Kon Knueppel (38.6) | -0.3 | -0.3 | -1.3 | 3.2 | Counter | likely | 39.3 → 38.7 | -3% | Even |
+| 5 | 1-for-1 small downgrade (my 3rd for their 4th) | Jalen Brunson (45.8) | Alex Sarr (43.9) | -1.9 | -1.9 | 1.9 | 3.2 | Counter | likely | 45.8 → 43.4 | -14% | Leans their way |
+| 6 | star for star (best for best) | Nikola Jokić (73) | Jalen Johnson (57) | -16 | -16.1 | 18.1 | 3.1 | Decline | likely | 73.1 → 55.4 | -48% | Lopsided for them |
+| 7 | my best for their 3rd | Victor Wembanyama (71.4) | Chet Holmgren (46.3) | -25.1 | -25.1 | 25.1 | 3.3 | Decline | likely | 71.4 → 46.2 | -69% | Lopsided for them |
+| 8 | my 3rd for their best | Jalen Duren (49) | Nikola Jokić (73) | 24 | 24.2 | -24.2 | 3 | Accept | unlikely | 47.7 → 73.1 | 67% | Lopsided for you |
+| 9 | lopsided: my best for their 9th | Luka Dončić (64.2) | Andrew Wiggins (34.9) | -29.3 | -29.4 | 28.7 | 3.2 | Decline | likely | 64.2 → 35 | -91% | Lopsided for them |
+| 10 | lopsided: my 12th for their 2nd | Jaime Jaquez (26.6) | Derik Queen (42.9) | 16.3 | 10.9 | -12.9 | 2.9 | Accept | unlikely | 27.4 → 40.3 | 45% | Lopsided for you |
+| 11 | bench for bench (13th for 13th) | Zach LaVine (24.1) | Rui Hachimura (24.2) | 0.1 | 0.5 | -0.8 | 3 | Counter | likely | 26.9 → 25.2 | 0% | Even |
+| 12 | bench for bench (12th for 13th) | Yves Missi (28.1) | Dillon Brooks (27.1) | -1 | 0 | 0 | 3.1 | Counter | likely | 28.3 → 27.6 | 0% | Even |
+| 13 | 2-for-1 consolidation: my 2nd+3rd for their best | Derik Queen (42.9) + Trey Murphy (41.5) | Nikola Jokić (73) | -11.4 | 18.8 | -19.5 | 3 | Accept | unlikely | 82.5 → 73.1 | 62% | Lopsided for you |
+| 14 | 2-for-1 consolidation: my 4th+5th for their 2nd | Matas Buzelis (41.8) + Jaren Jackson (38.5) | Alperen Şengün (53.5) | -26.8 | 3.1 | -3.8 | 3 | Accept | maybe | 80.5 → 51.6 | 20% | Leans your way |
+| 15 | 2-for-1 consolidation: my 6th+7th for their 3rd | Ryan Rollins (40.6) + Ayo Dosunmu (37.8) | LeBron James (44.4) | -34 | -2.1 | 1.4 | 3.1 | Counter | likely | 76.6 → 43.9 | -5% | Even |
+| 16 | 1-for-2 depth: my best for their 2nd+3rd | Nikola Jokić (73) | Jamal Murray (49) + Jalen Duren (49) | 25 | -5.8 | 5.3 | 3.1 | Counter | likely | 73.1 → 97 | -30% | Favors them |
+| 17 | 1-for-2 depth: my 3rd for their 5th+6th | Jalen Brunson (45.8) | Kon Knueppel (38.6) + Nickeil Alexander-Walker (37.9) | 30.7 | -0.5 | -0.2 | 3.2 | Counter | likely | 45.8 → 77 | -5% | Even |
+| 18 | 1-for-2 depth: my 6th for their 9th+10th | Trae Young (40) | Dylan Harper (34.1) + Toumani Camara (31.4) | 25.5 | -5.3 | 5.4 | 3 | Counter | likely | 42.7 → 66.2 | -36% | Favors them |
+| 19 | 2-for-2 swap (2nd+6th for 3rd+5th) | Bam Adebayo (53) + Julius Randle (42.3) | James Harden (46.5) + Jaren Jackson (38.5) | -10.3 | -10.4 | 10.4 | 3.3 | Decline | likely | 92.2 → 85 | -27% | Favors them |
+| 20 | 2-for-2 swap (4th+9th for 4th+8th) | Rudy Gobert (42) + Andrew Wiggins (34.9) | Paolo Banchero (48.7) + Myles Turner (35.3) | 7.1 | 6.6 | -7.2 | 3.1 | Accept | maybe | 75.6 → 82.3 | 37% | Favors you |
+| 21 | 2-for-2 lopsided (1st+2nd for 7th+8th) | Tyrese Maxey (50.6) + Jamal Murray (49) | Nic Claxton (38.6) + Neemias Queta (35.5) | -25.5 | -25.6 | 25.6 | 3 | Decline | likely | 100.8 → 71.7 | -78% | Lopsided for them |
+| 22 | 3-for-1 (2nd,3rd,4th for their best) | Tyrese Haliburton (41.2) + Derrick White (39.8) + Caleb Wilson (38.9) | Victor Wembanyama (71.4) | -48.5 | 11.9 | -16.8 | 2.9 | Accept | unlikely | 123.9 → 71.4 | 39% | Favors you |
+| 23 | 3-for-2 (5th,6th,7th for their 3rd+4th) | Walker Kessler (39.8) + Brandon Miller (39.2) + Nic Claxton (38.6) | Chet Holmgren (46.3) + Cameron Boozer (41.5) | -29.8 | 0.3 | -2.2 | 3.1 | Counter | likely | 116.9 → 87.6 | 12% | Leans your way |
+| 24 | give 1 for nothing (my 10th) | Ja Morant (30) | — | -30 | -0.8 | 0.6 | 3.2 | Counter | likely | 30.6 → 0 | -2% | Even |
+| 25 | receive 1 for nothing (their 11th) | — | Wendell Carter (29.8) | 29.8 | 0.2 | -0.2 | 3 | Counter | likely | 0 → 29.9 | 0% | Even |
+| 26 | near-equal 1-for-1 (7th for 7th) | Brandin Podziemski (37.3) | Ausar Thompson (37.8) | 0.5 | 0.5 | -0.5 | 3 | Counter | likely | 36.7 → 37.9 | 6% | Even |
+| 27 | near-equal 1-for-1 (10th for 10th) | Toumani Camara (31.4) | Kyrie Irving (29) | -2.4 | -0.1 | 0.4 | 3.1 | Counter | likely | 31.6 → 31.3 | -1% | Even |
+| 28 | positional: my surplus C for their G | Jalen Duren (49) | Donovan Mitchell (47) | -2 | -1.9 | 4 | 3 | Counter | likely | 47.7 → 48.2 | 3% | Even |
+| 29 | positional: their surplus C for my G | Donovan Mitchell (47) | Jalen Duren (49) | 2 | 4 | -1.9 | 3.1 | Accept | likely | 48.2 → 47.7 | -3% | Even |
+| 30 | injured: my Out Jusuf Nurkić for a healthy twin | Jusuf Nurkić (35.5) | CJ McCollum (35.7) | 0.2 | -0.9 | 0.7 | 3.1 | Counter | likely | 35 → 34.9 | 0% | Even |
+
+30 trades (10 starters, 23 weeks): Accept 7, Counter 18, Decline 5 · Value: even 14, leans 4, favors 5, lopsided 7
+
+Reading: every loss beyond 3 bands is a Decline and every gain of at least a band is an Accept (unchanged thresholds). The Value label agrees with the Fit verdict on the clear cases (#6, #7, #9, #21 Lopsided against you and Decline; #8, #13 Lopsided for you and Accept) and reads Even/Leans on the like-for-like swaps (#1–#5, #11, #26, #27). Where they disagree it is informative: #16/#18 (one good player for two lesser ones) are Favors them on value but only a Counter on your lineup, because your roster can't use the depth; #17 is Even on both.

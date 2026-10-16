@@ -1,0 +1,75 @@
+/* Pocket NBA — trade calculator v2 widgets (NBA trade spec §4): horizon + lean
+   lens, value meter caption, Team Fit panel, Player Signals card, signal chips.
+   The v1 page styles stay inline in trade.html; everything else is nba-ui. */
+
+/* page-head + mode-bar buttons: full 44px taps */
+.nba-ui #nt-how, .nba-ui #nt-roster-btn { min-height: 44px; }
+
+/* lens: horizon + lean segmented controls (44px taps) */
+.nt-lens { display: flex; align-items: flex-end; gap: var(--nu-3) var(--nu-5); flex-wrap: wrap; margin-top: calc(-1 * var(--nu-2)); min-width: 0; }
+.nt-lens__group { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; }
+.nba-ui .nt-lens .nu-seg > button { min-height: 44px; padding: 0 12px; }
+.nba-ui .nt-lens .nu-seg > button:disabled { opacity: 0.4; cursor: not-allowed; }
+.nt-lens__note { font-size: var(--nu-fs-xs); color: var(--nu-text-3); line-height: 1.4; padding-bottom: 12px; min-width: 0; }
+@media (max-width: 480px) {
+  .nt-lens { gap: var(--nu-3); }
+  .nt-lens__group, .nba-ui .nt-lens .nu-seg { width: 100%; }
+  .nba-ui .nt-lens .nu-seg { display: flex; }
+  .nba-ui .nt-lens .nu-seg > button { flex: 1; padding: 0 6px; font-size: var(--nu-fs-xs); }
+  .nt-lens__note { padding-bottom: 0; }
+}
+
+/* verdict card: value meter caption + plain-English summary */
+.nt-fair__line { font-size: var(--nu-fs-xs); color: var(--nu-text-3); margin-top: 6px; line-height: 1.45; }
+.nt-summary { list-style: none; margin: var(--nu-4) 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.nt-summary li { font-size: var(--nu-fs-sm); line-height: 1.45; color: var(--nu-text-2); }
+.nt-summary b { color: var(--nu-text); font-weight: 650; }
+
+/* tier tags */
+.nba-ui .nt-tier { display: inline-flex; align-items: center; min-height: 24px; padding: 0 9px; border-radius: var(--nu-r-pill); font-size: var(--nu-fs-xs); font-weight: 650; white-space: nowrap;
+  color: var(--nu-text-2); background: rgba(255,255,255,0.06); border: 1px solid transparent; }
+.nba-ui .nt-tier[data-tone="good"] { color: var(--nu-good); background: var(--nu-good-soft); }
+.nba-ui .nt-tier[data-tone="warn"] { color: var(--nu-warn); background: var(--nu-warn-soft); }
+.nba-ui .nt-tier[data-tone="bad"] { color: var(--nu-bad); background: var(--nu-bad-soft); }
+
+/* Team Fit panel */
+.nt-fit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.nt-fit li { display: grid; grid-template-columns: minmax(72px, auto) minmax(0, 1fr) auto; align-items: center; gap: var(--nu-3); min-height: 48px; padding: 6px 0; border-bottom: 1px solid var(--nu-line); }
+.nt-fit li:last-child { border-bottom: 0; }
+.nt-fit__g { display: flex; flex-direction: column; min-width: 0; }
+.nt-fit__g b { font-size: var(--nu-fs-sm); font-weight: 700; }
+.nt-fit__g small { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); color: var(--nu-text-3); white-space: nowrap; }
+.nt-fit__t { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.nt-fit__arrow { color: var(--nu-text-3); font-size: var(--nu-fs-xs); }
+.nt-fit__d { font-family: var(--nu-mono); font-size: var(--nu-fs-sm); font-variant-numeric: tabular-nums; color: var(--nu-text-2); text-align: right; white-space: nowrap; }
+.nt-fit li.is-changed { background: linear-gradient(90deg, var(--nu-accent-soft), transparent 70%); margin: 0 calc(-1 * var(--nu-4)); padding-left: var(--nu-4); padding-right: var(--nu-4); }
+.nt-fit-notes { list-style: none; margin: var(--nu-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.nt-fit-notes li { font-size: var(--nu-fs-sm); color: var(--nu-text-2); line-height: 1.45; padding-left: 14px; position: relative; }
+.nt-fit-notes li::before { content: ''; position: absolute; left: 2px; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--nba-400); }
+.nt-fit-them { margin-top: var(--nu-4); padding-top: var(--nu-3); border-top: 1px dashed var(--nu-line-2); font-size: var(--nu-fs-xs); color: var(--nu-text-3); line-height: 1.5; }
+.nt-fit-them b { color: var(--nu-text-2); font-weight: 650; }
+
+/* Player Signals card */
+.nt-sig { list-style: none; margin: var(--nu-3) 0 0; padding: 0; }
+.nt-sig > li { padding: var(--nu-3) var(--nu-4) var(--nu-4); border-top: 1px solid var(--nu-line); min-width: 0; }
+.nt-sig__head { display: flex; align-items: center; gap: var(--nu-3); min-width: 0; }
+.nt-sig__head .nu-player { flex: 1; min-width: 0; }
+.nt-sig__side { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: var(--nu-r-pill); flex: none; }
+.nt-sig__side[data-side="give"] { color: var(--nu-bad); background: var(--nu-bad-soft); }
+.nt-sig__side[data-side="get"] { color: var(--nu-good); background: var(--nu-good-soft); }
+.nt-sig__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; margin: var(--nu-3) 0 0; }
+.nt-sig__stat { background: var(--nu-s2); border: 1px solid var(--nu-line); border-radius: var(--nu-r-sm); padding: 7px 9px; min-width: 0; }
+.nt-sig__stat dt { font-family: var(--nu-mono); font-size: var(--nu-fs-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--nu-text-3); }
+.nt-sig__stat dd { margin: 2px 0 0; font-family: var(--nu-mono); font-size: var(--nu-fs-sm); font-variant-numeric: tabular-nums; color: var(--nu-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-sig__why { list-style: none; margin: var(--nu-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.nt-sig__why li { font-size: var(--nu-fs-sm); line-height: 1.45; color: var(--nu-text-2); padding-left: 14px; position: relative; overflow-wrap: anywhere; }
+.nt-sig__why li::before { content: '·'; position: absolute; left: 3px; top: 0; color: var(--nu-text-3); font-weight: 700; }
+.nt-sig__why li:first-child { color: var(--nu-text); font-weight: 600; }
+
+/* signal chips (player rows + signals card) */
+.nt-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; min-width: 0; }
+.nba-ui .nt-chip { display: inline-flex; align-items: center; min-height: 20px; padding: 0 7px; border-radius: var(--nu-r-pill); font-size: var(--nu-fs-micro); font-weight: 650; letter-spacing: 0.01em; white-space: nowrap;
+  color: var(--nu-text-2); background: rgba(255,255,255,0.06); }
+.nba-ui .nt-chip[data-tone="good"] { color: var(--nu-good); background: var(--nu-good-soft); }
+.nba-ui .nt-chip[data-tone="warn"] { color: var(--nu-warn); background: var(--nu-warn-soft); }
+.nba-ui .nt-chip[data-tone="bad"] { color: var(--nu-bad); background: var(--nu-bad-soft); }

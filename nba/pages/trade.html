@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NBA High Score Trade Calculator | Pocket</title>
-<meta name="description" content="Trade calculator for High Score fantasy basketball on Sleeper. Values a trade by what it does to your best starting lineup (your league's slots and scoring) for the rest of the season, and checks whether the other team would say yes.">
+<meta name="description" content="Trade calculator for High Score fantasy basketball on Sleeper. Values a trade by what it does to your best starting lineup (your league's slots and scoring), shows a league-neutral value check, team fit, injury return weeks, form and schedule for every player, and checks whether the other team would say yes.">
 <link rel="canonical" href="https://pocketff.com/nba/trade">
 <meta name="theme-color" content="#1a110b">
 <meta property="og:site_name" content="Pocket">
@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/shared/styles.css">
 <link rel="stylesheet" href="/nba/pages/nba-ui.css">
+<link rel="stylesheet" href="/nba/pages/trade.css">
 <script src="/nba/pages/nba-ui.js"></script>
 <script defer src="/shared/nav.js"></script>
 <style>
@@ -251,6 +252,25 @@
     <button type="button" class="nu-btn nu-btn--sm" id="nt-roster-btn">Your Roster <span class="nu-count" id="nt-roster-count">0</span></button>
   </div>
 
+  <div class="nt-lens" id="nt-lens">
+    <div class="nt-lens__group">
+      <span class="nu-label" id="nt-horizon-l">Horizon</span>
+      <div class="nu-seg" role="group" aria-labelledby="nt-horizon-l" id="nt-horizon">
+        <button type="button" data-horizon="ros" aria-pressed="true">Rest of Season</button>
+        <button type="button" data-horizon="next4" aria-pressed="false">Next 4 Weeks</button>
+        <button type="button" data-horizon="playoffs" aria-pressed="false">Playoffs</button>
+      </div>
+    </div>
+    <div class="nt-lens__group">
+      <span class="nu-label" id="nt-lean-l">Your Team</span>
+      <div class="nu-seg" role="group" aria-labelledby="nt-lean-l" id="nt-lean">
+        <button type="button" data-lean="contend" aria-pressed="true">Contend</button>
+        <button type="button" data-lean="balanced" aria-pressed="false">Balanced</button>
+      </div>
+    </div>
+    <span class="nt-lens__note" id="nt-lens-note"></span>
+  </div>
+
   <div id="nt-banner" hidden></div>
 
   <div class="nt-layout">
@@ -290,6 +310,24 @@
       </div>
 
     <div class="nt-detail">
+      <section class="nu-card" id="nt-fit-card" aria-labelledby="nt-fit-h" hidden>
+        <div class="nu-card__head">
+          <h2 class="nu-card__title" id="nt-fit-h">Team Fit, Before → After</h2>
+          <span class="nu-tag" id="nt-fit-scope"></span>
+        </div>
+        <ul class="nt-fit" id="nt-fit"></ul>
+        <ul class="nt-fit-notes" id="nt-fit-notes"></ul>
+        <div class="nt-fit-them" id="nt-fit-them" hidden></div>
+      </section>
+
+      <section class="nu-card nu-card--flush" id="nt-signals-card" aria-labelledby="nt-sig-h" hidden>
+        <div class="nu-card__head" style="padding: var(--nu-4) var(--nu-4) 0">
+          <h2 class="nu-card__title" id="nt-sig-h">Player Signals</h2>
+          <span class="nu-hint" id="nt-sig-asof"></span>
+        </div>
+        <ul class="nt-sig" id="nt-sig"></ul>
+      </section>
+
       <section class="nu-card nu-card--flush" id="nt-lineup-card" aria-labelledby="nt-lu-h" hidden>
         <div class="nu-card__head" style="padding: var(--nu-4) var(--nu-4) 0">
           <h2 class="nu-card__title" id="nt-lu-h">Your Lineup, Before → After</h2>
@@ -371,7 +409,8 @@
       <li><b>We replay the rest of the season.</b> For every remaining week we set your best lineup before and after the trade, using that week's games and injury news, and add up the difference.</li>
       <li><b>Bench players count a little.</b> They cover nights off and injuries, so they get a small share of credit, and only when they beat the free-agent pool.</li>
       <li><b>Roster spots matter.</b> Get two for one and someone has to go: we drop the player you'd miss least. Give two for one and the open spot gets a decent free agent. Both are already in the numbers.</li>
-      <li><b>Playoffs count extra.</b> The playoff weeks weigh 1.5× because that's where titles are won.</li>
+      <li><b>Playoffs count extra when you contend.</b> With Contend on, the playoff weeks weigh 1.5× because that's where titles are won. Balanced counts every week the same. Connected teams start on Contend through week 4, then on whatever their record says.</li>
+      <li><b>Pick the horizon.</b> Rest of Season is the default. Next 4 Weeks is for a short-term push. Playoffs (from week 10) counts only the playoff weeks.</li>
       <li><b>We check the other side too.</b> Their team is scored the same way, so you can see whether they'd say yes. Without their roster, a typical team stands in.</li>
     </ol>
     <h3>Reading the Verdict</h3>
@@ -380,6 +419,18 @@
       <dt style="color:var(--nu-warn)">Counter</dt><dd>Close to even, or a small loss they'd win big on. Ask for a small add.</dd>
       <dt class="nu-bad">Decline</dt><dd>You lose clearly, whatever they gain.</dd>
     </dl>
+    <h3>Value vs Fit</h3>
+    <p class="nu-body">The verdict is about <b>your</b> lineup. The value meter is a second, league-neutral check: is this a fair swap of players, whoever's team they land on? It compares each player's season value above a free-agent pickup, so stars count for more than two role players adding up to the same points. Early in the season it also blends in the preseason market (30% in week 1, fading to nothing by week 11) because there's little new data yet.</p>
+    <dl>
+      <dt>Even</dt><dd>Within 10%.</dd>
+      <dt>Leans</dt><dd>10% to 25% one way.</dd>
+      <dt>Favors</dt><dd>25% to 40%.</dd>
+      <dt>Lopsided</dt><dd>More than 40%.</dd>
+    </dl>
+    <h3>Team Fit</h3>
+    <p class="nu-body">Your guards, forwards and center are graded Critical, Upgrade, Thin, Solid, Deep or Loaded by depth (healthy players who can play there, against the slots) and, in a connected league, by how your starters there compare with every other team.</p>
+    <h3>Player Signals</h3>
+    <p class="nu-body">Each player shows the data behind his number: games left and 4-game weeks, injury return week, last-5 form and minutes against his season, and where the market ranks him against our model. Until this season's games are logged, form and minutes come from last season and say so.</p>
     <h3>The Range</h3>
     <p class="nu-body">Projections are guesses. The shaded band shows where the real result probably lands. A wide band crossing zero means the deal could go either way.</p>
   </div>
