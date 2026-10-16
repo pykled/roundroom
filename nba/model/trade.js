@@ -1,7 +1,8 @@
-// Pocket NBA — High Score trade evaluator (stream E; league-profile-driven, L1).
+// Pocket NBA — High Score trade evaluator (stream E; league-profile-driven, L1; v2 = NBA trade spec §4).
 // Method: docs/nba-trade.md.
 //
-//   evaluateTrade({ players, currentWeek, myRoster, partnerRoster?, give, get, settings?, leagueRostered?, profile?, today? })
+//   evaluateTrade({ players, currentWeek, myRoster, partnerRoster?, give, get, settings?, leagueRostered?, profile?, today?,
+//                   options?, context?, leagueRosters? })
 //     players        board Player[] from getPlayers() (needs hsByWeek / gamesByWeek)
 //     myRoster       my player ids (sleeper) before the trade; give ⊆ myRoster
 //     partnerRoster  partner ids before the trade (get ⊆ it); omitted → a mid-draft roster is estimated
@@ -11,14 +12,23 @@
 //     settings       overrides { teams, rosterSize (active spots), slots, endWeek, playoffStartWeek, playoffWeight }
 //                    slots: a profile slot map {PG,…,UTIL,BN,IL} or legacy {G,F,UTIL}
 //     today          'YYYY-MM-DD' (trade deadline countdown); default = now
-//   → { verdict, you, them, weeks, lineup, players, roster, why, replacement, meta }
+//     options        v2 { horizon: 'ros'|'next4'|'playoffs', lean: 'contend'|'balanced' } (default ros / contend)
+//     context        v2 signal inputs { logs, proj, market, eta, bio, asOf: { board, market, injuryEta } }
+//     leagueRosters  v2 every team's ids ([[id]]): league-relative tiers on the fit panel; omitted → depth-only tiers
+//   → { verdict, you, them, weeks, lineup, players, roster, why, replacement, meta,            (v1, unchanged)
+//       version: 2, options, value, fit, themFit, summary, dataAsOf }                        (v2, §4.1)
 //
 // A player's worth is never his raw hsValue: it is the change in the team's
 // best lineup over the profile's starting slots (242808: PG,SG,G,SF,PF,F,C,
 // UTIL,UTIL; plus a discounted bench share) summed over the remaining weeks,
-// with open roster spots filled at waiver replacement level.
+// with open roster spots filled at waiver replacement level. That is the Fit
+// axis (verdict). v2 adds a league-neutral Value axis (asset value in vs out,
+// market-aware) and per-player signals; neither changes the verdict.
 'use strict';
 const R = require('./roster-slots');
+const SIG = require('./signals');
+const RA = require('./roster-analysis');
+const Interim = require('./trade-interim');
 
 const DEFAULT_SLOTS = { G: 2, F: 3, UTIL: 1 }; // legacy shape accepted in settings.slots
 // Bench share of value above replacement, by bench rank. High Score curve
@@ -31,6 +41,16 @@ const PLAYOFF_WEIGHT = 1.5;   // only when the league gives a playoff start week
 const FAIR_BAND = 0.0075;     // |Δ| under this share of the weekly lineup = a wash
 const MAX_DROP_CANDIDATES = 10;
 const COUNTER_BANDS = 3;     // a loss beyond 3 fair bands is a Decline, however much they gain
+// v2 (spec §4.1). Horizon = which weeks count; lean = how much the playoff weeks weigh.
+const HORIZONS = ['ros', 'next4', 'playoffs'];
+const LEANS = ['contend', 'balanced'];
+const PLAYOFFS_HORIZON_FROM_WEEK = 10; // the playoffs-only horizon is meaningless before week 10
+// Value axis: asset value above a free waiver add, NFL-style transform (shared/scoring.js
+// computeVORP: VORP^1.25). Raw pts/wk compress star value (73 vs 55 reads 25% apart; above
+// replacement it is 48 vs 30), so the fairness label reads the transformed values.
+const VALUE_POWER = 1.25;
+const VALUE_FLOOR_ABOVE = 20;  // label denominator never below a top-25 player (~20 pts/wk above a waiver add)
+const VALUE_BANDS = [[0.10, 'even'], [0.25, 'leans'], [0.40, 'favors'], [Infinity, 'lopsided']];
 
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const r1 = x => Math.round(num(x) * 10) / 10;
@@ -121,7 +141,9 @@ function normSettings(s = {}, profileIn) {
 
 // Remaining weeks with their weights. Default weight 1.0; playoff weeks get
 // playoffWeight only when the league told us where the playoffs start.
-function scheduleWeeks(players, currentWeek, st) {
+// horizon (v2): 'ros' every remaining week, 'next4' the next four, 'playoffs'
+// the playoff weeks only (falls back to 'ros' when the league has none).
+function scheduleWeeks(players, currentWeek, st, horizon = 'ros') {
   const all = new Set();
   for (const p of players.slice(0, 50)) for (const w of Object.keys(p.hsByWeek || {})) all.add(Number(w));
   let weeks = [...all].filter(Number.isFinite).sort((a, b) => a - b);
@@ -129,12 +151,26 @@ function scheduleWeeks(players, currentWeek, st) {
   const inSeason = weeks.filter(w => st.endWeek == null || w <= st.endWeek);
   const rest = inSeason.filter(w => w >= cw);
   // Past the last week: score the final in-season week only and say so (meta.pastEnd).
-  const out = (rest.length ? rest : (inSeason.length ? inSeason : weeks).slice(-1)).map(w => {
+  let out = (rest.length ? rest : (inSeason.length ? inSeason : weeks).slice(-1)).map(w => {
     const playoff = st.playoffStartWeek != null && w >= st.playoffStartWeek;
     return { week: w, weight: playoff ? st.playoffWeight : 1, playoff };
   });
-  out.pastEnd = !rest.length && out.length > 0;
+  const pastEnd = !rest.length && out.length > 0;
+  let applied = 'ros';
+  if (horizon === 'next4' && out.length) { out = out.slice(0, 4); applied = 'next4'; }
+  else if (horizon === 'playoffs' && out.some(w => w.playoff)) { out = out.filter(w => w.playoff); applied = 'playoffs'; }
+  out.pastEnd = pastEnd;
+  out.horizon = applied;
   return out;
+}
+
+// v2 request options → { horizon, lean, leanSource }. Unknown values fall back to the defaults.
+function normOptions(o) {
+  const x = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const horizon = HORIZONS.includes(x.horizon) ? x.horizon : 'ros';
+  const lean = LEANS.includes(x.lean) ? x.lean : 'contend';
+  const leanSource = ['user', 'record', 'default'].includes(x.leanSource) ? x.leanSource : LEANS.includes(x.lean) ? 'user' : 'default';
+  return { horizon, lean, leanSource };
 }
 
 // Waiver replacement level per week: Nth best outside league rosters when they
@@ -160,14 +196,17 @@ function uncertainty(p) {
   return Math.min(0.35, u);
 }
 
-function createEvaluator({ players, currentWeek, settings, leagueRostered, profile }) {
+function createEvaluator({ players, currentWeek, settings, leagueRostered, profile, options }) {
   const st = normSettings(settings, profile);
+  const opts = normOptions(options);
+  // Lean: contend keeps the playoff weighting; balanced counts every week the same.
+  if (opts.lean === 'balanced') st.playoffWeight = 1;
   const ALL = new Set(st.slotList);
   const eligOf = p => R.eligFor(p, st.profile);
   // Roster cap: active spots + IL slots actually holding IL-eligible (Out) players.
   const capFor = roster => st.rosterSize + Math.min(st.il, roster.filter(R.ilEligible).length);
   const index = new Map(players.map(p => [String(p.id), p]));
-  const weeks = scheduleWeeks(players, currentWeek, st);
+  const weeks = scheduleWeeks(players, currentWeek, st, opts.horizon);
   const rostered = leagueRostered ? new Set(leagueRostered.map(String)) : null;
   const repl = replacementLevel(players, weeks, st, rostered);
   const wSum = weeks.reduce((s, w) => s + w.weight, 0) || 1;
@@ -176,21 +215,29 @@ function createEvaluator({ players, currentWeek, settings, leagueRostered, profi
 
   // One week's team value: best lineup (open spots filled at replacement) plus
   // a discounted share of bench depth above replacement.
+  // A starting slot nobody can fill (no C, say) or can only fill below waiver
+  // level isn't worth that: you'd drop your worst bench player for a waiver add
+  // who plays it. v2: the stream is offered for every slot (one waiver add per
+  // player who has to sit), not only unfillable ones, so receiving an extra
+  // player can never leave a slot worse than the waiver add it displaced
+  // (spec §4.6 #3; Dillon's 13/14 roster broke it by up to 4.4/wk).
   function weekValue(roster, cap, week, scale, keepSlots) {
     const rv = repl.perWeek[week] || 0;
     const items = roster.map(p => ({ id: p.id, elig: eligOf(p), v: val(p, week, scale) }));
     const open = Math.max(0, cap - roster.length);
     for (let i = 0; i < Math.min(open, st.slotList.length); i++) items.push({ id: `~repl${i}`, elig: ALL, v: rv });
+    const spare = Math.min(st.slotList.length, Math.max(0, roster.length - st.slotList.length));
+    for (let i = 0; i < spare; i++) items.push({ id: `~swap${i}`, elig: ALL, v: rv });
     items.sort((a, b) => b.v - a.v || (a.id < b.id ? -1 : 1));
     const lu = lineupOf(items, st.slotList);
     const bench = items.filter(it => !lu.slotOf.has(it.id) && !it.id.startsWith('~'));
-    // A starting slot nobody on a full roster can fill (no C, say) isn't worth
-    // 0: you'd drop your worst bench player for a waiver add who fills it.
-    const holes = Math.min(st.slotList.length - lu.slotOf.size, bench.length);
+    let swaps = 0;
+    for (const id of lu.slotOf.keys()) if (id.startsWith('~swap')) swaps++;
+    const holes = Math.min(st.slotList.length - lu.slotOf.size, Math.max(0, bench.length - swaps));
     const holeFill = holes > 0 ? holes * rv : 0;
     let benchVal = 0;
-    bench.slice(0, bench.length - holes).forEach((it, i) => { if (i < st.bench.length) benchVal += st.bench[i] * Math.max(0, it.v - rv); });
-    const out = { total: lu.total + holeFill + benchVal, starters: lu.total + holeFill, holes };
+    bench.slice(0, Math.max(0, bench.length - swaps - holes)).forEach((it, i) => { if (i < st.bench.length) benchVal += st.bench[i] * Math.max(0, it.v - rv); });
+    const out = { total: lu.total + holeFill + benchVal, starters: lu.total + holeFill, holes: holes + swaps };
     if (keepSlots) out.slotOf = lu.slotOf;
     return out;
   }
@@ -208,13 +255,16 @@ function createEvaluator({ players, currentWeek, settings, leagueRostered, profi
 
   // After a trade a roster over its cap drops whoever costs the least.
   // allowance = overflow the roster already had before the trade (tolerated).
-  function settle(roster, allowance, scale, protect) {
+  // Incoming players are always drop candidates (v2 monotonicity, spec §4.6 #3: receiving
+  // an extra player can never leave you worse than not receiving him, since you can waive him).
+  function settle(roster, allowance, scale, protect, incoming = new Set()) {
     let cur = roster.slice();
     const dropped = [];
     while (cur.length > capFor(cur) + allowance) {
       const cap = capFor(cur) + allowance;
       let best = null;
-      const cands = cur.filter(p => !protect.has(p.id)).sort((a, b) => rosAvg(a) - rosAvg(b) || byId(a, b)).slice(0, MAX_DROP_CANDIDATES);
+      const cheap = cur.filter(p => !protect.has(p.id)).sort((a, b) => rosAvg(a) - rosAvg(b) || byId(a, b)).slice(0, MAX_DROP_CANDIDATES);
+      const cands = cheap.concat(cur.filter(p => incoming.has(p.id) && !protect.has(p.id) && !cheap.includes(p)));
       for (const p of cands.length ? cands : cur) {
         const rest = cur.filter(x => x !== p);
         const v = teamValue(rest, capFor(rest) + allowance, scale).total;
@@ -234,7 +284,7 @@ function createEvaluator({ players, currentWeek, settings, leagueRostered, profi
     const incoming = inIds.map(id => index.get(id)).filter(Boolean);
     const after0 = before.filter(p => !outSet.has(p.id)).concat(incoming);
     // Protect nothing: if dropping an incoming player is cheapest, that is the truth.
-    const s = settle(after0, allowance, scale, new Set());
+    const s = settle(after0, allowance, scale, new Set(), new Set(incoming.map(p => p.id)));
     const capA = capFor(s.roster) + allowance;
     const b = teamValue(before, capB, scale);
     const a = teamValue(s.roster, capA, scale);
@@ -248,6 +298,9 @@ function createEvaluator({ players, currentWeek, settings, leagueRostered, profi
     const items = roster.map(p => ({ id: p.id, elig: eligOf(p), v: avg.get(p.id) }));
     const open = Math.max(0, cap - roster.length);
     for (let i = 0; i < Math.min(open, st.slotList.length); i++) items.push({ id: `~repl${i}`, elig: ALL, v: rv });
+    // Same stream rule as weekValue: a slot only playable below waiver level shows a waiver add.
+    const spare = Math.min(st.slotList.length, Math.max(0, roster.length - st.slotList.length));
+    for (let i = 0; i < spare; i++) items.push({ id: `~swap${i}`, elig: ALL, v: rv, hole: true });
     items.sort((a, b) => b.v - a.v || (a.id < b.id ? -1 : 1));
     const lu = lineupOf(items, st.slotList);
     let holesLeft = Math.min(st.slotList.length - lu.slotOf.size, items.filter(it => !lu.slotOf.has(it.id) && !it.id.startsWith('~')).length);
@@ -262,14 +315,16 @@ function createEvaluator({ players, currentWeek, settings, leagueRostered, profi
         if (!it && holesLeft > 0) { holesLeft--; rows.push({ slot: label, id: null, name: 'Waiver add', value: r1(rv), replacement: true, hole: true }); continue; }
         if (!it) { rows.push({ slot: label, id: null, name: 'Empty', value: 0 }); continue; }
         const p = index.get(it.id);
-        rows.push({ slot: label, id: p ? p.id : null, name: p ? p.name : 'Waiver add', value: r1(it.v), replacement: !p });
+        const row = { slot: label, id: p ? p.id : null, name: p ? p.name : 'Waiver add', value: r1(it.v), replacement: !p };
+        if (!p && it.hole) row.hole = true;
+        rows.push(row);
       }
     }
     const bench = items.filter(it => !lu.slotOf.has(it.id) && !it.id.startsWith('~')).map(it => ({ id: it.id, name: index.get(it.id).name, value: r1(it.v) }));
     return { starters: rows, bench };
   }
 
-  return { st, index, weeks, repl, wSum, val, rosAvg, side, teamValue, typicalLineup, capFor };
+  return { st, opts, index, weeks, repl, wSum, val, rosAvg, side, teamValue, typicalLineup, capFor };
 }
 
 // Mid-draft roster for a partner we can't see: the board taken in order, our
@@ -304,7 +359,7 @@ function likelihood(perWeek, band) {
 function evaluateTrade(input = {}) {
   const players = Array.isArray(input.players) ? input.players : [];
   const ids = a => [...new Set((Array.isArray(a) ? a : []).map(String))];
-  const E = createEvaluator({ players, currentWeek: input.currentWeek, settings: input.settings, leagueRostered: input.leagueRostered, profile: input.profile });
+  const E = createEvaluator({ players, currentWeek: input.currentWeek, settings: input.settings, leagueRostered: input.leagueRostered, profile: input.profile, options: input.options });
   const { st, index, weeks, wSum } = E;
   const unknown = [];
   const known = list => list.filter(id => (index.has(id) ? true : (unknown.push(id), false)));
@@ -430,6 +485,273 @@ function evaluateTrade(input = {}) {
   out.consolidation = consolidationNote(out, give, get);
   out.why = whyBullets(out, E);
   out.headline = headline(out);
+  // v2 (spec §4.1): superset of v1. A failure in the v2 layer never costs the
+  // verdict: the v1 answer still goes out, with the v2 blocks empty and a note.
+  out.version = 2;
+  out.options = { horizon: weeks.horizon || 'ros', lean: E.opts.lean, leanSource: E.opts.leanSource, weights: { playoff: out.meta.playoffWeight } };
+  if (E.opts.horizon !== out.options.horizon) notes.push(`No playoff weeks in this league's schedule; showing the rest of the season.`);
+  try {
+    Object.assign(out, v2Layer({ input, E, out, give, get, mine, myBefore, theirBefore, you, them, partnerEstimated, players }));
+  } catch (err) {
+    out.value = null; out.fit = null; out.themFit = null; out.summary = null; out.dataAsOf = null;
+    out.meta.v2Error = String((err && err.message) || err).slice(0, 200);
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ v2 layer */
+
+// Stream A's shared function when implemented; the interim stand-in while it throws NOT_IMPLEMENTED.
+function shared(fnA, fnB, args) {
+  try { return { value: fnA(...args), source: 'shared' }; } catch (e) {
+    if (e && e.code === SIG.NOT_IMPLEMENTED) return { value: fnB(...args), source: 'interim' };
+    throw e;
+  }
+}
+
+const GROUP_LABEL = { G: 'guard', F: 'forward', C: 'center', UTIL: 'UTIL' };
+const GROUP_OF_SLOT = { PG: 'G', SG: 'G', G: 'G', SF: 'F', PF: 'F', F: 'F', FC: 'F', C: 'C', UTIL: 'UTIL' };
+const TIER_RANK = { critical: 0, upgrade: 1, thin: 2, solid: 3, deep: 4, loaded: 5 };
+const fmt1 = x => (Math.round(num(x) * 10) / 10).toFixed(1);
+const sgn = x => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(Math.round(num(x) * 10) / 10).toFixed(1);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monDay = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '')); return m ? `${MONTHS[Number(m[2]) - 1]} ${Number(m[3])}` : null; };
+const seasonLabel = y => (Number.isInteger(y) ? `${y}-${String((y + 1) % 100).padStart(2, '0')}` : null);
+const HORIZON_TEXT = { ros: 'rest of season', next4: 'next 4 weeks', playoffs: 'playoff weeks' };
+
+// League-relative tier inputs (team page rule, spec §5.1): mean group starter value across
+// teams and the starter value of the last team inside the top 30%. Cached per board + key.
+const leagueCtxCache = new WeakMap();
+function leagueGroupContext(rosters, ctx) {
+  const key = JSON.stringify([ctx.weeks.map(w => [w.week, w.weight]), rosters, ctx.profile.leagueId, ctx.profile.slots]);
+  let m = leagueCtxCache.get(ctx.board);
+  if (!m) { m = new Map(); leagueCtxCache.set(ctx.board, m); }
+  if (m.has(key)) return m.get(key);
+  const per = rosters.map(ids => ctx.analyze(ids.map(id => ctx.index.get(String(id))).filter(Boolean), null));
+  const leagueAvg = {}, strongCutoff = {};
+  for (const g of RA.GROUPS) {
+    const vals = per.map(a => num(a.groups[g] && a.groups[g].starterValue)).sort((a, b) => b - a);
+    if (!vals.length) continue;
+    leagueAvg[g] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+    strongCutoff[g] = vals[Math.max(1, Math.floor(RA.STRONG_SHARE * vals.length)) - 1];
+  }
+  const v = { leagueAvg, strongCutoff, teams: per.length };
+  if (m.size > 50) m.clear();
+  m.set(key, v);
+  return v;
+}
+
+function v2Layer({ input, E, out, give, get, myBefore, theirBefore, you, them, partnerEstimated, players }) {
+  const { st, index, weeks } = E;
+  const c = input.context && typeof input.context === 'object' ? input.context : {};
+  const cw = Number(input.currentWeek) || (weeks[0] && weeks[0].week) || 1;
+  const sigCtx = {
+    profile: st.profile, currentWeek: cw, weeks: weeks.map(w => ({ week: w.week, weight: w.weight, playoff: w.playoff })),
+    logs: c.logs || null, proj: c.proj || null, market: c.market || null, eta: c.eta || null, bio: c.bio || null,
+    replacement: E.repl, today: input.today || null, board: players,
+  };
+  const replRos = num(out.replacement.perWeek);
+
+  // Signals for everyone the trade touches (traded + forced drops).
+  const touched = [...new Set([...give, ...get, ...you.dropped.map(p => p.id), ...them.dropped.map(p => p.id)])].map(id => index.get(id)).filter(Boolean);
+  const sig = shared(SIG.signalsFor, Interim.signalsFor, [touched, sigCtx]);
+  const S = sig.value instanceof Map ? sig.value : new Map(Object.entries(sig.value || {}));
+  const blended = id => { const s = S.get(String(id)); return s && s.value ? num(s.value.blended) : 0; };
+
+  // ---- Value axis (league-neutral, market-aware). Raw = pts/wk; surplus = above replacement ^1.25.
+  const surplus = v => Math.pow(Math.max(0, v - replRos), VALUE_POWER);
+  const sum = (ids, f) => ids.reduce((s, id) => s + f(blended(id)), 0);
+  const assetIn = sum(get, x => x), assetOut = sum(give, x => x);
+  // Roster spots, by head count only (IL moves are a lineup matter, priced on the Fit axis):
+  // each extra player takes a spot worth a waiver add (replacement), and past the roster
+  // limit the side waives its cheapest player (his value above replacement is lost). A side
+  // that frees spots gets waiver adds. Traded players count at their blended value, the
+  // rest of the roster at its rest-of-season value.
+  const valueOf = p => (S.has(String(p.id)) ? blended(p.id) : E.rosAvg(p));
+  const spotAdj = (before, outIds, inIds) => {
+    const net = inIds.length - outIds.length;
+    if (net <= 0) return { raw: -net * replRos, sur: 0, drops: [] };
+    const outSet = new Set(outIds);
+    const after = before.filter(p => !outSet.has(p.id)).concat(inIds.map(id => index.get(id)).filter(Boolean));
+    const limit = Math.max(before.length, st.rosterSize);
+    const drops = after.slice().sort((x, y) => valueOf(x) - valueOf(y) || byId(x, y)).slice(0, Math.max(0, after.length - limit));
+    const lost = drops.reduce((a, p) => a + surplus(valueOf(p)), 0);
+    return { raw: -net * replRos - drops.reduce((a, p) => a + Math.max(0, valueOf(p) - replRos), 0), sur: -lost, drops };
+  };
+  const aMe = spotAdj(myBefore, give, get), aThem = spotAdj(theirBefore, get, give);
+  // Half each side's spot effect, so swapping perspectives negates the gap exactly.
+  const consolidationAdj = (aMe.raw - aThem.raw) / 2;
+  const gap = assetIn - assetOut + consolidationAdj;
+  const surIn = sum(get, surplus), surOut = sum(give, surplus);
+  const surGap = surIn - surOut + (aMe.sur - aThem.sur) / 2;
+  const floor = Math.pow(VALUE_FLOOR_ABOVE, VALUE_POWER);
+  const gapPct = (give.length || get.length) ? surGap / Math.max(surIn, surOut, floor) : 0;
+  const a = Math.abs(gapPct);
+  const band = VALUE_BANDS.find(([t]) => a <= t + 1e-9)[1];
+  const dir = band === 'even' ? null : gapPct > 0 ? 'you' : 'them';
+  const label = band === 'even' ? 'Even' : `${{ leans: 'Leans', favors: 'Favors', lopsided: 'Lopsided for' }[band]} ${dir === 'you' ? (band === 'leans' ? 'your way' : 'you') : (band === 'leans' ? 'their way' : 'them')}`;
+  const value = {
+    assetIn: r1(assetIn), assetOut: r1(assetOut), gap: r1(gap), gapPct: Math.round(gapPct * 1000) / 1000, label, band, direction: dir,
+    marketWeight: Math.round(SIG.marketWeight(cw) * 1000) / 1000, consolidationAdj: r1(consolidationAdj),
+    surplusIn: r1(surIn), surplusOut: r1(surOut), surplusGap: r1(surGap), replacement: r1(replRos),
+    basis: `season value (pts/wk, market-blended); label on value above a waiver add ^${VALUE_POWER}`,
+  };
+
+  // ---- Team fit (before/after) with league-relative tiers when every roster is known.
+  const analyze = (ps, lg) => shared(RA.analyzeRoster, Interim.analyzeRoster, [{
+    players: ps, profile: st.profile, weeks: sigCtx.weeks, replacement: E.repl,
+    leagueAvg: lg ? lg.leagueAvg : null, strongCutoff: lg ? lg.strongCutoff : null, currentWeek: cw, board: players,
+  }]).value;
+  const rosters = Array.isArray(input.leagueRosters) ? input.leagueRosters.filter(r => Array.isArray(r) && r.length).map(r => r.map(String)) : [];
+  const lg = rosters.length >= 4 ? leagueGroupContext(rosters, { ...sigCtx, index, analyze }) : null;
+  const fitFor = (before, after, lineupB, lineupA, who) => {
+    const fb = analyze(before, lg), fa = analyze(after, lg);
+    const deltaByGroup = {};
+    for (const g of RA.GROUPS) {
+      const b = fb.groups[g], x = fa.groups[g];
+      deltaByGroup[g] = { tierBefore: b.tier, tierAfter: x.tier, starterValueDelta: r1(num(x.starterValue) - num(b.starterValue)), rosteredBefore: b.rostered, rosteredAfter: x.rostered, slots: b.slots };
+    }
+    return { before: fb, after: fa, deltaByGroup, notes: fitNotes({ fb, fa, deltaByGroup, lineupB, lineupA, touchedGroups: touchedGroups([...give, ...get]), who }), leagueRelative: !!lg };
+  };
+  const touchedGroups = ids => {
+    const gs = new Set();
+    for (const id of ids) { const p = index.get(id); if (!p) continue; for (const s of R.eligFor(p, st.profile)) if (GROUP_OF_SLOT[s] && s !== 'UTIL') gs.add(GROUP_OF_SLOT[s]); }
+    return gs;
+  };
+  const myAfter = you.roster;
+  const fit = fitFor(myBefore, myAfter, out.lineup.before, out.lineup.after, 'you');
+  let themFit = null, theirLineupB = null, theirLineupA = null;
+  theirLineupB = E.typicalLineup(theirBefore, them.cap);
+  theirLineupA = E.typicalLineup(them.roster, them.capAfter);
+  if (!partnerEstimated) themFit = fitFor(theirBefore, them.roster, theirLineupB, theirLineupA, 'them');
+
+  // ---- Per-player additions.
+  const slotIn = (lineup, id) => {
+    if (!lineup) return null;
+    const s = lineup.starters.find(x => x.id === id);
+    if (s) return s.slot;
+    return lineup.bench.some(x => x.id === id) ? 'BN' : null;
+  };
+  const groupOf = (p, slot) => {
+    const base = slot ? String(slot).replace(/\d+$/, '') : null;
+    if (base && GROUP_OF_SLOT[base]) return GROUP_OF_SLOT[base];
+    const e = R.eligFor(p, st.profile);
+    const pos0 = Array.isArray(p.pos) && p.pos[0];
+    if (pos0 && GROUP_OF_SLOT[pos0] && e.has(pos0)) return GROUP_OF_SLOT[pos0];
+    for (const s of ['C', 'PG', 'SG', 'G', 'SF', 'PF', 'F', 'FC']) if (e.has(s)) return GROUP_OF_SLOT[s];
+    return 'UTIL';
+  };
+  for (const pl of out.players) {
+    const p = index.get(pl.id);
+    const s = S.get(String(pl.id)) || null;
+    const mineNow = pl.side === 'give';
+    pl.signals = s;
+    pl.slotBefore = mineNow ? slotIn(out.lineup.before, pl.id) : slotIn(theirLineupB, pl.id);
+    pl.slotAfter = mineNow ? slotIn(theirLineupA, pl.id) : slotIn(out.lineup.after, pl.id);
+    const mySlot = mineNow ? pl.slotBefore : pl.slotAfter;
+    const g = groupOf(p, mySlot === 'BN' ? null : mySlot);
+    pl.fit = { group: g, tierBefore: fit.before.groups[g] ? fit.before.groups[g].tier : null, tierAfter: fit.after.groups[g] ? fit.after.groups[g].tier : null };
+    pl.why = s ? playerWhy(pl, s, p, { weeks, horizon: out.options.horizon, profile: st.profile, mySlot, cw }) : [];
+  }
+
+  // ---- Plain-English summary (≤ 4 sentences).
+  const who = partnerEstimated ? 'a typical partner' : 'them';
+  const take = { likely: 'they should accept', maybe: 'they might accept', unlikely: 'they will probably say no' }[out.them.likely];
+  const verdictLine = out.verdict ? `${sgn(out.you.perWeek)} pts/wk for you · ${sgn(out.them.perWeek)} for ${who} (${take}).` : null;
+  const valueLine = (give.length || get.length) ? `Value: ${label.toLowerCase()} (you give ${fmt1(assetOut)}, get ${fmt1(assetIn)} in season value).` : null;
+  const lower = n => (/^[A-Z][a-z]/.test(n) ? n.charAt(0).toLowerCase() + n.slice(1) : n);
+  const fitLine = fit.notes.length ? `Fit: ${fit.notes.slice(0, 3).map(lower).join('; ')}.` : null;
+  const notes = [];
+  if (sig.source === 'interim') notes.push('Injury return dates are model estimates until the ESPN feed is wired in.');
+  if (value.marketWeight > 0 && touched.some(p => { const x = S.get(String(p.id)); return x && x.market && x.market.rank != null; })) notes.push(`Value blends in the preseason market at ${Math.round(value.marketWeight * 100)}% (fades to 0 by week 11).`);
+  const stale = touched.map(p => S.get(String(p.id))).filter(x => x && x.flags && x.flags.includes('stale-stats'));
+  if (stale.length) notes.push(`Form and minutes come from ${seasonLabel(stale[0].statSeason) || 'last season'} until this season's games are logged.`);
+  const summary = { headline: out.headline, verdictLine, valueLine, fitLine, notes };
+
+  const asOf = c.asOf || {};
+  const logsSeason = Array.isArray(c.logs) && c.logs.length ? Math.max(...c.logs.map(l => Number(l.season)).filter(Number.isFinite)) : null;
+  const dataAsOf = { board: asOf.board || null, market: asOf.market || (c.market && (c.market.builtAt || c.market.asOf)) || null, injuryEta: asOf.injuryEta || (c.eta && c.eta.fetchedAt) || null, logsSeason: Number.isFinite(logsSeason) ? logsSeason : null, signals: sig.source };
+  return { value, fit, themFit, summary, dataAsOf };
+}
+
+// Team-fit notes for one side: holes filled/opened, tier changes in the groups the trade
+// touches, bench depth. Short clauses; the first three make the summary's fit line.
+function fitNotes({ fb, fa, deltaByGroup, lineupB, lineupA, touchedGroups, who }) {
+  const your = who === 'you' ? 'your' : 'their';
+  const notes = [];
+  const rowsB = (lineupB && lineupB.starters) || [], rowsA = (lineupA && lineupA.starters) || [];
+  rowsB.forEach((b, i) => {
+    const x = rowsA[i];
+    if (!x) return;
+    const slot = String(b.slot).replace(/\d+$/, '');
+    if (!b.id && x.id) notes.push(`Fills ${your} ${slot} hole (waiver add ${fmt1(b.value)} → ${x.name} ${fmt1(x.value)})`);
+    else if (b.id && !x.id) notes.push(`Opens a hole at ${slot} (${b.name} ${fmt1(b.value)} → waiver add ${fmt1(x.value)})`);
+  });
+  for (const g of ['C', 'G', 'F']) {
+    const d = deltaByGroup[g];
+    if (!d) continue;
+    const name = GROUP_LABEL[g];
+    const slots = `${d.rosteredAfter} eligible for ${d.slots} slot${d.slots === 1 ? '' : 's'}`;
+    if (d.tierBefore !== d.tierAfter) {
+      const worse = TIER_RANK[d.tierAfter] < TIER_RANK[d.tierBefore];
+      const needNow = RA.tierStatus(d.tierAfter) === 'need';
+      if (worse && needNow) notes.push(d.tierAfter === 'thin' ? `Leaves ${g} thin: ${slots}` : `Leaves ${g} ${d.tierAfter === 'critical' ? 'critical' : 'needing an upgrade'}: ${slots}`);
+      else if (!worse && RA.tierStatus(d.tierBefore) === 'need') notes.push(`Fixes ${your} ${name} need (${d.tierBefore} → ${d.tierAfter})`);
+      else notes.push(`${g} goes ${d.tierBefore} → ${d.tierAfter}`);
+    } else if (touchedGroups.has(g)) {
+      notes.push(d.tierAfter === 'upgrade' ? `${g} still needs an upgrade` : d.tierAfter === 'critical' ? `${g} is still critical` : `${g} stays ${d.tierAfter}`);
+    }
+  }
+  const nb = fb.lineup.bench.length, na = fa.lineup.bench.length;
+  if (na < nb) notes.push(`Bench thinner by ${nb - na === 1 ? 'one' : nb - na}`);
+  else if (na > nb) notes.push(`Deeper bench (+${na - nb})`);
+  return notes;
+}
+
+// Per-player "why" from his signals (spec §4.1 / §4.5): numbers are pts/wk, ETA as
+// "~wk N (Mon D)", last season's stats tagged with the season. Every line maps to a
+// signals field or flag; nothing is invented on the page.
+function playerWhy(pl, s, p, { weeks, horizon, profile, mySlot, cw }) {
+  const out = [];
+  const n = weeks.length || 1;
+  const tag = s.statSeason != null && (s.flags || []).includes('stale-stats') ? ` (${seasonLabel(s.statSeason)})` : '';
+  const per = num(s.schedule && s.schedule.gamesRemaining) / n;
+  out.push(`${fmt1(s.value.ros)}/wk ${HORIZON_TEXT[horizon] || HORIZON_TEXT.ros} · ${fmt1(per)} games/wk`);
+  const forYou = num(pl.forYou);
+  if (pl.side === 'get') {
+    if (mySlot && mySlot !== 'BN') out.push(`Starts at ${String(mySlot).replace(/\d+$/, '')} for you: ${sgn(forYou)}/wk to your lineup`);
+    else if (!pl.outForSeason) out.push(`Bench for you: ${sgn(forYou)}/wk (depth only)`);
+  } else if (mySlot && mySlot !== 'BN') out.push(`Starts at ${String(mySlot).replace(/\d+$/, '')} for you now: losing him costs ${fmt1(Math.abs(forYou))}/wk`);
+  else if (mySlot === 'BN') out.push(`On your bench now: losing him costs ${fmt1(Math.abs(forYou))}/wk`);
+  const weekStart = w => { const pw = (profile.weeks || []).find(x => x.week === w); return pw ? monDay(pw.start) : null; };
+  for (const f of s.flags || []) {
+    const m = /^out-until-wk(\d+)$/.exec(f);
+    if (m) {
+      const wk = Number(m[1]);
+      const eta = s.availability && s.availability.eta;
+      const back = weeks.filter(w => w.week >= wk).map(w => num((p.hsByWeek || {})[w.week]));
+      const backVal = back.length ? back.reduce((a, b) => a + b, 0) / back.length : null;
+      const outWeeks = Math.max(0, wk - cw);
+      const date = eta && eta.returnDate ? monDay(eta.returnDate) : weekStart(wk);
+      const src = eta ? `ESPN: ${[eta.bodyPart, eta.detail].filter(Boolean).join(' ').toLowerCase() || 'injury'}` : 'model estimate';
+      out.push(`Out until ~wk ${wk}${date ? ` (${date})` : ''}, ${src}: ~0 for ${outWeeks} week${outWeeks === 1 ? '' : 's'}${backVal != null ? `, ${fmt1(backVal)}/wk after` : ''}`);
+      continue;
+    }
+    if (f === 'ofs') out.push('Out for the season: worth 0 the rest of the way');
+    else if (f === 'hot' || f === 'cold') { const fm = s.form || {}; out.push(`${f === 'hot' ? 'Hot' : 'Cold'}: ${fmt1(fm.last5)} over the last 5 vs ${fmt1(fm.seasonMean)} season${tag}`); }
+    else if (f === 'minutes-up' || f === 'minutes-down') { const mn = s.minutes || {}; out.push(`Minutes ${f === 'minutes-up' ? 'up' : 'down'}: ${fmt1(mn.last5)} a game over the last 5 vs ${fmt1(mn.mpg)} season${tag}`); }
+    else if (f === 'heavy-schedule') out.push(`Heavy schedule: 4-game weeks in ${s.schedule.heavyWeeks} of ${n}`);
+    else if (f === 'light-schedule') out.push(`Light schedule: ${s.schedule.lightWeeks} of ${n} weeks with 2 games or fewer`);
+    else if ((f === 'market-reach' || f === 'market-value') && s.market && s.market.rank != null) {
+      const ranks = `market #${s.market.rank}${s.value.rank != null ? `, model #${s.value.rank}` : ''}`;
+      if (f === 'market-reach') out.push(pl.side === 'get' ? `The market rates him above the model (${ranks}): you'd be paying the market's price` : `The market rates him above the model (${ranks}): you're selling high`);
+      else out.push(pl.side === 'get' ? `The model rates him above the market (${ranks}): you're buying low` : `The model rates him above the market (${ranks}): you'd be selling low`);
+    }
+    else if (f === 'rookie') out.push('Rookie: no NBA games yet, so his value is projection only');
+    else if (f === 'new-team') out.push('New team this season: last year\'s role may not carry over');
+    else if (f === 'thin-sample') out.push(s.sampleGames > 0 ? `Thin sample: ${s.sampleGames} games logged, so his range is wider` : 'No games logged last season: his value is projection-based, so the range is wider');
+    else if (f === 'stale-stats' && s.statSeason != null) out.push(`Stats from ${seasonLabel(s.statSeason)}${s.form && s.form.lastGameDate ? ` (last game ${monDay(s.form.lastGameDate)})` : ''}`);
+  }
   return out;
 }
 
@@ -563,4 +885,7 @@ function whyBullets(r, E) {
   return out.slice(0, 7);
 }
 
-module.exports = { evaluateTrade, verdictFor, bestLineup, replacementLevel, scheduleWeeks, normSettings, estimatePartner, uncertainty, createEvaluator, tradeRules, BENCH_SHARE, REPL_RANK, FAIR_BAND, COUNTER_BANDS };
+module.exports = {
+  evaluateTrade, verdictFor, bestLineup, replacementLevel, scheduleWeeks, normSettings, normOptions, estimatePartner, uncertainty, createEvaluator, tradeRules, playerWhy, fitNotes,
+  BENCH_SHARE, REPL_RANK, FAIR_BAND, COUNTER_BANDS, HORIZONS, LEANS, PLAYOFFS_HORIZON_FROM_WEEK, VALUE_POWER, VALUE_FLOOR_ABOVE, VALUE_BANDS,
+};

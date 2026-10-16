@@ -622,9 +622,9 @@ t('242808: an Out player in IL does not force a drop; a healthy 15th does', asyn
   eq(ilIn.roster.you.dropped.length, 0, 'an Out player goes straight to IL');
 });
 
-t('242808: verdict thresholds re-validated on 30 realistic trades (scripts/nba-trade-validate.js)', () => {
+t('242808: verdict thresholds re-validated on 30 realistic trades (scripts/nba-trade-validate.js --profile=242808)', () => {
   const { execFileSync } = require('child_process');
-  const outTxt = execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'nba-trade-validate.js')], { encoding: 'utf8', env: { ...process.env, NBA_MODEL_OFFLINE: '1' } });
+  const outTxt = execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'nba-trade-validate.js'), '--profile=242808'], { encoding: 'utf8', env: { ...process.env, NBA_MODEL_OFFLINE: '1' } });
   const rows = outTxt.split('\n').filter(l => /^\s*\d+ (Accept|Counter|Decline)/.test(l));
   eq(rows.length, 30);
   for (const l of rows) {
@@ -634,6 +634,373 @@ t('242808: verdict thresholds re-validated on 30 realistic trades (scripts/nba-t
     if (Number(you) >= band) eq(v, 'Accept', 'clear gain must be Accept: ' + l);
     ok(Math.abs(Number(you)) < 40, 'no runaway values: ' + l);
   }
+});
+
+/* ------------------------------------------------------------ v2 (NBA trade spec §4.6) */
+const LS = require(path.join(ROOT, 'nba', 'model', 'league-sync.js'));
+const SIG = require(path.join(ROOT, 'nba', 'model', 'signals.js'));
+const RA = require(path.join(ROOT, 'nba', 'model', 'roster-analysis.js'));
+const INT = require(path.join(ROOT, 'nba', 'model', 'trade-interim.js'));
+const FIXDIR = path.join(ROOT, 'docs', 'nba-spec', 'fixtures');
+const fx = n => JSON.parse(require('fs').readFileSync(path.join(FIXDIR, n), 'utf8'));
+const SLP = LS.profileFromSleeper({ league: fx('sleeper-league.json'), state: fx('sleeper-state.json') });
+let slBoard = null, slTable = null;
+async function slb() {
+  if (!slBoard) slBoard = require(path.join(ROOT, 'nba', 'model', 'enrich.js')).enrichPlayers(await require(path.join(ROOT, 'nba', 'model')).getPlayers({ profile: SLP }));
+  return slBoard;
+}
+async function table() { if (!slTable) slTable = await require(path.join(ROOT, 'scripts', 'nba-trade-validate.js')).buildTable(); return slTable; }
+function ctxReal() { const d = require(path.join(ROOT, 'nba', 'model', 'data.js')).load(); let market = null; try { market = require(path.join(ROOT, 'nba', 'routes', 'market.js')).load(); } catch { market = null; } return { logs: d.logs, proj: d.proj, market, eta: null, bio: null }; }
+function walkFinite(o, where = 'r', bad = []) {
+  if (typeof o === 'number') { if (!Number.isFinite(o)) bad.push(where); return bad; }
+  if (o && typeof o === 'object') for (const [k, v] of Object.entries(o)) walkFinite(v, where + '.' + k, bad);
+  return bad;
+}
+const MIRROR = { even: 'even', leans: 'leans', favors: 'favors', lopsided: 'lopsided' };
+const flip = d => (d === 'you' ? 'them' : d === 'them' ? 'you' : null);
+
+t('v2 shape: version 2, options echo, value/fit/summary/dataAsOf present, per-player signals + why; v1 fields intact', () => {
+  const r = ev({ myRoster: ids(A), partnerRoster: ids(B), give: [A[1].id], get: [B[0].id] });
+  eq(r.version, 2);
+  eq(r.options, { horizon: 'ros', lean: 'contend', leanSource: 'default', weights: { playoff: 1 } }, 'HS profile has no playoffs → weight 1');
+  for (const k of ['verdict', 'headline', 'you', 'them', 'weeks', 'lineup', 'players', 'roster', 'why', 'replacement', 'meta']) ok(k in r, 'v1 ' + k);
+  for (const k of ['assetIn', 'assetOut', 'gap', 'gapPct', 'label', 'marketWeight', 'consolidationAdj']) ok(k in r.value, 'value.' + k);
+  ok(r.fit && r.fit.before && r.fit.after && r.fit.deltaByGroup.G && Array.isArray(r.fit.notes), 'fit');
+  ok(r.themFit && r.themFit.before, 'partner known → themFit');
+  ok(r.summary && r.summary.headline === r.headline && /pts\/wk for you/.test(r.summary.verdictLine) && /^Value: /.test(r.summary.valueLine), JSON.stringify(r.summary));
+  ok(r.dataAsOf && 'board' in r.dataAsOf && 'market' in r.dataAsOf && 'injuryEta' in r.dataAsOf && 'logsSeason' in r.dataAsOf);
+  for (const p of r.players) {
+    ok(p.signals && p.signals.value && typeof p.signals.value.blended === 'number', 'signals');
+    ok('slotBefore' in p && 'slotAfter' in p && p.fit && 'group' in p.fit && Array.isArray(p.why) && p.why.length >= 1, 'player v2 fields');
+  }
+  eq(r.meta.v2Error, undefined, 'v2 layer ran clean');
+  const est = ev({ myRoster: ids(A), give: [A[1].id], get: [B[0].id] });
+  eq(est.themFit, null, 'estimated partner → no themFit');
+});
+
+t('§4.6 #1 symmetry: swapping perspectives negates the value gap exactly (1-for-1 and 2-for-1) and mirrors the label', () => {
+  for (const [give, get] of [[[A[1].id], [B[0].id]], [[A[0].id], [B[2].id, B[3].id]], [[A[2].id, A[5].id], [B[1].id]]]) {
+    const r = ev({ myRoster: ids(A), partnerRoster: ids(B), give, get });
+    const s = ev({ myRoster: ids(B), partnerRoster: ids(A), give: get, get: give });
+    near(r.value.gap, -s.value.gap, 0.11, 'gap'); near(r.value.gapPct, -s.value.gapPct, 0.002, 'gapPct');
+    near(r.value.surplusGap, -s.value.surplusGap, 0.11, 'surplusGap');
+    eq(r.value.band, MIRROR[s.value.band]); eq(r.value.direction, flip(s.value.direction));
+    near(r.you.ros, s.them.ros, 0.11); near(r.them.ros, s.you.ros, 0.11);
+  }
+});
+
+t('§4.6 #2 reversal: undoing the trade negates the gap and mirrors the label', () => {
+  for (const [give, get] of [[[A[1].id], [B[0].id]], [[A[1].id, A[6].id], [B[2].id, B[4].id]], [[A[0].id], [B[2].id, B[3].id]]]) {
+    const r = ev({ myRoster: ids(A), partnerRoster: ids(B), give, get });
+    const A2 = ids(A).filter(id => !give.includes(id)).concat(get), B2 = ids(B).filter(id => !get.includes(id)).concat(give);
+    const back = ev({ myRoster: A2, partnerRoster: B2, give: get, get: give });
+    if (give.length === get.length) {
+      near(back.value.gap, -r.value.gap, 0.11, 'gap ' + give.length + '-for-' + get.length);
+      eq(back.value.band, r.value.band);
+    } else {
+      // n-for-m isn't a true inverse: the player waived to make room differs by side, so only
+      // the direction is guaranteed to flip (the magnitude moves by that waived player).
+      ok(Math.sign(back.value.gap) === -Math.sign(r.value.gap), `sign flips: ${r.value.gap} vs ${back.value.gap}`);
+    }
+    eq(back.value.direction, flip(r.value.direction));
+  }
+});
+
+t('§4.6 #3 monotonic: adding any positive-value player to "get" never lowers you.perWeek by > 0.05 (real board, 60 random trades)', async () => {
+  const b = await slb();
+  const R = fx('sleeper-rosters.json').map(r => r.players.map(String));
+  const idx = new Map(b.players.map(p => [String(p.id), p]));
+  let s = 4242;
+  const rnd = n => { s = (s * 1103515245 + 12345) % 2147483648; return Math.floor(s / 2147483648 * n); };
+  let worst = 0;
+  for (let k = 0; k < 60; k++) {
+    const me = R[0], pi = 1 + rnd(11), them = R[pi];
+    const give = [me[rnd(me.length)]];
+    const get = [them[rnd(them.length)]];
+    const extra = them.filter(id => !get.includes(id) && idx.get(id) && idx.get(id).hsValue > 0);
+    const x = extra[rnd(extra.length)];
+    const o = { players: b.players, currentWeek: b.currentWeek, profile: SLP, myRoster: me, partnerRoster: them, give, leagueRostered: R.flat(), today: '2026-10-20' };
+    const base0 = T0.evaluateTrade({ ...o, get });
+    const plus = T0.evaluateTrade({ ...o, get: get.concat(x) });
+    worst = Math.min(worst, plus.you.perWeek - base0.you.perWeek);
+    ok(plus.you.perWeek >= base0.you.perWeek - 0.05, `adding ${x} lowered you.perWeek ${base0.you.perWeek} → ${plus.you.perWeek}`);
+  }
+  ok(worst >= -0.05, 'worst ' + worst);
+});
+
+t('§4.6 #4 small input, small output: ±2% on one traded player moves you.perWeek < 1 band on the 30-trade set; the verdict only changes for trades already within that move of an edge', async () => {
+  const tb = await table();
+  const COUNTER = T0.COUNTER_BANDS;
+  const flips = [];
+  let maxMove = 0;
+  for (const [i, input] of tb.inputs.entries()) {
+    const base0 = T0.evaluateTrade(input);
+    for (const id of [...input.give, ...input.get]) {
+      for (const f of [0.98, 1.02]) {
+        const players = input.players.map(p => (String(p.id) === id ? { ...p, hsByWeek: Object.fromEntries(Object.entries(p.hsByWeek).map(([w, v]) => [w, v * f])) } : p));
+        const r = T0.evaluateTrade({ ...input, players });
+        const mv = Math.abs(r.you.perWeek - base0.you.perWeek);
+        const band = base0.meta.fairBand;
+        maxMove = Math.max(maxMove, mv / band);
+        ok(mv < band, `#${i + 1} ${id} ×${f}: moved ${mv} ≥ band ${band}`);
+        if (r.verdict !== base0.verdict) {
+          // A flip is only legitimate for a trade already sitting within that move of a verdict edge
+          // (±band, −3·band); anything else would be an amplification bug.
+          const edge = Math.min(...[band, -band, -COUNTER * band].map(b => Math.abs(base0.you.perWeek - b)));
+          ok(edge <= mv + 0.1, `#${i + 1} ${tb.rows[i].label} ${id} ×${f}: verdict flipped ${base0.verdict} → ${r.verdict} ${edge.toFixed(1)}/wk from an edge but moved only ${mv.toFixed(1)}`);
+          flips.push(`#${i + 1} ${base0.verdict}→${r.verdict} (${base0.you.perWeek} vs band ${band})`);
+        }
+      }
+    }
+  }
+  ok(maxMove < 1, 'max move in bands ' + maxMove);
+  if (flips.length) console.log(`       boundary flips (base within the move of an edge): ${[...new Set(flips)].join('; ')}`);
+});
+
+t('§4.6 #5 30-trade table under the Sleeper profile: Fit bounds + Value calibration (Lopsided #6/#7/#9/#21; Even/Leans #1-5, #11, #26, #27)', async () => {
+  const tb = await table();
+  eq(tb.rows.length, 30);
+  eq(tb.rows[0].weeks, 23, '23 Sleeper weeks'); eq(tb.rows[0].slots, 10, '10 starters (3 UTIL)');
+  for (const [i, x] of tb.rows.entries()) {
+    if (x.you <= -3 * x.band) eq(x.verdict, 'Decline', `#${i + 1} big loss must be Decline`);
+    if (x.you >= x.band) eq(x.verdict, 'Accept', `#${i + 1} clear gain must be Accept`);
+    ok(Math.abs(x.you) < 40, 'no runaway values');
+  }
+  for (const n of [6, 7, 9, 21]) eq(tb.rows[n - 1].vband, 'lopsided', `#${n} ${tb.rows[n - 1].label}: ${tb.rows[n - 1].value} (${tb.rows[n - 1].gapPct}%)`);
+  for (const n of [1, 2, 3, 4, 5, 11, 26, 27]) ok(['even', 'leans'].includes(tb.rows[n - 1].vband), `#${n} ${tb.rows[n - 1].label}: ${tb.rows[n - 1].value} (${tb.rows[n - 1].gapPct}%)`);
+});
+
+t('§4.6 #6 ETA: an OUT player worth 0 until week 12 is valued 0 before it and his why names week 12 (model ramp and ESPN date)', () => {
+  const star = P(902, 'F', w => (w < 12 ? 0 : 60), { name: 'Back Wk12', injury: 'OUT' });
+  const players = [...base, star];
+  const partner = ids(B).slice(0, 9).concat(star.id);
+  const r = T.evaluateTrade({ players, currentWeek: 1, myRoster: ids(A), partnerRoster: partner, give: [A[4].id], get: [star.id], leagueRostered, today: '2026-10-20' });
+  const sp = r.players.find(p => p.id === star.id);
+  ok(sp.signals.flags.includes('out-until-wk12'), sp.signals.flags.join(','));
+  ok(sp.why.some(w => /Out until ~wk 12/.test(w) && /~0 for 11 weeks/.test(w) && /60\.0\/wk after/.test(w)), sp.why.join(' | '));
+  for (const w of r.weeks.filter(x => x.week < 12)) ok(w.you <= 0, `week ${w.week}: he adds nothing before he's back (${w.you})`);
+  // ESPN return date (Stream A's signals shape): the why carries the source and the date.
+  const butler = fx('signals.example.json').players[1];
+  const s = { ...butler, flags: ['out-until-wk12', 'stale-stats'], availability: { ...butler.availability, eta: { ...butler.availability.eta, returnWeek: 12, returnDate: '2027-01-11' } } };
+  const lines = T0.playerWhy({ side: 'get', forYou: 0, outForSeason: false }, s, { hsByWeek: Object.fromEntries(Array.from({ length: 23 }, (_, i) => [i + 1, i + 1 >= 12 ? 40 : 0])) }, { weeks: SLP.weeks.map(w => ({ week: w.week, weight: 1, playoff: !!w.playoffs })), horizon: 'ros', profile: SLP, mySlot: 'BN', cw: 1 });
+  ok(lines.some(l => /Out until ~wk 12 \(Jan 11\), ESPN: knee surgery: ~0 for 11 weeks, 40\.0\/wk after/.test(l)), lines.join(' | '));
+  ok(lines.some(l => /Stats from 2025-26/.test(l)), 'stale stats tagged with the season');
+});
+
+t('§4.6 #7 market decay: weight 0.30 in week 1, 0.15 in week 6, 0 from week 11; blended = ros with no market', async () => {
+  eq(SIG.marketWeight(1), 0.3); near(SIG.marketWeight(6), 0.15, 1e-9); eq(SIG.marketWeight(11), 0);
+  const r1 = ev({ myRoster: ids(A), partnerRoster: ids(B), give: [A[1].id], get: [B[0].id] });
+  eq(r1.value.marketWeight, 0.3);
+  const r11 = ev({ currentWeek: 11, myRoster: ids(A), partnerRoster: ids(B), give: [A[1].id], get: [B[0].id] });
+  eq(r11.value.marketWeight, 0);
+  for (const p of r1.players) eq(p.signals.value.blended, p.signals.value.ros, 'no market rank → blended = ros');
+  // Real board + market.json: blended sits between ros and the market-implied value, at weight 0.30 (half when contested/thin).
+  const b = await slb();
+  const ctx = { profile: SLP, currentWeek: 1, weeks: SLP.weeks.map(w => ({ week: w.week, weight: w.playoffs ? 1.5 : 1, playoff: !!w.playoffs })), ...ctxReal(), replacement: null, today: '2026-10-15', board: b.players };
+  const S = INT.signalsFor(b.players.slice(0, 120), ctx);
+  let withMarket = 0;
+  for (const s of S.values()) {
+    if (s.market.rank == null) { eq(s.value.blended, s.value.ros); continue; }
+    withMarket++;
+    const w = s.market.weight;
+    ok(w === 0.3 || w === 0.15, 'weight ' + w);
+    near(s.value.blended, (1 - w) * s.value.ros + w * s.market.impliedValue, 0.11, s.name);
+  }
+  ok(withMarket > 80, 'market joined for most of the top 120: ' + withMarket);
+  const late = INT.signalsFor(b.players.slice(0, 20), { ...ctx, currentWeek: 11 });
+  for (const s of late.values()) eq(s.value.blended, s.value.ros, 'week 11: market weight 0');
+});
+
+t('§4.6 #8 determinism + no NaN: real board v2 output is byte-identical across runs and fully finite', async () => {
+  const b = await slb();
+  const R = fx('sleeper-rosters.json').map(r => r.players.map(String));
+  const o = { players: b.players, currentWeek: b.currentWeek, profile: SLP, myRoster: R[0], partnerRoster: R[1], give: [R[0][0], R[0][4]], get: [R[1][0], R[1][3]], leagueRostered: R.flat(), leagueRosters: R, today: '2026-10-20', context: ctxReal() };
+  const a = JSON.stringify(T0.evaluateTrade(o)), c = JSON.stringify(T0.evaluateTrade(o));
+  ok(a === c, 'byte-identical');
+  const r = JSON.parse(a);
+  eq(walkFinite(T0.evaluateTrade(o)), [], 'finite');
+  ok(!/NaN|Infinity/.test(a));
+  eq(r.meta.v2Error, undefined);
+  eq(r.dataAsOf.logsSeason, 2025); ok(r.fit.leagueRelative, 'league-relative tiers with every roster');
+  for (const h of ['next4', 'playoffs']) eq(walkFinite(T0.evaluateTrade({ ...o, options: { horizon: h, lean: 'balanced' } })), [], h);
+});
+
+t('v2 horizon + lean: next4 = 4 weeks; playoffs = weeks 21-23; balanced weighs playoffs 1.0; contend 1.5', async () => {
+  const b = await slb();
+  const R = fx('sleeper-rosters.json').map(r => r.players.map(String));
+  const o = { players: b.players, currentWeek: b.currentWeek, profile: SLP, myRoster: R[0], partnerRoster: R[1], give: [R[0][0]], get: [R[1][0]], leagueRostered: R.flat(), today: '2026-10-20' };
+  const ros = T0.evaluateTrade(o), n4 = T0.evaluateTrade({ ...o, options: { horizon: 'next4' } }), po = T0.evaluateTrade({ ...o, options: { horizon: 'playoffs' } });
+  eq(ros.meta.weeks, 23); eq(n4.meta.weeks, 4); eq(n4.weeks.map(w => w.week), [1, 2, 3, 4]);
+  eq(po.weeks.map(w => w.week), [21, 22, 23]); eq(po.options.horizon, 'playoffs');
+  eq(ros.options.weights.playoff, 1.5);
+  const bal = T0.evaluateTrade({ ...o, options: { lean: 'balanced' } });
+  eq(bal.options.weights.playoff, 1); ok(bal.weeks.every(w => w.weight === 1));
+  ok(ros.weeks.filter(w => w.playoff).every(w => w.weight === 1.5));
+  const noPo = T.evaluateTrade({ players: base, currentWeek: 1, myRoster: ids(A), give: [A[1].id], get: [B[0].id], options: { horizon: 'playoffs' } });
+  eq(noPo.options.horizon, 'ros', 'no playoff weeks → rest of season'); ok(noPo.meta.notes.some(n => /No playoff weeks/.test(n)));
+  eq(T0.normOptions({ horizon: 'x', lean: 'rebuild' }), { horizon: 'ros', lean: 'contend', leanSource: 'default' });
+});
+
+t('§4.6 #10 performance: 2-for-2 with both rosters known (+ signals, league tiers) < 60 ms warm', async () => {
+  const b = await slb();
+  const R = fx('sleeper-rosters.json').map(r => r.players.map(String));
+  const o = { players: b.players, currentWeek: b.currentWeek, profile: SLP, myRoster: R[0], partnerRoster: R[1], give: [R[0][0], R[0][4]], get: [R[1][0], R[1][3]], leagueRostered: R.flat(), leagueRosters: R, today: '2026-10-20', context: ctxReal() };
+  for (let i = 0; i < 3; i++) T0.evaluateTrade(o);
+  const ms = [];
+  for (let i = 0; i < 7; i++) { const t0 = process.hrtime.bigint(); T0.evaluateTrade(o); ms.push(Number(process.hrtime.bigint() - t0) / 1e6); }
+  ms.sort((x, y) => x - y);
+  ok(ms[3] < 60, `median ${ms[3].toFixed(1)} ms (all: ${ms.map(x => x.toFixed(0)).join(',')})`);
+  console.log(`       2-for-2 warm median ${ms[3].toFixed(1)} ms`);
+});
+
+t('interim shared layer (until Stream A): signals + roster analysis follow the contract shapes on the real board', async () => {
+  const b = await slb();
+  const weeks = SLP.weeks.map(w => ({ week: w.week, weight: w.playoffs ? 1.5 : 1, playoff: !!w.playoffs }));
+  const S = INT.signalsFor(b.players, { profile: SLP, currentWeek: 1, weeks, ...ctxReal(), replacement: null, today: '2026-10-15', board: b.players });
+  eq(S.size, b.players.length);
+  for (const s of S.values()) {
+    for (const k of ['ros', 'blended']) ok(Number.isFinite(s.value[k]), 'value.' + k);
+    ok(s.statSeason === null || Number.isInteger(s.statSeason));
+    ok(s.uncertainty >= 0.1 && s.uncertainty <= 0.35);
+    ok(s.market.weight >= 0 && s.market.weight <= 0.3);
+    ok(s.form === null || [null, 'hot', 'cold'].includes(s.form.label));
+    ok([null, 'up', 'down', 'flat'].includes(s.minutes.trend));
+    for (const a of Object.values(s.availability.byWeek)) ok(a >= 0 && a <= 1);
+    ok(s.flags.every(f => typeof f === 'string'));
+  }
+  eq(walkFinite([...S.values()]), [], 'signals finite');
+  const jok = S.get('1658'); ok(jok.value.ros > 60 && jok.statSeason === 2025 && jok.flags.includes('stale-stats'), JSON.stringify(jok.flags));
+  const idx = new Map(b.players.map(p => [String(p.id), p]));
+  const R = fx('sleeper-rosters.json');
+  const repl = T0.replacementLevel(b.players, weeks, T0.normSettings({}, SLP), new Set(R.flatMap(r => r.players.map(String))));
+  const ra = INT.analyzeRoster({ players: R[0].players.map(id => idx.get(String(id))).filter(Boolean), profile: SLP, weeks, replacement: repl, currentWeek: 1, board: b.players });
+  eq(ra.lineup.starters.length, 10);
+  for (const g of RA.GROUPS) { ok(RA.TIERS.includes(ra.groups[g].tier), g); eq(ra.groups[g].status, RA.tierStatus(ra.groups[g].tier)); }
+  eq(ra.needs, RA.GROUPS.filter(g => ra.groups[g].status === 'need')); eq(ra.surplus, RA.GROUPS.filter(g => ra.groups[g].status === 'surplus'));
+  eq(walkFinite(ra), [], 'roster analysis finite');
+  // trade.js calls Stream A first: while it throws NOT_IMPLEMENTED the interim answers (dataAsOf.signals tells which).
+  let threw = false; try { SIG.signalsFor([], {}); } catch (e) { threw = e.code === 'NOT_IMPLEMENTED'; }
+  if (threw) eq(ev({ myRoster: ids(A), give: [A[1].id], get: [B[0].id] }).dataAsOf.signals, 'interim');
+});
+
+t('per-player why is built from the contract fixture (signals.example.json) the same way as from interim signals', () => {
+  const [jok, butler] = fx('signals.example.json').players;
+  const weeks = SLP.weeks.map(w => ({ week: w.week, weight: 1, playoff: !!w.playoffs }));
+  const wj = T0.playerWhy({ side: 'give', forYou: 9.1 }, jok, { hsByWeek: {} }, { weeks, horizon: 'ros', profile: SLP, mySlot: 'C', cw: 1 });
+  ok(/^73\.2\/wk rest of season · 3\.2 games\/wk$/.test(wj[0]), wj[0]);
+  ok(wj.some(l => /Starts at C for you now: losing him costs 9\.1\/wk/.test(l)) && wj.some(l => /Stats from 2025-26 \(last game Apr 12\)/.test(l)), wj.join(' | '));
+  const wb = T0.playerWhy({ side: 'get', forYou: 1.2 }, butler, { hsByWeek: Object.fromEntries(Array.from({ length: 23 }, (_, i) => [i + 1, i + 1 >= 11 ? 30 : 0])) }, { weeks, horizon: 'ros', profile: SLP, mySlot: 'BN', cw: 1 });
+  ok(wb.some(l => /^Out until ~wk 11 \(Jan 2\), ESPN: knee surgery: ~0 for 10 weeks, 30\.0\/wk after$/.test(l)), wb.join(' | '));
+  ok(wb.some(l => /^Bench for you/.test(l)));
+});
+
+t('trade-logic v2: options in the request, deep links, value meter, fit rows, signal chips, persistence', () => {
+  let st = L.emptyState();
+  eq([st.horizon, st.lean], ['ros', null]);
+  st.give = ['1']; st.get = ['2'];
+  ok(!('options' in L.requestBody(st)), 'defaults → no options (v1-compatible body)');
+  st.horizon = 'next4'; st.lean = 'balanced';
+  eq(L.requestBody(st).options, { horizon: 'next4', lean: 'balanced' });
+  const back = L.parseState(L.serialize(st)); eq([back.horizon, back.lean], ['next4', 'balanced']);
+  eq(L.parseState(JSON.stringify({ v: 1, horizon: 'zzz', lean: 'rebuild' })).horizon, 'ros');
+  ok(!L.horizonAvailable('playoffs', 9) && L.horizonAvailable('playoffs', 10) && L.horizonAvailable('next4', 1));
+  eq(L.horizonLabel('next4'), 'Next 4 Weeks');
+  eq(L.parseDeepLink('?league_id=1411447094215991296&partner=2&give=1444,1444&get=1583,1444,<x>&horizon=next4'), { leagueId: '1411447094215991296', partner: '2', give: ['1444'], get: ['1583'], horizon: 'next4' });
+  eq(L.parseDeepLink('?league_id=abc&partner=99999&give=1'), { leagueId: null, partner: null, give: ['1'], get: [], horizon: null });
+  eq(L.parseDeepLink(''), null); eq(L.parseDeepLink('?utm=1'), null);
+  const ctx = { teams: [{ team_key: '1', players: [{ sleeperId: '10' }, { sleeperId: '11' }] }, { team_key: '2', players: [{ sleeperId: '20' }] }] };
+  eq(L.teamHolding(ctx, ['20']).team_key, '2'); eq(L.teamHolding(ctx, ['99']), null);
+  const r = { you: { perWeek: 1 }, them: { perWeek: -1 }, meta: { fairBand: 3 }, value: { gapPct: -0.48, gap: -16, label: 'Lopsided for them', band: 'lopsided', direction: 'them', assetIn: 57.2, assetOut: 73.1 } };
+  const f = L.fairness(r);
+  eq(f.axis, 'value'); eq(f.label, 'Lopsided for them'); ok(f.pos < 0.15 && f.pos >= 0, 'pinned toward them: ' + f.pos);
+  ok(/You give 73\.1, get 57\.2 in season value/.test(f.line));
+  eq(L.fairness({ ...r, value: { ...r.value, gapPct: 0.05, band: 'even', label: 'Even' } }).even, true);
+  eq(L.fairness({ ...r, value: { ...r.value, gapPct: 0.9 } }).pos, 1);
+  const rows = L.fitRows({ deltaByGroup: { G: { tierBefore: 'thin', tierAfter: 'solid', starterValueDelta: 4.2, rosteredAfter: 4, slots: 3 }, C: { tierBefore: 'deep', tierAfter: 'deep', starterValueDelta: 0, rosteredAfter: 2, slots: 1 } } });
+  eq(rows.map(x => [x.group, x.changed, x.better]), [['G', true, true], ['C', false, false]]); eq(rows[1].depth, '2 for 1 slot');
+  eq(L.tierLabel('upgrade'), 'Upgrade'); eq(L.tierTone('critical'), 'bad'); eq(L.tierTone('loaded'), 'good');
+  const chips = L.signalChips({ statSeason: 2025, flags: ['out-until-wk11', 'hot', 'stale-stats', 'market-reach'] });
+  eq(chips.map(c => c.text), ['Out To Wk 11', 'Hot', '2025-26 Stats', 'Market Likes More']);
+  eq(L.signalChips({ flags: ['hot', 'cold', 'rookie', 'new-team'] }, 2).length, 2);
+  const stats = L.signalStats({ signals: { value: { blended: 48.25, rank: 41 }, schedule: { gamesRemaining: 74 }, availability: { byWeek: { 1: 1, 2: 1 } }, form: { last5: 55, seasonMean: 48 }, minutes: { mpg: 33, last5: 35 }, market: { rank: 38 } } });
+  eq(stats.map(x => x.v), ['48.3/wk', '74 in 2 wk', '55.0 vs 48.0', '35.0 vs 33.0', '#38 / #41']);
+});
+
+/* ------------------------------------------------------------ v2 routes (§4.6 #9) */
+function sleeperFake({ categories = false } = {}) {
+  const M = require(path.join(ROOT, 'nba', 'sleeper', 'map.js'));
+  const { SleeperError } = require(path.join(ROOT, 'nba', 'sleeper', 'client.js'));
+  const league = fx('sleeper-league.json');
+  const draft = categories ? { draft_id: '1', type: 'snake', metadata: { scoring_type: 'categories' }, settings: { rounds: 13 } } : null;
+  const calls = { state: 0 };
+  return {
+    calls,
+    client: { state: async () => { calls.state++; return fx('sleeper-state.json'); } },
+    async leagueContext(lid, uid) {
+      if (lid !== league.league_id) throw new SleeperError('League not found on Sleeper', { status: 404, code: 'sleeper_not_found' });
+      const teams = M.teamsFromLeague(fx('sleeper-users.json'), fx('sleeper-rosters.json'), null);
+      return { league, users: [], rosters: [], draft, teams, myTeamKey: M.myTeamKey(teams, uid) };
+    },
+  };
+}
+function v2App(opts = {}) {
+  const app = express();
+  const cache = new Map();
+  const model = require(path.join(ROOT, 'nba', 'model'));
+  app.use(createTradeRoutes({
+    auth: (req, res, next) => next(), getAuth: () => ({}), apiCached: async (k, ttl, fn) => { if (!cache.has(k)) cache.set(k, await fn()); return cache.get(k); },
+    modelPlayers: (w, p) => model.getPlayers({ profile: p || '242808' }), sleeper: sleeperFake(opts), log: { error() {}, warn() {} }, env: {},
+  }));
+  return app;
+}
+
+t('§4.6 #9 route: v1 body → version 2 with v1 fields unchanged in meaning; sleeper_league_id builds the Sleeper profile (23 weeks); options validated', async () => {
+  const s = await listen(v2App());
+  try {
+    const R = fx('sleeper-rosters.json');
+    const body = { give: [R[0].players[0]], get: [R[1].players[0]], myRoster: R[0].players, partnerRoster: R[1].players };
+    const v1 = await call(s, 'POST', '/api/nba/trade/evaluate', { body });
+    eq(v1.status, 200); eq(v1.json.version, 2); eq(v1.json.options.horizon, 'ros'); eq(v1.json.options.lean, 'contend');
+    // Same verdict/numbers as the engine called the v1 way (no options) under the same (stored) profile.
+    const b = await require(path.join(ROOT, 'nba', 'model')).getPlayers({ profile: '242808' });
+    const direct = T0.evaluateTrade({ players: b.players, currentWeek: b.currentWeek, ...body, profile: HL, today: LCtoday() });
+    eq([v1.json.verdict, v1.json.you, v1.json.them, v1.json.meta.weeks], [direct.verdict, direct.you, direct.them, direct.meta.weeks]);
+    const sl = await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, sleeper_league_id: '1411447094215991296' } });
+    eq(sl.status, 200);
+    eq(sl.json.meta.weeks, 23); eq(sl.json.meta.settings.slotList, ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'UTIL', 'UTIL', 'UTIL']);
+    eq(sl.json.profile.source, 'sleeper'); eq(sl.json.meta.rules.tradeEnd, '2027-02-14'); eq(sl.json.meta.playoffStartWeek, 21);
+    ok(sl.json.fit.leagueRelative, 'every roster known → league-relative tiers');
+    eq(sl.json.options.leanSource, 'default', 'preseason → contend by default');
+    const n4 = await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, sleeper_league_id: '1411447094215991296', options: { horizon: 'next4', lean: 'balanced' } } });
+    eq([n4.status, n4.json.meta.weeks, n4.json.options.lean, n4.json.options.leanSource], [200, 4, 'balanced', 'user']);
+    const po = await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, options: { horizon: 'playoffs' } } });
+    eq([po.status, po.json.code], [400, 'horizon_unavailable'], 'playoffs before week 10');
+    eq((await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, options: { lean: 'rebuild' } } })).status, 400);
+    eq((await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, options: { horizon: 'season' } } })).status, 400);
+    eq((await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, options: [1] } })).status, 400);
+    eq((await call(s, 'POST', '/api/nba/trade/evaluate', { body: { ...body, sleeper_league_id: '123' } })).status, 404, 'unknown Sleeper league');
+    const ctx = await call(s, 'GET', '/api/nba/trade/context?league_id=1411447094215991296&user_id=1044077615075872768');
+    eq(ctx.status, 200); ok(!('raw' in ctx.json), 'raw league payload never leaks'); ok(ctx.json.teams.every(t => t.record && 'wins' in t.record), 'records for the lean');
+  } finally { s.close(); }
+  const c = await listen(v2App({ categories: true }));
+  try {
+    const R = fx('sleeper-rosters.json');
+    const r = await call(c, 'POST', '/api/nba/trade/evaluate', { body: { give: [R[0].players[0]], get: [R[1].players[0]], myRoster: R[0].players, sleeper_league_id: '1411447094215991296' } });
+    eq([r.status, r.json.code], [400, 'league_not_points']);
+  } finally { c.close(); }
+});
+function LCtoday() { return require(path.join(ROOT, 'nba', 'routes', 'league-context.js')).todayEt(); }
+
+t('v2 page: lens, fit + signals cards, value meter wired; trade.css shipped; no forbidden copy', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(path.join(ROOT, 'nba', 'pages', 'trade.html'), 'utf8');
+  for (const s of ['/nba/pages/trade.css', 'id="nt-horizon"', 'data-horizon="playoffs"', 'id="nt-lean"', 'id="nt-fit-card"', 'id="nt-signals-card"', 'Value vs Fit'])
+    ok(html.includes(s), 'trade.html has ' + s);
+  const js = fs.readFileSync(path.join(ROOT, 'nba', 'pages', 'trade.js'), 'utf8');
+  for (const s of ['parseDeepLink', 'renderFit', 'renderSignals', 'renderLens', "'/api/nba/players?league_id='"]) ok(js.includes(s), 'trade.js has ' + s);
+  ok(fs.existsSync(path.join(ROOT, 'nba', 'pages', 'trade.css')));
+  const strip = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/(^|[\s;{}(,])\/\/[^\n]*/g, '$1');
+  for (const f of ['trade.html', 'trade.js', 'trade-logic.js', 'trade.css']) ok(!/\bYahoo\b/.test(strip(fs.readFileSync(path.join(ROOT, 'nba', 'pages', f), 'utf8'))), f + ' has no "Yahoo" copy');
 });
 
 t('rosterShape: Yahoo positions → slots', () => {
