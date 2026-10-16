@@ -6,6 +6,7 @@ const Fit = require('./fit');
 const Sc = require('./score');
 const Slots = require('./slots');
 const Yahoo = require('./yahoo');
+const ETA = require('./injury-eta');
 const { normalizeName } = require('./names');
 const { epochDay } = require('./sleeper');
 
@@ -86,12 +87,28 @@ function imputeUnscheduled(teamDates) {
   return { teamDates: out, window: best };
 }
 
+// ESPN return dates (nba/model/injury-eta.js, spec §4.3) on top of the ramps
+// above. Returns the per-player week rule, or null when no usable row matched.
+// cal: [{ week, start, end }] matchup weeks; teamDays: imputed epoch game days.
+function etaRule(em, cal, curWeek, teamDays) {
+  const byWeek = new Map(cal.map(w => [w.week, w]));
+  const cur = byWeek.get(curWeek) || null;
+  return (w, healthy, injury, legacy) => {
+    const wk = byWeek.get(w);
+    if (!wk) return legacy;
+    return ETA.applyEtaToAvailability(healthy, injury, em, { ...wk, gameDays: teamDays || undefined }, cur, { legacy, weeks: cal });
+  };
+}
+
 // data = { players: {pid: slim}, logs: [logs-YYYY...], proj, state }
-// opts = { week?: number, now?: Date, profile?: league profile (nba/league-profile.js) }
+// opts = { week?: number, now?: Date, profile?: league profile (nba/league-profile.js),
+//          eta?: EtaDoc (nba/model/injury-eta.js) }
 // Without a profile: legacy High Score board (1/1/2/3/3 `hs` column, Sleeper weeks).
 // With a profile: every game is re-scored with profile.scoring, weeks are the
 // profile's matchup weeks (team games counted by date, so 14-day weeks get ~2x
 // games), and players get yahooElig / vorpBySlot / vorp / vorpRank.
+// With an ETA document: a matched ESPN return date replaces the OUT/IR ramps
+// (spec §4.3); affected players also carry availByWeek / healthyByWeek / eta.
 function buildBoard(data, opts = {}) {
   const proj = data.proj;
   const season = proj.season;
@@ -142,6 +159,21 @@ function buildBoard(data, opts = {}) {
   }
   const curve = profile ? Sc.ddCurve(data.logs) : null;
   const profileSlots = new Set(profile ? Slots.startingSlots(profile) : []);
+
+  // ESPN return dates: the calendar the rule runs on (profile weeks, else the
+  // Sleeper week dates) and each team's game days for the return-week share.
+  const etaDoc = opts.eta && Array.isArray(opts.eta.rows) ? opts.eta : null;
+  let etaCal = null, etaDays = null, etaLastEnd = null;
+  const dupNorms = new Set();
+  if (etaDoc) {
+    etaCal = profile
+      ? profile.weeks.map(w => ({ week: w.week, start: w.start, end: w.end }))
+      : weeks.filter(w => Array.isArray(proj.weeks[w])).map(w => ({ week: w, start: proj.weeks[w][0], end: proj.weeks[w][1] }));
+    etaDays = teamDates || (proj.teamDates ? imputeUnscheduled(proj.teamDates).teamDates : {});
+    etaLastEnd = etaCal.length ? epochDay(etaCal[etaCal.length - 1].end) : null;
+    const seen = new Set();
+    for (const sp of Object.values(data.players)) { const n = normalizeName(sp.n); if (seen.has(n)) dupNorms.add(n); seen.add(n); }
+  }
 
   const rows = [];
   for (const [pid, sp] of Object.entries(data.players)) {
@@ -206,15 +238,33 @@ function buildBoard(data, opts = {}) {
 
   const players = rows.map(r => {
     const f = r.fit;
-    const outForSeason = isOutForSeason(r.sp);
+    // ESPN row (name + team); a name-only match is dropped when two board players share the name.
+    let em = null;
+    if (etaDoc) {
+      const lastDay = r.L.g.reduce((m, g) => (g[0] > m ? g[0] : m), -Infinity);
+      em = ETA.matchEta(etaDoc, { id: r.pid, name: r.sp.n, team: r.sp.t }, { logs: Number.isFinite(lastDay) ? lastDay : null, now, weeks: etaCal });
+      if (em && em.matchedBy === 'name' && dupNorms.has(normalizeName(r.sp.n))) em = null;
+    }
+    const useEta = !!(em && !em.stale);
+    const etaOfs = useEta && (em.status === 'OFS' || (em.returnDate != null && etaLastEnd != null && epochDay(em.returnDate) > etaLastEnd));
+    const outForSeason = isOutForSeason(r.sp) || etaOfs;
     const info = { injury: r.sp.i, injuryNotes: r.sp.in, outForSeason };
+    const rule = useEta && !outForSeason ? etaRule(em, etaCal, currentWeek, etaDays[r.sp.t]) : null;
+    const healthy = Math.max(r.a0, HEALTHY_FLOOR);
+    // Week availability + the same week with no injury (team page / trade "lost to injury").
+    const affected = !!(r.sp.i || outForSeason || useEta);
     const gamesByWeek = {};
     const hsByWeek = {};
+    const availByWeek = affected ? {} : null;
+    const healthyByWeek = affected ? {} : null;
     for (const wd of weekDefs) {
       const w = wd.week;
       const n = gamesIn(r.sp.t, wd);
       gamesByWeek[w] = n;
-      if (!f || !n) { hsByWeek[w] = 0; continue; }
+      const legacy = availability(info, r.a0, w - currentWeek);
+      const a = rule && w >= currentWeek ? rule(w, healthy, info.injury, legacy) : legacy;
+      if (availByWeek) availByWeek[w] = Math.round(a * 1000) / 1000;
+      if (!f || !n) { hsByWeek[w] = 0; if (healthyByWeek) healthyByWeek[w] = 0; continue; }
       // Week-specific mean: the projection for that week's opponents, shrunk exactly like the base fit.
       let scale = 1;
       const pw = r.projIn(wd);
@@ -224,8 +274,9 @@ function buildBoard(data, opts = {}) {
         else mw = (f.nEff * f.empMean * f.rho + Fit.PARAMS.priorGames * pw[0]) / (f.nEff + Fit.PARAMS.priorGames);
         scale = mw / f.mean;
       }
-      const a = availability(info, r.a0, w - currentWeek);
-      hsByWeek[w] = r1(St.expectedMaxAvail(k => f.emax[Math.min(k, f.emax.length - 1)] * scale, n, a));
+      const emaxAt = k => f.emax[Math.min(k, f.emax.length - 1)] * scale;
+      hsByWeek[w] = r1(St.expectedMaxAvail(emaxAt, n, a));
+      if (healthyByWeek) healthyByWeek[w] = r1(St.expectedMaxAvail(emaxAt, n, w < currentWeek ? r.a0 : healthy));
     }
     let hsValue, games;
     if (reqWeek != null) {
@@ -251,7 +302,11 @@ function buildBoard(data, opts = {}) {
       eligConfidence: 'sleeper-mapped',
       injury: outForSeason ? (r.sp.i || 'Out') : r.sp.i,
       injuryBody: r.sp.ib || null,
+      injuryNotes: r.sp.in || null,
       outForSeason,
+      // ESPN return date (null without a matched row; stale rows are shown, not applied).
+      eta: em ? { status: em.status, returnDate: em.returnDate, returnWeek: em.returnWeek, bodyPart: em.bodyPart, detail: em.detail, comment: em.comment, source: 'espn', asOf: em.asOf, stale: em.stale } : null,
+      ...(availByWeek ? { availByWeek, healthyByWeek } : {}),
       mean: f ? r1(f.mean) : 0,
       sd: f ? r1(f.sd) : 0,
       games,
@@ -283,10 +338,22 @@ function buildBoard(data, opts = {}) {
   let vorpMeta = null, yahooMeta = null;
   if (profile) {
     // Identity (+ positions when the profile is Yahoo-first): slot VORP reads yahooElig.
-    yahooMeta = Yahoo.applyYahoo(players, { leagueId: profile.leagueId || Yahoo.DEFAULT_LEAGUE, profileSlots, positionSource: profile.positionSource || 'sleeper' });
+    // A Sleeper profile joins the Yahoo snapshot it names (marketSnapshotId), not its own id.
+    yahooMeta = Yahoo.applyYahoo(players, { leagueId: profile.marketSnapshotId || profile.leagueId || Yahoo.DEFAULT_LEAGUE, profileSlots, positionSource: profile.positionSource || 'sleeper' });
     vorpMeta = Slots.applyVorp(players, profile);
   }
-  return { season: Number(season), week: reqWeek, currentWeek, players, vorpMeta, yahooMeta };
+  const etaMeta = etaDoc ? { source: 'espn', fetchedAt: etaDoc.fetchedAt || null, rows: etaDoc.rows.length, matched: players.filter(p => p.eta).length, applied: players.filter(p => p.eta && !p.eta.stale).length } : null;
+  return { season: Number(season), week: reqWeek, currentWeek, players, vorpMeta, yahooMeta, etaMeta };
+}
+
+// A board player's play probability in week w (ETA-aware): the board's own
+// availByWeek when the player is injured, else the healthy rule.
+function weekAvailability(p, w, currentWeek) {
+  if (!p) return null;
+  if (p.availByWeek && p.availByWeek[w] != null) return p.availByWeek[w];
+  if (p.outForSeason) return 0;
+  const a0 = Number.isFinite(p.availability) ? p.availability : AVAIL_PRIOR;
+  return w < currentWeek ? a0 : Math.max(a0, HEALTHY_FLOOR);
 }
 
 // Gap-based tiers: a new tier starts where the drop to the next player is in
@@ -305,4 +372,4 @@ function assignTiers(players) {
   }
 }
 
-module.exports = { buildBoard, imputeUnscheduled, availability, HEALTHY_FLOOR, elig, isOutForSeason, MIN_LOG_GAMES };
+module.exports = { buildBoard, imputeUnscheduled, availability, weekAvailability, HEALTHY_FLOOR, elig, isOutForSeason, MIN_LOG_GAMES };
