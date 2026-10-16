@@ -162,9 +162,10 @@ function createLineupRoutes({
       const day = parseIntIn(req.query.day, 0, 14);
       if (Number.isNaN(day)) return res.status(400).json({ error: 'Invalid day' });
       const uid = req.query.user_id != null && /^\d{1,24}$/.test(String(req.query.user_id)) ? String(req.query.user_id) : null;
-      // Profile: the stored one for Dillon's league id (Yahoo-era id kept for 242808's
-      // custom scoring/weeks), else High Score defaults; `league_id` may name a profile too.
-      const lc = LC.profileFor({ leagueId: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      // Profile: the league's own Sleeper settings (slots, Mon-Sun weeks, scoring;
+      // nba/model/league-sync.js); ?profile= names a stored one (242808 / hs) instead.
+      const lc = await LC.sleeperRouteProfile({ sleeper, leagueId: lid, profileParam: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      if (lc.profile.aggregation === 'categories') return res.status(400).json(LC.NOT_POINTS);
       let model, b;
       try {
         model = loadModel();

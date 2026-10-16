@@ -75,7 +75,8 @@ function yahooOnlyRow(y, { profileSlots, replacement }) {
 // drafted manually; ones with no projection sink to the bottom.
 function enrichPlayers(data, opts = {}) {
   if (!data || !Array.isArray(data.players)) return data;
-  const leagueId = (data.profile && data.profile.leagueId) || Yahoo.DEFAULT_LEAGUE;
+  // Sleeper profiles name the Yahoo snapshot they join (marketSnapshotId).
+  const leagueId = (data.profile && (data.profile.marketSnapshotId || data.profile.leagueId)) || Yahoo.DEFAULT_LEAGUE;
   const market = opts.market !== undefined ? opts.market : loadMarket();
   const snap = opts.snapshot !== undefined ? opts.snapshot : Yahoo.loadSnapshot(leagueId);
 

@@ -11,12 +11,17 @@
 //   GET /api/nba/sleeper/draft?draft_id=[&user_id=]   → { status, picks, unmatched, order, onClock, auction, draft, polledAt }
 //   GET /api/nba/sleeper/rosters?league_id=[&user_id=] → { league, teams (players matched to the board), myTeamKey, unmatched }
 //   GET /api/nba/sleeper/matchup?league_id=&roster_id=&week= → { week, opponent: team_key|null }
+// router.profileFor(leagueId) → the league's profile built from its Sleeper settings
+// (nba/model/league-sync.js profileFromSleeper; cached 10 min, remembered in
+// routes/league-context.js so LC.profileFor({ sleeperLeagueId }) returns it).
 // Error codes: sleeper_bad_request 400, sleeper_user_not_found / sleeper_not_found 404,
 // sleeper_rate_limited 429 (+Retry-After), sleeper_timeout 504, sleeper_upstream 502.
 'use strict';
 const express = require('express');
 const { createSleeperClient, SleeperError, errorResponse } = require('../sleeper/client');
 const M = require('../sleeper/map');
+const LS = require('../model/league-sync');
+const LC = require('./league-context');
 const { matchYahooPlayer } = require('../model/names');
 
 const ID_RE = /^\d{1,24}$/;
@@ -61,6 +66,7 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
 
   // ---- cached fetchers ---------------------------------------------------
   const season = () => apiCached('nba:sl:season', 60 * 60 * 1000, async () => M.currentSeason(await client.state()));
+  const stateRaw = () => apiCached('nba:sl:state', 60 * 60 * 1000, () => client.state());
   const userByName = u => apiCached(`nba:sl:user:${u.toLowerCase()}`, 10 * 60 * 1000, () => client.user(u));
   const leagueRaw = id => apiCached(`nba:sl:league:${id}`, 60 * 1000, () => client.league(id));
   const usersRaw = id => apiCached(`nba:sl:users:${id}`, 60 * 1000, () => client.leagueUsers(id));
@@ -89,6 +95,22 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
     const mine = M.myTeamKey(teams, userId);
     const me = mine ? teams.find(t => t.team_key === mine) : null;
     return { league, users, rosters, draft, teams, myTeamKey: mine, mySlot: me && me.draft_position != null ? me.draft_position : null };
+  }
+
+  // League profile from the league's own Sleeper settings (slots, Mon-Sun weeks,
+  // playoffs, deadline, scoring). State only supplies season_start_date: if it
+  // fails the calendar falls back to the schedule / Oct 20 (profileFromSleeper).
+  async function profileFor(leagueId) {
+    const lid = String(leagueId || '');
+    if (!ID_RE.test(lid)) throw new SleeperError('Invalid league_id', { status: 400, code: 'sleeper_bad_request' });
+    const p = await apiCached(`nba:sl:profile:${lid}`, 10 * 60 * 1000, async () => {
+      const league = await leagueRaw(lid);
+      if (!league) throw new SleeperError('League not found on Sleeper', { status: 404, code: 'sleeper_not_found' });
+      const [state, draft] = await Promise.all([stateRaw().catch(() => null), leagueDraft(league).catch(() => null)]);
+      return LS.profileFromSleeper({ league, state, draft });
+    });
+    LC.rememberSleeperProfile(p);
+    return p;
   }
 
   // ---- endpoints ---------------------------------------------------------
@@ -198,6 +220,7 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
   }));
 
   router.leagueContext = leagueContext;
+  router.profileFor = profileFor;
   router.client = client;
   router.createResolver = createResolver;
   return router;

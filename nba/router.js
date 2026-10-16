@@ -22,6 +22,8 @@ const { createNonceStore } = require('./yahoo/nonces');
 const { createClient } = require('./yahoo/client');
 const createYahooRoutes = require('./yahoo/routes');
 const leagueProfile = require('./league-profile');
+const LC = require('./routes/league-context');
+const { errorResponse: sleeperError } = require('./sleeper/client');
 const { versionAssets } = require('./asset-version');
 
 const PAGES_DIR = path.join(__dirname, 'pages');
@@ -160,11 +162,18 @@ function createNbaRouter({
     return u.host === String(req.get('host') || '') || u.origin === originFor(req);
   }
 
+  // profile: a stored profile id ('242808'), a Sleeper league id whose profile
+  // routes/sleeper.js has built (LC registry), or a profile object.
   async function modelPlayers(week, profile) {
     const model = loadModel();
-    const key = `nba:players:${week || 'default'}${profile ? ':p' + profile : ''}`;
+    let prof = profile;
+    if (typeof prof === 'string' && prof && !leagueProfile.getProfile(prof)) prof = LC.sleeperProfile(prof, { maxAgeMs: Infinity }) || prof;
+    const pkey = prof && typeof prof === 'object'
+      ? `${prof.leagueId}:${crypto.createHash('sha1').update(JSON.stringify(prof)).digest('base64url').slice(0, 16)}`
+      : prof;
+    const key = `nba:players:${week || 'default'}${pkey ? ':p' + pkey : ''}`;
     const data = await apiCached(key, 10 * 60 * 1000, async () => {
-      const d = await model.getPlayers({ week: week || undefined, profile: profile || undefined });
+      const d = await model.getPlayers({ week: week || undefined, profile: prof || undefined });
       // Profile responses also carry the market layer + Yahoo-only rows (nba/model/enrich.js).
       return profile && !model.stub && d && d.profile ? require('./model/enrich').enrichPlayers(d) : d;
     });
@@ -279,12 +288,31 @@ function createNbaRouter({
     return e;
   }
 
+  // Sleeper league sync (mounted below, after the players route); its profileFor
+  // builds Sleeper league profiles for /api/nba/players?league_id= too.
+  const sleeper = require('./routes/sleeper')({ apiCached, modelPlayers, log, client: sleeperClient });
+
+  // ?league_id=<Sleeper league id> builds the board under that league's own
+  // Sleeper profile (slots, Mon-Sun weeks, playoffs, scoring; cached 10 min);
+  // otherwise ?profile= names a stored profile (default 242808).
   router.get('/api/nba/players', async (req, res) => {
     const week = req.query.week != null && req.query.week !== '' ? Number(req.query.week) : null;
     if (week !== null && !(Number.isInteger(week) && week >= 1 && week <= 30)) return res.status(400).json({ error: 'Invalid week' });
-    const profile = req.query.profile == null || req.query.profile === '' ? leagueProfile.DEFAULT_LEAGUE_ID : String(req.query.profile).trim();
-    if (!/^\d{1,12}$/.test(profile)) return res.status(400).json({ error: 'Invalid profile' });
-    if (!leagueProfile.getProfile(profile)) return res.status(404).json({ error: 'Unknown league profile' });
+    let profile;
+    if (req.query.league_id != null && req.query.league_id !== '') {
+      const lid = String(req.query.league_id).trim();
+      if (!/^\d{1,24}$/.test(lid)) return res.status(400).json({ error: 'Invalid league_id' });
+      try { profile = await sleeper.profileFor(lid); } catch (err) {
+        const { status, body } = sleeperError(err);
+        if (status === 429 && body.retryAfterS) res.setHeader('Retry-After', String(body.retryAfterS));
+        return res.status(status).json(body);
+      }
+      if (profile.aggregation !== 'high-score') return res.status(400).json({ error: 'This is a category league; Pocket NBA values points leagues only.', code: 'league_not_points' });
+    } else {
+      profile = req.query.profile == null || req.query.profile === '' ? leagueProfile.DEFAULT_LEAGUE_ID : String(req.query.profile).trim();
+      if (!/^\d{1,12}$/.test(profile)) return res.status(400).json({ error: 'Invalid profile' });
+      if (!leagueProfile.getProfile(profile)) return res.status(404).json({ error: 'Unknown league profile' });
+    }
     try {
       const data = await modelPlayers(week, profile);
       const { body, etag } = encodePlayers(data);
@@ -300,7 +328,6 @@ function createNbaRouter({
     }
   });
 
-  const sleeper = require('./routes/sleeper')({ apiCached, modelPlayers, log, client: sleeperClient });
   router.use(sleeper);
   router.use(require('./routes/profile')());
   router.use('/api/nba/market', rateLimit(limitApi), require('./routes/market'));

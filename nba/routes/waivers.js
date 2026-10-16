@@ -236,7 +236,9 @@ module.exports = function waiversRoutes({
       const qAdds = intIn(req.query.adds_used, 0, 99);
       if (qPriority === null || qAdds === null) return res.status(400).json({ error: 'Invalid priority or adds_used' });
       const uid = req.query.user_id != null && /^\d{1,24}$/.test(String(req.query.user_id)) ? String(req.query.user_id) : null;
-      const lc = LC.profileFor({ leagueId: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      // The league's own Sleeper profile (slots, Mon-Sun weeks, scoring); ?profile= overrides.
+      const lc = await LC.sleeperRouteProfile({ sleeper, leagueId: lid, profileParam: req.query.profile != null && /^(\d{1,12}|hs)$/.test(String(req.query.profile)) ? String(req.query.profile) : undefined });
+      if (lc.profile.aggregation === 'categories') return res.status(400).json(LC.NOT_POINTS);
       let b;
       try { ({ b } = await board(lc)); } catch (err) {
         if (err.status !== 503) log.error('[nba] waivers model:', err.message);
