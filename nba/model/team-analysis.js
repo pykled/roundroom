@@ -96,19 +96,24 @@ function weekValue(players, profile, week, replacement, opts = {}) {
   const items = players.map(p => ({ id: String(p.id), elig: R.eligFor(p, profile), v: vals ? num(vals.get(String(p.id))) : num((p.hsByWeek || {})[week]) }));
   const open = Math.max(0, cap - players.length);
   for (let i = 0; i < Math.min(open, slots.length); i++) items.push({ id: `~repl${i}`, elig: ALL, v: rv });
+  // Trade v2 stream rule: one waiver add per player who has to sit, so a slot only playable below waiver level is streamed.
+  const spare = Math.min(slots.length, Math.max(0, players.length - slots.length));
+  for (let i = 0; i < spare; i++) items.push({ id: `~swap${i}`, elig: ALL, v: rv });
   items.sort((a, b) => b.v - a.v || (a.id < b.id ? -1 : 1));
   const lu = R.bestAssignment(items, slots);
   const vOf = new Map(items.map(it => [it.id, it.v]));
   const bench = items.filter(it => !lu.slotOf.has(it.id) && !it.id.startsWith('~'));
-  const holes = Math.min(slots.length - lu.slotOf.size, bench.length);
+  let swaps = 0;
+  for (const id of lu.slotOf.keys()) if (id.startsWith('~swap')) swaps++;
+  const holes = Math.min(slots.length - lu.slotOf.size, Math.max(0, bench.length - swaps));
   let benchVal = 0;
   const benchOut = [];
-  bench.slice(0, bench.length - holes).forEach((it, i) => {
+  bench.slice(0, Math.max(0, bench.length - swaps - holes)).forEach((it, i) => {
     const share = i < shares.length ? shares[i] : 0;
     benchVal += share * Math.max(0, it.v - rv);
     benchOut.push({ id: it.id, value: it.v, share });
   });
-  const starters = lu.starters.map(s => (s.id.startsWith('~') ? { id: null, slot: s.slot, value: rv, replacement: true } : { id: s.id, slot: s.slot, value: vOf.get(s.id) }));
+  const starters = lu.starters.map(s => (s.id.startsWith('~') ? { id: null, slot: s.slot, value: rv, replacement: true, ...(s.id.startsWith('~swap') ? { hole: true } : {}) } : { id: s.id, slot: s.slot, value: vOf.get(s.id) }));
   const left = slots.slice();
   for (const s of lu.starters) { const i = left.indexOf(s.slot); if (i >= 0) left.splice(i, 1); }
   for (let i = 0; i < holes; i++) starters.push({ id: null, slot: left[i] || 'UTIL', value: rv, replacement: true, hole: true });

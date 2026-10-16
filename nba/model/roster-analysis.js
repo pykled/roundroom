@@ -91,15 +91,20 @@ function weekValue(players, profile, week, replacement, opts = {}) {
   const items = roster.map(p => ({ id: p.id, elig: R.eligFor(p, prof), v: valueOf(p, week) }));
   const open = Math.max(0, cap - roster.length);
   for (let i = 0; i < Math.min(open, slots.length); i++) items.push({ id: `~repl${i}`, elig: ALL, v: rv });
+  // Trade v2 stream rule: one waiver add per player who has to sit, so a slot only playable below waiver level is streamed.
+  const spare = Math.min(slots.length, Math.max(0, roster.length - slots.length));
+  for (let i = 0; i < spare; i++) items.push({ id: `~swap${i}`, elig: ALL, v: rv });
   items.sort((a, b) => b.v - a.v || (a.id < b.id ? -1 : 1));
   const lu = R.bestAssignment(items, slots);
   const bench = items.filter(it => !lu.slotOf.has(it.id) && !String(it.id).startsWith('~'));
+  let swaps = 0;
+  for (const id of lu.slotOf.keys()) if (String(id).startsWith('~swap')) swaps++;
   // A starting slot nobody on a full roster can fill: drop the worst bench player for a waiver add.
-  const holes = Math.min(slots.length - lu.slotOf.size, bench.length);
+  const holes = Math.min(slots.length - lu.slotOf.size, Math.max(0, bench.length - swaps));
   const holeFill = holes > 0 ? holes * rv : 0;
   let benchVal = 0;
-  bench.slice(0, bench.length - holes).forEach((it, i) => { if (i < shares.length) benchVal += shares[i] * Math.max(0, it.v - rv); });
-  const out = { total: lu.total + holeFill + benchVal, starters: lu.total + holeFill, bench: benchVal, holes };
+  bench.slice(0, Math.max(0, bench.length - swaps - holes)).forEach((it, i) => { if (i < shares.length) benchVal += shares[i] * Math.max(0, it.v - rv); });
+  const out = { total: lu.total + holeFill + benchVal, starters: lu.total + holeFill, bench: benchVal, holes: holes + swaps };
   if (opts.keepSlots) out.slotOf = lu.slotOf;
   return out;
 }
