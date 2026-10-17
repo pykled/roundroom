@@ -1,11 +1,11 @@
 {
-  "fetched_at": "2026-10-17T18:37:36.586Z",
+  "fetched_at": "2026-10-17T22:28:47.530Z",
   "players": [
     {
       "name": "A.J. Brown",
       "position": "WR",
       "team": "NE",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -133,13 +133,6 @@
       "team": "IND",
       "status": "Out",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Austin Ekeler",
-      "position": "RB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Chest"
     },
     {
       "name": "Baker Mayfield",
@@ -838,7 +831,7 @@
       "name": "Ja'Kobi Lane",
       "position": "WR",
       "team": "BAL",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Wrist"
     },
     {
@@ -915,7 +908,7 @@
       "name": "Jalen Hurts",
       "position": "QB",
       "team": "PHI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Calf"
     },
     {
@@ -1188,7 +1181,7 @@
       "name": "KeAndre Lambert-Smith",
       "position": "WR",
       "team": "LAC",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Hamstring"
     },
     {
@@ -1475,7 +1468,7 @@
       "name": "Omar Cooper",
       "position": "WR",
       "team": "NYJ",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -1526,13 +1519,6 @@
       "team": "CLE",
       "status": "Questionable",
       "body_part": "Lower Leg"
-    },
-    {
-      "name": "Rachaad White",
-      "position": "RB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Raheem Blackshear",
@@ -1636,7 +1622,7 @@
       "name": "Roman Wilson",
       "position": "WR",
       "team": "PIT",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Finger"
     },
     {
@@ -1664,8 +1650,8 @@
       "name": "Savion Williams",
       "position": "WR",
       "team": "GB",
-      "status": "IR",
-      "body_part": "Undisclosed"
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Sean McKeon",
@@ -1727,7 +1713,7 @@
       "name": "Skyy Moore",
       "position": "WR",
       "team": "GB",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1799,13 +1785,6 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Terry McLaurin",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Theo Johnson",
@@ -1897,13 +1876,6 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Treylon Burks",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Treyvhon Saunders",
