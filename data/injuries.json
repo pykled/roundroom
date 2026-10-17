@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-17T15:46:01.032Z",
+  "fetched_at": "2026-10-17T18:37:36.586Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -583,13 +583,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "DK Metcalf",
-      "position": "WR",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Dominic Richardson",
       "position": "RB",
       "team": null,
@@ -887,7 +880,7 @@
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -1342,7 +1335,7 @@
       "name": "Marcus Mariota",
       "position": "QB",
       "team": "WAS",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee - MCL"
     },
     {
@@ -1498,6 +1491,13 @@
       "team": "DEN",
       "status": "IR",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Pat Freiermuth",
+      "position": "TE",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Calf"
     },
     {
       "name": "Patrick Taylor",
@@ -1874,7 +1874,7 @@
       "name": "Trevor Etienne",
       "position": "RB",
       "team": "CAR",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -2002,13 +2002,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Will Mallory",
-      "position": "TE",
-      "team": "IND",
-      "status": "IR",
-      "body_part": "Thumb"
     },
     {
       "name": "Will Shipley",
