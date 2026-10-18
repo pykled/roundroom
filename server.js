@@ -824,13 +824,20 @@ async function fetchSleeperWeek(kind, week) {
 // is slow to zero players who are out for the year. Weekly rows are already
 // 0 for every week Sleeper expects a player to sit, so byes and expected
 // absences fall out naturally. Response: { season, fromWeek, weeks, players }
-// where players has the season endpoint's shape plus gp = projected games.
+// where players has the season endpoint's shape. 503 outside the regular
+// season.
 // Cached 1h per week (each weekly fetch is shared with /api/projections/:week).
 app.get('/api/projections/ros', async (req, res) => {
   try {
     const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
       fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     );
+    // Outside the regular season there is no "rest of season" to sum: week is
+    // clamped to 18 below, so a postseason/offseason state would return week 18
+    // alone. 503 sends trade.html back to the season projections.
+    if (state.season_type !== 'regular' || Number(state.week) > 18) {
+      return res.status(503).json({ error: 'Rest-of-season projections unavailable outside the regular season' });
+    }
     const fromWeek = Math.min(18, Math.max(1, Number(state.week) || 1));
     const data = await apiCached(`proj:2026:ros:${fromWeek}`, 60 * 60 * 1000, async () => {
       const weeks = [];
