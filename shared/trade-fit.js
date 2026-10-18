@@ -80,16 +80,34 @@ var TradeFit = (function () {
   // correct the projection-driven 70%. Dynasty discounts are milder because the
   // asset outlives this season's lost games.
   //
-  // TODO: scale Out/IR by expected games missed (needs a return-timeline feed;
-  // Sleeper exposes injury_body_part but no ETA). Until then a fixed multiplier.
+  // Two table families, picked by opts.ros:
+  //   season (default)  the VORP half came from Sleeper's full-season projection,
+  //                     which is slow to shed the games a hurt player will miss,
+  //                     so Out/IR carry a heavy fixed discount.
+  //   ros               the VORP half came from /api/projections/ros (sum of the
+  //                     weekly projections from this week on). Those weekly rows
+  //                     are already 0 for every week Sleeper expects the player
+  //                     to sit (audited 2026-10-17: Out → 0 this week, full from
+  //                     next; IR → 0 until the designated-return week), so the
+  //                     games missed are priced in and only a residual
+  //                     setback-risk nudge remains. Stacking the season table on
+  //                     top double-counted: IR players ran 4.2 position ranks
+  //                     below the market, Out players 2.0.
   var INJURY_MULT = {
     redraft: { Questionable: 0.97, Doubtful: 0.90, Out: 0.80, IR: 0.55, PUP: 0.55, Sus: 0.85, COV: 0.90, DNR: 0.40, NA: 1 },
     dynasty: { Questionable: 0.98, Doubtful: 0.95, Out: 0.92, IR: 0.82, PUP: 0.82, Sus: 0.92, COV: 0.96, DNR: 0.60, NA: 1 },
+    rosRedraft: { Questionable: 0.97, Doubtful: 0.92, Out: 0.95, IR: 0.90, PUP: 0.90, Sus: 0.95, COV: 0.97, DNR: 0.60, NA: 1 },
+    rosDynasty: { Questionable: 0.98, Doubtful: 0.96, Out: 0.98, IR: 0.95, PUP: 0.95, Sus: 0.98, COV: 0.98, DNR: 0.70, NA: 1 },
   };
+
+  function injuryTable(opts) {
+    var dyn = !!(opts && opts.dynasty), ros = !!(opts && opts.ros);
+    return INJURY_MULT[ros ? (dyn ? 'rosDynasty' : 'rosRedraft') : (dyn ? 'dynasty' : 'redraft')];
+  }
 
   function injuryMult(status, opts) {
     if (!status) return 1;
-    var table = INJURY_MULT[opts && opts.dynasty ? 'dynasty' : 'redraft'];
+    var table = injuryTable(opts);
     var s = String(status).replace(/\.$/, '');
     return table.hasOwnProperty(s) ? table[s] : 1;
   }

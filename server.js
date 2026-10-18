@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const { pool: db, migrate } = require('./db/migrate');
 const WeekHistory = require('./scripts/log-week');
 const FPACalibration = require('./shared/fpa-calibration');
+const ScoringEngine = require('./shared/scoring');
 const TrendingScore = require('./shared/trending-score');
 const WaiverTargets = require('./shared/waiver-targets');
 
@@ -814,6 +815,39 @@ async function fetchSleeperWeek(kind, week) {
   }
   return slim;
 }
+
+// Rest-of-season projections: Sleeper's weekly projections summed from the
+// current NFL week through week 18 (ScoringEngine.sumProjections). This is
+// what a trade actually buys mid-season — the full-season endpoint above
+// still counts games already played or missed (A.J. Brown's four IR weeks
+// ranked him WR48 by season total while his remaining weeks rank WR20), and
+// is slow to zero players who are out for the year. Weekly rows are already
+// 0 for every week Sleeper expects a player to sit, so byes and expected
+// absences fall out naturally. Response: { season, fromWeek, weeks, players }
+// where players has the season endpoint's shape plus gp = projected games.
+// Cached 1h per week (each weekly fetch is shared with /api/projections/:week).
+app.get('/api/projections/ros', async (req, res) => {
+  try {
+    const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    );
+    const fromWeek = Math.min(18, Math.max(1, Number(state.week) || 1));
+    const data = await apiCached(`proj:2026:ros:${fromWeek}`, 60 * 60 * 1000, async () => {
+      const weeks = [];
+      for (let w = fromWeek; w <= 18; w++) weeks.push(w);
+      const dicts = await Promise.all(weeks.map(w =>
+        apiCached(`proj:2026:${w}`, 60 * 60 * 1000, () => fetchSleeperWeek('projections', w)).catch(() => null)
+      ));
+      const loaded = weeks.filter((w, i) => dicts[i] && Object.keys(dicts[i]).length);
+      if (!loaded.length) throw new Error('no weekly projections published');
+      return { season: String(state.season || 2026), fromWeek, weeks: loaded, players: ScoringEngine.sumProjections(dicts.filter(Boolean)) };
+    });
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json(data);
+  } catch (err) {
+    res.status(503).json({ error: 'Failed to fetch rest-of-season projections' });
+  }
+});
 
 app.get('/api/projections/:week', async (req, res) => {
   const week = parseInt(req.params.week, 10);

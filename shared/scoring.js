@@ -60,6 +60,34 @@ var ScoringEngine = (function () {
     return vorpMap;
   }
 
+  // Sum per-week projection dicts ({ player_id: { stat: value } }) into one
+  // rest-of-season dict with the same shape, so computeVORP can score it under
+  // any league's scoring_settings. Only additive numeric stats are summed;
+  // per-week rank / ADP / games-active bookkeeping fields are dropped. A
+  // player with no row in a week (bye, expected out) simply adds nothing.
+  var NON_ADDITIVE = /adp|rank|gms_active|^gp$/;
+  function sumProjections(weekDicts) {
+    var out = {};
+    (weekDicts || []).forEach(function (wk) {
+      if (!wk || typeof wk !== 'object') return;
+      for (var id in wk) {
+        if (!Object.prototype.hasOwnProperty.call(wk, id)) continue;
+        var stats = wk[id];
+        if (!stats || typeof stats !== 'object') continue;
+        var acc = out[id] || (out[id] = {});
+        for (var k in stats) {
+          if (!Object.prototype.hasOwnProperty.call(stats, k)) continue;
+          var v = stats[k];
+          if (typeof v !== 'number' || !isFinite(v) || NON_ADDITIVE.test(k)) continue;
+          acc[k] = (acc[k] || 0) + v;
+        }
+        // Weeks with a projected line = games the player is expected to play.
+        acc.gp = (acc.gp || 0) + 1;
+      }
+    });
+    return out;
+  }
+
   // Apply ^1.25 power curve and rescale to 0–10000
   function rescaleVORP(vorpMap) {
     var maxV = 0;
@@ -120,7 +148,7 @@ var ScoringEngine = (function () {
     return { giverValue: giverValue, receiverValue: receiverValue, verdict: verdict, deltaPct: deltaPct };
   }
 
-  return { scorePlayer: scorePlayer, computeVORP: computeVORP, rescaleVORP: rescaleVORP, blendWithMarket: blendWithMarket, evaluateTrade: evaluateTrade };
+  return { scorePlayer: scorePlayer, computeVORP: computeVORP, sumProjections: sumProjections, rescaleVORP: rescaleVORP, blendWithMarket: blendWithMarket, evaluateTrade: evaluateTrade };
 })();
 
 if (typeof module !== 'undefined') module.exports = ScoringEngine;
