@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-18T16:01:10.433Z",
+  "fetched_at": "2026-10-18T18:44:00.243Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -72,6 +72,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Alvin Kamara",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Ameer Abdullah",
       "position": "RB",
       "team": "JAX",
@@ -140,6 +147,13 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Behren Morton",
+      "position": "QB",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Ben Sauls",
@@ -245,6 +259,13 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Carson Steele",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Carson Towt",
@@ -378,6 +399,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Cooper Rush",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Corey Rucker",
@@ -884,6 +912,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Jack Strand",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jackson Meeks",
       "position": "TE",
       "team": "DET",
@@ -917,6 +952,13 @@
       "team": "SEA",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jake Haener",
+      "position": "QB",
+      "team": "NYG",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jake Tonges",
@@ -1430,6 +1472,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Michael Penix",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Michael Pittman",
       "position": "WR",
       "team": "PIT",
@@ -1584,6 +1633,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Rashod Bateman",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Ray-Ray McCloud",
       "position": "WR",
       "team": null,
@@ -1661,6 +1717,13 @@
       "body_part": "Finger"
     },
     {
+      "name": "Romeo Doubs",
+      "position": "WR",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "Ronnie Rivers",
       "position": "RB",
       "team": "LAR",
@@ -1699,7 +1762,7 @@
       "name": "Sean Tucker",
       "position": "RB",
       "team": "TB",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -1785,6 +1848,13 @@
       "team": "HOU",
       "status": "IR",
       "body_part": "Knee - ACL + MCL"
+    },
+    {
+      "name": "Tanner Arkin",
+      "position": "TE",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Tanner Hudson",
@@ -1917,13 +1987,6 @@
       "position": "RB",
       "team": "NO",
       "status": "IR",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Tyjae Spears",
-      "position": "RB",
-      "team": "TEN",
-      "status": "Questionable",
       "body_part": "Knee"
     },
     {
