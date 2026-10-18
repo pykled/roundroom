@@ -1,13 +1,6 @@
 {
-  "fetched_at": "2026-10-18T11:26:49.388Z",
+  "fetched_at": "2026-10-18T16:01:10.433Z",
   "players": [
-    {
-      "name": "A.J. Brown",
-      "position": "WR",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
     {
       "name": "A.J. Hines",
       "position": "RB",
@@ -79,11 +72,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Alvin Kamara",
+      "name": "Ameer Abdullah",
       "position": "RB",
-      "team": "NO",
+      "team": "JAX",
       "status": "Questionable",
-      "body_part": "Back"
+      "body_part": "Concussion"
     },
     {
       "name": "Andre Baccellia",
@@ -247,13 +240,6 @@
       "body_part": "Lower Body"
     },
     {
-      "name": "Caleb Williams",
-      "position": "QB",
-      "team": "CHI",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Calvin Austin",
       "position": "WR",
       "team": "NYG",
@@ -280,6 +266,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Case Keenum",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Caullin Lacy",
@@ -338,13 +331,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Chris Olave",
-      "position": "WR",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Chris Thompson",
       "position": "WR",
       "team": null,
@@ -357,6 +343,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "CJ Williams",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Colbie Young",
@@ -597,6 +590,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Drew Allar",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -639,6 +639,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Eli Heidenreich",
+      "position": "RB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Eli Stowers",
       "position": "TE",
       "team": "PHI",
@@ -658,6 +665,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Elijah Sarratt",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Eric McAlister",
@@ -779,6 +793,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Haynes King",
+      "position": "QB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Hunter Long",
       "position": "TE",
       "team": "ARI",
@@ -828,18 +849,18 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Ja'Kobi Lane",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Wrist"
-    },
-    {
       "name": "Ja'Lynn Polk",
       "position": "WR",
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Ja'Tavion Sanders",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacardia Wright",
@@ -1052,6 +1073,13 @@
       "body_part": null
     },
     {
+      "name": "Joe Milton",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Joe Mixon",
       "position": "RB",
       "team": null,
@@ -1213,13 +1241,6 @@
       "body_part": "Knee - ACL"
     },
     {
-      "name": "Kenyon Sadiq",
-      "position": "TE",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Concussion"
-    },
-    {
       "name": "KhaDarel Hodge",
       "position": "WR",
       "team": null,
@@ -1239,6 +1260,13 @@
       "team": "CHI",
       "status": "Out",
       "body_part": "Toe"
+    },
+    {
+      "name": "Kylen Granson",
+      "position": "TE",
+      "team": "TEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Kyron Hudson",
@@ -1339,6 +1367,20 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Marlin Klein",
+      "position": "TE",
+      "team": "HOU",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Marquise Brown",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Marvin Jones",
       "position": "WR",
       "team": null,
@@ -1437,6 +1479,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nicholas Singleton",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Nikola Kalinic",
       "position": "TE",
       "team": "CHI",
@@ -1465,13 +1514,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Omar Cooper",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Parris Campbell",
       "position": "WR",
       "team": null,
@@ -1484,13 +1526,6 @@
       "team": "DEN",
       "status": "IR",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Pat Freiermuth",
-      "position": "TE",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Calf"
     },
     {
       "name": "Patrick Taylor",
@@ -1517,8 +1552,8 @@
       "name": "Quinshon Judkins",
       "position": "RB",
       "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Lower Leg"
+      "status": "Out",
+      "body_part": "Foot"
     },
     {
       "name": "Raheem Blackshear",
@@ -1577,11 +1612,11 @@
       "body_part": "Knee - PCL"
     },
     {
-      "name": "Rico Dowdle",
-      "position": "RB",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Toe"
+      "name": "Riley Leonard",
+      "position": "QB",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "River Cracraft",
@@ -1773,6 +1808,13 @@
       "body_part": null
     },
     {
+      "name": "Taylen Green",
+      "position": "QB",
+      "team": "CLE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Teddy Bridgewater",
       "position": "QB",
       "team": null,
@@ -1843,20 +1885,6 @@
       "body_part": "Hamstring"
     },
     {
-      "name": "TreVeyon Henderson",
-      "position": "RB",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
-      "name": "Trevor Etienne",
-      "position": "RB",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Trey Benson",
       "position": "RB",
       "team": "ARI",
@@ -1923,7 +1951,7 @@
       "name": "Tyler Warren",
       "position": "TE",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -1976,6 +2004,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Will Howard",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Will Shipley",
       "position": "RB",
       "team": "PHI",
@@ -2002,6 +2037,13 @@
       "team": "SEA",
       "status": "PUP",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Zach Wilson",
+      "position": "QB",
+      "team": "NO",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Zack Moss",
