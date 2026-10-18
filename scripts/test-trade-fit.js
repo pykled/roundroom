@@ -76,7 +76,7 @@ console.log('sumProjections');
   const w7 = { p1: { rec: 4, rec_yd: 50, pts_ppr: 12 }, p3: { rush_yd: 80, pts_ppr: 9 } };
   const s = Scoring.sumProjections([w6, w7, null, {}]);
   check('sums additive stats across weeks', s.p1.rec === 9 && s.p1.rec_yd === 110 && s.p1.pts_ppr === 26, JSON.stringify(s.p1));
-  check('gp = weeks with a projected line', s.p1.gp === 2 && s.p2.gp === 1 && s.p3.gp === 1);
+  check('no gp field (Sleeper emits zero rows for byes, so a row count is not games played)', !('gp' in s.p1) && !('gp' in s.p2));
   check('drops ADP / rank / games-active bookkeeping', !('adp_ppr' in s.p1) && !('pos_rank_ppr' in s.p1) && !('gms_active' in s.p1));
   check('players absent from a week add nothing (bye / expected out)', s.p2.pts_ppr === 18 && s.p3.pts_ppr === 9);
   check('empty input → empty dict', Object.keys(Scoring.sumProjections([])).length === 0 && Object.keys(Scoring.sumProjections(null)).length === 0);
@@ -402,13 +402,13 @@ async function live() {
   const withAge = Object.values(players).filter(p => typeof p[4] === 'number').length;
   check('slim dict carries age (5th element)', withAge > 1000, withAge + ' of ' + Object.keys(players).length);
   // Rest-of-season projections: envelope shape, weeks from the current NFL
-  // week, and every projected player carries gp = number of projected weeks.
+  // week, and every projected player carries summed stats.
   const state = await getJSON('/api/nfl-state');
   const ros = await getJSON('/api/projections/ros');
   const rosIds = Object.keys(ros.players || {});
   check('ROS envelope: { season, fromWeek, weeks, players }', ros.season === String(state.season) && ros.fromWeek === Math.min(18, Number(state.week) || 1) && Array.isArray(ros.weeks) && ros.weeks[0] === ros.fromWeek && rosIds.length > 1000,
     `season ${ros.season} from ${ros.fromWeek} weeks ${ros.weeks && ros.weeks.join(',')} players ${rosIds.length}`);
-  check('ROS rows: gp ≤ weeks covered, no ADP/rank fields summed', rosIds.every(id => ros.players[id].gp >= 1 && ros.players[id].gp <= ros.weeks.length) && !rosIds.some(id => Object.keys(ros.players[id]).some(k => /adp|rank/.test(k))));
+  check('ROS rows: no gp, no ADP/rank fields summed', !rosIds.some(id => 'gp' in ros.players[id]) && !rosIds.some(id => Object.keys(ros.players[id]).some(k => /adp|rank/.test(k))));
   // FC redraft lists run ~200 players, dynasty ~420 (adds rookies / deep stashes).
   check('market lists non-empty (1QB, SF, SF dynasty)', Object.keys(m1).length > 150 && Object.keys(m2).length > 150 && Object.keys(d2).length > Object.keys(m2).length,
     `${Object.keys(m1).length} / ${Object.keys(m2).length} / ${Object.keys(d2).length}`);

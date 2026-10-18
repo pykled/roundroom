@@ -81,8 +81,6 @@ var ScoringEngine = (function () {
           if (typeof v !== 'number' || !isFinite(v) || NON_ADDITIVE.test(k)) continue;
           acc[k] = (acc[k] || 0) + v;
         }
-        // Weeks with a projected line = games the player is expected to play.
-        acc.gp = (acc.gp || 0) + 1;
       }
     });
     return out;
