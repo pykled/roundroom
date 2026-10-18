@@ -825,7 +825,7 @@ async function fetchSleeperWeek(kind, week) {
 // 0 for every week Sleeper expects a player to sit, so byes and expected
 // absences fall out naturally. Response: { season, fromWeek, weeks, players }
 // where players has the season endpoint's shape. 503 outside the regular
-// season.
+// season or when any weekly fetch fails (no partial sums).
 // Cached 1h per week (each weekly fetch is shared with /api/projections/:week).
 app.get('/api/projections/ros', async (req, res) => {
   try {
@@ -846,7 +846,9 @@ app.get('/api/projections/ros', async (req, res) => {
         apiCached(`proj:2026:${w}`, 60 * 60 * 1000, () => fetchSleeperWeek('projections', w)).catch(() => null)
       ));
       const loaded = weeks.filter((w, i) => dicts[i] && Object.keys(dicts[i]).length);
-      if (!loaded.length) throw new Error('no weekly projections published');
+      // A sum over a subset of weeks would be cached for an hour and read as a
+      // full rest-of-season; require every week so any gap becomes a 503.
+      if (loaded.length !== weeks.length) throw new Error(`weekly projections incomplete: ${loaded.length}/${weeks.length}`);
       return { season: String(state.season || 2026), fromWeek, weeks: loaded, players: ScoringEngine.sumProjections(dicts.filter(Boolean)) };
     });
     res.setHeader('Cache-Control', 'public, max-age=3600');
