@@ -116,6 +116,10 @@ console.log('rosFromWeek (current-week rule, NFL week 6 of 2026 with injected cl
   check('Tue after Sleeper rolls to 7, week 7 not started → 7 (same fromWeek, no double skip)', f('2026-10-20T17:00:00Z', wk7, 7) === 7);
   check('Sleeper started flag wins even if the clock says pre-kick', f('2026-10-13T17:00:00Z', [{ kickoff: '2026-10-16T00:15:00+00:00', started: true }]) === 7);
   check('no games (feed empty / failed) → current week', f('2026-10-18T17:00:00Z', []) === 6 && f('2026-10-18T17:00:00Z', null) === 6);
+  check('non-array games (map, string, number, undefined) → treated as no games, never throws', (() => {
+    const bad = [{ a: { kickoff: '2026-10-16T00:15:00+00:00', started: true } }, 'x', 5, true, undefined];
+    return bad.every(g => { const r = Scoring.rosFromWeek(6, g, at('2026-10-18T17:00:00Z')); return r.fromWeek === 6 && r.slateStarted === false; });
+  })());
   check('unparseable kickoff ignored', f('2026-10-18T17:00:00Z', [{ kickoff: 'tbd', started: false }]) === 6);
   check('week 18 after kickoff → 19 (caller treats as nothing left)', f('2027-01-08T02:00:00Z', [{ kickoff: '2027-01-08T01:15:00+00:00' }], 18) === 19);
   check('week as a string, slateStarted flag', (() => { const r = Scoring.rosFromWeek('6', wk6, at('2026-10-18T17:00:00Z')); return r.fromWeek === 7 && r.slateStarted === true; })());

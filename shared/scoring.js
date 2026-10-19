@@ -98,7 +98,7 @@ var ScoringEngine = (function () {
     var w = Math.max(1, Math.floor(Number(week) || 1));
     var t = typeof now === 'number' && isFinite(now) ? now : Date.now();
     var started = false;
-    (games || []).forEach(function (g) {
+    (Array.isArray(games) ? games : []).forEach(function (g) {
       if (started || !g || typeof g !== 'object') return;
       if (g.started === true) { started = true; return; }
       var k = typeof g.kickoff === 'number' ? g.kickoff : (g.kickoff ? Date.parse(g.kickoff) : NaN);

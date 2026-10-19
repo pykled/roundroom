@@ -49,15 +49,15 @@ const lpad = (s, n) => { s = String(s == null ? '' : s); return s.length >= n ? 
   const teams = league.total_rosters || (league.rosters || []).length;
   const pool = Object.keys(players).map(id => ({ player_id: id, position: players[id][1] }));
 
-  function build(proj) {
+  function build(proj, weeks) {
     const raw = Scoring.computeVORP(pool, proj, sc, positions, teams);
     let scaled = Scoring.rescaleVORP(raw);
     if (fmt.dynasty) scaled = Fit.applyAge(scaled, players);
     const vorp = Scoring.blendWithMarket(scaled, market || {}, fmt.dynasty ? 0.5 : 0.3);
-    const out = Analysis.analyzeLeague(league, players, proj, vorp, injuries);
+    const out = Analysis.analyzeLeague(league, players, proj, vorp, injuries, weeks ? { weeks } : undefined);
     return { raw, vorp, out };
   }
-  const A = build(season), B = build(ros.players);
+  const A = build(season), B = build(ros.players, ros.weeks.length);
 
   console.log(`${league.name} · ${teams} teams · ${fmt.sf ? 'SF' : '1QB'} · ${fmt.dynasty ? 'dynasty' : 'redraft'} · ppr ${fmt.ppr} · ROS weeks ${ros.weeks[0]}–${ros.weeks[ros.weeks.length - 1]} (${ros.weeks.length})`);
 
