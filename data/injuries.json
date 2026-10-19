@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-18T22:29:50.402Z",
+  "fetched_at": "2026-10-19T00:22:05.243Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -275,6 +275,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Camden Brown",
+      "position": "WR",
+      "team": "DAL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Carson Beck",
       "position": "QB",
       "team": "ARI",
@@ -476,6 +483,13 @@
       "team": "DEN",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Dalton Kincaid",
+      "position": "TE",
+      "team": "BUF",
+      "status": "Questionable",
+      "body_part": "Ribs"
     },
     {
       "name": "Damien Alford",
@@ -740,6 +754,13 @@
       "name": "Elijah Sarratt",
       "position": "WR",
       "team": "BAL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Emari Demercado",
+      "position": "RB",
+      "team": "DAL",
       "status": "Out",
       "body_part": "Coach's Decision"
     },
@@ -1799,13 +1820,6 @@
       "team": "PHI",
       "status": "Out",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Savion Williams",
-      "position": "WR",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Sean McKeon",
