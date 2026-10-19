@@ -1000,7 +1000,9 @@ function recomputeAnalysis() {
   S.myAnalysis = null;
   if (S.mode !== 'connected' || !S.league || !Array.isArray(S.league.rosters)) return;
   try {
-    S.leagueAnalysis = AnalysisEngine.analyzeLeague(S.league, S.players, valueProjections(), S.vorp, S.injuries);
+    // weeks: the ROS dict covers only the remaining weeks, so starterPts/wk
+    // divides by that count rather than the season's 17.
+    S.leagueAnalysis = AnalysisEngine.analyzeLeague(S.league, S.players, valueProjections(), S.vorp, S.injuries, { weeks: S.projRos && S.rosWeeks.length ? S.rosWeeks.length : 17 });
     if (S.myRosterId != null) S.myAnalysis = S.leagueAnalysis.team(S.myRosterId);
   } catch(e) {
     console.warn('team analysis failed', e);

@@ -440,7 +440,10 @@ async function freePort() {
 
   console.log('server.js integration (spawned real server)');
   await test('server.js: / and /nfl identical, /nba, health, deny list, sitemap', async () => {
-    const env = { ...process.env, ...ENV, DATABASE_URL: '' };
+    // NBA_MODEL_OFFLINE: serve the committed snapshot without a Sleeper refresh,
+    // so the test hits no network and writes nothing to data/nba/cache (a cache
+    // newer than the snapshot changes what test-nba-model / test-nba-profile read).
+    const env = { ...process.env, ...ENV, DATABASE_URL: '', NBA_MODEL_OFFLINE: '1' };
     const envFile = path.join(ROOT, '.env.local');
     if (!env.CLERK_PUBLISHABLE_KEY && fs.existsSync(envFile)) {
       for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {

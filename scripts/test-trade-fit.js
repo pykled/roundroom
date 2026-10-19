@@ -93,6 +93,56 @@ console.log('sumProjections');
   check('season total ranks the returning player last (VORP 0); ROS ranks him first', vS.get('aj') === 0 && vR.get('aj') > vR.get('x1') && vR.get('x1') > 0, `season ${[...vS.values()]} ros ${[...vR.values()]}`);
 }
 
+// ---- 2b. rosFromWeek: which week a rest-of-season sum starts from -------------
+console.log('rosFromWeek (current-week rule, NFL week 6 of 2026 with injected clocks)');
+{
+  // Week 6, 2026: TNF Thu Oct 15 17:15 PT, Sunday slate Oct 18, MNF Mon Oct 19 17:15 PT.
+  const wk6 = [
+    { kickoff: '2026-10-18T17:00:00+00:00', started: false }, // Sunday early
+    { kickoff: '2026-10-16T00:15:00+00:00', started: false }, // Thursday night (first)
+    { kickoff: '2026-10-20T00:15:00+00:00', started: false }, // Monday night (last)
+  ];
+  const at = iso => Date.parse(iso);
+  const f = (now, games = wk6, week = 6) => Scoring.rosFromWeek(week, games, at(now)).fromWeek;
+  check('Tue 10:00 PT → 6 (nothing kicked off)', f('2026-10-13T17:00:00Z') === 6);
+  check('Wed → 6', f('2026-10-14T20:00:00Z') === 6);
+  check('Thu 16:00 PT, 75 min before TNF → 6', f('2026-10-15T23:00:00Z') === 6);
+  check('Thu 17:15 PT, at kickoff → 7 (week 6 is spent)', f('2026-10-16T00:15:00Z') === 7);
+  check('Thu 19:00 PT → 7', f('2026-10-16T02:00:00Z') === 7);
+  check('Sunday 10:00 PT → 7', f('2026-10-18T17:00:00Z') === 7);
+  check('Monday 11:45 PT, MNF still to play → 7 (bye / Out players no longer charged week 6)', f('2026-10-19T18:45:00Z') === 7);
+  check('Monday night during MNF → 7', f('2026-10-20T01:00:00Z') === 7);
+  const wk7 = [{ kickoff: '2026-10-23T00:15:00+00:00', started: false }, { kickoff: '2026-10-25T17:00:00+00:00', started: false }];
+  check('Tue after Sleeper rolls to 7, week 7 not started → 7 (same fromWeek, no double skip)', f('2026-10-20T17:00:00Z', wk7, 7) === 7);
+  check('Sleeper started flag wins even if the clock says pre-kick', f('2026-10-13T17:00:00Z', [{ kickoff: '2026-10-16T00:15:00+00:00', started: true }]) === 7);
+  check('no games (feed empty / failed) → current week', f('2026-10-18T17:00:00Z', []) === 6 && f('2026-10-18T17:00:00Z', null) === 6);
+  check('unparseable kickoff ignored', f('2026-10-18T17:00:00Z', [{ kickoff: 'tbd', started: false }]) === 6);
+  check('week 18 after kickoff → 19 (caller treats as nothing left)', f('2027-01-08T02:00:00Z', [{ kickoff: '2027-01-08T01:15:00+00:00' }], 18) === 19);
+  check('week as a string, slateStarted flag', (() => { const r = Scoring.rosFromWeek('6', wk6, at('2026-10-18T17:00:00Z')); return r.fromWeek === 7 && r.slateStarted === true; })());
+  check('bye-week charge: 13-week sum charges a bye player one game vs the field; 12-week sum does not', (() => {
+    // Sunday of week 6: a week-6 bye player (no row) vs a player with a week-6 row.
+    const w6 = { a: { pts_ppr: 15 } }, rest = { a: { pts_ppr: 15 }, b: { pts_ppr: 15 } };
+    const thirteen = Scoring.sumProjections([w6, rest]), twelve = Scoring.sumProjections([rest]);
+    return thirteen.a.pts_ppr === 30 && thirteen.b.pts_ppr === 15 && twelve.a.pts_ppr === twelve.b.pts_ppr;
+  })());
+}
+
+// ---- 2c. analyzeTeam starterPts divides by the weeks the dict covers ----------
+console.log('analyzeLeague opts.weeks');
+{
+  const Analysis = require('../shared/analysis.js');
+  const league = { roster_positions: ['WR'], scoring_settings: { rec: 1 }, rosters: [{ roster_id: 1, owner_id: 'u', players: ['w1'] }], users: [{ user_id: 'u', display_name: 'T' }] };
+  const players = { w1: ['WR One', 'WR', 'KC', null, 26] };
+  const proj = { w1: { rec: 120 } };
+  const vorp = new Map([['w1', 5000]]);
+  const a = Analysis.analyzeLeague(league, players, proj, vorp, {});
+  const b = Analysis.analyzeLeague(league, players, proj, vorp, {}, { weeks: 12 });
+  const c = Analysis.analyzeLeague(league, players, proj, vorp, {}, { weeks: 0 });
+  check('default divides by 17 (120/17 = 7.1)', a.teams[0].starterPts === 7.1, String(a.teams[0].starterPts));
+  check('weeks: 12 → 120/12 = 10', b.teams[0].starterPts === 10, String(b.teams[0].starterPts));
+  check('weeks ≤ 0 falls back to 17', c.teams[0].starterPts === 7.1, String(c.teams[0].starterPts));
+}
+
 // ---- 3. age -------------------------------------------------------------------
 console.log('ageMult / applyAge');
 {
@@ -406,7 +456,10 @@ async function live() {
   const state = await getJSON('/api/nfl-state');
   const ros = await getJSON('/api/projections/ros');
   const rosIds = Object.keys(ros.players || {});
-  check('ROS envelope: { season, fromWeek, weeks, players }', ros.season === String(state.season) && ros.fromWeek === Math.min(18, Number(state.week) || 1) && Array.isArray(ros.weeks) && ros.weeks[0] === ros.fromWeek && rosIds.length > 1000,
+  // fromWeek is Sleeper's week before the first kickoff and week + 1 once the
+  // slate has started (scripts/test-ros-guard.js pins the rule with stubs).
+  const wk = Math.min(18, Number(state.week) || 1);
+  check('ROS envelope: { season, week, fromWeek, slateStarted, weeks, players }', ros.season === String(state.season) && ros.week === wk && ros.fromWeek === (ros.slateStarted ? wk + 1 : wk) && typeof ros.slateStarted === 'boolean' && Array.isArray(ros.weeks) && ros.weeks[0] === ros.fromWeek && ros.weeks[ros.weeks.length - 1] === 18 && rosIds.length > 1000,
     `season ${ros.season} from ${ros.fromWeek} weeks ${ros.weeks && ros.weeks.join(',')} players ${rosIds.length}`);
   check('ROS rows: no gp, no ADP/rank fields summed', !rosIds.some(id => 'gp' in ros.players[id]) && !rosIds.some(id => Object.keys(ros.players[id]).some(k => /adp|rank/.test(k))));
   // FC redraft lists run ~200 players, dynasty ~420 (adds rookies / deep stashes).

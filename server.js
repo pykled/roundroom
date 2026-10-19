@@ -823,10 +823,16 @@ async function fetchSleeperWeek(kind, week) {
 // ranked him WR48 by season total while his remaining weeks rank WR20), and
 // is slow to zero players who are out for the year. Weekly rows are already
 // 0 for every week Sleeper expects a player to sit, so byes and expected
-// absences fall out naturally. Response: { season, fromWeek, weeks, players }
-// where players has the season endpoint's shape. 503 outside the regular
-// season or when any weekly fetch fails (no partial sums).
-// Cached 1h per week (each weekly fetch is shared with /api/projections/:week).
+// absences fall out naturally. Response: { season, week, fromWeek,
+// slateStarted, weeks, players } where players has the season endpoint's
+// shape and week is Sleeper's current week. fromWeek is week + 1 once the
+// current week's first game has kicked off (ScoringEngine.rosFromWeek): from
+// Thursday night until Sleeper rolls the week, week W is already spent for
+// trade purposes, and keeping it would charge bye / ruled-out players a game
+// relative to everyone else. 503 outside the regular season, after week 18
+// has kicked off, or when any weekly fetch fails (no partial sums).
+// Cached 1h per fromWeek (each weekly fetch is shared with /api/projections/:week);
+// the scores feed that decides fromWeek is cached 5 min.
 app.get('/api/projections/ros', async (req, res) => {
   try {
     const state = await apiCached('nfl:state', 5 * 60 * 1000, () =>
@@ -838,7 +844,14 @@ app.get('/api/projections/ros', async (req, res) => {
     if (state.season_type !== 'regular' || Number(state.week) > 18) {
       return res.status(503).json({ error: 'Rest-of-season projections unavailable outside the regular season' });
     }
-    const fromWeek = Math.min(18, Math.max(1, Number(state.week) || 1));
+    const week = Math.min(18, Math.max(1, Number(state.week) || 1));
+    // Scores feed unavailable → no kickoff knowledge → keep the current week
+    // (the pre-kickoff answer), never a 503.
+    const games = await fetchWeekGameState(week).catch(() => ({}));
+    const { fromWeek, slateStarted } = ScoringEngine.rosFromWeek(week, Object.values(games), Date.now());
+    if (fromWeek > 18) {
+      return res.status(503).json({ error: 'Rest-of-season projections unavailable: week 18 has started' });
+    }
     const data = await apiCached(`proj:2026:ros:${fromWeek}`, 60 * 60 * 1000, async () => {
       const weeks = [];
       for (let w = fromWeek; w <= 18; w++) weeks.push(w);
@@ -851,8 +864,12 @@ app.get('/api/projections/ros', async (req, res) => {
       if (loaded.length !== weeks.length) throw new Error(`weekly projections incomplete: ${loaded.length}/${weeks.length}`);
       return { season: String(state.season || 2026), fromWeek, weeks: loaded, players: ScoringEngine.sumProjections(dicts.filter(Boolean)) };
     });
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.json(data);
+    // week / slateStarted sit outside the cached value: the same fromWeek is
+    // served both after Thursday's kickoff (week W, started) and after Sleeper
+    // rolls to W+1 on Tuesday (week W+1, not started).
+    // Short browser cache: fromWeek flips at kickoff, like /api/schedule.
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json({ season: data.season, week, fromWeek: data.fromWeek, slateStarted, weeks: data.weeks, players: data.players });
   } catch (err) {
     res.status(503).json({ error: 'Failed to fetch rest-of-season projections' });
   }

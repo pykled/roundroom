@@ -191,6 +191,17 @@ function f2(x) { return Number.isFinite(x) ? x.toFixed(2) : 'n/a'; }
   const sample = Object.keys(market).filter(id => slim[id] && SKILL[slim[id][1]]);
   const gamesPlayed = id => { if (!recent || !recent.weeks) return null; return recent.weeks.filter(w => recent.stats[w][id] && (Number(recent.stats[w][id].gp) > 0 || recent.stats[w][id].pts_ppr != null)).length; };
   const ratio = id => { const fc = fcNorm(id), v = final.get(id) || 0; return fc > 0 ? v / fc : null; };
+  // Per-player dump (--json): every market player with model vs market position
+  // rank, so outliers in either direction can be listed offline.
+  out.players = sample.map(id => ({
+    id, name: slim[id][0], pos: slim[id][1], team: slim[id][2], status: slim[id][3] || null, age: slim[id][4],
+    seasonPts: Math.round(projPts(seasonProj, id) * 10) / 10, rosPts: rosProj ? Math.round(projPts(rosProj, id) * 10) / 10 : null,
+    vorp: Math.round((raw.get(id) || 0) * 10) / 10, scaled: scaledPreAge.get(id) || 0, base: healthy.get(id) || 0,
+    injMult: INJ_MODE === 'none' ? 1 : Fit.injuryMult(slim[id][3], injOpts),
+    formMult: form.get(id) ? form.get(id).mult : 1, playoffMult: playoff.get(id) ? playoff.get(id).mult : 1,
+    final: final.get(id) || 0, fc: market[id], fcNorm: fcNorm(id),
+    modelRank: posRank(final, id), marketRank: marketPosRank(id), games: gamesPlayed(id),
+  }));
   console.log('\nSpearman(final, market) and median model/market ratio by position (top market players)');
   out.byPos = {};
   for (const pos of ['QB', 'RB', 'WR', 'TE']) {
