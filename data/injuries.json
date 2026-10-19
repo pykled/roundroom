@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-19T20:01:33.348Z",
+  "fetched_at": "2026-10-19T23:49:32.516Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -194,7 +194,7 @@
       "name": "Blake Grupe",
       "position": "K",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -520,6 +520,13 @@
       "body_part": null
     },
     {
+      "name": "Davante Adams",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Knee"
+    },
+    {
       "name": "David Montgomery",
       "position": "RB",
       "team": "HOU",
@@ -726,7 +733,7 @@
       "name": "Elijah Arroyo",
       "position": "TE",
       "team": "SEA",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Shoulder"
     },
     {
@@ -985,7 +992,7 @@
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
@@ -1141,13 +1148,6 @@
       "team": "ARI",
       "status": "Out",
       "body_part": "Ankle"
-    },
-    {
-      "name": "Jeremy McNichols",
-      "position": "RB",
-      "team": "WAS",
-      "status": "IR",
-      "body_part": "Quadriceps"
     },
     {
       "name": "Jermar Jefferson",
@@ -1344,6 +1344,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Kurtis Rourke",
+      "position": "QB",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Kye Robichaux",
@@ -1561,13 +1568,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Mike Evans",
-      "position": "WR",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Ribs"
     },
     {
       "name": "Moliki Matavao",
@@ -1790,7 +1790,7 @@
       "name": "Romeo Doubs",
       "position": "WR",
       "team": "NE",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Shoulder"
     },
     {
@@ -1883,13 +1883,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Stefon Diggs",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "T.J. Hockenson",
