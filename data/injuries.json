@@ -1,6 +1,13 @@
 {
-  "fetched_at": "2026-10-19T23:49:32.516Z",
+  "fetched_at": "2026-10-20T05:03:18.908Z",
   "players": [
+    {
+      "name": "A.J. Brown",
+      "position": "WR",
+      "team": "NE",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
     {
       "name": "A.J. Hines",
       "position": "RB",
@@ -1570,6 +1577,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Mike Evans",
+      "position": "WR",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Achilles"
+    },
+    {
       "name": "Moliki Matavao",
       "position": "TE",
       "team": "NO",
@@ -1953,6 +1967,13 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Terry McLaurin",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Out",
+      "body_part": "Knee"
     },
     {
       "name": "Theo Johnson",
