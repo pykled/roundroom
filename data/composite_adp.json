@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T17:23:22.238Z",
+  "generated_at": "2026-10-20T21:45:44.135Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -658,7 +658,7 @@
       "sources_count": 1,
       "composite_sf_adp": 75.74,
       "fantasypros_sf_adp": 65.95,
-      "injury_status": "Out",
+      "injury_status": "IR",
       "bye": 11
     },
     {
@@ -4055,8 +4055,7 @@
       "fantasypros_adp": 285.46,
       "underdog_adp": null,
       "sources_count": 1,
-      "composite_sf_adp": 285.46,
-      "injury_status": "Questionable"
+      "composite_sf_adp": 285.46
     },
     {
       "name": "Alexander Mattison",
@@ -7206,8 +7205,7 @@
       "underdog_adp": null,
       "sources_count": 1,
       "composite_sf_adp": 275,
-      "fantasypros_sf_adp": 275,
-      "injury_status": "Questionable"
+      "fantasypros_sf_adp": 275
     },
     {
       "name": "Brittain Brown",

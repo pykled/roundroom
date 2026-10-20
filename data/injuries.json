@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-20T17:23:22.134Z",
+  "fetched_at": "2026-10-20T21:45:44.028Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -252,6 +252,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Bub Means",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Out",
+      "body_part": "Knee"
     },
     {
       "name": "Caleb Douglas",
@@ -530,8 +537,8 @@
       "name": "Davante Adams",
       "position": "WR",
       "team": "LAR",
-      "status": "Out",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Hamstring"
     },
     {
       "name": "David Montgomery",
@@ -746,7 +753,7 @@
     {
       "name": "Elijah Mitchell",
       "position": "RB",
-      "team": null,
+      "team": "PHI",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -2205,13 +2212,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Neck"
-    },
-    {
-      "name": "Zane Gonzalez",
-      "position": "K",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     }
   ]
 }
