@@ -306,7 +306,7 @@ function createTradeRoutes({
     if (slid && sleeper) {
       try { ctx = await sleeperContext(slid, null); } catch (err) {
         const e = sleeperErr(err);
-        if (e.status === 404) return res.status(404).json(e.body);
+        if (e.status === 404 || e.body.code === 'not_an_nba_league') return res.status(e.status).json(e.body);
         warnings.push('Sleeper league unavailable; used defaults');
       }
       if (ctx) {

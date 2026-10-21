@@ -25,7 +25,7 @@ class SleeperError extends Error {
     super(message);
     this.name = 'SleeperError';
     this.status = status;
-    this.code = code; // sleeper_not_found | sleeper_rate_limited | sleeper_timeout | sleeper_upstream | sleeper_bad_request
+    this.code = code; // sleeper_not_found | sleeper_rate_limited | sleeper_timeout | sleeper_upstream | sleeper_bad_request | not_an_nba_league
     this.retryAfterS = retryAfterS;
   }
 }
@@ -91,7 +91,7 @@ function createSleeperClient({ fetchImpl = globalThis.fetch, timeoutMs = 8000, r
 // Route helper: a SleeperError (or anything else) → { status, body } for res.
 function errorResponse(err) {
   const code = err && err.code;
-  if (code === 'sleeper_bad_request') return { status: 400, body: { error: err.message || 'Bad request', code } };
+  if (code === 'sleeper_bad_request' || code === 'not_an_nba_league') return { status: 400, body: { error: err.message || 'Bad request', code } };
   if (code === 'sleeper_not_found') return { status: 404, body: { error: err.message || 'Not found on Sleeper', code } };
   if (code === 'sleeper_rate_limited') return { status: 429, body: { error: 'Sleeper is rate-limiting us — retry in a few seconds', code, retryAfterS: err.retryAfterS || 5 } };
   if (code === 'sleeper_timeout') return { status: 504, body: { error: 'Sleeper timed out — try again in a moment', code } };

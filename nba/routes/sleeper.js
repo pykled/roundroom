@@ -14,7 +14,9 @@
 // router.profileFor(leagueId) → the league's profile built from its Sleeper settings
 // (nba/model/league-sync.js profileFromSleeper; cached 10 min, remembered in
 // routes/league-context.js so LC.profileFor({ sleeperLeagueId }) returns it).
-// Error codes: sleeper_bad_request 400, sleeper_user_not_found / sleeper_not_found 404,
+// Every league lookup refuses a league of another sport (an NFL league id pasted into
+// an NBA page): 400 not_an_nba_league, instead of valuing it with NBA numbers.
+// Error codes: sleeper_bad_request / not_an_nba_league 400, sleeper_user_not_found / sleeper_not_found 404,
 // sleeper_rate_limited 429 (+Retry-After), sleeper_timeout 504, sleeper_upstream 502.
 'use strict';
 const express = require('express');
@@ -44,6 +46,13 @@ function createResolver(players) {
     try { m = matchYahooPlayer({ name: { full: name }, editorial_team_abbr: md.team || null, display_position: md.position || null }, players || []); } catch { m = null; }
     return m && m.player ? { id: String(m.player.id), confidence: m.confidence, reason: m.reason } : { id: null, confidence: 0, reason: 'unmatched' };
   };
+}
+
+// Sleeper's league object names its sport; anything but nba is refused.
+function assertNbaLeague(league) {
+  const sport = league && league.sport != null ? String(league.sport).toLowerCase() : 'nba';
+  if (sport !== 'nba') throw new SleeperError(`That is a Sleeper ${sport.toUpperCase()} league, not an NBA league. Pick one of your NBA leagues.`, { status: 400, code: 'not_an_nba_league' });
+  return league;
 }
 
 module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console, client = createSleeperClient({ log }), now = () => Date.now() } = {}) {
@@ -90,6 +99,7 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
   async function leagueContext(leagueId, userId) {
     const league = await leagueRaw(leagueId);
     if (!league) throw new SleeperError('League not found on Sleeper', { status: 404, code: 'sleeper_not_found' });
+    assertNbaLeague(league);
     const [users, rosters, draft] = await Promise.all([usersRaw(leagueId), rostersRaw(leagueId), leagueDraft(league).catch(() => null)]);
     const teams = M.teamsFromLeague(users, rosters, draft);
     const mine = M.myTeamKey(teams, userId);
@@ -106,6 +116,7 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
     const p = await apiCached(`nba:sl:profile:${lid}`, 10 * 60 * 1000, async () => {
       const league = await leagueRaw(lid);
       if (!league) throw new SleeperError('League not found on Sleeper', { status: 404, code: 'sleeper_not_found' });
+      assertNbaLeague(league);
       const [state, draft] = await Promise.all([stateRaw().catch(() => null), leagueDraft(league).catch(() => null)]);
       return LS.profileFromSleeper({ league, state, draft });
     });
@@ -226,3 +237,4 @@ module.exports = function sleeperRoutes({ apiCached, modelPlayers, log = console
   return router;
 };
 module.exports.createResolver = createResolver;
+module.exports.assertNbaLeague = assertNbaLeague;

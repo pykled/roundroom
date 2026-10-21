@@ -271,7 +271,7 @@ function createTeamRoutes({
       const warnings = [];
       if (lid) {
         try { ({ raw, profile } = await league(lid, null)); } catch (err) {
-          if (err && err.code === 'league_not_points') throw err;
+          if (err && (err.code === 'league_not_points' || err.code === 'not_an_nba_league')) throw err;
           warnings.push('Sleeper league unavailable; used a typical league');
         }
       }

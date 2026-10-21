@@ -286,7 +286,7 @@ function fakeClient() {
   const CATS = { ...LEAGUE, league_id: '777', settings: { ...LEAGUE.settings, scoring_type: 'h2h_category' } };
   return { calls, mode, client: {
     async state() { hit('state'); return fx('sleeper-state.json'); },
-    async league(id) { hit('league'); return id === LEAGUE.league_id ? LEAGUE : id === '777' ? CATS : null; },
+    async league(id) { hit('league'); return id === LEAGUE.league_id ? LEAGUE : id === '777' ? CATS : id === NFL_LID ? NFL_LEAGUE : null; },
     async leagueUsers() { hit('users'); return fx('sleeper-users.json'); },
     async leagueRosters() { hit('rosters'); return fx('sleeper-rosters.json'); },
     async leagueDrafts() { hit('drafts'); return []; },
@@ -308,6 +308,16 @@ async function server(opts = {}) {
   return { srv, base, get, fc, close: () => new Promise(r => srv.close(r)) };
 }
 const LID = '1411447094215991296', UID = '1044077615075872768';
+// A real NFL Sleeper league from the NFL crawl (data/known_leagues.json), mocked with the
+// fields Sleeper's /v1/league/{id} returned for it on 2026-10-20 (sport nfl, 14 teams, superflex).
+const NFL_LID = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'known_leagues.json'), 'utf8')).leagues[0];
+const NFL_LEAGUE = {
+  league_id: NFL_LID, sport: 'nfl', season: '2026', season_type: 'regular', status: 'in_season', name: 'NFL League', total_rosters: 14,
+  roster_positions: ['QB', 'RB', 'RB', 'WR', 'WR', 'TE', 'FLEX', 'SUPER_FLEX', 'K', 'DEF', 'BN', 'BN', 'BN', 'BN', 'BN'],
+  scoring_settings: { pass_yd: 0.04, pass_td: 4, rush_yd: 0.1, rush_td: 6, rec: 0.5, rec_yd: 0.1, rec_td: 6, fum_lost: -2, blk_kick: 2 },
+  settings: { num_teams: 14, playoff_week_start: 15, playoff_teams: 6, trade_deadline: 11, type: 0, reserve_slots: 0, waiver_type: 2, leg: 7 },
+  draft_id: null,
+};
 
 t('7 routes: /api/nba/team 200 + one upstream fetch for two calls (cache), detail, view-as', async () => {
   const s = await server();
@@ -478,6 +488,47 @@ t('bench cover replaces the bench rank: best healthy bench player vs a waiver ad
   eq(TL.coverText({ name: 'Jalen Duren', value: 32.9, vsWaiver: 4.4 }), 'Duren 32.9/wk, 4.4 above a waiver add');
   eq(TL.coverText({ name: 'Ty Jerome', value: 25.9, vsWaiver: -2.6 }), 'Jerome 25.9/wk, 2.6 below a waiver add');
   eq(TL.coverText(null), 'No healthy bench player');
+});
+
+/* ------------------------------------------------------------ NBA leagues only */
+t('an NFL league id → 400 not_an_nba_league on every NBA league endpoint (NBA league still 200)', async () => {
+  ok(/^\d{18,19}$/.test(NFL_LID), 'known NFL league id');
+  const createNbaRouter = require('../nba/router');
+  const fc = fakeClient();
+  const cache = new Map();
+  const apiCached = async (k, ttl, fn) => { const h = cache.get(k); if (h && Date.now() - h.t < ttl) return h.v; const v = await fn(); cache.set(k, { v, t: Date.now() }); return v; };
+  const app = express();
+  app.use('/', createNbaRouter({ auth: (q, r) => r.status(401).end(), getAuth: () => ({}), apiCached, env: { NBA_YAHOO_ENABLED: '' }, log: { error() {}, warn() {} }, sleeperClient: fc.client }));
+  const srv = await new Promise(r => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
+  const base = `http://127.0.0.1:${srv.address().port}`;
+  const call = async (p, body) => { const r = await fetch(base + p, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined); let j = null; try { j = await r.json(); } catch {} return { status: r.status, json: j }; };
+  const b = await board();
+  const mine = fx('sleeper-rosters.json').find(r => r.roster_id === 1).players.slice(0, 13);
+  const theirs = fx('sleeper-rosters.json').find(r => r.roster_id === 2).players;
+  const ep = lid => [
+    ['GET /api/nba/team', `/api/nba/team?league_id=${lid}&user_id=${UID}`],
+    ['GET /api/nba/team/detail', `/api/nba/team/detail?league_id=${lid}&roster_id=1`],
+    ['POST /api/nba/team/manual', '/api/nba/team/manual', { roster: mine, league_id: lid }],
+    ['GET /api/nba/trade/context', `/api/nba/trade/context?league_id=${lid}&user_id=${UID}`],
+    ['POST /api/nba/trade/evaluate', '/api/nba/trade/evaluate', { give: [mine[0]], get: [theirs[0]], myRoster: mine, sleeper_league_id: lid }],
+    ['GET /api/nba/lineup', `/api/nba/lineup?league_id=${lid}&roster_id=1&user_id=${UID}`],
+    ['GET /api/nba/waivers', `/api/nba/waivers?league_id=${lid}&roster_id=1&user_id=${UID}`],
+    ['GET /api/nba/players', `/api/nba/players?league_id=${lid}`],
+    ['GET /api/nba/sleeper/league', `/api/nba/sleeper/league?league_id=${lid}`],
+    ['GET /api/nba/sleeper/rosters', `/api/nba/sleeper/rosters?league_id=${lid}`],
+  ];
+  try {
+    ok(b.length > 100, 'board');
+    for (const [name, p, body] of ep(NFL_LID)) {
+      const r = await call(p, body);
+      eq([r.status, r.json && r.json.code], [400, 'not_an_nba_league'], `${name} with an NFL league (${JSON.stringify(r.json).slice(0, 120)})`);
+      ok(/NFL/.test(r.json.error) && /NBA/.test(r.json.error), `${name}: the message names both sports: ${r.json.error}`);
+    }
+    for (const [name, p, body] of ep(LID)) {
+      const r = await call(p, body);
+      eq(r.status, 200, `${name} with the NBA league (${JSON.stringify(r.json).slice(0, 160)})`);
+    }
+  } finally { await new Promise(r => srv.close(r)); }
 });
 
 /* ------------------------------------------------------------ team ↔ trade agree */
