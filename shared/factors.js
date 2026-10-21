@@ -33,17 +33,24 @@
 //     existing test crosses that band, and it never flips a hot ↔ cold label
 //     (the injury path only ever raises a role-up, mult 1).
 //
-//   FORM_MULT = { hot: 0.95, cold: 1.05 }
+//   FORM_MULT = { hot: 0.95, cold: 1 }
 //     The trade-value regression nudge: a hot player is priced at his peak (sell
-//     high → count him as worth 5% less), a cold one at his trough (buy low →
-//     5% more). Symmetric, halved for dynasty by the caller's opts.
+//     high → count him as worth 5% less). The cold "buy low" bounce (+5%) was
+//     removed 2026-10-20: over 2025 + 2026 weeks 3–6 (1,217 cold player-weeks)
+//     cold players scored 0.93× their next Sleeper projection vs 0.96× for
+//     on-pace players (95% CI of the difference −0.08…+0.02 this week,
+//     −0.05…+0.02 over the next 4 games), so a +5% bounce is outside what the
+//     data allows; the label stays as information. The hot discount showed no
+//     measurable benefit either but is not excluded by the same test
+//     (hot 0.965×, CI −0.05…+0.06). See docs/trade-calc-blend-2026-10-20.md.
+//     Halved for dynasty by the caller's opts.
 var PocketFactors = (function () {
   'use strict';
 
   // ---- Form (hot / cold) ----------------------------------------------------
   var FORM_GAMES = 2;                 // recent games the discrete classifier compares
   var FORM_HOT = 1.2, FORM_COLD = 0.8;
-  var FORM_MULT = { hot: 0.95, cold: 1.05 };
+  var FORM_MULT = { hot: 0.95, cold: 1 };   // cold bounce removed (see header)
   var MIN_BASELINE = 5;               // baseline pts/game below which the ratio is noise
 
   // ---- Step-up (vacated volume from an injured same-position teammate) -------
