@@ -4,7 +4,7 @@
 //
 //   GET  /nba/team                                                          page
 //   GET  /api/nba/team?league_id=[&user_id=][&roster_id=][&horizon=ros|next4|playoffs]
-//        → { league, analysis, myRosterId, viewAs, unmatched, asOf }   (cached 60 s per league/horizon/team; targets 5 min)
+//        → { league, analysis, myRosterId, viewAs, unmatched, asOf }   (cached 60 s per league/horizon/team and board; targets 5 min)
 //   GET  /api/nba/team/detail?league_id=&roster_id=[&horizon=]
 //        → { league, team, roster: [{ player, signals, slot, group, tier, value, gamesThisWeek }], weeks, unmatched }
 //   POST /api/nba/team/manual { roster: [ids], league_id?, horizon? }
@@ -20,6 +20,7 @@ const { versionAssets } = require('../asset-version');
 const LS = require('../model/league-sync');
 const TA = require('../model/team-analysis');
 const LC = require('./league-context');
+const Boards = require('./boards');
 const M = require('../sleeper/map');
 const { errorResponse } = require('../sleeper/client');
 
@@ -28,7 +29,7 @@ const ROSTER_RE = /^\d{1,3}$/;
 const PLAYER_RE = /^[A-Za-z0-9_]{1,16}$/;
 const MAX_BODY = 8 * 1024;
 const MAX_ROSTER = 25;
-const ANALYSIS_TTL = 60 * 1000, TARGETS_TTL = 5 * 60 * 1000, BOARD_TTL = 10 * 60 * 1000;
+const ANALYSIS_TTL = 60 * 1000, TARGETS_TTL = 5 * 60 * 1000;
 
 // The "typical league" for manual mode without a Sleeper league: Dillon's league
 // shape (10 starters: PG SG G SF PF F C UTIL×3, 4 BN, 2 IL; 12 teams; Mon-Sun weeks,
@@ -57,6 +58,21 @@ function createRateLimit({ windowMs = 60 * 1000, max = 240, now = () => Date.now
   };
 }
 
+// Analysis / targets cache: one entry per key, missed when the board changed (so a
+// refreshed board replaces the entry instead of piling up beside it), bounded.
+function createBoardCache({ max = 500, now = () => Date.now() } = {}) {
+  const m = new Map();
+  return async (key, version, ttlMs, fn) => {
+    const h = m.get(key);
+    if (h && h.version === version && now() - h.at < ttlMs) return h.value;
+    const value = await fn();
+    m.delete(key);
+    m.set(key, { value, version, at: now() });
+    while (m.size > max) m.delete(m.keys().next().value);
+    return value;
+  };
+}
+
 class HttpError extends Error {
   constructor(status, message, code) { super(message); this.status = status; this.code = code || null; this.http = true; }
 }
@@ -69,6 +85,7 @@ function createTeamRoutes({
   if (typeof apiCached !== 'function') throw new Error('team routes: apiCached required');
   if (typeof loadModel !== 'function') throw new Error('team routes: loadModel required');
   const router = express.Router();
+  const cached = createBoardCache();
 
   router.get('/nba/team', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -82,22 +99,24 @@ function createTeamRoutes({
   const profileKey = p => crypto.createHash('sha1').update(JSON.stringify([p.leagueId, p.scoring, p.slots, p.teams, p.weeks])).digest('base64url').slice(0, 16);
 
   // Board under a league profile, with the market fields (preseason consensus) joined on.
-  function boardFor(profile) {
-    return apiCached(`nba:team:board:${profileKey(profile)}`, BOARD_TTL, async () => {
-      const model = loadModel();
-      if (!model || model.stub) throw new HttpError(503, 'NBA player data unavailable');
-      let d;
-      try { d = await model.getPlayers({ profile }); } catch (err) {
-        if (err && err.status !== 503) log.error('[nba] team board:', err.message);
-        throw new HttpError(503, 'NBA player data unavailable');
-      }
-      let players = d.players;
-      try {
-        const e = require('../model/enrich').enrichPlayers(d);
-        players = e.players.filter(p => p.source !== 'yahoo-only').map(p => ({ ...p, rank: p.modelRank != null ? p.modelRank : p.rank }));
-      } catch (err) { log.error('[nba] team market join:', err && err.message); }
-      return { players, currentWeek: d.currentWeek, asOf: d.asOf || null };
-    });
+  // The shared board (routes/boards.js) is the one the trade calculator values, so a
+  // trade target and Open in Trade always agree; `version` keys the caches below.
+  const views = new WeakMap();
+  async function boardFor(profile) {
+    const model = loadModel();
+    if (!model || model.stub) throw new HttpError(503, 'NBA player data unavailable');
+    let d;
+    try { d = await Boards.boardFor(model, { profile }); } catch (err) {
+      if (err && err.status !== 503) log.error('[nba] team board:', err.message);
+      throw new HttpError(503, 'NBA player data unavailable');
+    }
+    let v = views.get(d);
+    if (!v) {
+      const players = d.players.filter(p => p.source !== 'yahoo-only').map(p => (p.modelRank != null ? { ...p, rank: p.modelRank } : p));
+      v = { players, currentWeek: d.currentWeek, asOf: d.asOf || null, version: Boards.boardVersion(d) };
+      views.set(d, v);
+    }
+    return v;
   }
 
   function state() {
@@ -155,8 +174,8 @@ function createTeamRoutes({
     if (rosterId && !ctx.teams.some(t => t.rosterId === rosterId)) throw new HttpError(404, 'Team not in league', 'team_not_found');
     const mine = ctx.myRosterId;
     const ctxView = rosterId ? { ...ctx, myRosterId: rosterId } : ctx;
-    const key = `nba:team:a:${lid}:${horizon}:${ctxView.myRosterId || '-'}:${profileKey(profile)}`;
-    const analysis = await apiCached(key, ANALYSIS_TTL, async () => TA.analyzeLeague({
+    const key = `a:${lid}:${horizon}:${ctxView.myRosterId || '-'}:${profileKey(profile)}`;
+    const analysis = await cached(key, board.version, ANALYSIS_TTL, async () => TA.analyzeLeague({
       ctx: ctxView, board: board.players,
       options: { horizon, currentWeek: board.currentWeek, today: today(), targets: false, asOf: board.asOf, source: src },
     }));
@@ -166,7 +185,7 @@ function createTeamRoutes({
   async function withTargets(lid, L) {
     if (!L.analysis.myRosterId) return { ...L.analysis, targets: [], targetsNote: null };
     const fp = crypto.createHash('sha1').update(JSON.stringify(L.ctx.teams.map(t => [t.rosterId, t.players.map(p => p.id)]))).digest('base64url').slice(0, 12);
-    const tg = await apiCached(`nba:team:t:${lid}:${L.analysis.myRosterId}:${fp}`, TARGETS_TTL, async () => TA.targetsFor(L.analysis, { ctx: L.ctx, board: L.board.players, today: today() }));
+    const tg = await cached(`t:${lid}:${L.analysis.myRosterId}:${fp}`, L.board.version, TARGETS_TTL, async () => TA.targetsFor(L.analysis, { ctx: L.ctx, board: L.board.players, today: today() }));
     return { ...L.analysis, targets: tg.targets, targetsNote: tg.note, targetsEvaluated: tg.evaluated };
   }
 
@@ -262,8 +281,8 @@ function createTeamRoutes({
       const unknown = ids.filter(id => !known.has(id));
       const mine = ids.filter(id => known.has(id));
       if (!mine.length) throw new HttpError(400, 'None of these players are in the model', 'bad_request');
-      const key = `nba:team:m:${profileKey(profile)}:${horizon}:${crypto.createHash('sha1').update(mine.slice().sort().join(',')).digest('base64url').slice(0, 16)}`;
-      const analysis = await apiCached(key, ANALYSIS_TTL, async () => {
+      const key = `m:${profileKey(profile)}:${horizon}:${crypto.createHash('sha1').update(mine.slice().sort().join(',')).digest('base64url').slice(0, 16)}`;
+      const analysis = await cached(key, board.version, ANALYSIS_TTL, async () => {
         const ctx = TA.typicalLeague({ board: board.players, myIds: mine, profile, currentWeek: board.currentWeek });
         return TA.analyzeLeague({ ctx, board: board.players, options: { horizon, currentWeek: board.currentWeek, today: today(), targets: false, estimated: true, asOf: board.asOf } });
       });
@@ -283,4 +302,5 @@ function createTeamRoutes({
 
 module.exports = createTeamRoutes;
 module.exports.createRateLimit = createRateLimit;
+module.exports.createBoardCache = createBoardCache;
 module.exports.TYPICAL_LEAGUE = TYPICAL_LEAGUE;

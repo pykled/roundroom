@@ -23,6 +23,7 @@ const { createClient } = require('./yahoo/client');
 const createYahooRoutes = require('./yahoo/routes');
 const leagueProfile = require('./league-profile');
 const LC = require('./routes/league-context');
+const Boards = require('./routes/boards');
 const { errorResponse: sleeperError } = require('./sleeper/client');
 const { versionAssets } = require('./asset-version');
 
@@ -163,20 +164,12 @@ function createNbaRouter({
   }
 
   // profile: a stored profile id ('242808'), a Sleeper league id whose profile
-  // routes/sleeper.js has built (LC registry), or a profile object.
+  // routes/sleeper.js has built (LC registry), or a profile object. No cache
+  // here: the model's memo is the one board cache every route shares (routes/boards.js).
   async function modelPlayers(week, profile) {
-    const model = loadModel();
     let prof = profile;
     if (typeof prof === 'string' && prof && !leagueProfile.getProfile(prof)) prof = LC.sleeperProfile(prof, { maxAgeMs: Infinity }) || prof;
-    const pkey = prof && typeof prof === 'object'
-      ? `${prof.leagueId}:${crypto.createHash('sha1').update(JSON.stringify(prof)).digest('base64url').slice(0, 16)}`
-      : prof;
-    const key = `nba:players:${week || 'default'}${pkey ? ':p' + pkey : ''}`;
-    const data = await apiCached(key, 10 * 60 * 1000, async () => {
-      const d = await model.getPlayers({ week: week || undefined, profile: prof || undefined });
-      // Profile responses also carry the market layer + Yahoo-only rows (nba/model/enrich.js).
-      return profile && !model.stub && d && d.profile ? require('./model/enrich').enrichPlayers(d) : d;
-    });
+    const data = await Boards.boardFor(loadModel(), { week, profile: prof });
     if (data && data.asOf) lastModelAsOf = data.asOf;
     return data;
   }
@@ -341,7 +334,7 @@ function createNbaRouter({
   if (yahooEnabled) router.use(yahoo.router);
 
   router.use(require('./routes/lineup')({ auth, getAuth, apiCached, loadModel, modelPlayers, clientFor, sendYahooError, log, sleeper, yahooEnabled }));
-  router.use(require('./routes/trade')({ auth, getAuth, apiCached, modelPlayers, matcher, clientFor, sendYahooError, env, log, sleeper, yahooEnabled }));
+  router.use(require('./routes/trade')({ auth, getAuth, apiCached, loadModel, modelPlayers, matcher, clientFor, sendYahooError, env, log, sleeper, yahooEnabled }));
   router.use(require('./routes/waivers')({ auth, getAuth, apiCached, loadModel, clientFor, sendYahooError, modelPlayers, log, env, sleeper, yahooEnabled }));
   router.use(require('./routes/research')({ modelPlayers, log }));
   router.use(require('./routes/team')({ apiCached, loadModel, log, sleeper, env }));

@@ -16,17 +16,16 @@
 // Sleeper (profileFromSleeper: 3 UTIL, 23 Mon-Sun weeks, playoffs 21-23, deadline
 // week 17) and values the board under it; body.options { horizon, lean } picks the
 // weeks and the playoff weight; categories leagues get 400 league_not_points.
-const crypto = require('crypto');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { versionAssets } = require('../asset-version');
 const { evaluateTrade, HORIZONS, LEANS, PLAYOFFS_HORIZON_FROM_WEEK } = require('../model/trade');
 const { profileFromSleeper } = require('../model/league-sync');
-const { enrichPlayers } = require('../model/enrich');
 const ETA = require('../model/injury-eta');
 const M = require('../sleeper/map');
 const LC = require('./league-context');
+const Boards = require('./boards');
 
 const LEAGUE_KEY_RE = /^\d+\.l\.\d+$/;
 const TEAM_KEY_RE = /^\d+\.l\.\d+\.t\.\d+$/;
@@ -143,17 +142,10 @@ function createTradeRoutes({
     return { profile: profileFromSleeper({ league: ctx.raw.league, draft: ctx.raw.draft, state }), profileId: null };
   }
 
-  // Board under a profile. Stored profiles go through the router's cached modelPlayers;
-  // a Sleeper-built profile is valued here (cached 10 min per league + shape).
+  // Board under a profile: stored profiles via the router's modelPlayers, a Sleeper-built
+  // profile straight from the shared board (the same object the team page values).
   async function boardFor(lc) {
-    if (lc.profile && lc.profile.source === 'sleeper' && !lc.profileId) {
-      const p = lc.profile;
-      const digest = crypto.createHash('sha1').update(JSON.stringify([p.scoring, p.slots, p.teams, p.weeks, p.flags])).digest('base64url').slice(0, 16);
-      return apiCached(`nba:trade:board:${p.leagueId}:${digest}`, 10 * 60 * 1000, async () => {
-        const d = await loadModel().getPlayers({ profile: p });
-        return d && d.profile ? enrichPlayers(d) : d;
-      });
-    }
+    if (lc.profile && lc.profile.source === 'sleeper' && !lc.profileId) return Boards.boardFor(loadModel(), { profile: lc.profile });
     return modelPlayers(undefined, lc.profileId || undefined);
   }
 

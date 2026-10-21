@@ -418,6 +418,66 @@ t('page route, static deny, nav entry and sitemap', async () => {
   ok(!/Yahoo/.test(src), 'no Yahoo strings on the team page');
 });
 
+/* ------------------------------------------------------------ team ↔ trade agree */
+// The real model behind a "data refresh" switch: the same board object until the
+// version moves (like nba/model getPlayers' memo), then a new board where
+// `mutate` changed some players.
+function versionedModel() {
+  const st = { version: 1, mutate: null };
+  const memo = new WeakMap();
+  return {
+    st, matchYahooPlayer: model.matchYahooPlayer,
+    async getPlayers(args) {
+      const d = await model.getPlayers(args);
+      if (!st.mutate) return d;
+      let m = memo.get(d);
+      if (!m || m.version !== st.version) { m = { version: st.version, value: { ...d, players: d.players.map(p => st.mutate(p) || p) } }; memo.set(d, m); }
+      return m.value;
+    },
+  };
+}
+
+t('team ↔ trade: a trade target and Open in Trade give the same numbers after a data refresh', async () => {
+  const createNbaRouter = require('../nba/router');
+  const fc = fakeClient();
+  const vm = versionedModel();
+  const cache = new Map();
+  const apiCached = async (k, ttl, fn) => { const h = cache.get(k); if (h && Date.now() - h.t < ttl) return h.v; const v = await fn(); cache.set(k, { v, t: Date.now() }); return v; };
+  const app = express();
+  app.use('/', createNbaRouter({ auth: (q, r) => r.status(401).end(), getAuth: () => ({}), apiCached, env: { NBA_YAHOO_ENABLED: '' }, log: { error() {}, warn() {} }, sleeperClient: fc.client, loadModel: () => vm }));
+  const srv = await new Promise(r => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
+  const base = `http://127.0.0.1:${srv.address().port}`;
+  const get = async p => (await fetch(base + p)).json();
+  const post = async (p, body) => (await fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })).json();
+  const teamUrl = `/api/nba/team?league_id=${LID}&user_id=${UID}`;
+  // What the trade page sends after "Open in Trade" (trade-logic.js requestBody).
+  async function openInTrade(tg) {
+    await get(`/api/nba/players?league_id=${LID}`);
+    const ctx = await get(`/api/nba/trade/context?league_id=${LID}&user_id=${UID}`);
+    const ids = tm => tm.players.map(p => p.sleeperId).filter(Boolean);
+    const mine = ctx.teams.find(x => x.team_key === ctx.myTeamKey), them = ctx.teams.find(x => x.team_key === tg.partner);
+    return post('/api/nba/trade/evaluate', { give: [tg.give[0].id], get: [tg.get[0].id], myRoster: ids(mine), partnerRoster: ids(them), sleeper_league_id: LID });
+  }
+  const same = (tg, ev, msg) => eq([ev.you.perWeek, ev.them.perWeek, ev.verdict], [tg.you, tg.them, tg.verdict], msg);
+  try {
+    const t1 = await get(teamUrl);
+    const tg1 = t1.analysis.targets[0];
+    ok(tg1, 'the fixture league has a trade target');
+    // The data refresh (a deploy, the 30-min Sleeper pull, an ESPN return date): the player I'd get is valued 15% higher.
+    const getId = String(tg1.get[0].id);
+    vm.st.mutate = p => String(p.id) === getId ? { ...p, hsValue: p.hsValue * 1.15, hsByWeek: Object.fromEntries(Object.entries(p.hsByWeek || {}).map(([w, v]) => [w, v * 1.15])) } : null;
+    vm.st.version++;
+    const ev = await openInTrade(tg1);
+    const t2 = await get(teamUrl);
+    const tg2 = t2.analysis.targets.find(x => x.partner === tg1.partner && x.give[0].id === tg1.give[0].id && x.get[0].id === tg1.get[0].id);
+    if (tg2) same(tg2, ev, 'Open in Trade = the team page target after the refresh');
+    else same(t2.analysis.targets[0], await openInTrade(t2.analysis.targets[0]), 'the refresh dropped the first target; the new first target matches too');
+    ok(ev.you.perWeek > tg1.you, `the refresh moved the trade (${tg1.you} → ${ev.you.perWeek})`);
+    // And straight back: the same inputs keep giving the same numbers.
+    same(tg2 || t2.analysis.targets[0], tg2 ? await openInTrade(tg1) : await openInTrade(t2.analysis.targets[0]), 'repeat evaluation');
+  } finally { await new Promise(r => srv.close(r)); }
+});
+
 /* ------------------------------------------------------------ page logic */
 t('team-logic: tiers, sort, plain-English lines, ETA, saved state', () => {
   eq(Object.keys(TL.TIER), RA.TIERS, 'same six tiers in the same order');
