@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T13:58:56.908Z",
+  "generated_at": "2026-10-21T18:47:11.556Z",
   "weights": {
     "sleeper": 0.2,
     "fantasypros": 0.55,
@@ -1816,6 +1816,7 @@
       "sources_count": 1,
       "composite_sf_adp": 164.79,
       "fantasypros_sf_adp": 156.66,
+      "injury_status": "Questionable",
       "bye": 9
     },
     {
@@ -2154,7 +2155,7 @@
       "sources_count": 1,
       "composite_sf_adp": 191.93,
       "fantasypros_sf_adp": 173.65,
-      "injury_status": "Doubtful",
+      "injury_status": "Questionable",
       "bye": 13
     },
     {
@@ -6079,6 +6080,7 @@
       "sources_count": 1,
       "composite_sf_adp": 291.48,
       "fantasypros_sf_adp": 291.48,
+      "injury_status": "Out",
       "bye": 8
     },
     {

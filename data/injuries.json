@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-21T13:58:56.798Z",
+  "fetched_at": "2026-10-21T18:47:11.433Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -40,7 +40,7 @@
       "name": "Adonai Mitchell",
       "position": "WR",
       "team": "NYJ",
-      "status": "Doubtful",
+      "status": "Questionable",
       "body_part": "Finger"
     },
     {
@@ -256,7 +256,7 @@
     {
       "name": "Carson Steele",
       "position": "RB",
-      "team": "PHI",
+      "team": null,
       "status": "Out",
       "body_part": "Shoulder"
     },
@@ -389,7 +389,7 @@
     {
       "name": "Corey Rucker",
       "position": "WR",
-      "team": "LV",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -940,6 +940,13 @@
       "body_part": "Pectoral"
     },
     {
+      "name": "Jawhar Jordan",
+      "position": "RB",
+      "team": "HOU",
+      "status": "Out",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Jaxson Dart",
       "position": "QB",
       "team": "NYG",
@@ -977,7 +984,7 @@
     {
       "name": "Jeremiah Webb",
       "position": "WR",
-      "team": "NE",
+      "team": null,
       "status": "Questionable",
       "body_part": "Arm"
     },
@@ -1764,6 +1771,13 @@
       "team": "NO",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Tyjae Spears",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Tyler Badie",
