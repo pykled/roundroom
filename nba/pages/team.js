@@ -172,7 +172,7 @@
     var min = Math.min.apply(null, a.teams.map(function (t) { return t.strengthRos || 0; }));
     var bar = function (v) { var f = max > min ? 0.15 + 0.85 * (v - min) / (max - min) : 1; return '<span class="tm-bar" aria-hidden="true"><i style="width:' + (f * 100).toFixed(1) + '%"></i></span>'; };
     var gp = a.gamesPlayed;
-    $('tm-power-note').textContent = 'Strength = projected weekly lineup points, ' + L.HORIZON[a.horizon].toLowerCase() + (a.horizon === 'ros' ? ' (playoff weeks 1.5×)' : '') + '. Tap a team for its roster.';
+    $('tm-power-note').textContent = 'Strength = projected weekly points with an ideal lineup every week, ' + L.HORIZON[a.horizon].toLowerCase() + (a.horizon === 'ros' ? ' (playoff weeks 1.5×)' : '') + '. Tap a team for its roster.';
     $('tm-thead').innerHTML = '<tr>' + COLS.map(function (c) {
       var on = S.sort.key === c.key;
       var sortAttr = on ? ' aria-sort="' + (S.sort.dir === 1 ? 'ascending' : 'descending') + '"' : '';
