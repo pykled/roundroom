@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 // Tests for the offline cheat sheet (plain node, exit 0 = pass). Builds into a temp dir.
 'use strict';
+// Offline like the other NBA suites: model.getPlayers() below would otherwise
+// kick off a background Sleeper refresh that writes data/nba/cache (a cache
+// newer than the committed snapshot changes what test-nba-model and
+// test-nba-profile read on the next run).
+process.env.NBA_MODEL_OFFLINE = '1';
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

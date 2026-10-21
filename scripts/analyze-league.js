@@ -36,23 +36,28 @@ function pad(s, n, right) {
   const sc = league.scoring_settings || {};
   const ppr = sc.rec != null && parseFloat(sc.rec) >= 0.9 ? 1 : 0;
   const sf = (league.roster_positions || []).includes('SUPER_FLEX') ? 1 : 0;
-  const [players, proj, injuriesRes, market] = await Promise.all([
+  const [players, season, ros, injuriesRes, market] = await Promise.all([
     getJSON('/api/players/slim'),
     getJSON('/api/projections/season'),
+    // Rest-of-season sum, as /team and /trade use it; season dict when it 503s.
+    getJSON('/api/projections/ros').catch(() => null),
     getJSON('/api/injuries').catch(() => ({ players: {} })),
     getJSON(`/api/market-values?ppr=${ppr}&sf=${sf}`).catch(() => ({})),
   ]);
   const injuries = injuriesRes && injuriesRes.players ? injuriesRes.players : {};
+  const rosOk = ros && ros.players && Array.isArray(ros.weeks) && ros.weeks.length;
+  const proj = rosOk ? ros.players : season;
+  const weeks = rosOk ? ros.weeks.length : 17;
 
   const teams = league.total_rosters || (league.rosters || []).length;
   const pool = Object.keys(players).map(id => ({ player_id: id, position: players[id][1] }));
   const raw = Scoring.computeVORP(pool, proj, sc, league.roster_positions || [], teams);
   const vorp = Scoring.blendWithMarket(Scoring.rescaleVORP(raw), market || {});
 
-  const out = Analysis.analyzeLeague(league, players, proj, vorp, injuries);
+  const out = Analysis.analyzeLeague(league, players, proj, vorp, injuries, { weeks });
   const POS = Analysis.NEED_POSITIONS;
 
-  console.log(`${league.name || leagueId} · ${out.teams.length} teams · ${ppr ? 'PPR' : 'non-PPR'}${sf ? ' · Superflex' : ''}`);
+  console.log(`${league.name || leagueId} · ${out.teams.length} teams · ${ppr ? 'PPR' : 'non-PPR'}${sf ? ' · Superflex' : ''} · ${rosOk ? `ROS weeks ${ros.weeks[0]}–${ros.weeks[ros.weeks.length - 1]}` : 'season projections (ROS unavailable)'}`);
   console.log('slots  ' + POS.map(p => `${p} ${Analysis.starterSlots(league.roster_positions)[p]}`).join('  '));
   console.log('league avg starter VORP  ' + POS.map(p => `${p} ${Math.round(out.leagueAvg[p]).toLocaleString()}`).join('  '));
   console.log('strong cutoff (top ' + out.strongCount + ')  ' + POS.map(p => `${p} ${Math.round(out.strongCutoff[p]).toLocaleString()}`).join('  '));

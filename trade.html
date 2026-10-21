@@ -501,6 +501,8 @@ var S = {
   week: 1,
   season: '2026',
   mode: 'manual',
+  projRos: null,        // /api/projections/ros players — weekly projections summed from this week on (null → season fallback)
+  rosWeeks: [],         // weeks that sum covers
   recent: null,         // /api/recent-points { weeks, stats } — last completed weeks' fantasy points
   fpa: null,            // data/fpa-current.json (this season only) — opponent strength for the playoff factor
   schedule: {},         // week → { TEAM: { opp, home } } from /api/schedule/:week, playoff weeks only
@@ -543,6 +545,12 @@ async function boot() {
     // Weekly projections come back empty from Sleeper until published; the
     // season endpoint always has full-season stats, so trade values stay live.
     var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    // Rest-of-season projections drive the VORP half of every trade value: a
+    // trade only buys the weeks still to be played, and the season total keeps
+    // counting games already played or missed (A.J. Brown, four weeks on IR,
+    // ranked WR48 by season total vs WR20 by remaining weeks). Optional — a
+    // miss falls back to the season projection.
+    var rosP = fetch('/api/projections/ros').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     var plP = fetch('/api/players/slim').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     // FantasyCalc market values with preset defaults (PPR, 1QB, redraft);
     // re-fetched once league settings are known. Empty object → pure VORP.
@@ -555,9 +563,12 @@ async function boot() {
     var fpaP = fetch('/data/fpa-current.json').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     // Usage shares (role-change signal); optional — a miss leaves plain hot/cold.
     var usageP = fetch('/api/recent-stats').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
-    var results = await Promise.all([projP, plP, marketP, injP, recentP, fpaP, usageP]);
+    var results = await Promise.all([projP, plP, marketP, injP, recentP, fpaP, usageP, rosP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
+    var ros = results[7];
+    S.projRos = ros && ros.players && typeof ros.players === 'object' && Array.isArray(ros.weeks) && ros.weeks.length ? ros.players : null;
+    S.rosWeeks = S.projRos ? ros.weeks : [];
     S.market = results[2] || {};
     S.usage = results[6] && results[6].players ? results[6].players : null;
     S.usageWindow = results[6] && Array.isArray(results[6].recentWeeks) && results[6].recentWeeks.length ? results[6].recentWeeks.length : 1;
@@ -862,13 +873,21 @@ async function loadPlayoffSchedule() {
 }
 
 
+// Projection dict behind the VORP half: rest-of-season when the server could
+// build it, else the full-season projection. The form signal keeps reading
+// the season dict (its per-game baseline is season ÷ 17, and the weekly
+// baseline from /api/recent-points takes precedence anyway).
+function valueProjections() { return S.projRos || S.proj; }
+
 // Value pipeline:
-//   computeVORP (superflex-aware slots) → rescale 0–10000
+//   computeVORP (superflex-aware slots) on REST-OF-SEASON projections → rescale 0–10000
 //   → [dynasty] age curve on the VORP half
 //   → blend with FantasyCalc (redraft 70/30; dynasty 50/50 — a single-season
 //     projection says less about a dynasty asset than the market does)
 //   → injury discount by current status (both sides, so a hurt player you
-//     give away is charged at his reduced value, not full price)
+//     give away is charged at his reduced value, not full price). With ROS
+//     projections the weeks a player is expected to miss are already zero,
+//     so only the residual setback-risk table applies (TradeFit opts.ros).
 //   → recent form: last 2 games ≥20% over the season projection = hot
 //     (sell high, ×0.95), ≥20% under = cold (buy low, ×1.05)
 //   → role gate: a usage jump or injured teammate's vacated share turns hot/cold
@@ -880,17 +899,17 @@ function recompute() {
     return { player_id: id, position: S.players[id][1] };
   });
   S.format = getFormat();
-  var raw = ScoringEngine.computeVORP(players, S.proj, getScoringSettings(), getRosterPositions(), getTeams());
+  var raw = ScoringEngine.computeVORP(players, valueProjections(), getScoringSettings(), getRosterPositions(), getTeams());
   var scaled = ScoringEngine.rescaleVORP(raw);
   if (S.format.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
   S.vorpHealthy = ScoringEngine.blendWithMarket(scaled, S.market || {}, S.format.dynasty ? 0.5 : 0.3);
-  var opts = { dynasty: S.format.dynasty };
+  var opts = injuryOpts();
   S.form = TradeFit.formMap(S.players, S.recent && S.recent.stats, S.recent && S.recent.weeks, S.proj, {
     ppr: S.format.ppr, dynasty: S.format.dynasty,
     projByWeek: S.recent && S.recent.proj, usage: S.usage, teamOuts: S.teamOuts, recentWindow: S.usageWindow,
   });
   S.playoffWeeks = getPlayoffWeeks();
-  S.playoff = TradeFit.playoffMap(S.players, S.playoffWeeks, S.schedule, S.fpa, opts);
+  S.playoff = TradeFit.playoffMap(S.players, S.playoffWeeks, S.schedule, S.fpa, { dynasty: S.format.dynasty });
   S.vorp = TradeFit.applyFactors(TradeFit.applyInjury(S.vorpHealthy, S.players, opts), [S.form, S.playoff]);
   renderFormatChip();
   recomputeAnalysis();
@@ -904,11 +923,14 @@ function recompute() {
 
 // Injury pill for a player row. Empty strings when healthy. The full value
 // chain (injury × form × playoffs) lives in valueTitle() on the number.
+// One source for the injury table selection so recompute() and the pills agree.
+function injuryOpts() { return { dynasty: !!(S.format && S.format.dynasty), ros: !!S.projRos }; }
+
 function injuryBits(id) {
   var info = S.players[id];
   var st = info && info[3];
   if (!st) return { pill: '', title: '', mult: 1 };
-  var m = TradeFit.injuryMult(st, { dynasty: S.format && S.format.dynasty });
+  var m = TradeFit.injuryMult(st, injuryOpts());
   var short = String(st).replace(/\.$/, '');
   var abbr = { Questionable: 'Q', Doubtful: 'D', Out: 'OUT', IR: 'IR', PUP: 'PUP', Sus: 'SUS', COV: 'COV', DNR: 'DNR', NA: 'NA' }[short] || short.toUpperCase();
   var cls = (short === 'Questionable' || short === 'NA') ? 'pl-inj q' : 'pl-inj';
@@ -978,7 +1000,9 @@ function recomputeAnalysis() {
   S.myAnalysis = null;
   if (S.mode !== 'connected' || !S.league || !Array.isArray(S.league.rosters)) return;
   try {
-    S.leagueAnalysis = AnalysisEngine.analyzeLeague(S.league, S.players, S.proj, S.vorp, S.injuries);
+    // weeks: the ROS dict covers only the remaining weeks, so starterPts/wk
+    // divides by that count rather than the season's 17.
+    S.leagueAnalysis = AnalysisEngine.analyzeLeague(S.league, S.players, valueProjections(), S.vorp, S.injuries, { weeks: S.projRos && S.rosWeeks.length ? S.rosWeeks.length : 17 });
     if (S.myRosterId != null) S.myAnalysis = S.leagueAnalysis.team(S.myRosterId);
   } catch(e) {
     console.warn('team analysis failed', e);

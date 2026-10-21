@@ -138,9 +138,12 @@ var AnalysisEngine = (function () {
 
   // Full read on one roster. leagueRosters / leagueUsers are the league payload's
   // rosters[] / users[]; league supplies roster_positions + scoring_settings.
-  function analyzeTeam(roster, leagueRosters, leagueUsers, league, players, proj, vorpMap, injuries) {
+  // opts.weeks: how many weeks `proj` covers (17 for the full-season dict, the
+  // remaining-week count for a rest-of-season sum) — the starterPts divisor.
+  function analyzeTeam(roster, leagueRosters, leagueUsers, league, players, proj, vorpMap, injuries, opts) {
     players = players || {};
     proj = proj || {};
+    var weeks = opts && opts.weeks > 0 ? opts.weeks : WEEKS;
     var positions = (league && league.roster_positions) || [];
     var scoring = (league && league.scoring_settings) || {};
     var settings = roster.settings || {};
@@ -226,7 +229,7 @@ var AnalysisEngine = (function () {
       liabilities: liabilities,
       injured: injured,
       starterVorp: starterVorp,
-      starterPts: Math.round(starterPts / WEEKS * 10) / 10,
+      starterPts: Math.round(starterPts / weeks * 10) / 10,
       benchVorp: benchVorp,
       rank: null,            // filled by analyzeLeague
       teamCount: null,
@@ -251,11 +254,11 @@ var AnalysisEngine = (function () {
     return out.slice(0, limit);
   }
 
-  function analyzeLeague(league, players, proj, vorpMap, injuries) {
+  function analyzeLeague(league, players, proj, vorpMap, injuries, opts) {
     var rosters = (league && league.rosters) || [];
     var users = (league && league.users) || [];
     var teams = rosters.map(function (r) {
-      return analyzeTeam(r, rosters, users, league, players, proj, vorpMap, injuries);
+      return analyzeTeam(r, rosters, users, league, players, proj, vorpMap, injuries, opts);
     });
     teams.sort(function (a, b) { return b.starterVorp - a.starterVorp; });
     teams.forEach(function (t, i) { t.rank = i + 1; t.teamCount = teams.length; });

@@ -516,8 +516,11 @@ async function freePort() {
 
   console.log('server.js (spawned real server)');
   await test('real server: players gzip + ETag/304, GET logout 405, no secret in stdout', async () => {
-    // Yahoo is off by default since the Sleeper-first switch; these checks cover the Yahoo-enabled server.
-    const env = { ...process.env, ...ENV, DATABASE_URL: '', NBA_YAHOO_ENABLED: '1' };
+    // Hermetic: the Yahoo module must be ON for GET logout to be 405 (off → 410
+    // "disabled"), and the NBA model must not refresh from Sleeper (no network,
+    // nothing written to data/nba/cache — a cache newer than the committed
+    // snapshot changes what test-nba-model / test-nba-profile read).
+    const env = { ...process.env, ...ENV, DATABASE_URL: '', NBA_YAHOO_ENABLED: '1', NBA_MODEL_OFFLINE: '1' };
     const envFile = path.join(ROOT, '.env.local');
     if (!env.CLERK_PUBLISHABLE_KEY && fs.existsSync(envFile)) {
       for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) { const m = line.match(/^(CLERK_[A-Z_]+)=(.*)$/); if (m) env[m[1]] = m[2]; }

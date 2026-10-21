@@ -225,6 +225,8 @@ var S = {
   clerk: null,
   me: null,
   proj: {},
+  projRos: null,     // /api/projections/ros players — weekly projections summed over the remaining weeks (null → season fallback)
+  rosWeeks: [],      // weeks that sum covers
   players: {},
   league: null,
   leagues: [],
@@ -280,10 +282,18 @@ async function boot() {
     }
 
     var projP = fetch('/api/projections/season').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    // Rest-of-season projections drive VORP here exactly as on /trade, so the
+    // same player carries the same value on both pages mid-season (the season
+    // total keeps counting games already played or missed). Optional — a miss
+    // falls back to the season projection.
+    var rosP = fetch('/api/projections/ros').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     var plP = fetch('/api/players/slim?def=1').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
-    var results = await Promise.all([projP, plP]);
+    var results = await Promise.all([projP, plP, rosP]);
     S.proj = results[0] || {};
     S.players = results[1] || {};
+    var ros = results[2];
+    S.projRos = ros && ros.players && typeof ros.players === 'object' && Array.isArray(ros.weeks) && ros.weeks.length ? ros.players : null;
+    S.rosWeeks = S.projRos ? ros.weeks : [];
 
     if (S.me && S.me.sleeperUserId) {
       await enterConnected();
@@ -452,8 +462,16 @@ function renderLeagueStrip() {
   strip.hidden = tags.length === 0;
 }
 
+// Projection dict every value on this page is built from: the rest-of-season
+// sum when /api/projections/ros answered, else the full-season dict (same rule
+// as trade.html's valueProjections()). weeksLeft() is the matching per-week
+// divisor for "pts/wk".
+function valueProjections() { return S.projRos || S.proj; }
+function weeksLeft() { return S.projRos && S.rosWeeks.length ? S.rosWeeks.length : GAMES; }
+
 // Points under this league's scoring. Prefers actual Sleeper stats when the
-// player's game has started or finished this week; falls back to season/17.
+// player's game has started or finished this week; falls back to the
+// projection total (rest of season, or season when ROS is unavailable).
 // The scoring format is derived from the league's own scoring_settings (which
 // carries rec=1/0.5/0 for PPR/half-PPR/std, bonus_rec_te, etc.) so it matches
 // the league's exact format without any separate ppr string derivation.
@@ -468,7 +486,7 @@ function seasonPts(id) {
       if (actual > 0) return actual;
     }
   }
-  return ScoringEngine.scorePlayer({ player_id: id }, S.proj, S.league.scoring_settings || {});
+  return ScoringEngine.scorePlayer({ player_id: id }, valueProjections(), S.league.scoring_settings || {});
 }
 
 // Injury dict keyed by lowercase name (same shape as /api/injuries) built from
@@ -504,7 +522,7 @@ function runAnalysis() {
   var out = null;
   if (typeof AnalysisEngine !== 'undefined' && AnalysisEngine && typeof AnalysisEngine.analyzeLeague === 'function') {
     try {
-      var res = AnalysisEngine.analyzeLeague(S.league, S.players, S.proj, S.vorp, injuries);
+      var res = AnalysisEngine.analyzeLeague(S.league, S.players, valueProjections(), S.vorp, injuries, { weeks: weeksLeft() });
       if (res && Array.isArray(res.teams) && res.teams.length && res.teams[0].byPos) out = res;
     } catch(e) { console.warn('AnalysisEngine.analyzeLeague failed, using local fallback', e); }
   }
@@ -536,7 +554,7 @@ function localAnalyzeTeam(roster, positions, injuries) {
   var lineup = LineupOptimizer.optimize(rows, positions);
   var starters = lineup.starters.filter(function(s){ return s.id; }).map(function(s){ return s.id; });
   var starterVorp = 0, starterPts = 0;
-  starters.forEach(function(id){ starterVorp += S.vorp.get(id) || 0; starterPts += seasonPts(id) / GAMES; });
+  starters.forEach(function(id){ starterVorp += S.vorp.get(id) || 0; starterPts += seasonPts(id) / weeksLeft(); });
   var benchVorp = 0;
   lineup.bench.forEach(function(id){ benchVorp += S.vorp.get(id) || 0; });
 
@@ -678,9 +696,10 @@ function recompute() {
   var positions = S.league.roster_positions || [];
   var teams = S.league.total_rosters || (S.league.rosters || []).length || 12;
 
-  // League-wide VORP so replacement level reflects the whole player pool
+  // League-wide VORP so replacement level reflects the whole player pool, on
+  // rest-of-season projections (season fallback) — the same input /trade uses.
   var pool = Object.keys(S.players).map(function(id) { return { player_id: id, position: S.players[id][1] }; });
-  var raw = ScoringEngine.computeVORP(pool, S.proj, scoring, positions, teams);
+  var raw = ScoringEngine.computeVORP(pool, valueProjections(), scoring, positions, teams);
   var scaled = ScoringEngine.rescaleVORP(raw);
   var fmt = TradeFit.leagueFormat(S.league);
   if (fmt.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
@@ -705,7 +724,7 @@ function recompute() {
 var TERM_HELP = {
   strength: 'Total VORP of your optimal starting lineup — ranks your starters vs. all other teams in your league.',
   vorp: 'Value Over Replacement Player: projected points above the best freely available player at that position in this league. Higher is better; the trade calculator and lineup optimizer use the same numbers.',
-  pts: 'Projected points per week from your optimal starters, under this league\'s exact scoring settings.',
+  pts: 'Projected points per remaining week from your optimal starters, under this league\'s exact scoring settings (rest-of-season projections, so bye weeks still to come count as zero).',
   record: 'Wins-losses from Sleeper. Shows 0-0 until Week 1 posts.',
   pos: 'Tier for this position: depth (players rostered vs. starter slots) combined with starter quality (this position\'s starter VORP vs. the league average). #rank compares starter strength at this position across the league.',
   benchValue: 'Total VORP of everyone not in your optimal lineup — your trade ammo and injury cover.',

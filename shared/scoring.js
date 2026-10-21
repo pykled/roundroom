@@ -60,6 +60,53 @@ var ScoringEngine = (function () {
     return vorpMap;
   }
 
+  // Sum per-week projection dicts ({ player_id: { stat: value } }) into one
+  // rest-of-season dict with the same shape, so computeVORP can score it under
+  // any league's scoring_settings. Only additive numeric stats are summed;
+  // per-week rank / ADP / games-active bookkeeping fields are dropped. A
+  // player with no row in a week (bye, expected out) simply adds nothing.
+  var NON_ADDITIVE = /adp|rank|gms_active|^gp$/;
+  function sumProjections(weekDicts) {
+    var out = {};
+    (weekDicts || []).forEach(function (wk) {
+      if (!wk || typeof wk !== 'object') return;
+      for (var id in wk) {
+        if (!Object.prototype.hasOwnProperty.call(wk, id)) continue;
+        var stats = wk[id];
+        if (!stats || typeof stats !== 'object') continue;
+        var acc = out[id] || (out[id] = {});
+        for (var k in stats) {
+          if (!Object.prototype.hasOwnProperty.call(stats, k)) continue;
+          var v = stats[k];
+          if (typeof v !== 'number' || !isFinite(v) || NON_ADDITIVE.test(k)) continue;
+          acc[k] = (acc[k] || 0) + v;
+        }
+      }
+    });
+    return out;
+  }
+
+  // Which week a rest-of-season sum starts from. Sleeper's current week stays
+  // W from Tuesday until the Monday night game is over, but once W's first game
+  // has kicked off (Thursday night) a trade can no longer buy week W: players
+  // who already played have banked those points for their current owner, and
+  // anyone on bye or ruled out for W (0 in the weekly row) would otherwise be
+  // charged a game relative to the field. games: the week's { kickoff (ISO),
+  // started } entries from the scores feed; now: ms epoch (injectable). Week
+  // 18 after kickoff yields 19 — the caller treats that as "nothing left".
+  function rosFromWeek(week, games, now) {
+    var w = Math.max(1, Math.floor(Number(week) || 1));
+    var t = typeof now === 'number' && isFinite(now) ? now : Date.now();
+    var started = false;
+    (Array.isArray(games) ? games : []).forEach(function (g) {
+      if (started || !g || typeof g !== 'object') return;
+      if (g.started === true) { started = true; return; }
+      var k = typeof g.kickoff === 'number' ? g.kickoff : (g.kickoff ? Date.parse(g.kickoff) : NaN);
+      if (isFinite(k) && t >= k) started = true;
+    });
+    return { fromWeek: started ? w + 1 : w, slateStarted: started };
+  }
+
   // Apply ^1.25 power curve and rescale to 0–10000
   function rescaleVORP(vorpMap) {
     var maxV = 0;
@@ -120,7 +167,7 @@ var ScoringEngine = (function () {
     return { giverValue: giverValue, receiverValue: receiverValue, verdict: verdict, deltaPct: deltaPct };
   }
 
-  return { scorePlayer: scorePlayer, computeVORP: computeVORP, rescaleVORP: rescaleVORP, blendWithMarket: blendWithMarket, evaluateTrade: evaluateTrade };
+  return { scorePlayer: scorePlayer, computeVORP: computeVORP, sumProjections: sumProjections, rosFromWeek: rosFromWeek, rescaleVORP: rescaleVORP, blendWithMarket: blendWithMarket, evaluateTrade: evaluateTrade };
 })();
 
 if (typeof module !== 'undefined') module.exports = ScoringEngine;
