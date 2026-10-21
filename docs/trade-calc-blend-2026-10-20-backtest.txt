@@ -1,0 +1,256 @@
+
+==== Study A · 1QB redraft · T0 = week 3 (market = value − trend30Day) · realized weeks 3–4–5–6 (PPR) ====
+  FantasyCalc list 196 rows, 26 not listed 30 days ago; sample 160 (listed at T0, skill, with a week-2/3 projection); 10 listed but no week-2/3 projection (inactive at T0, see below)
+  replacement realized totals: QB 68.8, RB 31.7, WR 35.3, TE 40.9; statuses at T0: 249 tagged; form signals at T0: 194
+  candidate                               rho     QB     RB     WR     TE  top12/pos  top24  pairs  x-pos   rmse
+  market only (w=1)                     0.459   0.10   0.52   0.50   0.52       0.67   0.54  0.704  0.703   12.3
+  blend w=0.75                          0.463   0.12   0.52   0.50   0.49       0.65   0.54  0.707  0.706   12.1
+  blend w=0.5                           0.469   0.10   0.54   0.50   0.50       0.65   0.54  0.708  0.707   12.0
+  blend w=0.25                          0.470   0.09   0.55   0.50   0.49       0.65   0.54  0.708  0.708   11.9
+  model only (w=0)                      0.484   0.23   0.56   0.48   0.47       0.65   0.54  0.738  0.739   11.9
+  production (w=0.3 × inj × form)       0.469   0.08   0.54   0.50   0.49       0.63   0.54  0.709  0.708   11.9
+  production w/o form                   0.471   0.09   0.54   0.49   0.50       0.65   0.54  0.708  0.708   11.9
+  production w/o injury                 0.468   0.08   0.54   0.49   0.49       0.63   0.54  0.709  0.708   11.9
+  n by position: QB 28, RB 51, WR 57, TE 24
+  bootstrap (1000 resamples) — Δ vs market only: rho [2.5%, 97.5%] · pair accuracy [2.5%, 97.5%]
+  blend w=0.75                        rho 0.004 [-0.005, 0.013]   pairs 0.003 [-0.001, 0.007]
+  blend w=0.5                         rho 0.010 [-0.007, 0.028]   pairs 0.004 [-0.004, 0.013]
+  blend w=0.25                        rho 0.011 [-0.016, 0.038]   pairs 0.004 [-0.008, 0.018]
+  model only (w=0)                    rho 0.024 [-0.029, 0.082]   pairs 0.033 [0.004, 0.063]
+  production (w=0.3 × inj × form)     rho 0.010 [-0.015, 0.035]   pairs 0.006 [-0.006, 0.018]
+  production w/o form                 rho 0.012 [-0.014, 0.038]   pairs 0.004 [-0.007, 0.016]
+  production w/o injury               rho 0.009 [-0.015, 0.033]   pairs 0.005 [-0.006, 0.017]
+  disagreement pairs (market and model order them oppositely, both outside the FAIR band): 624 — market right 318 (0.51), model right 306; cross-position 474, model right 231
+  age bucket: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    ≤24               46    0.56    0.57    0.58    0.60    12.0
+    25–27             68    0.48    0.48    0.51    0.48    12.8
+    28–29             16    0.03    0.04   -0.08    0.05     3.6
+    30+               30    0.38    0.39    0.46    0.39     8.9
+  status at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    healthy          135    0.49    0.49    0.51    0.50    11.4
+    Questionable      20    0.30    0.37    0.34    0.37    10.7
+  form label at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    hot               45    0.62    0.62    0.64    0.63    13.7
+    cold              52    0.38    0.41    0.49    0.43     8.3
+    on pace           53    0.30    0.31    0.30    0.31    11.3
+    no signal         10    0.70    0.69    0.60    0.69    10.2
+  form at T0 → realized PPG weeks 3–6 ÷ T0 projection: hot n=43 mean 1.10 median 1.01 · cold n=46 mean 1.05 median 1.04 · on pace n=52 mean 1.04 median 1.10
+  mean (value rank − realized rank) within position by form label (negative = ranked better than it turned out): hot n=45: market 1.18, model -3.18 · cold n=52: market 1.54, model -1.58 · on pace n=53: market -3.28, model -6.47
+  VORP power curve: ^1: model rho 0.484 x-pos pairs 0.740 · blend w=0.3 rho 0.468 x-pos 0.706 | ^1.25: model rho 0.484 x-pos pairs 0.739 · blend w=0.3 rho 0.470 x-pos 0.708 | ^1.5: model rho 0.484 x-pos pairs 0.738 · blend w=0.3 rho 0.471 x-pos 0.709
+  inactive at T0 (n=10, model has no value): market-only rho vs realized 0.70; mean games played wks 3–6 1.10; mean realized VORP 6.11 (sample mean 10.94)
+    Josh Jacobs (NA, 0g, 0 pts); A.J. Brown (IR, 1g, 6 pts); Nico Collins (Questionable, 3g, 52 pts); Chig Okonkwo (Questionable, 3g, 26 pts); Jordan Mason (IR, 0g, 0 pts); Puka Nacua (Questionable, 3g, 79 pts); Tank Dell (IR, 0g, 0 pts); Zach Charbonnet (PUP, 0g, 0 pts); Jordyn Tyson (IR, 0g, 0 pts); Ja'Kobi Lane (IR, 1g, 8 pts)
+  top 15 |model − market| at T0 (0–10000 scale): market rank → model rank → realized rank (pos)
+    Ja'Marr Chase          WR              mkt  8581 mdl  4467    1 →   5 → real  21  model
+    Ashton Jeanty          RB              mkt  6685 mdl  2753    8 →  11 → real  14  model
+    Omarion Hampton        RB              mkt  5228 mdl  1534   11 →  17 → real  42  model
+    Derrick Henry          RB              mkt  7149 mdl  3582    7 →   7 → real  11  tie
+    Josh Allen             QB              mkt  6093 mdl  2774    1 →   1 → real   2  tie
+    Brock Bowers           TE Questionable mkt  4468 mdl  1234    2 →   2 → real   1  tie
+    James Cook             RB              mkt  7415 mdl  4318    6 →   6 → real   5  tie
+    Trey McBride           TE              mkt  6102 mdl  3084    1 →   1 → real   4  tie
+    Chase Brown            RB              mkt  5769 mdl  2760   10 →  10 → real  27  tie
+    D'Andre Swift          RB              mkt  4055 mdl  1129   16 →  22 → real  13  market
+    Emeka Egbuka           WR              mkt  3081 mdl   173   16 →  35 → real  22  market
+    Malik Nabers           WR              mkt  4982 mdl  2083    7 →  17 → real   2  market
+    Saquon Barkley         RB Questionable mkt  5909 mdl  3034    9 →   9 → real  28  tie
+    Jeremiyah Love         RB              mkt  4121 mdl  1258   15 →  20 → real  47  model
+    Kenneth Walker         RB              mkt  7426 mdl  4764    5 →   5 → real   7  tie
+    closer to realized rank: {"model":4,"tie":8,"market":3}
+
+==== Study A · SF redraft · T0 = week 3 (market = value − trend30Day) · realized weeks 3–4–5–6 (PPR) ====
+  FantasyCalc list 195 rows, 25 not listed 30 days ago; sample 161 (listed at T0, skill, with a week-2/3 projection); 9 listed but no week-2/3 projection (inactive at T0, see below)
+  replacement realized totals: QB 44.7, RB 31.7, WR 35.3, TE 40.9; statuses at T0: 249 tagged; form signals at T0: 194
+  candidate                               rho     QB     RB     WR     TE  top12/pos  top24  pairs  x-pos   rmse
+  market only (w=1)                     0.455   0.07   0.52   0.47   0.52       0.67   0.42  0.696  0.695   14.2
+  blend w=0.75                          0.463   0.09   0.53   0.48   0.49       0.65   0.38  0.697  0.697   14.0
+  blend w=0.5                           0.463   0.09   0.54   0.48   0.50       0.65   0.42  0.698  0.698   13.9
+  blend w=0.25                          0.461   0.06   0.55   0.47   0.49       0.65   0.42  0.696  0.696   13.8
+  model only (w=0)                      0.447   0.10   0.56   0.46   0.47       0.63   0.42  0.707  0.705   13.9
+  production (w=0.3 × inj × form)       0.463   0.11   0.54   0.48   0.49       0.65   0.38  0.698  0.697   13.8
+  production w/o form                   0.464   0.08   0.55   0.47   0.49       0.65   0.42  0.697  0.697   13.8
+  production w/o injury                 0.461   0.09   0.54   0.47   0.49       0.65   0.38  0.697  0.696   13.8
+  n by position: QB 28, RB 51, WR 58, TE 24
+  bootstrap (1000 resamples) — Δ vs market only: rho [2.5%, 97.5%] · pair accuracy [2.5%, 97.5%]
+  blend w=0.75                        rho 0.008 [-0.004, 0.020]   pairs 0.002 [-0.003, 0.007]
+  blend w=0.5                         rho 0.008 [-0.013, 0.028]   pairs 0.002 [-0.007, 0.012]
+  blend w=0.25                        rho 0.006 [-0.028, 0.039]   pairs 0.000 [-0.014, 0.015]
+  model only (w=0)                    rho -0.008 [-0.069, 0.054]   pairs 0.011 [-0.017, 0.041]
+  production (w=0.3 × inj × form)     rho 0.008 [-0.024, 0.038]   pairs 0.002 [-0.012, 0.015]
+  production w/o form                 rho 0.009 [-0.023, 0.039]   pairs 0.002 [-0.012, 0.015]
+  production w/o injury               rho 0.006 [-0.026, 0.035]   pairs 0.001 [-0.013, 0.014]
+  disagreement pairs (market and model order them oppositely, both outside the FAIR band): 913 — market right 504 (0.55), model right 409; cross-position 743, model right 331
+  age bucket: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    ≤24               46    0.59    0.60    0.58    0.60    12.5
+    25–27             68    0.49    0.49    0.47    0.49    15.2
+    28–29             17   -0.01   -0.06   -0.06   -0.04     6.2
+    30+               30    0.37    0.40    0.32    0.40    14.9
+  status at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    healthy          136    0.48    0.49    0.46    0.48    14.1
+    Questionable      20    0.31    0.37    0.35    0.38    11.8
+  form label at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.3 × inj × form) · mean realized VORP
+    hot               45    0.57    0.60    0.60    0.60    17.1
+    cold              53    0.30    0.35    0.43    0.39     9.5
+    on pace           53    0.36    0.33    0.26    0.32    14.5
+    no signal         10    0.68    0.67    0.57    0.67    12.4
+  form at T0 → realized PPG weeks 3–6 ÷ T0 projection: hot n=43 mean 1.10 median 1.01 · cold n=47 mean 1.07 median 1.05 · on pace n=52 mean 1.04 median 1.10
+  mean (value rank − realized rank) within position by form label (negative = ranked better than it turned out): hot n=45: market 0.93, model -2.78 · cold n=53: market 2.09, model -0.60 · on pace n=53: market -3.64, model -5.72
+  VORP power curve: ^1: model rho 0.447 x-pos pairs 0.707 · blend w=0.3 rho 0.459 x-pos 0.695 | ^1.25: model rho 0.447 x-pos pairs 0.705 · blend w=0.3 rho 0.463 x-pos 0.696 | ^1.5: model rho 0.447 x-pos pairs 0.704 · blend w=0.3 rho 0.463 x-pos 0.697
+  inactive at T0 (n=9, model has no value): market-only rho vs realized 0.73; mean games played wks 3–6 0.89; mean realized VORP 6.79 (sample mean 13.43)
+    Josh Jacobs (NA, 0g, 0 pts); A.J. Brown (IR, 1g, 6 pts); Nico Collins (Questionable, 3g, 52 pts); Jordan Mason (IR, 0g, 0 pts); Puka Nacua (Questionable, 3g, 79 pts); Tank Dell (IR, 0g, 0 pts); Zach Charbonnet (PUP, 0g, 0 pts); Jordyn Tyson (IR, 0g, 0 pts); Ja'Kobi Lane (IR, 1g, 8 pts)
+  top 15 |model − market| at T0 (0–10000 scale): market rank → model rank → realized rank (pos)
+    Josh Allen             QB              mkt 10000 mdl  4273    1 →   1 → real   2  tie
+    Caleb Williams         QB Doubtful     mkt  6241 mdl  1303    3 →   8 → real  27  model
+    Joe Burrow             QB              mkt  5512 mdl   786    4 →  12 → real  11  model
+    Lamar Jackson          QB              mkt  8436 mdl  3941    2 →   2 → real  22  tie
+    Trevor Lawrence        QB              mkt  5475 mdl  1123    5 →   9 → real   5  market
+    Ja'Marr Chase          WR              mkt  8091 mdl  4467    1 →   5 → real  22  model
+    Drake Maye             QB              mkt  4632 mdl  1411    7 →   7 → real   1  tie
+    Trey McBride           TE              mkt  6289 mdl  3084    1 →   1 → real   4  tie
+    Brock Bowers           TE Questionable mkt  4417 mdl  1234    2 →   2 → real   1  tie
+    Justin Herbert         QB              mkt  3453 mdl   392   11 →  17 → real  20  model
+    Bo Nix                 QB              mkt  3256 mdl   235   13 →  20 → real  19  model
+    Matthew Stafford       QB              mkt  2983 mdl     0   16 →  22 → real   9  market
+    Tyler Shough           QB              mkt  3277 mdl   415   12 →  16 → real  12  market
+    Dak Prescott           QB              mkt  4560 mdl  1715    8 →   5 → real  15  market
+    Ashton Jeanty          RB              mkt  5555 mdl  2753    8 →  11 → real  14  model
+    closer to realized rank: {"tie":5,"model":6,"market":4}
+
+==== Study A · 1QB dynasty · T0 = week 3 (market = value − trend30Day) · realized weeks 3–4–5–6 (PPR) ====
+  FantasyCalc list 419 rows, 23 not listed 30 days ago; sample 302 (listed at T0, skill, with a week-2/3 projection); 69 listed but no week-2/3 projection (inactive at T0, see below)
+  replacement realized totals: QB 68.8, RB 31.7, WR 35.3, TE 40.9; statuses at T0: 249 tagged; form signals at T0: 194
+  candidate                               rho     QB     RB     WR     TE  top12/pos  top24  pairs  x-pos   rmse
+  market only (w=1)                     0.521   0.24   0.49   0.55   0.60       0.58   0.50  0.801  0.800    9.8
+  blend w=0.75                          0.529   0.24   0.51   0.56   0.59       0.60   0.50  0.804  0.803    9.5
+  blend w=0.5                           0.533   0.23   0.53   0.56   0.59       0.60   0.50  0.806  0.805    9.3
+  blend w=0.25                          0.537   0.22   0.55   0.57   0.59       0.63   0.54  0.805  0.805    9.2
+  model only (w=0)                      0.530   0.21   0.55   0.56   0.63       0.58   0.50  0.830  0.830    9.3
+  production (w=0.5 × inj × form)       0.534   0.24   0.53   0.56   0.59       0.60   0.50  0.806  0.806    9.3
+  production w/o form                   0.534   0.24   0.53   0.56   0.59       0.60   0.50  0.806  0.806    9.3
+  production w/o injury                 0.533   0.23   0.53   0.56   0.59       0.60   0.50  0.806  0.806    9.3
+  n by position: QB 37, RB 81, WR 125, TE 59
+  bootstrap (1000 resamples) — Δ vs market only: rho [2.5%, 97.5%] · pair accuracy [2.5%, 97.5%]
+  blend w=0.75                        rho 0.008 [0.001, 0.013]   pairs 0.003 [-0.001, 0.006]
+  blend w=0.5                         rho 0.012 [0.001, 0.022]   pairs 0.005 [-0.002, 0.011]
+  blend w=0.25                        rho 0.016 [0.000, 0.030]   pairs 0.004 [-0.005, 0.013]
+  model only (w=0)                    rho 0.010 [-0.041, 0.061]   pairs 0.029 [0.002, 0.054]
+  production (w=0.5 × inj × form)     rho 0.013 [0.001, 0.023]   pairs 0.006 [-0.001, 0.011]
+  production w/o form                 rho 0.012 [0.001, 0.023]   pairs 0.005 [-0.002, 0.011]
+  production w/o injury               rho 0.012 [0.000, 0.022]   pairs 0.005 [-0.001, 0.011]
+  disagreement pairs (market and model order them oppositely, both outside the FAIR band): 1052 — market right 497 (0.47), model right 555; cross-position 773, model right 403
+  age bucket: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    ≤24              118    0.53    0.53    0.59    0.53     5.2
+    25–27            110    0.57    0.58    0.55    0.58     8.3
+    28–29             27    0.26    0.25    0.14    0.23     2.1
+    30+               47    0.49    0.53    0.52    0.53     5.7
+  status at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    healthy          254    0.55    0.56    0.56    0.56     6.4
+    Questionable      37    0.37    0.46    0.45    0.47     6.2
+    Out/IR/D/Sus      11     n/a     n/a     n/a     n/a     0.0
+  form label at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    hot               52    0.66    0.66    0.65    0.66    11.8
+    cold              78    0.34    0.39    0.45    0.39     5.9
+    on pace           61    0.33    0.33    0.32    0.33    10.1
+    no signal        111    0.26    0.26    0.39    0.26     1.4
+  form at T0 → realized PPG weeks 3–6 ÷ T0 projection: hot n=47 mean 1.08 median 1.01 · cold n=66 mean 1.02 median 1.00 · on pace n=60 mean 1.08 median 1.11
+  mean (value rank − realized rank) within position by form label (negative = ranked better than it turned out): hot n=52: market -3.50, model -11.71 · cold n=78: market -3.06, model -13.37 · on pace n=61: market -6.02, model -13.85
+  VORP power curve: ^1: model rho 0.529 x-pos pairs 0.830 · blend w=0.5 rho 0.534 x-pos 0.805 | ^1.25: model rho 0.530 x-pos pairs 0.830 · blend w=0.5 rho 0.533 x-pos 0.805 | ^1.5: model rho 0.530 x-pos pairs 0.829 · blend w=0.5 rho 0.531 x-pos 0.804
+  inactive at T0 (n=69, model has no value): market-only rho vs realized 0.29; mean games played wks 3–6 0.75; mean realized VORP 0.89 (sample mean 6.14)
+    Joe Flacco (?, 0g, 0 pts); Tyreek Hill (?, 0g, 0 pts); James Conner (IR, 0g, 0 pts); Joshua Dobbs (?, 1g, 0 pts); Christian Kirk (IR, 0g, 0 pts); Josh Jacobs (NA, 0g, 0 pts); A.J. Brown (IR, 1g, 6 pts); Tua Tagovailoa (?, 1g, 0 pts); Brandon Aiyuk (DNR, 0g, 0 pts); Tyler Huntley (?, 3g, 42 pts); Mac Jones (?, 0g, 0 pts); Nico Collins (Questionable, 3g, 52 pts)
+  top 15 |model − market| at T0 (0–10000 scale): market rank → model rank → realized rank (pos)
+    Jeremiyah Love         RB              mkt  5877 mdl  1359    4 →  19 → real  72  model
+    Brock Bowers           TE Questionable mkt  5526 mdl  1308    1 →   2 → real   1  market
+    Ashton Jeanty          RB              mkt  6706 mdl  2973    3 →   9 → real  14  model
+    Colston Loveland       TE              mkt  3667 mdl    73    3 →  12 → real  11  model
+    Ja'Marr Chase          WR              mkt  7981 mdl  4467    2 →   5 → real  24  model
+    Malik Nabers           WR              mkt  5763 mdl  2250    5 →  15 → real   2  market
+    Caleb Williams         QB Doubtful     mkt  3655 mdl   237    3 →   9 → real  33  model
+    Emeka Egbuka           WR              mkt  3599 mdl   187   11 →  37 → real  25  model
+    Omarion Hampton        RB              mkt  4881 mdl  1657    9 →  18 → real  66  model
+    Jadarian Price         RB Questionable mkt  3202 mdl     0   17 →  31 → real  71  model
+    Tyler Warren           TE              mkt  3212 mdl   122    4 →  10 → real   9  model
+    Joe Burrow             QB              mkt  3000 mdl     0    5 →  13 → real  11  model
+    Drake Maye             QB              mkt  3245 mdl   320    4 →   8 → real   1  market
+    Drake London           WR              mkt  4319 mdl  1420    7 →  22 → real   5  market
+    Carnell Tate           WR              mkt  2871 mdl     0   19 →  43 → real  18  market
+    closer to realized rank: {"model":10,"market":5}
+
+==== Study A · SF dynasty · T0 = week 3 (market = value − trend30Day) · realized weeks 3–4–5–6 (PPR) ====
+  FantasyCalc list 419 rows, 23 not listed 30 days ago; sample 302 (listed at T0, skill, with a week-2/3 projection); 69 listed but no week-2/3 projection (inactive at T0, see below)
+  replacement realized totals: QB 44.7, RB 31.7, WR 35.3, TE 40.9; statuses at T0: 249 tagged; form signals at T0: 194
+  candidate                               rho     QB     RB     WR     TE  top12/pos  top24  pairs  x-pos   rmse
+  market only (w=1)                     0.550   0.18   0.49   0.55   0.60       0.58   0.46  0.800  0.802   11.3
+  blend w=0.75                          0.555   0.18   0.51   0.56   0.59       0.60   0.42  0.802  0.805   11.0
+  blend w=0.5                           0.559   0.19   0.54   0.56   0.59       0.60   0.50  0.803  0.805   10.8
+  blend w=0.25                          0.561   0.17   0.55   0.56   0.59       0.63   0.46  0.802  0.804   10.8
+  model only (w=0)                      0.534   0.12   0.55   0.56   0.63       0.58   0.46  0.813  0.813   11.0
+  production (w=0.5 × inj × form)       0.558   0.19   0.53   0.56   0.59       0.60   0.50  0.802  0.804   10.8
+  production w/o form                   0.561   0.20   0.54   0.56   0.59       0.60   0.50  0.803  0.806   10.8
+  production w/o injury                 0.558   0.18   0.53   0.56   0.59       0.60   0.50  0.802  0.804   10.8
+  n by position: QB 37, RB 81, WR 125, TE 59
+  bootstrap (1000 resamples) — Δ vs market only: rho [2.5%, 97.5%] · pair accuracy [2.5%, 97.5%]
+  blend w=0.75                        rho 0.005 [-0.001, 0.010]   pairs 0.003 [-0.000, 0.006]
+  blend w=0.5                         rho 0.009 [-0.001, 0.020]   pairs 0.003 [-0.003, 0.009]
+  blend w=0.25                        rho 0.011 [-0.005, 0.026]   pairs 0.002 [-0.007, 0.011]
+  model only (w=0)                    rho -0.016 [-0.062, 0.033]   pairs 0.012 [-0.010, 0.035]
+  production (w=0.5 × inj × form)     rho 0.008 [-0.002, 0.019]   pairs 0.003 [-0.003, 0.008]
+  production w/o form                 rho 0.011 [0.000, 0.021]   pairs 0.003 [-0.003, 0.009]
+  production w/o injury               rho 0.008 [-0.003, 0.018]   pairs 0.002 [-0.003, 0.008]
+  disagreement pairs (market and model order them oppositely, both outside the FAIR band): 1372 — market right 687 (0.50), model right 685; cross-position 1060, model right 520
+  age bucket: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    ≤24              118    0.52    0.52    0.59    0.52     5.4
+    25–27            110    0.62    0.62    0.56    0.62     9.9
+    28–29             27    0.28    0.27    0.21    0.27     3.9
+    30+               47    0.59    0.58    0.42    0.57    10.1
+  status at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    healthy          254    0.58    0.59    0.55    0.58     8.0
+    Questionable      37    0.39    0.49    0.48    0.49     6.8
+    Out/IR/D/Sus      11    0.40    0.40    0.55    0.40     0.8
+  form label at T0: n · rho for market only (w=1) / blend w=0.5 / model only (w=0) / production (w=0.5 × inj × form) · mean realized VORP
+    hot               52    0.61    0.63    0.63    0.63    15.0
+    cold              78    0.34    0.39    0.41    0.39     6.7
+    on pace           61    0.35    0.36    0.30    0.36    12.8
+    no signal        111    0.31    0.31    0.38    0.31     1.9
+  form at T0 → realized PPG weeks 3–6 ÷ T0 projection: hot n=47 mean 1.08 median 1.01 · cold n=66 mean 1.02 median 1.00 · on pace n=60 mean 1.08 median 1.11
+  mean (value rank − realized rank) within position by form label (negative = ranked better than it turned out): hot n=52: market -3.31, model -10.54 · cold n=78: market -3.08, model -12.68 · on pace n=61: market -6.08, model -12.97
+  VORP power curve: ^1: model rho 0.534 x-pos pairs 0.814 · blend w=0.5 rho 0.559 x-pos 0.805 | ^1.25: model rho 0.534 x-pos pairs 0.813 · blend w=0.5 rho 0.559 x-pos 0.805 | ^1.5: model rho 0.534 x-pos pairs 0.813 · blend w=0.5 rho 0.558 x-pos 0.805
+  inactive at T0 (n=69, model has no value): market-only rho vs realized 0.29; mean games played wks 3–6 0.75; mean realized VORP 0.89 (sample mean 7.61)
+    Joe Flacco (?, 0g, 0 pts); Tyreek Hill (?, 0g, 0 pts); James Conner (IR, 0g, 0 pts); Joshua Dobbs (?, 1g, 0 pts); Christian Kirk (IR, 0g, 0 pts); Josh Jacobs (NA, 0g, 0 pts); A.J. Brown (IR, 1g, 6 pts); Tua Tagovailoa (?, 1g, 0 pts); Brandon Aiyuk (DNR, 0g, 0 pts); Tyler Huntley (?, 3g, 42 pts); Mac Jones (?, 0g, 0 pts); Nico Collins (Questionable, 3g, 52 pts)
+  top 15 |model − market| at T0 (0–10000 scale): market rank → model rank → realized rank (pos)
+    Josh Allen             QB              mkt 10000 mdl  4273    1 →   1 → real   2  tie
+    Caleb Williams         QB Doubtful     mkt  6970 mdl  1381    3 →   9 → real  35  model
+    Joe Burrow             QB              mkt  5723 mdl   786    5 →  14 → real  11  model
+    Brock Bowers           TE Questionable mkt  6160 mdl  1308    1 →   2 → real   1  market
+    Drake Maye             QB              mkt  6187 mdl  1496    4 →   8 → real   1  market
+    Jeremiyah Love         RB              mkt  5496 mdl  1359    4 →  19 → real  72  model
+    Trevor Lawrence        QB              mkt  5162 mdl  1123    8 →  11 → real   5  market
+    Colston Loveland       TE              mkt  4089 mdl    73    3 →  12 → real  11  model
+    Justin Herbert         QB              mkt  4400 mdl   392   12 →  19 → real  23  model
+    Jaxson Dart            QB IR           mkt  5212 mdl  1274    7 →  10 → real  36  model
+    Ja'Marr Chase          WR              mkt  8136 mdl  4467    2 →   5 → real  24  model
+    Malik Nabers           WR              mkt  5877 mdl  2250    5 →  15 → real   2  market
+    Bo Nix                 QB              mkt  3818 mdl   249   13 →  22 → real  22  model
+    Emeka Egbuka           WR              mkt  3671 mdl   187   11 →  37 → real  25  model
+    Tyler Warren           TE              mkt  3582 mdl   122    4 →  10 → real   9  model
+    closer to realized rank: {"tie":1,"model":10,"market":4}
+
+==== Study B · weekly component tests (no hindsight) ====
+  form (hot ≥1.2 / cold ≤0.8 of the last-2 weekly projections) → this-week actual ÷ this-week Sleeper projection, and next-4-games PPG ÷ projection
+    hot      n=  911 week mean 0.965 median 0.856   next-4 n=  776 mean 0.963 median 0.927
+    cold     n= 1217 week mean 0.930 median 0.812   next-4 n= 1054 mean 0.942 median 0.891
+    on pace  n= 1179 week mean 0.961 median 0.848   next-4 n= 1013 mean 0.956 median 0.909
+    95% CI of mean(actual/proj) difference vs on-pace — hot: week [-0.053, 0.061] next-4 [-0.030, 0.047] · cold: week [-0.081, 0.018] next-4 [-0.050, 0.023]  (production nudges: hot −0.05, cold +0.05)
+    Spearman(last-2 ratio, this-week actual/proj) over 3307 player-weeks: 0.030  (positive = momentum persists beyond the projection; negative = regression; ~0 = projection already absorbs it)
+    implied unbiased multiplier (mean actual/proj): hot 0.965 vs production 0.95 · cold 0.930 vs production 1.05 · on-pace 0.961
+  FPA matchup: opponent rank in pts allowed to the position through week k−1 (1 = allows most) → week-k actual ÷ Sleeper projection
+    easy   n= 1043 mean 0.955 median 0.844   by pos: QB 0.911 · RB 0.961 · WR 0.920 · TE 1.073
+    mid    n=  930 mean 0.951 median 0.839   by pos: QB 0.888 · RB 0.961 · WR 0.937 · TE 1.023
+    hard   n= 1024 mean 0.893 median 0.782   by pos: QB 0.820 · RB 0.948 · WR 0.867 · TE 0.936
+    95% CI of mean difference vs mid — easy [-0.053, 0.065] · hard [-0.116, 0.001]
+    Spearman(easiness, actual/proj) over 2997 player-weeks: 0.052  (production: rank 1 → ×1.05, rank 32 → ×0.95 on top of the projection)
+  Questionable / Doubtful on Thursday (2026 weeks 2–6; baseline = last week's projection ≥ 5 of a player who played last week): share that played, week actual ÷ baseline with DNP = 0
+    Questionable  n= 107 played 0.71  mean 0.605 median 0.366
+    healthy       n= 845 played 0.95  mean 0.949 median 0.838
+    Doubtful      n=   9 played 0.00  mean 0.000 median 0.000
+    implied ROS multiplier for a Questionable tag if only this week is at risk (12 weeks left): 0.970 vs production 0.97 (ros table)
+
+wrote /tmp/blend/backtest.json
