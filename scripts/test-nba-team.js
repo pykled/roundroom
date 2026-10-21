@@ -442,6 +442,44 @@ t('UTIL is never a weakness, need or surplus (HALIMSANITY league, every horizon)
   eq([ra.groups.UTIL.tier, ra.groups.UTIL.status, ra.needs.includes('UTIL')], ['solid', 'neutral', false], 'analyzeRoster UTIL');
 });
 
+/* ------------------------------------------------------------ bench cover */
+// Bench players almost all sit below the waiver level, so the old bench value
+// (shares above replacement) was ~0 for every team and its rank was noise. Bench
+// cover = the best healthy bench player's horizon value minus a waiver add.
+t('bench cover replaces the bench rank: best healthy bench player vs a waiver add', async () => {
+  const LS = require('../nba/model/league-sync');
+  const b = await board();
+  const ctx = { ...LS.leagueContext({ league: fx('sleeper-league.json'), users: fx('sleeper-users.json'), rosters: fx('sleeper-rosters.json'), draft: null, board: b, profile: PROFILE, userId: UID, currentWeek: CW }), profile: PROFILE };
+  const idx = new Map(b.map(p => [String(p.id), p]));
+  for (const horizon of ['ros', 'next4']) {
+    const a = analyze(ctx, b, { targets: false, horizon });
+    const n = a.teams.length;
+    for (const x of a.teams) {
+      const bench = x.lineup.bench.filter(r => { const p = idx.get(String(r.id)); return p && !p.outForSeason && !R.ilEligible(p); });
+      const best = bench.slice().sort((p, q) => q.value - p.value || (p.id < q.id ? -1 : 1))[0] || null;
+      if (!best) { eq(x.benchCover, null, `roster ${x.rosterId}: no healthy bench`); continue; }
+      eq([x.benchCover.id, x.benchCover.value], [best.id, best.value], `${horizon} roster ${x.rosterId}: best healthy bench player`);
+      ok(Math.abs(x.benchCover.vsWaiver - (best.value - a.replacement.ros)) <= 0.051, `${horizon} roster ${x.rosterId}: vs waiver ${x.benchCover.vsWaiver} vs ${best.value} − ${a.replacement.ros}`);
+    }
+    eq(a.teams.map(x => x.coverRank).sort((p, q) => p - q), Array.from({ length: n }, (_, i) => i + 1), 'cover ranks are a permutation');
+    eq(a.ranks.cover.length, n);
+    const top = a.teams.find(x => x.coverRank === 1), last = a.teams.find(x => x.coverRank === n);
+    ok(top.benchCover.vsWaiver >= last.benchCover.vsWaiver, 'rank 1 = best cover');
+    const spread = xs => Math.max(...xs) - Math.min(...xs);
+    const cov = spread(a.teams.map(x => x.benchCover.vsWaiver)), bv = spread(a.teams.map(x => x.benchValue));
+    ok(cov > 3 * bv && cov >= 3, `${horizon}: cover separates teams (spread ${cov}) where bench value doesn't (${bv})`);
+  }
+  // The page shows cover, not the bench value or its rank.
+  const js = fs.readFileSync(path.join(ROOT, 'nba', 'pages', 'team.js'), 'utf8'), html = fs.readFileSync(path.join(ROOT, 'nba', 'pages', 'team.html'), 'utf8');
+  ok(!/benchRank|benchValue/.test(js), 'team.js no longer shows the bench value / rank');
+  ok(!/value="bench"/.test(html) && /<option value="cover">Bench Cover<\/option>/.test(html), 'sort by Bench Cover');
+  const ts = [{ powerRank: 1, benchCover: { vsWaiver: -2 } }, { powerRank: 2, benchCover: { vsWaiver: 4 } }, { powerRank: 3, benchCover: null }];
+  eq(TL.sortTeams(ts, 'cover').map(x => x.powerRank), [2, 1, 3], 'cover sorts best first, no bench last');
+  eq(TL.coverText({ name: 'Jalen Duren', value: 32.9, vsWaiver: 4.4 }), 'Duren 32.9/wk, 4.4 above a waiver add');
+  eq(TL.coverText({ name: 'Ty Jerome', value: 25.9, vsWaiver: -2.6 }), 'Jerome 25.9/wk, 2.6 below a waiver add');
+  eq(TL.coverText(null), 'No healthy bench player');
+});
+
 /* ------------------------------------------------------------ team ↔ trade agree */
 // The real model behind a "data refresh" switch: the same board object until the
 // version moves (like nba/model getPlayers' memo), then a new board where

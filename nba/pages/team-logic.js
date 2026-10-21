@@ -59,9 +59,9 @@
     now: function (t) { return t.strengthNow; },
     G: function (t) { return -t.groupRank.G; }, F: function (t) { return -t.groupRank.F; }, C: function (t) { return -t.groupRank.C; }, UTIL: function (t) { return -t.groupRank.UTIL; },
     inj: function (t) { return t.injuryExposure ? t.injuryExposure.thisWeek : 0; },
-    bench: function (t) { return t.benchValue; }
+    cover: function (t) { return t.benchCover ? t.benchCover.vsWaiver : -1e9; }
   };
-  var DEFAULT_DIR = { rank: 1, team: 1, record: -1, pts: -1, strength: -1, now: -1, G: -1, F: -1, C: -1, UTIL: -1, inj: -1, bench: -1 };
+  var DEFAULT_DIR = { rank: 1, team: 1, record: -1, pts: -1, strength: -1, now: -1, G: -1, F: -1, C: -1, UTIL: -1, inj: -1, cover: -1 };
   function sortTeams(teams, key, dir) {
     var f = SORTS[key] || SORTS.rank, d = dir || DEFAULT_DIR[key] || 1;
     return (teams || []).slice().sort(function (a, b) {
@@ -110,6 +110,12 @@
     var s = 'Needs ' + list(p.theyNeed) + ', where you have depth.';
     if (p.theyHave && p.theyHave.length) s += ' Has the ' + list(p.theyHave) + ' depth you need.';
     return s;
+  }
+  // "Duren 32.9/wk, 4.4 above a waiver add" (best healthy bench player vs the waiver level)
+  function coverText(c) {
+    if (!c) return 'No healthy bench player';
+    var d = num(c.vsWaiver) ? c.vsWaiver : 0;
+    return lastName(c.name) + ' ' + f1(c.value) + '/wk, ' + (Math.abs(d) < 0.05 ? 'level with' : Math.abs(d).toFixed(1) + (d > 0 ? ' above' : ' below')) + ' a waiver add';
   }
   function targetText(t) {
     return 'You ' + signed(t.you) + '/wk · ' + t.partnerName + ' ' + signed(t.them) + '/wk';
@@ -198,7 +204,7 @@
     GROUPS: GROUPS, GROUP_NAME: GROUP_NAME, GROUP_SHORT: GROUP_SHORT, TIER: TIER, HORIZON: HORIZON, LEAN: LEAN,
     f1: f1, signed: signed, ordinal: ordinal, lastName: lastName, tierMeta: tierMeta, tierText: tierText,
     recordText: recordText, sortTeams: sortTeams, SORTS: SORTS, DEFAULT_DIR: DEFAULT_DIR,
-    weaknessText: weaknessText, strengthText: strengthText, partnerText: partnerText, targetText: targetText,
+    weaknessText: weaknessText, strengthText: strengthText, partnerText: partnerText, targetText: targetText, coverText: coverText,
     shortDate: shortDate, etaText: etaText, injuryLine: injuryLine, formText: formText, minutesText: minutesText,
     teamHeadline: teamHeadline, scheduleText: scheduleText,
     emptyState: emptyState, parseState: parseState, serialize: serialize, tradeRoster: tradeRoster, teamUrl: teamUrl,

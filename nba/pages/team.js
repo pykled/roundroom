@@ -19,6 +19,8 @@
   function pref(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setPref(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   function f1(x) { return L.f1(x); }
+  // Best healthy bench player minus a waiver add, signed ("+4.4", "−2.6"); "—" with no healthy bench.
+  function coverValue(t) { return t.benchCover ? L.signed(t.benchCover.vsWaiver).replace('-', '−') : '—'; }
   function dir(n) { return n > 0.05 ? 'is-up' : n < -0.05 ? 'is-down' : ''; }
 
   function api(url, opts) {
@@ -131,7 +133,7 @@
       U.statTile({ label: 'Strength', value: t.strengthRos, sub: 'pts/wk · ' + (a.estimated ? 'vs typical' : L.ordinal(t.powerRank) + ' of ' + n), tone: 'accent' }),
       U.statTile({ label: 'This Week', value: t.strengthNow, sub: a.estimated ? (t.scheduleThisWeek.games + ' games') : L.ordinal(t.nowRank) + ' · ' + t.scheduleThisWeek.games + ' games' }),
       U.statTile({ label: 'Injury Cost', value: injTotal.thisWeek ? -injTotal.thisWeek : 0, sub: (injTotal.count || 0) + ' hurt · this week' }),
-      U.statTile({ label: 'Bench', value: t.benchValue, sub: a.estimated ? 'pts/wk' : L.ordinal(t.benchRank) + ' · pts/wk' })
+      U.statTile({ label: 'Bench Cover', value: coverValue(t), sub: a.estimated ? 'vs waiver add' : L.ordinal(t.coverRank) + ' · vs waiver add' })
     ];
     var groups = L.GROUPS.map(function (g) {
       var G = t.groups[g] || {};
@@ -159,7 +161,7 @@
     { key: 'now', label: 'This Wk', num: true },
     { key: 'G', label: 'G' }, { key: 'F', label: 'F' }, { key: 'C', label: 'C' }, { key: 'UTIL', label: 'UTIL', wide: true },
     { key: 'inj', label: 'Injuries', num: true },
-    { key: 'bench', label: 'Bench', num: true, wide: true }
+    { key: 'cover', label: 'Cover', num: true, wide: true }
   ];
   function renderPower() {
     var box = $('tm-power'), a = analysis();
@@ -189,7 +191,7 @@
         '<td class="nu-col-num">' + f1(t.strengthNow) + '<div class="tm-sub">' + esc(L.ordinal(t.nowRank)) + '</div></td>' +
         L.GROUPS.map(function (g) { return '<td' + (g === 'UTIL' ? ' class="tm-col-wide"' : '') + '>' + tierHtml(g, t) + '</td>'; }).join('') +
         '<td class="nu-col-num"><span class="tm-inj"><b>' + (inj.count || 0) + '</b><span class="' + (inj.thisWeek >= 0.1 ? 'is-down' : 'tm-sub') + '">' + (inj.thisWeek >= 0.1 ? '−' + f1(inj.thisWeek) : 'none') + '</span></span></td>' +
-        '<td class="nu-col-num tm-col-wide">' + f1(t.benchValue) + '</td></tr>';
+        '<td class="nu-col-num tm-col-wide" title="' + esc(L.coverText(t.benchCover)) + '">' + coverValue(t) + '</td></tr>';
     }).join('');
     $('tm-sort-m').value = S.sort.key in L.SORTS ? S.sort.key : 'rank';
     $('tm-cards').innerHTML = sorted.map(function (t) {
@@ -200,7 +202,7 @@
           '<span class="tm-team__sub">' + (gp ? esc(L.recordText(t, gp)) + ' · ' : '') + (t.displayName ? '@' + esc(t.displayName) : '') + '</span></span></span>' +
         '<span class="tm-card__num"><b>' + f1(t.strengthRos) + '</b><span class="tm-sub">pts/wk</span></span>' +
         '<span class="tm-card__tiers">' + L.GROUPS.map(function (g) { return tierHtml(g, t, { label: true }); }).join('') + '</span>' +
-        '<span class="tm-card__foot"><span>This week <b>' + f1(t.strengthNow) + '</b> (' + esc(L.ordinal(t.nowRank)) + ')</span><span>Hurt <b>' + (inj.count || 0) + '</b>' + (inj.thisWeek >= 0.1 ? ' −' + f1(inj.thisWeek) : '') + '</span><span>Bench <b>' + f1(t.benchValue) + '</b></span></span>' +
+        '<span class="tm-card__foot"><span>This week <b>' + f1(t.strengthNow) + '</b> (' + esc(L.ordinal(t.nowRank)) + ')</span><span>Hurt <b>' + (inj.count || 0) + '</b>' + (inj.thisWeek >= 0.1 ? ' −' + f1(inj.thisWeek) : '') + '</span><span>Cover <b>' + coverValue(t) + '</b></span></span>' +
         '</button></li>';
     }).join('');
     U.hydrateImages && U.hydrateImages(box);
@@ -361,7 +363,7 @@
     return '<div class="tm-dhead">' + teamAvatar(t, 'lg') + '<div style="min-width:0;flex:1"><div class="tm-me__line">' + esc(L.ordinal(t.powerRank) + ' of ' + n + ' · ' + (t.displayName ? '@' + t.displayName : '') + (a.gamesPlayed ? ' · ' + L.recordText(t, true) : '')) + '</div>' +
       '<div class="tm-me__chips">' + leanChip(t.lean) + (t.rosterId === a.myRosterId ? '<span class="tm-you" style="margin-left:0">You</span>' : '') + '</div></div></div>' +
       '<div class="nu-stats">' + U.statTile({ label: 'Strength', value: t.strengthRos, sub: L.ordinal(t.powerRank) + ' · pts/wk', tone: 'accent' }) + U.statTile({ label: 'This Week', value: t.strengthNow, sub: L.ordinal(t.nowRank) }) +
-      U.statTile({ label: 'Injury Cost', value: inj.thisWeek ? -inj.thisWeek : 0, sub: (inj.count || 0) + ' hurt' }) + U.statTile({ label: 'Bench', value: t.benchValue, sub: L.ordinal(t.benchRank) }) + '</div>' +
+      U.statTile({ label: 'Injury Cost', value: inj.thisWeek ? -inj.thisWeek : 0, sub: (inj.count || 0) + ' hurt' }) + U.statTile({ label: 'Bench Cover', value: coverValue(t), sub: L.ordinal(t.coverRank) + ' · vs waiver add' }) + '</div>' +
       '<div class="tm-me__groups">' + L.GROUPS.map(function (g) { return '<div class="tm-gcell"><span class="tm-glabel">' + esc(L.GROUP_NAME[g]) + '</span>' + tierHtml(g, t) + '<div class="tm-gcell__v">' + f1((t.groups[g] || {}).starterValue) + ' vs ' + f1(a.leagueAvg[g]) + ' avg</div></div>'; }).join('') + '</div>';
   }
   function detailSpark(weeks) {

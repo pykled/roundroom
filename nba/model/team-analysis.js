@@ -448,6 +448,17 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
     b.ra = viaShared(src, 'analyzeRoster', () => RA.analyzeRoster(raArgs), () => analyzeRosterLocal(raArgs));
   }
 
+  // Bench cover: the best healthy bench player vs a waiver add over the horizon. Bench
+  // players mostly sit below the waiver level, so the bench share (benchValue) is ~0 for
+  // every team; this says whether a starter's night off is covered (> 0) or the waiver
+  // wire beats the bench (< 0).
+  const replRos = wMean(hWeeks, w => num(repl.perWeek[w]));
+  const coverOf = bench => {
+    const best = (bench || []).map(r => ({ r, p: index.get(String(r.id)) }))
+      .filter(x => x.p && isHealthy(x.p) && !x.p.outForSeason)
+      .sort((x, y) => y.r.value - x.r.value || cmpId(x.r.id, y.r.id))[0];
+    return best ? { id: String(best.r.id), name: best.p.name, value: r1(best.r.value), vsWaiver: r1(best.r.value - replRos) } : null;
+  };
   const gamesPlayedAny = ctxTeams.some(t => num(t.record && t.record.wins) + num(t.record && t.record.losses) + num(t.record && t.record.ties) > 0);
   const teams = base.map(b => {
     const t = b.t, ra = b.ra;
@@ -466,7 +477,7 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
       byWeek: restNums.map(w => ({ week: w, value: r1(b.byWeek[w]), games: b.lineups[w].games, playoff: !!(restWeeks.find(x => x.week === w) || {}).playoff })),
       groups: ra.groups,
       needs: ra.needs, surplus: ra.surplus,
-      benchValue: r1(ra.benchValue),
+      benchValue: r1(ra.benchValue), benchCover: coverOf(ra.lineup.bench),
       injuryExposure: { thisWeek: inj.thisWeek, next2: inj.next2, count: inj.list.length },
       injured: inj.list,
       scheduleThisWeek: { games: now ? now.games : 0, vsLeagueAvg: null },
@@ -480,6 +491,7 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
   });
 
   const power = rankBy(teams, 'strengthRos'), nowR = rankBy(teams, 'strengthNow'), bench = rankBy(teams, 'benchValue');
+  const cover = rankBy(teams.map(t => ({ rosterId: t.rosterId, v: t.benchCover ? t.benchCover.vsWaiver : -1e9 })), 'v');
   const ptsR = gamesPlayedAny ? rankBy(teams.map(t => ({ rosterId: t.rosterId, fpts: t.record.fpts })), 'fpts') : null;
   const standing = gamesPlayedAny ? (() => {
     const s = teams.slice().sort((a, b) => num(b.record.pct) - num(a.record.pct) || num(b.record.fpts) - num(a.record.fpts) || cmpId(a.rosterId, b.rosterId));
@@ -492,6 +504,7 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
     t.powerRank = power.get(t.rosterId);
     t.nowRank = nowR.get(t.rosterId);
     t.benchRank = bench.get(t.rosterId);
+    t.coverRank = cover.get(t.rosterId);
     t.pointsRank = ptsR ? ptsR.get(t.rosterId) : null;
     t.standingsRank = standing ? standing.get(t.rosterId) : null;
     t.groupRank = {};
@@ -513,9 +526,9 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
   const analysis = {
     leagueId: ctx.leagueId || null, name: ctx.name || null, season: ctx.season || null, currentWeek: cw, horizon,
     weeks: hWeeks, estimated: !!options.estimated, teams,
-    ranks: { power: order(power), now: order(nowR), groups: Object.fromEntries(groupKeys.map(g => [g, order(gRanks[g])])), bench: order(bench), points: ptsR ? order(ptsR) : null },
+    ranks: { power: order(power), now: order(nowR), groups: Object.fromEntries(groupKeys.map(g => [g, order(gRanks[g])])), bench: order(bench), cover: order(cover), points: ptsR ? order(ptsR) : null },
     leagueAvg, strongCutoff,
-    replacement: { ros: r1(wMean(hWeeks, w => num(repl.perWeek[w]))), now: r1(num(repl.perWeek[cw])), source: repl.source },
+    replacement: { ros: r1(replRos), now: r1(num(repl.perWeek[cw])), source: repl.source },
     playoffTeams, gamesPlayed: gamesPlayedAny,
     myRosterId, partners: [], targets: [], targetsNote: null,
     asOf: options.asOf || null, source: src,
