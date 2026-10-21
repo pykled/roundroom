@@ -418,6 +418,30 @@ t('page route, static deny, nav entry and sitemap', async () => {
   ok(!/Yahoo/.test(src), 'no Yahoo strings on the team page');
 });
 
+/* ------------------------------------------------------------ UTIL is not a position */
+// HALIMSANITY (league 1411447094215991296) as recorded in the fixtures, through the
+// shared leagueContext like routes/team.js. On this data 5 of 12 teams' UTIL starters
+// score below the league's UTIL average, which used to read "UTIL: Upgrade" as a weakness.
+t('UTIL is never a weakness, need or surplus (HALIMSANITY league, every horizon)', async () => {
+  const LS = require('../nba/model/league-sync');
+  const b = await board();
+  const ctx = { ...LS.leagueContext({ league: fx('sleeper-league.json'), users: fx('sleeper-users.json'), rosters: fx('sleeper-rosters.json'), draft: null, board: b, profile: PROFILE, userId: UID, currentWeek: CW }), profile: PROFILE };
+  for (const horizon of ['ros', 'next4', 'playoffs']) {
+    const a = analyze(ctx, b, { targets: false, horizon });
+    ok(a.teams.some(x => x.groups.UTIL.starterValue < a.leagueAvg.UTIL), `${horizon}: some team's UTIL starters are below the league average (the case under test)`);
+    for (const x of a.teams) {
+      ok(!x.weaknesses.some(w => w.group === 'UTIL'), `${horizon} roster ${x.rosterId}: UTIL listed as a weakness (${JSON.stringify(x.weaknesses)})`);
+      ok(!x.needs.includes('UTIL') && !x.surplus.includes('UTIL'), `${horizon} roster ${x.rosterId}: UTIL in needs/surplus`);
+      eq(x.groups.UTIL.status, 'neutral', `${horizon} roster ${x.rosterId}: UTIL status`);
+      ok(!['critical', 'upgrade', 'thin'].includes(x.groups.UTIL.tier), `${horizon} roster ${x.rosterId}: UTIL tier ${x.groups.UTIL.tier}`);
+      ok(Number.isInteger(x.groupRank.UTIL), 'UTIL keeps its league rank');
+    }
+  }
+  // The shared roster analysis on its own: far below the league's UTIL average is still not a need.
+  const ra = RA.analyzeRoster({ players: b.slice(200, 213), profile: PROFILE, currentWeek: CW, leagueAvg: { UTIL: 999 }, strongCutoff: { UTIL: 1000 } });
+  eq([ra.groups.UTIL.tier, ra.groups.UTIL.status, ra.needs.includes('UTIL')], ['solid', 'neutral', false], 'analyzeRoster UTIL');
+});
+
 /* ------------------------------------------------------------ team ↔ trade agree */
 // The real model behind a "data refresh" switch: the same board object until the
 // version moves (like nba/model getPlayers' memo), then a new board where

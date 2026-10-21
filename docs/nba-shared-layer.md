@@ -54,7 +54,7 @@ const board = await modelPlayers(week, lc.profileId);   // the Sleeper id resolv
 
 - `weekValue` is the trade engine's week value verbatim (open roster spots at replacement, a no-eligible slot costs the worst bench player, bench shares above replacement). `test-nba-shared.js` checks it against `trade.js` `teamValue` week by week for all 12 real rosters, so team strength and trade deltas agree.
 - `strengthRos` / `strengthNow` use `weekValue` (open spots priced at replacement). `lineup` is the typical lineup of the players actually rostered: open spots don't displace anyone there (`lineup.openSpots` counts them; a starter below replacement shows up in `liabilities`). Starting slots no rostered player can fill are listed in `lineup.open` at waiver level. So with an open spot, `strengthRos` can exceed `lineup.total + benchValue`.
-- UTIL takes anyone and the PG/SG/SF/PF display groups are single slots, so headcount says nothing about their depth: their tier is quality-only (`upgrade` below the league average, else `solid`). G/F/C use the NFL matrix unchanged.
+- UTIL takes anyone, so it is never a need or surplus: its tier is always `solid` (its league rank still shows how good the flex starters are). The PG/SG/SF/PF display groups are single slots, so headcount says nothing about their depth: their tier is quality-only (`upgrade` below the league average, else `solid`). G/F/C use the NFL matrix unchanged.
 - `nextUp` is null when no bench player is eligible for the group. `rank` is null here; the team page ranks groups across teams.
 - Extra inputs: `currentWeek` (default `weeks[0].week`; pass it for a playoffs horizon) and `cap` (default active spots; pass the trade engine's `capFor(roster)` when IL players are included).
 

@@ -18,9 +18,11 @@
 // single slots by primary position. Tier matrix is the NFL one (shared/analysis.js):
 // depth (rostered ≤ slots → need, ≥ 2× → surplus) × quality (starterValue vs league
 // avg; strong = top 30%) → critical / upgrade / thin / solid / deep / loaded.
-// UTIL and the display groups take anyone / one slot, so headcount says nothing
-// about their depth: their tier is quality-only (upgrade when below the league
-// average, else solid).
+// UTIL takes anyone, so it is never a positional need or surplus: its tier is
+// always solid (its league rank still says how good the flex starters are); the
+// G/F/C tiers carry the actual needs. The PG/SG/SF/PF display groups are single
+// slots, so headcount says nothing about their depth: their tier is quality-only
+// (upgrade when below the league average, else solid).
 'use strict';
 const R = require('./roster-slots');
 const ETA = require('./injury-eta');
@@ -63,7 +65,7 @@ function assessTier(rostered, slots, starterValue, leagueAvg, strongCutoff) {
   if (depth === 'surplus') return weak ? 'upgrade' : (strong ? 'loaded' : 'deep');
   return weak ? 'upgrade' : 'solid';
 }
-// UTIL / display groups: depth is neutral by definition (see header).
+// Display groups: depth is neutral by definition (see header).
 function qualityTier(slots, starterValue, leagueAvg) {
   if (!slots || slots <= 0) return 'solid';
   return Number.isFinite(leagueAvg) && num(starterValue) < leagueAvg ? 'upgrade' : 'solid';
@@ -198,7 +200,7 @@ function analyzeRoster({ players, profile, weeks, replacement = null, leagueAvg 
     const starterValue = r1(starterIn(GROUP_SLOTS[g]));
     const nexts = bench.filter(b => inGroup(byId.get(b.id), g) && healthy(byId.get(b.id))).map(b => b.value);
     const la = fin(LA[g]) ? LA[g] : null;
-    const tier = g === 'UTIL' ? qualityTier(slotN, starterValue, la) : assessTier(rostered, slotN, starterValue, la, fin(SC[g]) ? SC[g] : null);
+    const tier = g === 'UTIL' ? 'solid' : assessTier(rostered, slotN, starterValue, la, fin(SC[g]) ? SC[g] : null);
     groups[g] = { slots: slotN, rostered, starterValue, nextUp: nexts.length ? Math.max(...nexts) : null, leagueAvg: la, rank: null, tier, status: tierStatus(tier) };
   }
   for (const g of DISPLAY_GROUPS) {

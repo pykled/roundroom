@@ -497,7 +497,8 @@ function analyzeLeague({ ctx, board, signals = null, weeks = null, options = {} 
     t.groupRank = {};
     for (const g of groupKeys) { t.groupRank[g] = gRanks[g].get(t.rosterId); if (t.groups[g]) t.groups[g].rank = t.groupRank[g]; }
     t.scheduleThisWeek.vsLeagueAvg = r1(t.scheduleThisWeek.games - avgGames);
-    t.weaknesses = GROUPS.filter(g => NEED_ORDER[t.groups[g].tier] != null)
+    // Positional weaknesses only: UTIL takes anyone, so a low UTIL rank is a G/F/C problem (or none).
+    t.weaknesses = MATCH_GROUPS.filter(g => NEED_ORDER[t.groups[g].tier] != null)
       .sort((a, b) => NEED_ORDER[t.groups[a].tier] - NEED_ORDER[t.groups[b].tier] || t.groupRank[b] - t.groupRank[a] || GROUPS.indexOf(a) - GROUPS.indexOf(b))
       .map(g => ({ group: g, tier: t.groups[g].tier, rank: t.groupRank[g] }));
     t.strengths = GROUPS.filter(g => ['loaded', 'deep'].includes(t.groups[g].tier) || t.groupRank[g] <= 3)
