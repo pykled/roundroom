@@ -442,7 +442,7 @@
           <span class="hw-label">Superflex</span><span>QB value roughly doubles; uses 2-QB market</span>
           <span class="hw-label">Dynasty</span><span>Dynasty market values + age curve (RBs peak at 27, WRs 29)</span>
           <span class="hw-label">Injuries</span><span>Q −3% · D −10% · Out −20% · IR −45%</span>
-          <span class="hw-label">🔥 Form</span><span>Last 2 games vs projection — hot = sell high, cold = buy low (±5%)</span>
+          <span class="hw-label">🔥 Form</span><span>Last 2 games vs projection — hot = sell high (−5%); cold is shown for information only</span>
           <span class="hw-label">⬆ Role</span><span>Usage jump or an injured teammate's vacated share — replaces Hot/Cold, no regression discount</span>
           <span class="hw-label">Playoffs</span><span>Opponent strength in your league's playoff weeks (±5%)</span>
           <span class="hw-label">Roster Fit</span><span>Need adjusts incoming/outgoing value · depth chart position adjusts within-position value</span>
@@ -889,7 +889,8 @@ function valueProjections() { return S.projRos || S.proj; }
 //     projections the weeks a player is expected to miss are already zero,
 //     so only the residual setback-risk table applies (TradeFit opts.ros).
 //   → recent form: last 2 games ≥20% over the season projection = hot
-//     (sell high, ×0.95), ≥20% under = cold (buy low, ×1.05)
+//     (sell high, ×0.95), ≥20% under = cold (label only, ×1 — the bounce was
+//     not borne out by the 2025–26 backtest, docs/trade-calc-blend-2026-10-20.md)
 //   → role gate: a usage jump or injured teammate's vacated share turns hot/cold
 //     into ⬆/⬇ Role (×1 — the streak is the new role, not luck)
 //   → playoff schedule: opponents in the league's playoff weeks ranked by
@@ -958,7 +959,7 @@ function formBits(id) {
   var hot = f.label === 'hot';
   var title = (hot ? 'Hot: ' : 'Cold: ') + f.avg + ' pts/g over the last ' + f.games + ' games vs ' + f.proj + ' projected (' + Math.round(f.ratio * 100) + '%) — ' +
     (hot ? 'sell high — value × ' + fmtMult(f.mult) + ', expect regression toward the projection'
-         : 'buy low — value × ' + fmtMult(f.mult) + ', expect a bounce back toward the projection');
+         : 'no value adjustment — cold players did not bounce past their projection in the 2025–26 backtest');
   return { pill: '<span class="pl-form ' + f.label + '" title="' + esc(title) + '">' + (hot ? '🔥 Hot' : '📉 Cold') + '</span>', title: title };
 }
 

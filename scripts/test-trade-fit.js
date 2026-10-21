@@ -233,7 +233,10 @@ console.log('formSignal / formMap');
   const hot = Fit.formSignal([24, 20], 15);
   check('22 vs 15 proj → hot ×0.95', hot && hot.label === 'hot' && hot.mult === 0.95 && near(hot.ratio, 1.47, 0.01) && hot.games === 2, JSON.stringify(hot));
   const cold = Fit.formSignal([8, 10, 40], 15);
-  check('9 vs 15 proj → cold ×1.05 (3rd game ignored)', cold && cold.label === 'cold' && cold.mult === 1.05 && cold.games === 2, JSON.stringify(cold));
+  check('9 vs 15 proj → cold, mult 1 (bounce removed 2026-10-20; 3rd game ignored)', cold && cold.label === 'cold' && cold.mult === 1 && cold.games === 2, JSON.stringify(cold));
+  check('FORM_MULT: hot 0.95 kept, cold 1', Fit.FORM_MULT.hot === 0.95 && Fit.FORM_MULT.cold === 1, JSON.stringify(Fit.FORM_MULT));
+  const coldDyn = Fit.formSignal([8, 10], 15, { dynasty: true });
+  check('dynasty cold stays mult 1', coldDyn && coldDyn.label === 'cold' && coldDyn.mult === 1, JSON.stringify(coldDyn));
   const flat = Fit.formSignal([16, 15], 15);
   check('on pace → label null, mult 1', flat && flat.label === null && flat.mult === 1, JSON.stringify(flat));
   check('boundary: exactly 1.2 → hot, exactly 0.8 → cold', Fit.formSignal([18, 18], 15).label === 'hot' && Fit.formSignal([12, 12], 15).label === 'cold');
@@ -255,7 +258,7 @@ console.log('formSignal / formMap');
   check('formMap: kicker skipped; gp without points counts as 0 (cold)', !fm.has('k') && fm.get('z') && fm.get('z').label === 'cold' && fm.get('z').avg === 0, JSON.stringify(fm.get('z')));
   check('formMap: empty inputs → empty map', Fit.formMap(players, null, [1], proj, {}).size === 0 && Fit.formMap(players, stats, [], proj, {}).size === 0);
   const applied = Fit.applyFactors(new Map([['h', 1000], ['c', 1000], ['q', 1000]]), [fm]);
-  check('applyFactors: hot 950, cold 1050, unknown untouched', applied.get('h') === 950 && applied.get('c') === 1050 && applied.get('q') === 1000, [...applied.entries()].join(' '));
+  check('applyFactors: hot 950, cold 1000 (label only), unknown untouched', applied.get('h') === 950 && applied.get('c') === 1000 && applied.get('q') === 1000, [...applied.entries()].join(' '));
 }
 
 // ---- 7. playoff schedule --------------------------------------------------------
@@ -354,7 +357,7 @@ console.log('role signal');
     check('Role-down: entry role-down mult 1', e && e.label === 'role-down' && e.mult === 1, JSON.stringify(e));
     check('Role-down: applyFactors leaves value unchanged', Fit.applyFactors(new Map([['hub', 1000]]), [map]).get('hub') === 1000);
     const plain = Fit.formMap(players, cold, weeks, p12, { ppr: 1 }).get('hub');
-    check('Role-down: without usage the plain cold ×1.05 remains', plain.label === 'cold' && plain.mult === 1.05);
+    check('Role-down: without usage the plain cold label remains (mult 1)', plain.label === 'cold' && plain.mult === 1);
   }
 
   // 4. Usage-confirmed thresholds
