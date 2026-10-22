@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-22T17:23:50.436Z",
+  "fetched_at": "2026-10-22T21:47:20.415Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -152,7 +152,7 @@
       "name": "Ben Skowronek",
       "position": "WR",
       "team": "PIT",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Calf"
     },
     {
@@ -203,6 +203,13 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Quadriceps"
+    },
+    {
+      "name": "Brevin Jordan",
+      "position": "TE",
+      "team": "HOU",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Brian Robinson Jr.",
@@ -380,6 +387,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Chris Manhertz",
+      "position": "TE",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Calf"
+    },
+    {
       "name": "Chris Oladokun",
       "position": "QB",
       "team": null,
@@ -406,13 +420,6 @@
       "team": "GB",
       "status": "Questionable",
       "body_part": "Ankle"
-    },
-    {
-      "name": "CJ Donaldson",
-      "position": "RB",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "CJ Williams",
@@ -537,7 +544,7 @@
       "name": "David Montgomery",
       "position": "RB",
       "team": "HOU",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Groin"
     },
     {
@@ -546,13 +553,6 @@
       "team": "LAC",
       "status": "IR",
       "body_part": "Lower Leg"
-    },
-    {
-      "name": "David Sills V",
-      "position": "WR",
-      "team": "TB",
-      "status": "IR",
-      "body_part": "Undisclosed"
     },
     {
       "name": "De'Von Achane",
@@ -681,13 +681,6 @@
       "body_part": "Elbow"
     },
     {
-      "name": "Drew Ogletree",
-      "position": "TE",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -740,7 +733,7 @@
       "name": "Elijah Arroyo",
       "position": "TE",
       "team": "SEA",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Shoulder"
     },
     {
@@ -805,6 +798,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "George Pickens",
+      "position": "WR",
+      "team": "DAL",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Graham Gano",
@@ -1090,7 +1090,7 @@
       "name": "Jeremiyah Love",
       "position": "RB",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Ankle"
     },
     {
@@ -1171,13 +1171,6 @@
       "body_part": "Abdomen"
     },
     {
-      "name": "Jordan Love",
-      "position": "QB",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Jordan Mason",
       "position": "RB",
       "team": "MIN",
@@ -1239,13 +1232,6 @@
       "team": "CLE",
       "status": "Questionable",
       "body_part": "Quadriceps"
-    },
-    {
-      "name": "Keilan Robinson",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Kejon Owens",
@@ -1423,13 +1409,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Matt Hibner",
-      "position": "TE",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Hand"
-    },
-    {
       "name": "Matthew Caldwell",
       "position": "QB",
       "team": "LAR",
@@ -1570,13 +1549,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Raheem Mostert",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Raheim Sanders",
       "position": "RB",
       "team": "CLE",
@@ -1596,13 +1568,6 @@
       "team": "SEA",
       "status": "Questionable",
       "body_part": "Hip"
-    },
-    {
-      "name": "Rashod Bateman",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Ray-Ray McCloud",
@@ -2035,7 +2000,7 @@
       "name": "Zach Charbonnet",
       "position": "RB",
       "team": "SEA",
-      "status": "PUP",
+      "status": "Questionable",
       "body_part": "Knee - ACL"
     },
     {
