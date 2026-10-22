@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-22T12:09:55.246Z",
+  "fetched_at": "2026-10-22T17:23:50.436Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -198,6 +198,13 @@
       "body_part": "Quadriceps"
     },
     {
+      "name": "Brenen Thompson",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Quadriceps"
+    },
+    {
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
@@ -292,7 +299,7 @@
       "name": "Carson Steele",
       "position": "RB",
       "team": null,
-      "status": "Out",
+      "status": "IR",
       "body_part": "Shoulder"
     },
     {
@@ -1936,7 +1943,7 @@
     {
       "name": "Tyler Scott",
       "position": "WR",
-      "team": "LV",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
