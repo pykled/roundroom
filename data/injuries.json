@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-21T23:28:57.134Z",
+  "fetched_at": "2026-10-22T05:06:15.389Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -219,6 +219,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Brock Bowers",
+      "position": "TE",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Bryce Ford-Wheaton",
       "position": "WR",
       "team": null,
@@ -273,6 +280,13 @@
       "team": "TEN",
       "status": "Questionable",
       "body_part": "Hip"
+    },
+    {
+      "name": "Carson Beck",
+      "position": "QB",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Carson Steele",
@@ -1451,6 +1465,13 @@
       "body_part": "Achilles"
     },
     {
+      "name": "Mike Washington Jr.",
+      "position": "RB",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Foot"
+    },
+    {
       "name": "Moliki Matavao",
       "position": "TE",
       "team": "NO",
@@ -1916,7 +1937,7 @@
       "name": "Tyler Scott",
       "position": "WR",
       "team": "LV",
-      "status": "Out",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1944,7 +1965,7 @@
       "name": "Tyreek Hill",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
+      "status": "",
       "body_part": "Knee - ACL"
     },
     {
