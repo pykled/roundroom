@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-22T21:47:20.415Z",
+  "fetched_at": "2026-10-23T00:45:45.355Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -135,6 +135,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Behren Morton",
+      "position": "QB",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Ben Sauls",
       "position": "K",
       "team": null,
@@ -233,13 +240,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Brock Bowers",
-      "position": "TE",
-      "team": "LV",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Bryce Ford-Wheaton",
       "position": "WR",
       "team": null,
@@ -329,6 +329,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Case Keenum",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Caullin Lacy",
@@ -485,6 +492,13 @@
       "body_part": "Leg"
     },
     {
+      "name": "Dallas Goedert",
+      "position": "TE",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Dalton Kincaid",
       "position": "TE",
       "team": "BUF",
@@ -618,6 +632,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "DeVonta Smith",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Dez Fitzpatrick",
       "position": "WR",
       "team": null,
@@ -672,6 +693,13 @@
       "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Dontayvion Wicks",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Drew Lock",
@@ -1090,7 +1118,7 @@
       "name": "Jeremiyah Love",
       "position": "RB",
       "team": "ARI",
-      "status": "Doubtful",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -1197,13 +1225,6 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Justin Jefferson",
-      "position": "WR",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Kadarius Calloway",
@@ -1535,6 +1556,13 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
+      "name": "Puka Nacua",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Calf"
+    },
+    {
       "name": "Quinshon Judkins",
       "position": "RB",
       "team": "CLE",
@@ -1561,13 +1589,6 @@
       "team": "KC",
       "status": "Questionable",
       "body_part": "Hamstring"
-    },
-    {
-      "name": "Rashid Shaheed",
-      "position": "WR",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Ray-Ray McCloud",
