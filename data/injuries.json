@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-23T13:38:47.051Z",
+  "fetched_at": "2026-10-23T18:31:33.230Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -184,6 +184,13 @@
       "body_part": "Knee - ACL + MCL"
     },
     {
+      "name": "Brashard Smith",
+      "position": "RB",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Braxton Berrios",
       "position": "WR",
       "team": "NYG",
@@ -215,7 +222,7 @@
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -252,13 +259,6 @@
       "team": "CLE",
       "status": "Out",
       "body_part": "Knee"
-    },
-    {
-      "name": "Bucky Irving",
-      "position": "RB",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Illness"
     },
     {
       "name": "Caleb Douglas",
@@ -439,7 +439,7 @@
       "name": "Cole Kmet",
       "position": "TE",
       "team": "CHI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -604,13 +604,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Denzel Boston",
-      "position": "WR",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Foot"
-    },
-    {
       "name": "Deonte Harty",
       "position": "WR",
       "team": null,
@@ -768,7 +761,7 @@
       "name": "Emeka Egbuka",
       "position": "WR",
       "team": "TB",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Concussion"
     },
     {
@@ -1118,7 +1111,7 @@
       "name": "Jeremiyah Love",
       "position": "RB",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1246,13 +1239,6 @@
       "team": "DAL",
       "status": "Questionable",
       "body_part": "Ribs"
-    },
-    {
-      "name": "KC Concepcion Jr.",
-      "position": "WR",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Quadriceps"
     },
     {
       "name": "Kejon Owens",
@@ -1563,13 +1549,6 @@
       "body_part": "Calf"
     },
     {
-      "name": "Quinshon Judkins",
-      "position": "RB",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Raheem Blackshear",
       "position": "RB",
       "team": null,
@@ -1587,7 +1566,7 @@
       "name": "Rashee Rice",
       "position": "WR",
       "team": "KC",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1937,7 +1916,7 @@
       "name": "Tyler Warren",
       "position": "TE",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
