@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-24T18:53:19.482Z",
+  "fetched_at": "2026-10-24T22:36:04.617Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -366,13 +366,6 @@
       "body_part": null
     },
     {
-      "name": "Christian Kirk",
-      "position": "WR",
-      "team": "SF",
-      "status": "IR",
-      "body_part": "Calf"
-    },
-    {
       "name": "CJ Williams",
       "position": "WR",
       "team": "JAX",
@@ -441,13 +434,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Dallas Goedert",
-      "position": "TE",
-      "team": "PHI",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Dalton Kincaid",
@@ -572,7 +558,7 @@
       "name": "DeVonta Smith",
       "position": "WR",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -635,7 +621,7 @@
       "name": "Dontayvion Wicks",
       "position": "WR",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1097,7 +1083,7 @@
       "name": "Jonah Coleman",
       "position": "RB",
       "team": "DEN",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -1106,13 +1092,6 @@
       "team": "CAR",
       "status": "IR",
       "body_part": "Abdomen"
-    },
-    {
-      "name": "Jordan Mason",
-      "position": "RB",
-      "team": "MIN",
-      "status": "IR",
-      "body_part": "Thumb"
     },
     {
       "name": "Jordyn Tyson",
@@ -1153,7 +1132,7 @@
       "name": "KaVontae Turpin",
       "position": "WR",
       "team": "DAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ribs"
     },
     {
@@ -1223,7 +1202,7 @@
       "name": "Lamar Jackson",
       "position": "QB",
       "team": "BAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1640,13 +1619,6 @@
       "body_part": "Abdomen"
     },
     {
-      "name": "Tank Dell",
-      "position": "WR",
-      "team": "HOU",
-      "status": "IR",
-      "body_part": "Knee - ACL + MCL"
-    },
-    {
       "name": "Tanner Hudson",
       "position": "TE",
       "team": "CIN",
@@ -1790,7 +1762,7 @@
       "name": "Tyler Badie",
       "position": "RB",
       "team": "DEN",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Thumb"
     },
     {
