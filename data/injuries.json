@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-24T16:07:45.259Z",
+  "fetched_at": "2026-10-24T18:53:19.482Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -173,7 +173,7 @@
       "name": "Brashard Smith",
       "position": "RB",
       "team": "KC",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
@@ -672,13 +672,6 @@
       "team": "BAL",
       "status": "IR",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Dylan Sampson",
-      "position": "RB",
-      "team": "CLE",
-      "status": "IR",
-      "body_part": "Knee"
     },
     {
       "name": "EJ Smith",
@@ -1699,7 +1692,7 @@
       "name": "Theo Johnson",
       "position": "TE",
       "team": "NYG",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Neck"
     },
     {
