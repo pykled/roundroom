@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-25T21:00:25.880Z",
+  "fetched_at": "2026-10-26T00:30:28.801Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -170,6 +170,13 @@
       "body_part": "Calf"
     },
     {
+      "name": "Ben VanSumeren",
+      "position": "RB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "BenJarvus Green-Ellis",
       "position": "RB",
       "team": null,
@@ -280,6 +287,13 @@
       "team": "TEN",
       "status": "Out",
       "body_part": "Hip"
+    },
+    {
+      "name": "Cam Skattebo",
+      "position": "RB",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Carson Beck",
@@ -691,7 +705,7 @@
       "name": "Drew Lock",
       "position": "QB",
       "team": "SEA",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Elbow"
     },
     {
@@ -821,6 +835,13 @@
       "body_part": "Knee - ACL"
     },
     {
+      "name": "Garrett Nussmeier",
+      "position": "QB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Gee Scott",
       "position": "TE",
       "team": null,
@@ -903,6 +924,13 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Ian Thomas",
+      "position": "TE",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Irv Smith",
@@ -1113,6 +1141,13 @@
       "team": "GB",
       "status": "IR",
       "body_part": "Neck"
+    },
+    {
+      "name": "Jaylen Waddle",
+      "position": "WR",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Jaylen Wright",
@@ -1694,6 +1729,13 @@
       "team": "SEA",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Robert Henry Jr.",
+      "position": "RB",
+      "team": "SEA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Robert Woods",
