@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-26T15:19:31.810Z",
+  "fetched_at": "2026-10-26T21:06:27.862Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -70,6 +70,13 @@
       "team": "JAX",
       "status": "Questionable",
       "body_part": "Concussion"
+    },
+    {
+      "name": "Amon-Ra St. Brown",
+      "position": "WR",
+      "team": "DET",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Andre Baccellia",
@@ -751,13 +758,6 @@
       "body_part": "Coach's Decision"
     },
     {
-      "name": "Eli Stowers",
-      "position": "TE",
-      "team": "PHI",
-      "status": "IR",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Elijah Arroyo",
       "position": "TE",
       "team": "SEA",
@@ -861,13 +861,6 @@
       "team": "HOU",
       "status": "IR",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Grant Calcaterra",
-      "position": "TE",
-      "team": "PHI",
-      "status": "IR",
-      "body_part": "Back"
     },
     {
       "name": "Grant DuBose",
@@ -1057,6 +1050,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jalen Brooks",
+      "position": "WR",
+      "team": "ARI",
+      "status": "Out",
+      "body_part": "Wrist"
     },
     {
       "name": "Jalen Hurts",
