@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-27T14:43:55.120Z",
+  "fetched_at": "2026-10-27T20:48:47.588Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -817,8 +817,8 @@
       "name": "Erick All Jr.",
       "position": "TE",
       "team": "CIN",
-      "status": "Questionable",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Knee - ACL"
     },
     {
       "name": "Ervin Philips",
@@ -1302,6 +1302,13 @@
       "team": "NO",
       "status": "IR",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Josh Kattus",
+      "position": "TE",
+      "team": "CIN",
+      "status": "Out",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Josh Oliver",
@@ -2126,7 +2133,7 @@
       "name": "Tyrone Tracy Jr.",
       "position": "RB",
       "team": "NYG",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
