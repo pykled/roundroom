@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-27T20:48:47.588Z",
+  "fetched_at": "2026-10-28T01:29:47.638Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -163,13 +163,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Ben Sims",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
       "name": "Ben Skowronek",
       "position": "WR",
       "team": "PIT",
@@ -320,7 +313,7 @@
       "name": "Carson Steele",
       "position": "RB",
       "team": null,
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Shoulder"
     },
     {
@@ -1083,7 +1076,7 @@
       "name": "Jalen Brooks",
       "position": "WR",
       "team": "ARI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Wrist"
     },
     {
@@ -2133,7 +2126,7 @@
       "name": "Tyrone Tracy Jr.",
       "position": "RB",
       "team": "NYG",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
