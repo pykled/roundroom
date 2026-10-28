@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-28T08:45:42.084Z",
+  "fetched_at": "2026-10-28T16:44:25.767Z",
   "players": [
     {
       "name": "A.J. Hines",
@@ -111,13 +111,6 @@
       "position": "WR",
       "team": "ATL",
       "status": "IR",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Ben Sauls",
-      "position": "K",
-      "team": null,
-      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -527,13 +520,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Deonte Harty",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Derek Carr",
       "position": "QB",
       "team": null,
@@ -571,7 +557,7 @@
     {
       "name": "DJ Rogers",
       "position": "TE",
-      "team": "DAL",
+      "team": null,
       "status": "Questionable",
       "body_part": "Knee"
     },
@@ -935,7 +921,7 @@
     {
       "name": "Jameson Geers",
       "position": "TE",
-      "team": "ARI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1671,7 +1657,7 @@
       "name": "Terry McLaurin",
       "position": "WR",
       "team": "WAS",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
