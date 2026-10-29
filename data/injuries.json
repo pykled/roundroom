@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-28T22:43:46.535Z",
+  "fetched_at": "2026-10-29T06:05:01.111Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -378,6 +378,13 @@
       "team": "NO",
       "status": "Out",
       "body_part": "Shoulder"
+    },
+    {
+      "name": "Colby Parkinson",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Ribs"
     },
     {
       "name": "Cole Burgess",
@@ -1143,6 +1150,13 @@
       "body_part": "Personal"
     },
     {
+      "name": "John Bates",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "John Jiles",
       "position": "WR",
       "team": null,
@@ -1374,13 +1388,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Marcus Mariota",
-      "position": "QB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Knee - MCL"
-    },
-    {
       "name": "Mario Williams",
       "position": "WR",
       "team": null,
@@ -1456,6 +1463,13 @@
       "team": "PIT",
       "status": "IR",
       "body_part": "Foot"
+    },
+    {
+      "name": "Michael Wilson",
+      "position": "WR",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Ribs"
     },
     {
       "name": "Michael Woods",
@@ -1724,6 +1738,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Stefon Diggs",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Hand"
+    },
+    {
       "name": "Tank Bigsby",
       "position": "RB",
       "team": "PHI",
@@ -1850,6 +1871,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Treylon Burks",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Foot"
+    },
+    {
       "name": "Treyton Welch",
       "position": "TE",
       "team": "NO",
@@ -1876,6 +1904,13 @@
       "team": "TEN",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Tyler Allgeier",
+      "position": "RB",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Toe"
     },
     {
       "name": "Tyler Badie",
