@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-29T19:44:04.560Z",
+  "fetched_at": "2026-10-30T00:01:18.652Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -44,6 +44,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "AJ Dillon",
+      "position": "RB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Alec Pierce",
       "position": "WR",
       "team": "IND",
@@ -56,13 +63,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Amon-Ra St. Brown",
-      "position": "WR",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Andre Baccellia",
@@ -142,13 +142,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Braelon Allen",
-      "position": "RB",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Brandon Aiyuk",
       "position": "WR",
       "team": "SF",
@@ -212,13 +205,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Brock Bowers",
-      "position": "TE",
-      "team": "LV",
-      "status": "Questionable",
-      "body_part": "Calf"
-    },
-    {
       "name": "Bryce Ford-Wheaton",
       "position": "WR",
       "team": null,
@@ -266,13 +252,6 @@
       "team": "TEN",
       "status": "Questionable",
       "body_part": "Shoulder"
-    },
-    {
-      "name": "Carson Beck",
-      "position": "QB",
-      "team": "ARI",
-      "status": "Questionable",
-      "body_part": "Back"
     },
     {
       "name": "Carson Steele",
@@ -667,13 +646,6 @@
       "body_part": "Achilles"
     },
     {
-      "name": "Dylan Sampson",
-      "position": "RB",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "EJ Smith",
       "position": "RB",
       "team": null,
@@ -749,6 +721,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Gavin Bartholomew",
+      "position": "TE",
+      "team": "MIN",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Gee Scott",
@@ -828,6 +807,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Haynes King",
+      "position": "QB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Hunter Long",
       "position": "TE",
       "team": "ARI",
@@ -891,11 +877,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Ja'Marr Chase",
-      "position": "WR",
-      "team": "CIN",
-      "status": "Questionable",
-      "body_part": "Ankle"
+      "name": "Ja'Tavion Sanders",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacardia Wright",
@@ -912,13 +898,6 @@
       "body_part": "Forearm"
     },
     {
-      "name": "Jacob Saylors",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Neck"
-    },
-    {
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "team": "WAS",
@@ -931,13 +910,6 @@
       "team": "SEA",
       "status": "IR",
       "body_part": "Chest"
-    },
-    {
-      "name": "Jahmyr Gibbs",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Jake Bentley",
@@ -1185,6 +1157,13 @@
       "body_part": "Abdomen"
     },
     {
+      "name": "Jonnu Smith",
+      "position": "TE",
+      "team": "GB",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
@@ -1225,6 +1204,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Kaleb Johnson",
+      "position": "RB",
+      "team": "GB",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "KaVontae Turpin",
@@ -1332,6 +1318,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "LeQuint Allen Jr.",
+      "position": "RB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Levonte Whitfield",
       "position": "WR",
       "team": null,
@@ -1365,6 +1358,13 @@
       "team": "GB",
       "status": "PUP",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Luke Schoonmaker",
+      "position": "TE",
+      "team": "DAL",
+      "status": "Questionable",
+      "body_part": "Groin"
     },
     {
       "name": "Mack Hollins",
@@ -1409,13 +1409,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Marvin Mims Jr.",
-      "position": "WR",
-      "team": "DEN",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Mason Fine",
       "position": "QB",
       "team": null,
@@ -1435,13 +1428,6 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Matthew Golden",
-      "position": "WR",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "McCallan Castles",
@@ -1633,6 +1619,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "RJ Harvey",
+      "position": "RB",
+      "team": "DEN",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "RJ Maryland",
       "position": "TE",
       "team": null,
@@ -1745,13 +1738,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Stefon Diggs",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Hand"
-    },
-    {
       "name": "Tank Bigsby",
       "position": "RB",
       "team": "PHI",
@@ -1848,6 +1834,13 @@
       "team": "NO",
       "status": "IR",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Travis Kelce",
+      "position": "TE",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Tre' Harris",
