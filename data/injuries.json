@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-30T13:14:40.871Z",
+  "fetched_at": "2026-10-30T19:31:34.911Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -19,13 +19,6 @@
       "name": "Aaron Anderson",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Aaron Jones Sr.",
-      "position": "RB",
-      "team": "MIN",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -180,7 +173,7 @@
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -670,8 +663,8 @@
       "name": "Emeka Egbuka",
       "position": "WR",
       "team": "TB",
-      "status": "Questionable",
-      "body_part": "Concussion"
+      "status": "Out",
+      "body_part": "Foot"
     },
     {
       "name": "Eric McAlister",
@@ -728,13 +721,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "Gavin Bartholomew",
-      "position": "TE",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Gee Scott",
@@ -1171,6 +1157,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Jordan Whittington",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
@@ -1295,13 +1288,6 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Concussion"
-    },
-    {
-      "name": "Lamar Jackson",
-      "position": "QB",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Larry Rose",
@@ -1570,25 +1556,11 @@
       "body_part": "Hip"
     },
     {
-      "name": "Rashee Rice",
-      "position": "WR",
-      "team": "KC",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Rashid Shaheed",
       "position": "WR",
       "team": "SEA",
       "status": "Questionable",
       "body_part": "Knee"
-    },
-    {
-      "name": "Ray Davis",
-      "position": "RB",
-      "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Illness"
     },
     {
       "name": "Ray-Ray McCloud",
@@ -1843,13 +1815,6 @@
       "body_part": "Hamstring"
     },
     {
-      "name": "Travis Kelce",
-      "position": "TE",
-      "team": "KC",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Tre' Harris",
       "position": "WR",
       "team": "LAC",
@@ -1946,13 +1911,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Tyler Warren",
-      "position": "TE",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Tyquan Thornton",
