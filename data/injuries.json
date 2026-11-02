@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-01T23:42:54.691Z",
+  "fetched_at": "2026-11-02T06:30:30.555Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -126,6 +126,13 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Athan Kaliakmanis",
+      "position": "QB",
+      "team": "WAS",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Audric Estime",
@@ -901,7 +908,7 @@
       "name": "Hunter Henry",
       "position": "TE",
       "team": "NE",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Foot"
     },
     {
@@ -1178,6 +1185,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Jeremy McNichols",
+      "position": "RB",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Jermar Jefferson",
       "position": "RB",
       "team": null,
@@ -1225,13 +1239,6 @@
       "team": "CLE",
       "status": "PUP",
       "body_part": "Personal"
-    },
-    {
-      "name": "John Bates",
-      "position": "TE",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "John Jiles",
@@ -2016,13 +2023,6 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Treylon Burks",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Treyton Welch",
