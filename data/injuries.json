@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-03T17:57:19.721Z",
+  "fetched_at": "2026-11-03T23:32:05.131Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -310,13 +310,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Carter Bradley",
-      "position": "QB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Thumb"
-    },
-    {
       "name": "Carter Runyon",
       "position": "TE",
       "team": "LV",
@@ -340,13 +333,6 @@
     {
       "name": "Cedrick Wilson",
       "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Chase Curtis",
-      "position": "TE",
       "team": null,
       "status": "Questionable",
       "body_part": "Knee"
@@ -459,13 +445,6 @@
     {
       "name": "Connor Hulstein",
       "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Corey Rucker",
-      "position": "WR",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
@@ -586,7 +565,7 @@
       "name": "Dean Connors",
       "position": "RB",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Hand"
     },
     {
@@ -1202,22 +1181,15 @@
       "name": "Jeremiyah Love",
       "position": "RB",
       "team": "ARI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
       "name": "Jeremy McNichols",
       "position": "RB",
       "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Jermar Jefferson",
-      "position": "RB",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "IR",
+      "body_part": "Foot"
     },
     {
       "name": "Jimmy Holiday",
@@ -1391,8 +1363,8 @@
       "name": "Kendrick Bourne",
       "position": "WR",
       "team": "ARI",
-      "status": "Out",
-      "body_part": "Ankle"
+      "status": "IR",
+      "body_part": "Lower Leg"
     },
     {
       "name": "Kendrick Law",
@@ -1400,6 +1372,13 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Kenny Yeboah",
+      "position": "TE",
+      "team": "ARI",
+      "status": "Out",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Kurtis Rourke",
@@ -2105,8 +2084,8 @@
       "name": "Tyler Loop",
       "position": "K",
       "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Undisclosed"
+      "status": "IR",
+      "body_part": "Groin"
     },
     {
       "name": "Tyler Mabry",
