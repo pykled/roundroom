@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-02T18:36:09.682Z",
+  "fetched_at": "2026-11-03T02:29:09.606Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -177,6 +177,13 @@
       "body_part": null
     },
     {
+      "name": "Bhayshul Tuten",
+      "position": "RB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Blake Grupe",
       "position": "K",
       "team": "LAR",
@@ -324,6 +331,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Case Keenum",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Caullin Lacy",
       "position": "WR",
       "team": null,
@@ -378,6 +392,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Chris Rodriguez Jr.",
+      "position": "RB",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Hand"
     },
     {
       "name": "Chris Thompson",
@@ -569,6 +590,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Dean Connors",
+      "position": "RB",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Hand"
+    },
+    {
       "name": "Deebo Samuel Sr.",
       "position": "WR",
       "team": "SF",
@@ -698,7 +726,7 @@
       "name": "Drew Lock",
       "position": "QB",
       "team": "SEA",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Elbow"
     },
     {
@@ -1010,13 +1038,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Jadarian Price",
-      "position": "RB",
-      "team": "SEA",
-      "status": "IR",
-      "body_part": "Chest"
-    },
-    {
       "name": "Jake Bentley",
       "position": "QB",
       "team": null,
@@ -1050,6 +1071,13 @@
       "team": "SF",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jakobi Meyers",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Jalen Brooks",
@@ -1311,6 +1339,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Justice Hill",
+      "position": "RB",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Groin"
+    },
+    {
       "name": "Justin Joly",
       "position": "TE",
       "team": "MIA",
@@ -1372,13 +1407,6 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
-    },
-    {
-      "name": "KhaDarel Hodge",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Kurtis Rourke",
@@ -1554,6 +1582,13 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Matthew Stafford",
+      "position": "QB",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Arm"
     },
     {
       "name": "Max Brosmer",
@@ -2072,6 +2107,13 @@
       "team": "BAL",
       "status": "Out",
       "body_part": "Toe"
+    },
+    {
+      "name": "Tyler Loop",
+      "position": "K",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Tyler Mabry",
