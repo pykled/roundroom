@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-04T22:00:51.882Z",
+  "fetched_at": "2026-11-05T02:37:21.545Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -49,6 +49,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Alvin Kamara",
+      "position": "RB",
+      "team": "NO",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Amon-Ra St. Brown",
@@ -177,6 +184,13 @@
       "body_part": "Quadriceps"
     },
     {
+      "name": "Brevin Jordan",
+      "position": "TE",
+      "team": "HOU",
+      "status": "Questionable",
+      "body_part": "Finger"
+    },
+    {
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
@@ -210,13 +224,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Bub Means",
-      "position": "WR",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Caleb Lohner",
@@ -257,13 +264,6 @@
       "name": "Carson Towt",
       "position": "TE",
       "team": "IND",
-      "status": "IR",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Carter Runyon",
-      "position": "TE",
-      "team": "LV",
       "status": "IR",
       "body_part": "Undisclosed"
     },
@@ -329,6 +329,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": null
+    },
+    {
+      "name": "Christian Kirk",
+      "position": "WR",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Christian McCaffrey",
@@ -518,6 +525,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Groin"
+    },
+    {
+      "name": "Denzel Boston",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Questionable",
+      "body_part": "Calf"
     },
     {
       "name": "Derek Carr",
@@ -821,6 +835,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Ian Thomas",
+      "position": "TE",
+      "team": "LV",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Irv Smith",
       "position": "TE",
       "team": null,
@@ -903,6 +924,13 @@
       "team": "SEA",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jake Elliott",
+      "position": "K",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Jake Ferguson",
@@ -1087,6 +1115,13 @@
       "body_part": "Personal"
     },
     {
+      "name": "John Bates",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Shoulder"
+    },
+    {
       "name": "John Jiles",
       "position": "WR",
       "team": null,
@@ -1115,6 +1150,13 @@
       "body_part": "Abdomen"
     },
     {
+      "name": "Jordan Whittington",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
@@ -1134,6 +1176,13 @@
       "team": "MIN",
       "status": "IR",
       "body_part": "Biceps"
+    },
+    {
+      "name": "Josh Whyle",
+      "position": "TE",
+      "team": "GB",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "Joshua Palmer",
@@ -1204,6 +1253,13 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Knee - ACL"
+    },
+    {
+      "name": "Kenny Gainwell",
+      "position": "RB",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Kenny Yeboah",
@@ -1353,6 +1409,13 @@
       "body_part": null
     },
     {
+      "name": "Mason Taylor",
+      "position": "TE",
+      "team": "NYJ",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Mason Tipton",
       "position": "WR",
       "team": "NO",
@@ -1365,13 +1428,6 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Matthew Stafford",
-      "position": "QB",
-      "team": "LAR",
-      "status": "Questionable",
-      "body_part": "Arm"
     },
     {
       "name": "McCallan Castles",
@@ -1612,6 +1668,13 @@
       "body_part": "Quadriceps"
     },
     {
+      "name": "Saquon Barkley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Hamstring"
+    },
+    {
       "name": "Sean McKeon",
       "position": "TE",
       "team": null,
@@ -1801,6 +1864,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Treylon Burks",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Foot"
+    },
+    {
       "name": "Treyvhon Saunders",
       "position": "WR",
       "team": null,
@@ -1967,6 +2037,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Neck"
+    },
+    {
+      "name": "Zavier Scott",
+      "position": "RB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Wrist"
     },
     {
       "name": "Zonovan Knight",
