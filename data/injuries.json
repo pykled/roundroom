@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-11-06T12:17:48.264Z",
+  "fetched_at": "2026-11-06T19:35:32.968Z",
   "players": [
     {
       "name": "A.J. Brown",
       "position": "WR",
       "team": "NE",
-      "status": "Questionable",
-      "body_part": "Ankle"
+      "status": "Out",
+      "body_part": "Knee"
     },
     {
       "name": "A.J. Hines",
@@ -173,7 +173,7 @@
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -334,7 +334,7 @@
       "name": "CJ Donaldson",
       "position": "RB",
       "team": "NO",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Shoulder"
     },
     {
@@ -702,6 +702,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Emeka Egbuka",
+      "position": "WR",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Foot"
+    },
+    {
       "name": "Eric McAlister",
       "position": "WR",
       "team": null,
@@ -761,7 +768,7 @@
       "name": "Garrett Wilson",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Concussion"
     },
     {
@@ -1853,7 +1860,7 @@
       "name": "TreVeyon Henderson",
       "position": "RB",
       "team": "NE",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Illness"
     },
     {
@@ -2070,7 +2077,7 @@
       "name": "Zonovan Knight",
       "position": "RB",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Concussion"
     }
   ]
