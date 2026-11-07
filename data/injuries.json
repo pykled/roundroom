@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-07T00:10:16.193Z",
+  "fetched_at": "2026-11-07T06:18:09.802Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -383,7 +383,7 @@
       "name": "Dameon Pierce",
       "position": "RB",
       "team": "PHI",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1437,6 +1437,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nikko Remigio",
+      "position": "WR",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Hip"
+    },
+    {
       "name": "Nikola Kalinic",
       "position": "TE",
       "team": "CHI",
@@ -1889,13 +1896,6 @@
       "position": "RB",
       "team": "NYG",
       "status": "IR",
-      "body_part": "Hamstring"
-    },
-    {
-      "name": "Velus Jones Jr.",
-      "position": "WR",
-      "team": "SEA",
-      "status": "Questionable",
       "body_part": "Hamstring"
     },
     {
