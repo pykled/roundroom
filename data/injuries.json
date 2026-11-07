@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-07T13:21:44.567Z",
+  "fetched_at": "2026-11-07T18:56:10.548Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -382,7 +382,7 @@
     {
       "name": "Dameon Pierce",
       "position": "RB",
-      "team": "PHI",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1132,7 +1132,7 @@
       "name": "Joshua Palmer",
       "position": "WR",
       "team": "BUF",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1582,13 +1582,6 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Shoulder"
-    },
-    {
-      "name": "Ronnie Rivers",
-      "position": "RB",
-      "team": "LAR",
-      "status": "IR",
-      "body_part": "Calf"
     },
     {
       "name": "Sam Darnold",
