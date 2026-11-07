@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-07T18:56:10.548Z",
+  "fetched_at": "2026-11-07T23:43:44.472Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -103,8 +103,8 @@
       "name": "Beaux Collins",
       "position": "WR",
       "team": "ATL",
-      "status": "IR",
-      "body_part": "Undisclosed"
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Ben Skowronek",
@@ -159,7 +159,7 @@
       "name": "Brian Robinson Jr.",
       "position": "RB",
       "team": "ATL",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
@@ -299,7 +299,7 @@
       "name": "Christian Kirk",
       "position": "WR",
       "team": "SF",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee - Meniscus"
     },
     {
@@ -471,17 +471,10 @@
       "body_part": "Hamstring"
     },
     {
-      "name": "Demarcus Robinson",
-      "position": "WR",
-      "team": "SF",
-      "status": "IR",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Demond Claiborne",
       "position": "RB",
       "team": "MIN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -523,13 +516,6 @@
       "name": "Dez Fitzpatrick",
       "position": "WR",
       "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "DJ Moore",
-      "position": "WR",
-      "team": "BUF",
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -607,7 +593,7 @@
       "name": "Dyami Brown",
       "position": "WR",
       "team": "WAS",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Calf"
     },
     {
@@ -950,7 +936,7 @@
       "name": "Jauan Jennings",
       "position": "WR",
       "team": "MIN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Calf"
     },
     {
@@ -1104,7 +1090,7 @@
       "name": "Jordyn Tyson",
       "position": "WR",
       "team": "NO",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Hamstring"
     },
     {
@@ -1213,13 +1199,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Keon Coleman",
-      "position": "WR",
-      "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Shoulder"
-    },
-    {
       "name": "Kye Robichaux",
       "position": "RB",
       "team": null,
@@ -1244,7 +1223,7 @@
       "name": "Kyler Murray",
       "position": "QB",
       "team": "MIN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1328,7 +1307,7 @@
       "name": "Mack Hollins",
       "position": "WR",
       "team": "NE",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Calf"
     },
     {
@@ -1468,7 +1447,7 @@
       "name": "Pat Bryant",
       "position": "WR",
       "team": "DEN",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
