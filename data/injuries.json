@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-08T06:23:57.064Z",
+  "fetched_at": "2026-11-08T13:41:45.008Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -72,6 +72,13 @@
       "body_part": "Thumb"
     },
     {
+      "name": "Andy Dalton",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Anthony Firkser",
       "position": "TE",
       "team": null,
@@ -98,13 +105,6 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Beaux Collins",
-      "position": "WR",
-      "team": "ATL",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Ben Skowronek",
@@ -833,6 +833,13 @@
       "team": "SEA",
       "status": "Out",
       "body_part": "Foot"
+    },
+    {
+      "name": "Jack Strand",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacob Saylors",
