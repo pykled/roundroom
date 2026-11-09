@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-08T23:49:55.917Z",
+  "fetched_at": "2026-11-09T06:56:13.804Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -156,6 +156,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Bo Melton",
+      "position": "WR",
+      "team": "GB",
+      "status": "Questionable",
+      "body_part": "Head"
+    },
+    {
       "name": "Brandon Aiyuk",
       "position": "WR",
       "team": "SF",
@@ -266,6 +273,13 @@
       "team": "IND",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Case Keenum",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Caullin Lacy",
@@ -597,6 +611,13 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Drew Lock",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Oblique"
+    },
+    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -658,13 +679,6 @@
       "team": "BAL",
       "status": "Out",
       "body_part": "Coach's Decision"
-    },
-    {
-      "name": "Emeka Egbuka",
-      "position": "WR",
-      "team": "TB",
-      "status": "Questionable",
-      "body_part": "Foot"
     },
     {
       "name": "Eric McAlister",
@@ -1206,6 +1220,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Justin Herbert",
+      "position": "QB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Finger"
+    },
+    {
       "name": "Justin Joly",
       "position": "TE",
       "team": "MIA",
@@ -1300,7 +1321,7 @@
       "name": "Kyle Monangai",
       "position": "RB",
       "team": "CHI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Toe"
     },
     {
@@ -1407,6 +1428,13 @@
       "team": "DAL",
       "status": "Out",
       "body_part": "Groin"
+    },
+    {
+      "name": "Luther Burden III",
+      "position": "WR",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Malik Benson",
@@ -1638,6 +1666,13 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Rhamondre Stevenson",
+      "position": "RB",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Knee"
     },
     {
       "name": "Ricky Pearsall",
