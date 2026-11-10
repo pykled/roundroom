@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-10T12:49:38.034Z",
+  "fetched_at": "2026-11-10T20:55:42.423Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -849,6 +849,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Ihmir Smith-Marsette",
+      "position": "WR",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Irv Smith",
       "position": "TE",
       "team": null,
@@ -915,13 +922,6 @@
       "name": "Jack Strand",
       "position": "QB",
       "team": "ATL",
-      "status": "Out",
-      "body_part": "Coach's Decision"
-    },
-    {
-      "name": "Jackson Meeks",
-      "position": "TE",
-      "team": "DET",
       "status": "Out",
       "body_part": "Coach's Decision"
     },
@@ -1183,6 +1183,13 @@
       "team": "CAR",
       "status": "IR",
       "body_part": "Abdomen"
+    },
+    {
+      "name": "Jordan Whittington",
+      "position": "WR",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Josh Jacobs",
