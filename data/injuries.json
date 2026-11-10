@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-09T18:57:46.453Z",
+  "fetched_at": "2026-11-10T02:48:48.895Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -296,11 +296,25 @@
       "body_part": "Knee"
     },
     {
+      "name": "Charlie Jones",
+      "position": "WR",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Thumb"
+    },
+    {
       "name": "Chase Roberts",
       "position": "WR",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Chig Okonkwo",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Hip"
     },
     {
       "name": "Chris Brazzell II",
@@ -380,6 +394,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Colson Yankoff",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Connor Hulstein",
       "position": "TE",
       "team": null,
@@ -450,6 +471,13 @@
       "body_part": "Calf"
     },
     {
+      "name": "Darnell Mooney",
+      "position": "WR",
+      "team": "NYG",
+      "status": "Questionable",
+      "body_part": "Chest"
+    },
+    {
       "name": "Darren Carrington",
       "position": "WR",
       "team": null,
@@ -509,7 +537,7 @@
       "name": "Demond Claiborne",
       "position": "RB",
       "team": "MIN",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -553,13 +581,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "DJ Rogers",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "DJ Turner",
@@ -730,6 +751,13 @@
       "body_part": "Knee - ACL"
     },
     {
+      "name": "Gardner Minshew II",
+      "position": "QB",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Elbow"
+    },
+    {
       "name": "Garrett Nussmeier",
       "position": "QB",
       "team": "KC",
@@ -791,13 +819,6 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Harrison Bryant",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Hasise Dubois",
@@ -936,7 +957,7 @@
       "name": "Jake Ferguson",
       "position": "TE",
       "team": "DAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -994,13 +1015,6 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Foot"
-    },
-    {
-      "name": "Jameson Geers",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Jaren Kanak",
@@ -1174,8 +1188,8 @@
       "name": "Josh Jacobs",
       "position": "RB",
       "team": "GB",
-      "status": "Questionable",
-      "body_part": "Hand"
+      "status": "Out",
+      "body_part": "Finger"
     },
     {
       "name": "Josh Kattus",
@@ -1202,7 +1216,7 @@
       "name": "Joshua Palmer",
       "position": "WR",
       "team": "BUF",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Hamstring"
     },
     {
@@ -1514,6 +1528,13 @@
       "body_part": "Foot"
     },
     {
+      "name": "Michael Wilson",
+      "position": "WR",
+      "team": "ARI",
+      "status": "Out",
+      "body_part": "Neck"
+    },
+    {
       "name": "Michael Woods",
       "position": "WR",
       "team": null,
@@ -1794,6 +1815,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Skyler Bell",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Skyy Moore",
       "position": "WR",
       "team": "GB",
@@ -2000,7 +2028,7 @@
       "name": "Tyler Goodson",
       "position": "RB",
       "team": "DAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
