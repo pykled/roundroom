@@ -824,7 +824,7 @@ function renderFormatChip() {
     : (S.format.sf ? 'SF league' : '') + (S.format.sf && S.format.dynasty ? ' · ' : '') + (S.format.dynasty ? 'Dynasty' : '');
   el.className = 'league-fmt' + (S.format.sf ? ' sf' : '');
   el.title = (S.format.sf
-    ? 'Superflex: QBs valued against a 2-QB replacement level and FantasyCalc\'s 2-QB market (top QBs ≈ 2× their 1-QB value).'
+    ? 'Superflex: QBs valued against a 2-QB replacement level set one eighth deeper than the starter count (QB27 in a 12-team league — the projected QB24 overstates what a replacement QB produces) and FantasyCalc\'s 2-QB market (top QBs ≈ 2× their 1-QB value).'
     : '1-QB league: one QB starter; QBs valued against a 1-QB replacement level.') +
     (S.format.dynasty ? ' Dynasty: FantasyCalc dynasty values at 50/50 blend, age curve on, milder injury discounts.' : '');
   el.hidden = false;
@@ -880,7 +880,9 @@ async function loadPlayoffSchedule() {
 function valueProjections() { return S.projRos || S.proj; }
 
 // Value pipeline:
-//   computeVORP (superflex-aware slots) on REST-OF-SEASON projections → rescale 0–10000
+//   computeVORP (superflex-aware slots; SF replacement QB one eighth deeper
+//     than the starter count, docs/trade-calc-balance-2026-11-10.md) on
+//     REST-OF-SEASON projections → rescale 0–10000
 //   → [dynasty] age curve on the VORP half
 //   → blend with FantasyCalc (redraft 70/30; dynasty 50/50 — a single-season
 //     projection says less about a dynasty asset than the market does)
@@ -900,7 +902,9 @@ function recompute() {
     return { player_id: id, position: S.players[id][1] };
   });
   S.format = getFormat();
-  var raw = ScoringEngine.computeVORP(players, valueProjections(), getScoringSettings(), getRosterPositions(), getTeams());
+  // qbDepth only bites when the league starts ≥ 2 QBs (SUPER_FLEX / 2QB):
+  // replacement QB24 → QB27 in a 12-team league (TradeFit.SF_QB_DEPTH).
+  var raw = ScoringEngine.computeVORP(players, valueProjections(), getScoringSettings(), getRosterPositions(), getTeams(), { qbDepth: TradeFit.SF_QB_DEPTH });
   var scaled = ScoringEngine.rescaleVORP(raw);
   if (S.format.dynasty) scaled = TradeFit.applyAge(scaled, S.players);
   S.vorpHealthy = ScoringEngine.blendWithMarket(scaled, S.market || {}, S.format.dynasty ? 0.5 : 0.3);

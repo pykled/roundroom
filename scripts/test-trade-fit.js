@@ -131,6 +131,32 @@ console.log('rosFromWeek (current-week rule, NFL week 6 of 2026 with injected cl
   })());
 }
 
+// ---- 2d. value scale: superflex replacement QB depth ---------------------------
+console.log('computeVORP opts.qbDepth (superflex replacement QB)');
+{
+  // 12 teams: 40 QBs scoring 40, 39, … 1; 20 WRs scoring 20 … 1.
+  const pool = [], proj = {};
+  for (let i = 1; i <= 40; i++) { pool.push({ player_id: 'q' + i, position: 'QB' }); proj['q' + i] = { pts: 41 - i }; }
+  for (let i = 1; i <= 20; i++) { pool.push({ player_id: 'w' + i, position: 'WR' }); proj['w' + i] = { pts: 21 - i }; }
+  const sc = { pts: 1 };
+  const sfPos = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
+  const oneQbPos = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'FLEX'];
+  const twoQbPos = ['QB', 'QB', 'RB', 'WR', 'TE'];
+  const v = (pos, opts) => Scoring.computeVORP(pool, proj, sc, pos, 12, opts);
+  // replacement = the player at index replRank in the sorted list (0-based), i.e. rank replRank + 1
+  check('SF, no opts: replacement QB index 24 (score 16) → QB1 VORP 24', v(sfPos).get('q1') === 24, String(v(sfPos).get('q1')));
+  check('SF, qbDepth 1.125: replacement index round(24 × 1.125) = 27 (score 13) → QB1 VORP 27', v(sfPos, { qbDepth: 1.125 }).get('q1') === 27, String(v(sfPos, { qbDepth: 1.125 }).get('q1')));
+  check('SF, qbDepth = TradeFit.SF_QB_DEPTH (1.125)', Fit.SF_QB_DEPTH === 1.125 && v(sfPos, { qbDepth: Fit.SF_QB_DEPTH }).get('q1') === 27);
+  check('SF, qbDepth leaves WR replacement alone (WR index 42 → no such player → 0 → WR1 VORP 20)', v(sfPos, { qbDepth: 1.125 }).get('w1') === 20 && v(sfPos).get('w1') === 20);
+  check('1QB: qbDepth ignored (replacement index 12 either way → QB1 VORP 12)', v(oneQbPos, { qbDepth: 1.125 }).get('q1') === 12 && v(oneQbPos).get('q1') === 12, String(v(oneQbPos, { qbDepth: 1.125 }).get('q1')));
+  check('two dedicated QB slots count as superflex for qbDepth (index 27)', v(twoQbPos, { qbDepth: 1.125 }).get('q1') === 27, String(v(twoQbPos, { qbDepth: 1.125 }).get('q1')));
+  check('qbDepth ≤ 1, NaN, string or missing → 1', [1, 0.5, NaN, '1.5', null, undefined].every(d => v(sfPos, { qbDepth: d }).get('q1') === 24) && v(sfPos, {}).get('q1') === 24);
+  check('deeper line only raises QB VORP (every QB ≥ before, QB25–27 now 0 → positive for 1–26)', (() => {
+    const a = v(sfPos), b = v(sfPos, { qbDepth: 1.125 });
+    return pool.filter(p => p.position === 'QB').every(p => b.get(p.player_id) >= a.get(p.player_id)) && a.get('q25') === 0 && b.get('q25') === 3 && b.get('q28') === 0;
+  })());
+}
+
 // ---- 2c. analyzeTeam starterPts divides by the weeks the dict covers ----------
 console.log('analyzeLeague opts.weeks');
 {

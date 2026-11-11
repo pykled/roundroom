@@ -15,8 +15,13 @@ var ScoringEngine = (function () {
 
   // players: [{ player_id, position }]
   // rosterPositions: e.g. ["QB","RB","RB","WR","WR","WR","TE","FLEX","K",...]
+  // opts.qbDepth (optional, ≥ 1): multiplier on the QB replacement rank, applied
+  //   ONLY when the league starts two or more QBs (SUPER_FLEX / 2QB). 24 starting
+  //   QBs in a 12-team superflex league leaves no margin against the 32 NFL
+  //   starters, so the projected QB24 overstates what a replacement QB actually
+  //   produces; see shared/trade-fit.js SF_QB_DEPTH. Ignored in 1-QB leagues.
   // returns Map<player_id, vorp>
-  function computeVORP(players, projections, scoringSettings, rosterPositions, teamCount) {
+  function computeVORP(players, projections, scoringSettings, rosterPositions, teamCount, opts) {
     var starters = { QB: 0, RB: 0, WR: 0, TE: 0, K: 0 };
     for (var i = 0; i < rosterPositions.length; i++) {
       var pos = rosterPositions[i];
@@ -33,8 +38,9 @@ var ScoringEngine = (function () {
       }
     }
 
+    var qbDepth = opts && typeof opts.qbDepth === 'number' && isFinite(opts.qbDepth) && opts.qbDepth > 1 ? opts.qbDepth : 1;
     var replRank = {};
-    for (var p in starters) replRank[p] = Math.round(teamCount * starters[p]);
+    for (var p in starters) replRank[p] = Math.round(teamCount * starters[p] * (p === 'QB' && starters.QB >= 2 ? qbDepth : 1));
 
     var byPos = { QB: [], RB: [], WR: [], TE: [], K: [] };
     for (var j = 0; j < players.length; j++) {

@@ -34,6 +34,15 @@ var TradeFit = (function () {
 
   var SKILL = { QB: 1, RB: 1, WR: 1, TE: 1 };
 
+  // ---- Value scale (trade page) -----------------------------------------------
+  // SF_QB_DEPTH: superflex / 2-QB replacement QB sits this much deeper than
+  // teams × QB starters (12 teams → QB27 instead of QB24). Measured 2026-11-10
+  // (docs/trade-calc-balance-2026-11-10.md, 1,676 QB-for-skill 1-for-1s over
+  // 17 weeks of 2025–26): at QB24 the model picked the QB side 45 % of the time
+  // against a realized 50–62 % under every realized-VORP definition; at QB27
+  // 60 %. Only computeVORP reads it, and only when the league starts ≥ 2 QBs.
+  var SF_QB_DEPTH = 1.125;
+
   // ---- League format ------------------------------------------------------
   // league: /api/league/:id payload (or any object with roster_positions,
   // scoring_settings, settings, total_rosters). Missing fields fall back to a
@@ -512,6 +521,7 @@ var TradeFit = (function () {
     rosterImbalance: rosterImbalance,
     INJURY_MULT: INJURY_MULT,
     AGE_CURVE: AGE_CURVE,
+    SF_QB_DEPTH: SF_QB_DEPTH,
     BENCH_FACTOR: BENCH_FACTOR,
     FORM_MULT: Factors.FORM_MULT,
     FORM_HOT: Factors.FORM_HOT,

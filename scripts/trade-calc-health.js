@@ -38,6 +38,9 @@ const PROJ_SRC = arg('proj', 'ros');
 const INJ_MODE = arg('inj', PROJ_SRC === 'ros' ? 'ros' : 'table');
 const PLAYER = arg('player', 'A.J. Brown');
 const JSON_OUT = arg('json', null);
+// Value-scale knobs (defaults = what trade.html ships; pass the old values to
+// reproduce a "before"): --qbdepth=1 disables the deeper SF replacement QB.
+const QB_DEPTH = Number(arg('qbdepth', Fit.SF_QB_DEPTH));
 const SKILL = { QB: 1, RB: 1, WR: 1, TE: 1 };
 
 async function getJSON(path) {
@@ -108,7 +111,7 @@ function f2(x) { return Number.isFinite(x) ? x.toFixed(2) : 'n/a'; }
   for (const w of playoffWeeks) { const s = await tryJSON('/api/schedule/' + w); if (s && s.teams) schedule[w] = s.teams; }
   const fpaOk = fpa && fpa.current && String(fpa.season) === season ? fpa : null;
 
-  console.log(`trade-calc health · ${BASE} · ${SF ? 'SF' : '1QB'} · ${DYN ? 'dynasty' : 'redraft'} · ppr ${PPR} · ${TEAMS} teams · proj=${PROJ_SRC} inj=${INJ_MODE}`);
+  console.log(`trade-calc health · ${BASE} · ${SF ? 'SF' : '1QB'} · ${DYN ? 'dynasty' : 'redraft'} · ppr ${PPR} · ${TEAMS} teams · proj=${PROJ_SRC} inj=${INJ_MODE} qbdepth=${QB_DEPTH}${SF ? ' (replacement QB' + Math.round(TEAMS * 2 * QB_DEPTH) + ')' : ' (1QB: unused)'}`);
   console.log('\nfreshness');
   console.log(`  nfl state: season ${season} week ${week}`);
   console.log(`  season projections: ${Object.keys(seasonProj).length} rows (gp=${Object.values(seasonProj).find(p => p.gp) ? Object.values(seasonProj).find(p => p.gp).gp : '?'} for all)`);
@@ -128,7 +131,7 @@ function f2(x) { return Number.isFinite(x) ? x.toFixed(2) : 'n/a'; }
   };
   const fmt = Fit.leagueFormat(league);
   const pool = Object.keys(slim).map(id => ({ player_id: id, position: slim[id][1] }));
-  const raw = Scoring.computeVORP(pool, proj, league.scoring_settings, league.roster_positions, fmt.teams);
+  const raw = Scoring.computeVORP(pool, proj, league.scoring_settings, league.roster_positions, fmt.teams, { qbDepth: QB_DEPTH });
   let scaled = Scoring.rescaleVORP(raw);
   const scaledPreAge = scaled;
   if (fmt.dynasty) scaled = Fit.applyAge(scaled, slim);
