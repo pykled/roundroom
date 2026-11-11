@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-10T20:55:42.423Z",
+  "fetched_at": "2026-11-11T02:00:39.383Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -754,7 +754,7 @@
       "name": "Gardner Minshew II",
       "position": "QB",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Elbow"
     },
     {
@@ -1188,7 +1188,7 @@
       "name": "Jordan Whittington",
       "position": "WR",
       "team": "LAR",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Back"
     },
     {
@@ -1468,7 +1468,7 @@
       "name": "Malik Willis",
       "position": "QB",
       "team": "MIA",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
@@ -1538,7 +1538,7 @@
       "name": "Michael Wilson",
       "position": "WR",
       "team": "ARI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Neck"
     },
     {
@@ -1843,6 +1843,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Stone Smartt",
+      "position": "TE",
+      "team": "NO",
+      "status": "Out",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "Tank Bigsby",
       "position": "RB",
       "team": "PHI",
@@ -2055,13 +2062,6 @@
     {
       "name": "Tyler Mabry",
       "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
-    },
-    {
-      "name": "Tyler Scott",
-      "position": "WR",
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
