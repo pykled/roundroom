@@ -113,12 +113,16 @@ var ScoringEngine = (function () {
     return { fromWeek: started ? w + 1 : w, slateStarted: started };
   }
 
-  // Apply ^1.25 power curve and rescale to 0–10000
-  function rescaleVORP(vorpMap) {
+  // Apply a power curve and rescale to 0–10000. exponent defaults to 1.25
+  // (draft / research / team pages); the trade page passes
+  // TradeFit.VORP_EXPONENT (1 — linear in points over replacement, so an
+  // N-for-M sum is a sum of points; see shared/trade-fit.js).
+  function rescaleVORP(vorpMap, exponent) {
+    var e = typeof exponent === 'number' && isFinite(exponent) && exponent > 0 ? exponent : 1.25;
     var maxV = 0;
     var powered = new Map();
     vorpMap.forEach(function (vorp, id) {
-      var v = Math.pow(vorp, 1.25);
+      var v = Math.pow(vorp, e);
       powered.set(id, v);
       if (v > maxV) maxV = v;
     });

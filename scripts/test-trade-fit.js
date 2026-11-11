@@ -157,6 +157,29 @@ console.log('computeVORP opts.qbDepth (superflex replacement QB)');
   })());
 }
 
+// ---- 2e. value scale: rescaleVORP exponent -------------------------------------
+console.log('rescaleVORP exponent');
+{
+  const raw = new Map([['a', 100], ['b', 50], ['c', 25], ['d', 0]]);
+  const lin = Scoring.rescaleVORP(raw, 1);
+  check('exponent 1 is linear: 100/50/25 → 10000/5000/2500, 0 → 0', lin.get('a') === 10000 && lin.get('b') === 5000 && lin.get('c') === 2500 && lin.get('d') === 0, [...lin.values()].join(' '));
+  const dflt = Scoring.rescaleVORP(raw);
+  check('default stays ^1.25 for the other pages (50 → 4204, 25 → 1768)', dflt.get('a') === 10000 && dflt.get('b') === 4204 && dflt.get('c') === 1768, [...dflt.values()].join(' '));
+  check('explicit 1.25 equals the default; bad exponents fall back to 1.25', (() => {
+    const e = Scoring.rescaleVORP(raw, 1.25);
+    return [0, -1, NaN, '1', null, undefined].every(x => { const m = Scoring.rescaleVORP(raw, x); return m.get('b') === e.get('b') && m.get('c') === e.get('c'); }) && e.get('b') === 4204;
+  })());
+  check('TradeFit.VORP_EXPONENT is 1 (trade page) and order is exponent-invariant', Fit.VORP_EXPONENT === 1 && (() => {
+    const a = Scoring.rescaleVORP(raw, Fit.VORP_EXPONENT), b = Scoring.rescaleVORP(raw, 1.25);
+    const order = m => [...m.entries()].sort((p, q) => q[1] - p[1]).map(x => x[0]).join('');
+    return order(a) === order(b);
+  })());
+  // The point of the change: a 2-for-1 of two half-value players vs one full-value player is FAIR when linear, LOSE for the pair under ^1.25.
+  const two = Scoring.evaluateTrade(['b', 'b2'], ['a'], new Map([['a', lin.get('a')], ['b', lin.get('b')], ['b2', lin.get('b')]]));
+  const twoOld = Scoring.evaluateTrade(['b', 'b2'], ['a'], new Map([['a', dflt.get('a')], ['b', dflt.get('b')], ['b2', dflt.get('b')]]));
+  check('50 + 50 for 100: linear → FAIR 0%; ^1.25 → the single side WINs 16%', two.verdict === 'FAIR' && two.deltaPct === 0 && twoOld.verdict === 'WIN' && near(twoOld.deltaPct, 0.1592, 1e-3), `${two.verdict} ${two.deltaPct} / ${twoOld.verdict} ${twoOld.deltaPct.toFixed(4)}`);
+}
+
 // ---- 2c. analyzeTeam starterPts divides by the weeks the dict covers ----------
 console.log('analyzeLeague opts.weeks');
 {

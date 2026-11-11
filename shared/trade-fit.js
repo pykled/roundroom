@@ -42,6 +42,17 @@ var TradeFit = (function () {
   // against a realized 50–62 % under every realized-VORP definition; at QB27
   // 60 %. Only computeVORP reads it, and only when the league starts ≥ 2 QBs.
   var SF_QB_DEPTH = 1.125;
+  // VORP_EXPONENT: power curve on the VORP half before the 0–10,000 rescale.
+  // 1 = linear in points over replacement, so a 2-for-1 compares sums of
+  // points. The old ^1.25 made every star-for-depth trade read richer for the
+  // star side than it paid out: over 10,200 synthetic 2-for-1 / 3-for-1 trades
+  // (same doc) the ^1.25 model called the single-player side the winner 70–75 %
+  // of the time against a realized 51–54 % (lineup-aware) and its FAIR calls
+  // paid the two-player side +7–8 %; ^1.0 reads 66–69 % with FAIR calls within
+  // ±2 %, with sign accuracy equal or better. Rank order of players is
+  // unchanged (a power curve is monotone), only N-for-M sums move. The draft,
+  // research and team pages keep rescaleVORP's default 1.25.
+  var VORP_EXPONENT = 1;
 
   // ---- League format ------------------------------------------------------
   // league: /api/league/:id payload (or any object with roster_positions,
@@ -522,6 +533,7 @@ var TradeFit = (function () {
     INJURY_MULT: INJURY_MULT,
     AGE_CURVE: AGE_CURVE,
     SF_QB_DEPTH: SF_QB_DEPTH,
+    VORP_EXPONENT: VORP_EXPONENT,
     BENCH_FACTOR: BENCH_FACTOR,
     FORM_MULT: Factors.FORM_MULT,
     FORM_HOT: Factors.FORM_HOT,
