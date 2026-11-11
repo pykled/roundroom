@@ -1,0 +1,579 @@
+# scripts/trade-fairness-compare.py on live week-10 values, 2026-11-10 — BEFORE (origin/main 37583cc: ^1.25, SF QB24)
+
+=== 1qb ===
+  1-for-1 WR3 for RB4
+     give CeeDee Lamb (WR3)
+     recv Christian McCaffrey (RB4)
+     model 5146 vs 7145 -> WIN (+28.0%) | FC sum 8713 vs 8624 -> FAIR (-1.0%) | FC+waiver 8713 vs 8624 -> FAIR (-1.0%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Javonte Williams (RB8)
+     recv Tee Higgins (WR8, form0.95)
+     model 3466 vs 3612 -> FAIR (+4.0%) | FC sum 5885 vs 5780 -> FAIR (-1.8%) | FC+waiver 5885 vs 5780 -> FAIR (-1.8%)
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.95)
+     recv Malik Nabers (WR6)
+     model 3967 vs 4218 -> FAIR (+6.0%) | FC sum 6933 vs 6206 -> LOSE (-10.5%) | FC+waiver 6933 vs 6206 -> LOSE (-10.5%)  <-- DISAGREE
+  1-for-1 QB3 for WR10
+     give Jordan Love (QB3, form0.95)
+     recv Puka Nacua (WR10, Questionable, inj0.97)
+     model 831 vs 1450 -> WIN (+42.7%) | FC sum 2658 vs 5372 -> WIN (+50.5%) | FC+waiver 2658 vs 5372 -> WIN (+50.5%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 5938 vs 7394 -> WIN (+19.7%) | FC sum 6916 vs 9544 -> WIN (+27.5%) | FC+waiver 6916 vs 9544 -> WIN (+27.5%)
+  1-for-1 QB12 for WR24
+     give Dak Prescott (QB12)
+     recv DJ Moore (WR24)
+     model 385 vs 2240 -> WIN (+82.8%) | FC sum 1380 vs 2190 -> WIN (+37.0%) | FC+waiver 1380 vs 2190 -> WIN (+37.0%)
+  1-for-1 WR12 for RB14
+     give Drake London (WR12)
+     recv Bhayshul Tuten (RB14, form0.95)
+     model 3191 vs 3366 -> FAIR (+5.2%) | FC sum 4848 vs 4497 -> FAIR (-7.2%) | FC+waiver 4848 vs 4497 -> FAIR (-7.2%)
+  1-for-1 WR30 for RB30 (tail)
+     give Jalen Coker (WR30)
+     recv Jadarian Price (RB30, form0.95)
+     model 2030 vs 375 -> LOSE (-81.5%) | FC sum 1381 vs 1400 -> FAIR (+1.4%) | FC+waiver 1381 vs 1400 -> FAIR (+1.4%)  <-- DISAGREE
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR20)
+     recv Davante Adams (WR26, IR, inj0.90)
+     model 2985 vs 1045 -> LOSE (-65.0%) | FC sum 3174 vs 2044 -> LOSE (-35.6%) | FC+waiver 3174 vs 2044 -> LOSE (-35.6%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR26, IR, inj0.90)
+     recv Carnell Tate (WR25, Out, inj0.95)
+     model 1045 vs 1931 -> WIN (+45.9%) | FC sum 2044 vs 2099 -> FAIR (+2.6%) | FC+waiver 2044 vs 2099 -> FAIR (+2.6%)  <-- DISAGREE
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 4218 vs 4898 -> WIN (+13.9%) | FC sum 6206 vs 6189 -> FAIR (-0.3%) | FC+waiver 6206 vs 6189 -> FAIR (-0.3%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.95)
+     recv Luther Burden III (WR16, Questionable, inj0.97, form0.95)
+     model 1435 vs 2153 -> WIN (+33.3%) | FC sum 3269 vs 3767 -> WIN (+13.2%) | FC+waiver 3269 vs 3767 -> WIN (+13.2%)
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR21, Out, inj0.95)
+     recv Jameson Williams (WR22)
+     model 3045 vs 1544 -> LOSE (-49.3%) | FC sum 2956 vs 2465 -> LOSE (-16.6%) | FC+waiver 2956 vs 2465 -> LOSE (-16.6%)
+  2-for-1 RB9 + WR15 for RB2
+     give Chuba Hubbard (RB9) + Parker Washington (WR15)
+     recv Bijan Robinson (RB2)
+     model 7267 vs 6019 -> LOSE (-17.2%) | FC sum 9443 vs 9854 -> FAIR (+4.2%) | FC+waiver 9443 vs 10604 -> WIN (+10.9%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + D'Andre Swift (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 8312 vs 7340 -> LOSE (-11.7%) | FC sum 11159 vs 9785 -> LOSE (-12.3%) | FC+waiver 11159 vs 10535 -> FAIR (-5.6%)
+  2-for-1 WR10 + WR20 for WR4
+     give Puka Nacua (WR10, Questionable, inj0.97) + Rashee Rice (WR20)
+     recv Amon-Ra St. Brown (WR4)
+     model 4435 vs 5895 -> WIN (+24.8%) | FC sum 8546 vs 7835 -> FAIR (-8.3%) | FC+waiver 8546 vs 8585 -> FAIR (+0.5%)  <-- DISAGREE
+  2-for-1 RB15 + WR25 for RB6
+     give Chase Brown (RB15) + Carnell Tate (WR25, Out, inj0.95)
+     recv Jonathan Taylor (RB6)
+     model 4720 vs 4165 -> LOSE (-11.8%) | FC sum 5874 vs 7024 -> WIN (+16.4%) | FC+waiver 5874 vs 7774 -> WIN (+24.4%)  <-- DISAGREE
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Rashee Rice (WR20) + Jalen Coker (WR30)
+     recv Amon-Ra St. Brown (WR4) + Chase Brown (RB15)
+     model 9524 vs 8684 -> FAIR (-8.8%) | FC sum 11658 vs 11610 -> FAIR (-0.4%) | FC+waiver 11658 vs 12360 -> FAIR (+5.7%)
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Tee Higgins (WR8, form0.95) + Josh Jacobs (RB18, Out, inj0.95) + Travis Kelce (TE8)
+     recv Bucky Irving (RB7, form0.95) + Zay Flowers (WR14)
+     model 6446 vs 6668 -> FAIR (+3.3%) | FC sum 10758 vs 10146 -> FAIR (-5.7%) | FC+waiver 10758 vs 10896 -> FAIR (+1.3%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Drake London (WR12) + Jameson Williams (WR22) + Cam Skattebo (RB25, Out, inj0.95)
+     recv Jahmyr Gibbs (RB1)
+     model 5483 vs 9950 -> WIN (+44.9%) | FC sum 9215 vs 10631 -> WIN (+13.3%) | FC+waiver 9215 vs 12131 -> WIN (+24.0%)
+  agreement model vs FC-sum 12/20; vs FC+waiver 11/20
+
+=== sf ===
+  1-for-1 WR3 for RB4
+     give CeeDee Lamb (WR3)
+     recv Christian McCaffrey (RB4)
+     model 4967 vs 6752 -> WIN (+26.4%) | FC sum 8549 vs 7645 -> LOSE (-10.6%) | FC+waiver 8549 vs 7645 -> LOSE (-10.6%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Javonte Williams (RB8)
+     recv Tee Higgins (WR8, form0.95)
+     model 3077 vs 3399 -> FAIR (+9.5%) | FC sum 4718 vs 5268 -> WIN (+10.4%) | FC+waiver 4718 vs 5268 -> WIN (+10.4%)  <-- DISAGREE
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.95)
+     recv Malik Nabers (WR6)
+     model 3979 vs 3980 -> FAIR (+0.0%) | FC sum 7382 vs 5682 -> LOSE (-23.0%) | FC+waiver 7382 vs 5682 -> LOSE (-23.0%)  <-- DISAGREE
+  1-for-1 QB3 for WR10
+     give Jordan Love (QB3, form0.95)
+     recv Puka Nacua (WR10, Questionable, inj0.97)
+     model 2692 vs 1243 -> LOSE (-53.8%) | FC sum 6248 vs 4875 -> LOSE (-22.0%) | FC+waiver 6248 vs 4875 -> LOSE (-22.0%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 8584 vs 7024 -> LOSE (-18.2%) | FC sum 11252 vs 8695 -> LOSE (-22.7%) | FC+waiver 11252 vs 8695 -> LOSE (-22.7%)
+  1-for-1 QB12 for WR24
+     give Dak Prescott (QB12)
+     recv DJ Moore (WR24)
+     model 1680 vs 2090 -> WIN (+19.6%) | FC sum 3748 vs 1742 -> LOSE (-53.5%) | FC+waiver 3748 vs 1742 -> LOSE (-53.5%)  <-- DISAGREE
+  1-for-1 WR12 for RB14
+     give Drake London (WR12)
+     recv Bhayshul Tuten (RB14, form0.95)
+     model 2959 vs 3001 -> FAIR (+1.4%) | FC sum 4259 vs 3320 -> LOSE (-22.0%) | FC+waiver 4259 vs 3320 -> LOSE (-22.0%)  <-- DISAGREE
+  1-for-1 WR30 for RB30 (tail)
+     give Jalen Coker (WR30)
+     recv Jadarian Price (RB30, form0.95)
+     model 1944 vs 242 -> LOSE (-87.6%) | FC sum 1131 vs 956 -> LOSE (-15.5%) | FC+waiver 1131 vs 956 -> LOSE (-15.5%)
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR20)
+     recv Davante Adams (WR26, IR, inj0.90)
+     model 2791 vs 924 -> LOSE (-66.9%) | FC sum 2651 vs 1650 -> LOSE (-37.8%) | FC+waiver 2651 vs 1650 -> LOSE (-37.8%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR26, IR, inj0.90)
+     recv Carnell Tate (WR25, Out, inj0.95)
+     model 924 vs 1794 -> WIN (+48.5%) | FC sum 1650 vs 1680 -> FAIR (+1.8%) | FC+waiver 1650 vs 1680 -> FAIR (+1.8%)  <-- DISAGREE
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 3980 vs 4664 -> WIN (+14.7%) | FC sum 5682 vs 5679 -> FAIR (-0.1%) | FC+waiver 5682 vs 5679 -> FAIR (-0.1%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.95)
+     recv Luther Burden III (WR16, Questionable, inj0.97, form0.95)
+     model 1245 vs 1952 -> WIN (+36.2%) | FC sum 2705 vs 3176 -> WIN (+14.8%) | FC+waiver 2705 vs 3176 -> WIN (+14.8%)
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR21, Out, inj0.95)
+     recv Jameson Williams (WR22)
+     model 2867 vs 1379 -> LOSE (-51.9%) | FC sum 2425 vs 1988 -> LOSE (-18.0%) | FC+waiver 2425 vs 1988 -> LOSE (-18.0%)
+  2-for-1 RB9 + WR15 for RB2
+     give Chuba Hubbard (RB9) + Parker Washington (WR15)
+     recv Bijan Robinson (RB2)
+     model 6657 vs 5681 -> LOSE (-14.7%) | FC sum 7690 vs 9152 -> WIN (+16.0%) | FC+waiver 7690 vs 9902 -> WIN (+22.3%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + D'Andre Swift (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 7687 vs 7193 -> FAIR (-6.4%) | FC sum 9493 vs 9801 -> FAIR (+3.1%) | FC+waiver 9493 vs 10551 -> WIN (+10.0%)
+  2-for-1 WR10 + WR20 for WR4
+     give Puka Nacua (WR10, Questionable, inj0.97) + Rashee Rice (WR20)
+     recv Amon-Ra St. Brown (WR4)
+     model 4034 vs 5704 -> WIN (+29.3%) | FC sum 7526 vs 7576 -> FAIR (+0.7%) | FC+waiver 7526 vs 8326 -> FAIR (+9.6%)  <-- DISAGREE
+  2-for-1 RB15 + WR25 for RB6
+     give Chase Brown (RB15) + Carnell Tate (WR25, Out, inj0.95)
+     recv Jonathan Taylor (RB6)
+     model 4232 vs 3748 -> LOSE (-11.4%) | FC sum 4394 vs 5883 -> WIN (+25.3%) | FC+waiver 4394 vs 6633 -> WIN (+33.8%)  <-- DISAGREE
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Rashee Rice (WR20) + Jalen Coker (WR30)
+     recv Amon-Ra St. Brown (WR4) + Chase Brown (RB15)
+     model 8836 vs 8142 -> FAIR (-7.9%) | FC sum 9778 vs 10290 -> FAIR (+5.0%) | FC+waiver 9778 vs 11040 -> WIN (+11.4%)
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Tee Higgins (WR8, form0.95) + Josh Jacobs (RB18, Out, inj0.95) + Travis Kelce (TE8)
+     recv Bucky Irving (RB7, form0.95) + Zay Flowers (WR14)
+     model 5901 vs 6053 -> FAIR (+2.5%) | FC sum 9241 vs 8362 -> FAIR (-9.5%) | FC+waiver 9241 vs 9112 -> FAIR (-1.4%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Drake London (WR12) + Jameson Williams (WR22) + Cam Skattebo (RB25, Out, inj0.95)
+     recv Jahmyr Gibbs (RB1)
+     model 4899 vs 9686 -> WIN (+49.4%) | FC sum 7533 vs 10258 -> WIN (+26.6%) | FC+waiver 7533 vs 11758 -> WIN (+35.9%)
+  SF: QB4 for RB3
+     give Drake Maye (QB4)
+     recv Kenneth Walker III (RB3)
+     model 3285 vs 7024 -> WIN (+53.2%) | FC sum 6143 vs 8695 -> WIN (+29.4%) | FC+waiver 6143 vs 8695 -> WIN (+29.4%)
+  SF: QB8 + WR12 for QB2
+     give Jayden Daniels (QB8) + Drake London (WR12)
+     recv Joe Burrow (QB2, form0.95)
+     model 6587 vs 5003 -> LOSE (-24.0%) | FC sum 9412 vs 9148 -> FAIR (-2.8%) | FC+waiver 9412 vs 9898 -> FAIR (+4.9%)  <-- DISAGREE
+  SF: QB12 for WR6
+     give Dak Prescott (QB12)
+     recv Malik Nabers (WR6)
+     model 1680 vs 3980 -> WIN (+57.8%) | FC sum 3748 vs 5682 -> WIN (+34.0%) | FC+waiver 3748 vs 5682 -> WIN (+34.0%)
+  SF: QB16 for RB12
+     give Bryce Young (QB16)
+     recv D'Andre Swift (RB12)
+     model 2311 vs 3023 -> WIN (+23.6%) | FC sum 2703 vs 3814 -> WIN (+29.1%) | FC+waiver 2703 vs 3814 -> WIN (+29.1%)
+  SF: QB20 + QB24 for QB10
+     give Geno Smith (QB20) + Baker Mayfield (QB24)
+     recv C.J. Stroud (QB10, form0.95)
+     model 966 vs 2314 -> WIN (+58.3%) | FC sum 2674 vs 4099 -> WIN (+34.8%) | FC+waiver 2674 vs 4849 -> WIN (+44.9%)
+  agreement model vs FC-sum 14/25; vs FC+waiver 12/25
+
+=== dyn ===
+  1-for-1 WR3 for RB4
+     give Puka Nacua (WR3, Questionable, inj0.98)
+     recv Jonathan Taylor (RB4)
+     model 3251 vs 3967 -> WIN (+18.0%) | FC sum 7233 vs 5401 -> LOSE (-25.3%) | FC+waiver 7233 vs 5401 -> LOSE (-25.3%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Bucky Irving (RB8, form0.97)
+     recv Drake London (WR8)
+     model 3904 vs 3644 -> FAIR (-6.7%) | FC sum 4695 vs 5064 -> FAIR (+7.3%) | FC+waiver 4695 vs 5064 -> FAIR (+7.3%)
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.97)
+     recv Malik Nabers (WR6)
+     model 4810 vs 4961 -> FAIR (+3.0%) | FC sum 7075 vs 6624 -> FAIR (-6.4%) | FC+waiver 7075 vs 6624 -> FAIR (-6.4%)
+  1-for-1 QB3 for WR10
+     give Joe Burrow (QB3, form0.97)
+     recv Chris Olave (WR10)
+     model 2793 vs 3917 -> WIN (+28.7%) | FC sum 3961 vs 4594 -> WIN (+13.8%) | FC+waiver 3961 vs 4594 -> WIN (+13.8%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 5430 vs 6701 -> WIN (+19.0%) | FC sum 5631 vs 7185 -> WIN (+21.6%) | FC+waiver 5631 vs 7185 -> WIN (+21.6%)
+  1-for-1 QB12 for WR24
+     give Jaxson Dart (QB12, IR, inj0.95)
+     recv DeVonta Smith (WR24, Out, inj0.98)
+     model 946 vs 1665 -> WIN (+43.2%) | FC sum 2145 vs 2774 -> WIN (+22.7%) | FC+waiver 2145 vs 2774 -> WIN (+22.7%)
+  1-for-1 WR12 for RB14
+     give Tetairoa McMillan (WR12)
+     recv Breece Hall (RB14)
+     model 3351 vs 1593 -> LOSE (-52.5%) | FC sum 4351 vs 3478 -> LOSE (-20.1%) | FC+waiver 4351 vs 3478 -> LOSE (-20.1%)
+  1-for-1 WR30 for RB30 (tail)
+     give A.J. Brown (WR30, Out, inj0.98)
+     recv Tony Pollard (RB30, form0.97)
+     model 1416 vs 1570 -> FAIR (+9.8%) | FC sum 2387 vs 2085 -> LOSE (-12.7%) | FC+waiver 2387 vs 2085 -> LOSE (-12.7%)  <-- DISAGREE
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR22)
+     recv Denzel Boston (WR26, form0.97)
+     model 2827 vs 1178 -> LOSE (-58.3%) | FC sum 2928 vs 2616 -> LOSE (-10.7%) | FC+waiver 2928 vs 2616 -> LOSE (-10.7%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR42, IR, inj0.95)
+     recv Jameson Williams (WR25)
+     model 1088 vs 1839 -> WIN (+40.8%) | FC sum 1773 vs 2671 -> WIN (+33.6%) | FC+waiver 1773 vs 2671 -> WIN (+33.6%)
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 4961 vs 4899 -> FAIR (-1.2%) | FC sum 6624 vs 5738 -> LOSE (-13.4%) | FC+waiver 6624 vs 5738 -> LOSE (-13.4%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.98)
+     recv Parker Washington (WR16)
+     model 2010 vs 3359 -> WIN (+40.2%) | FC sum 3527 vs 3830 -> FAIR (+7.9%) | FC+waiver 3527 vs 3830 -> FAIR (+7.9%)  <-- DISAGREE
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR37, Out, inj0.98)
+     recv Jordyn Tyson (WR21)
+     model 2178 vs 1530 -> LOSE (-29.8%) | FC sum 1955 vs 3030 -> WIN (+35.5%) | FC+waiver 1955 vs 3030 -> WIN (+35.5%)  <-- DISAGREE
+  2-for-1 RB9 + WR15 for RB2
+     give Christian McCaffrey (RB9) + Zay Flowers (WR15)
+     recv Bijan Robinson (RB2)
+     model 7484 vs 7034 -> FAIR (-6.0%) | FC sum 8580 vs 9791 -> WIN (+12.4%) | FC+waiver 8580 vs 10541 -> WIN (+18.6%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + Javonte Williams (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 8029 vs 8278 -> FAIR (+3.0%) | FC sum 9650 vs 10243 -> FAIR (+5.8%) | FC+waiver 9650 vs 10993 -> WIN (+12.2%)
+  2-for-1 WR10 + WR20 for WR4
+     give Chris Olave (WR10) + Carnell Tate (WR20, Out, inj0.98)
+     recv CeeDee Lamb (WR4)
+     model 6550 vs 5227 -> LOSE (-20.2%) | FC sum 8004 vs 7141 -> LOSE (-10.8%) | FC+waiver 8004 vs 7891 -> FAIR (-1.4%)
+  2-for-1 RB15 + WR25 for RB6
+     give D'Andre Swift (RB15) + Jameson Williams (WR25)
+     recv Jeremiyah Love (RB6, IR, inj0.95)
+     model 4731 vs 2327 -> LOSE (-50.8%) | FC sum 6005 vs 5209 -> LOSE (-13.3%) | FC+waiver 6005 vs 5959 -> FAIR (-0.8%)
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Carnell Tate (WR20, Out, inj0.98) + A.J. Brown (WR30, Out, inj0.98)
+     recv CeeDee Lamb (WR4) + D'Andre Swift (RB15)
+     model 8195 vs 8119 -> FAIR (-0.9%) | FC sum 11108 vs 10475 -> FAIR (-5.7%) | FC+waiver 11108 vs 11225 -> FAIR (+1.0%)
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Drake London (WR8) + Chuba Hubbard (RB18) + Isaiah Likely (TE8)
+     recv Ashton Jeanty (RB7) + Tee Higgins (WR14, form0.97)
+     model 8433 vs 6495 -> LOSE (-23.0%) | FC sum 10944 vs 8986 -> LOSE (-17.9%) | FC+waiver 10944 vs 9736 -> LOSE (-11.0%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Tetairoa McMillan (WR12) + Rashee Rice (WR22) + Josh Jacobs (RB25, Out, inj0.98)
+     recv Jahmyr Gibbs (RB1)
+     model 7800 vs 10369 -> WIN (+24.8%) | FC sum 9882 vs 10826 -> FAIR (+8.7%) | FC+waiver 9882 vs 12326 -> WIN (+19.8%)  <-- DISAGREE
+  DYN: Evans (33) for WR-rank-30
+     give Mike Evans (WR37, Out, inj0.98)
+     recv A.J. Brown (WR30, Out, inj0.98)
+     model 2178 vs 1416 -> LOSE (-35.0%) | FC sum 1955 vs 2387 -> WIN (+18.1%) | FC+waiver 1955 vs 2387 -> WIN (+18.1%)  <-- DISAGREE
+  DYN: RB rank 10 for WR rank 10
+     give Kyren Williams (RB10)
+     recv Chris Olave (WR10)
+     model 3087 vs 3917 -> WIN (+21.2%) | FC sum 4096 vs 4594 -> WIN (+10.8%) | FC+waiver 4096 vs 4594 -> WIN (+10.8%)
+  DYN: Henry (32) for RB12
+     give Derrick Henry (RB21)
+     recv Javonte Williams (RB12)
+     model 1980 vs 3130 -> WIN (+36.7%) | FC sum 2926 vs 3912 -> WIN (+25.2%) | FC+waiver 2926 vs 3912 -> WIN (+25.2%)
+  DYN: Diggs (32) for WR40
+     give Stefon Diggs (WR53)
+     recv Germie Bernard (WR40)
+     model 1153 vs 846 -> LOSE (-26.6%) | FC sum 1395 vs 1823 -> WIN (+23.5%) | FC+waiver 1395 vs 1823 -> WIN (+23.5%)  <-- DISAGREE
+  agreement model vs FC-sum 15/24; vs FC+waiver 13/24
+
+# AFTER (trade-calc-balance 7ef18b2: ^1, SF QB27)
+
+=== 1qb ===
+  1-for-1 WR3 for RB4
+     give CeeDee Lamb (WR3)
+     recv Christian McCaffrey (RB4)
+     model 5707 vs 7524 -> WIN (+24.1%) | FC sum 8713 vs 8624 -> FAIR (-1.0%) | FC+waiver 8713 vs 8624 -> FAIR (-1.0%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Javonte Williams (RB8)
+     recv Tee Higgins (WR8, form0.95)
+     model 4014 vs 4152 -> FAIR (+3.3%) | FC sum 5885 vs 5780 -> FAIR (-1.8%) | FC+waiver 5885 vs 5780 -> FAIR (-1.8%)
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.95)
+     recv Malik Nabers (WR6)
+     model 4521 vs 4793 -> FAIR (+5.7%) | FC sum 6933 vs 6206 -> LOSE (-10.5%) | FC+waiver 6933 vs 6206 -> LOSE (-10.5%)  <-- DISAGREE
+  1-for-1 QB3 for WR10
+     give Jordan Love (QB3, form0.95)
+     recv Puka Nacua (WR10, Questionable, inj0.97)
+     model 967 vs 1450 -> WIN (+33.3%) | FC sum 2658 vs 5372 -> WIN (+50.5%) | FC+waiver 2658 vs 5372 -> WIN (+50.5%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 6427 vs 7768 -> WIN (+17.3%) | FC sum 6916 vs 9544 -> WIN (+27.5%) | FC+waiver 6916 vs 9544 -> WIN (+27.5%)
+  1-for-1 QB12 for WR24
+     give Dak Prescott (QB12)
+     recv DJ Moore (WR24)
+     model 385 vs 2782 -> WIN (+86.2%) | FC sum 1380 vs 2190 -> WIN (+37.0%) | FC+waiver 1380 vs 2190 -> WIN (+37.0%)
+  1-for-1 WR12 for RB14
+     give Drake London (WR12)
+     recv Bhayshul Tuten (RB14, form0.95)
+     model 3753 vs 3912 -> FAIR (+4.1%) | FC sum 4848 vs 4497 -> FAIR (-7.2%) | FC+waiver 4848 vs 4497 -> FAIR (-7.2%)
+  1-for-1 WR30 for RB30 (tail)
+     give Jalen Coker (WR30)
+     recv Jadarian Price (RB30, form0.95)
+     model 2573 vs 375 -> LOSE (-85.4%) | FC sum 1381 vs 1400 -> FAIR (+1.4%) | FC+waiver 1381 vs 1400 -> FAIR (+1.4%)  <-- DISAGREE
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR20)
+     recv Davante Adams (WR26, IR, inj0.90)
+     model 3569 vs 1384 -> LOSE (-61.2%) | FC sum 3174 vs 2044 -> LOSE (-35.6%) | FC+waiver 3174 vs 2044 -> LOSE (-35.6%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR26, IR, inj0.90)
+     recv Carnell Tate (WR25, Out, inj0.95)
+     model 1384 vs 2439 -> WIN (+43.3%) | FC sum 2044 vs 2099 -> FAIR (+2.6%) | FC+waiver 2044 vs 2099 -> FAIR (+2.6%)  <-- DISAGREE
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 4793 vs 5447 -> WIN (+12.0%) | FC sum 6206 vs 6189 -> FAIR (-0.3%) | FC+waiver 6206 vs 6189 -> FAIR (-0.3%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.95)
+     recv Luther Burden III (WR16, Questionable, inj0.97, form0.95)
+     model 1794 vs 2632 -> WIN (+31.8%) | FC sum 3269 vs 3767 -> WIN (+13.2%) | FC+waiver 3269 vs 3767 -> WIN (+13.2%)
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR21, Out, inj0.95)
+     recv Jameson Williams (WR22)
+     model 3593 vs 1989 -> LOSE (-44.6%) | FC sum 2956 vs 2465 -> LOSE (-16.6%) | FC+waiver 2956 vs 2465 -> LOSE (-16.6%)
+  2-for-1 RB9 + WR15 for RB2
+     give Chuba Hubbard (RB9) + Parker Washington (WR15)
+     recv Bijan Robinson (RB2)
+     model 8405 vs 6551 -> LOSE (-22.1%) | FC sum 9443 vs 9854 -> FAIR (+4.2%) | FC+waiver 9443 vs 10604 -> WIN (+10.9%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + D'Andre Swift (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 9437 vs 7732 -> LOSE (-18.1%) | FC sum 11159 vs 9785 -> LOSE (-12.3%) | FC+waiver 11159 vs 10535 -> FAIR (-5.6%)
+  2-for-1 WR10 + WR20 for WR4
+     give Puka Nacua (WR10, Questionable, inj0.97) + Rashee Rice (WR20)
+     recv Amon-Ra St. Brown (WR4)
+     model 5019 vs 6399 -> WIN (+21.6%) | FC sum 8546 vs 7835 -> FAIR (-8.3%) | FC+waiver 8546 vs 8585 -> FAIR (+0.5%)  <-- DISAGREE
+  2-for-1 RB15 + WR25 for RB6
+     give Chase Brown (RB15) + Carnell Tate (WR25, Out, inj0.95)
+     recv Jonathan Taylor (RB6)
+     model 5795 vs 4743 -> LOSE (-18.2%) | FC sum 5874 vs 7024 -> WIN (+16.4%) | FC+waiver 5874 vs 7774 -> WIN (+24.4%)  <-- DISAGREE
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Rashee Rice (WR20) + Jalen Coker (WR30)
+     recv Amon-Ra St. Brown (WR4) + Chase Brown (RB15)
+     model 11227 vs 9755 -> LOSE (-13.1%) | FC sum 11658 vs 11610 -> FAIR (-0.4%) | FC+waiver 11658 vs 12360 -> FAIR (+5.7%)  <-- DISAGREE
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Tee Higgins (WR8, form0.95) + Josh Jacobs (RB18, Out, inj0.95) + Travis Kelce (TE8)
+     recv Bucky Irving (RB7, form0.95) + Zay Flowers (WR14)
+     model 7810 vs 7764 -> FAIR (-0.6%) | FC sum 10758 vs 10146 -> FAIR (-5.7%) | FC+waiver 10758 vs 10896 -> FAIR (+1.3%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Drake London (WR12) + Jameson Williams (WR22) + Cam Skattebo (RB25, Out, inj0.95)
+     recv Jahmyr Gibbs (RB1)
+     model 6712 vs 9950 -> WIN (+32.5%) | FC sum 9215 vs 10631 -> WIN (+13.3%) | FC+waiver 9215 vs 12131 -> WIN (+24.0%)
+  agreement model vs FC-sum 11/20; vs FC+waiver 10/20
+
+=== sf ===
+  1-for-1 WR3 for RB4
+     give CeeDee Lamb (WR3)
+     recv Christian McCaffrey (RB4)
+     model 5529 vs 7131 -> WIN (+22.5%) | FC sum 8549 vs 7645 -> LOSE (-10.6%) | FC+waiver 8549 vs 7645 -> LOSE (-10.6%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Javonte Williams (RB8)
+     recv Tee Higgins (WR8, form0.95)
+     model 3625 vs 3938 -> FAIR (+7.9%) | FC sum 4718 vs 5268 -> WIN (+10.4%) | FC+waiver 4718 vs 5268 -> WIN (+10.4%)  <-- DISAGREE
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.95)
+     recv Malik Nabers (WR6)
+     model 4532 vs 4556 -> FAIR (+0.5%) | FC sum 7382 vs 5682 -> LOSE (-23.0%) | FC+waiver 7382 vs 5682 -> LOSE (-23.0%)  <-- DISAGREE
+  1-for-1 QB3 for WR10
+     give Jordan Love (QB3, form0.95)
+     recv Puka Nacua (WR10, Questionable, inj0.97)
+     model 3909 vs 1243 -> LOSE (-68.2%) | FC sum 6248 vs 4875 -> LOSE (-22.0%) | FC+waiver 6248 vs 4875 -> LOSE (-22.0%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 9633 vs 7397 -> LOSE (-23.2%) | FC sum 11252 vs 8695 -> LOSE (-22.7%) | FC+waiver 11252 vs 8695 -> LOSE (-22.7%)
+  1-for-1 QB12 for WR24
+     give Dak Prescott (QB12)
+     recv DJ Moore (WR24)
+     model 2839 vs 2632 -> FAIR (-7.3%) | FC sum 3748 vs 1742 -> LOSE (-53.5%) | FC+waiver 3748 vs 1742 -> LOSE (-53.5%)  <-- DISAGREE
+  1-for-1 WR12 for RB14
+     give Drake London (WR12)
+     recv Bhayshul Tuten (RB14, form0.95)
+     model 3521 vs 3548 -> FAIR (+0.8%) | FC sum 4259 vs 3320 -> LOSE (-22.0%) | FC+waiver 4259 vs 3320 -> LOSE (-22.0%)  <-- DISAGREE
+  1-for-1 WR30 for RB30 (tail)
+     give Jalen Coker (WR30)
+     recv Jadarian Price (RB30, form0.95)
+     model 2487 vs 242 -> LOSE (-90.3%) | FC sum 1131 vs 956 -> LOSE (-15.5%) | FC+waiver 1131 vs 956 -> LOSE (-15.5%)
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR20)
+     recv Davante Adams (WR26, IR, inj0.90)
+     model 3375 vs 1263 -> LOSE (-62.6%) | FC sum 2651 vs 1650 -> LOSE (-37.8%) | FC+waiver 2651 vs 1650 -> LOSE (-37.8%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR26, IR, inj0.90)
+     recv Carnell Tate (WR25, Out, inj0.95)
+     model 1263 vs 2303 -> WIN (+45.2%) | FC sum 1650 vs 1680 -> FAIR (+1.8%) | FC+waiver 1650 vs 1680 -> FAIR (+1.8%)  <-- DISAGREE
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 4556 vs 5214 -> WIN (+12.6%) | FC sum 5682 vs 5679 -> FAIR (-0.1%) | FC+waiver 5682 vs 5679 -> FAIR (-0.1%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.95)
+     recv Luther Burden III (WR16, Questionable, inj0.97, form0.95)
+     model 1605 vs 2431 -> WIN (+34.0%) | FC sum 2705 vs 3176 -> WIN (+14.8%) | FC+waiver 2705 vs 3176 -> WIN (+14.8%)
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR21, Out, inj0.95)
+     recv Jameson Williams (WR22)
+     model 3414 vs 1824 -> LOSE (-46.6%) | FC sum 2425 vs 1988 -> LOSE (-18.0%) | FC+waiver 2425 vs 1988 -> LOSE (-18.0%)
+  2-for-1 RB9 + WR15 for RB2
+     give Chuba Hubbard (RB9) + Parker Washington (WR15)
+     recv Bijan Robinson (RB2)
+     model 7795 vs 6213 -> LOSE (-20.3%) | FC sum 7690 vs 9152 -> WIN (+16.0%) | FC+waiver 7690 vs 9902 -> WIN (+22.3%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + D'Andre Swift (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 8813 vs 7585 -> LOSE (-13.9%) | FC sum 9493 vs 9801 -> FAIR (+3.1%) | FC+waiver 9493 vs 10551 -> WIN (+10.0%)  <-- DISAGREE
+  2-for-1 WR10 + WR20 for WR4
+     give Puka Nacua (WR10, Questionable, inj0.97) + Rashee Rice (WR20)
+     recv Amon-Ra St. Brown (WR4)
+     model 4618 vs 6208 -> WIN (+25.6%) | FC sum 7526 vs 7576 -> FAIR (+0.7%) | FC+waiver 7526 vs 8326 -> FAIR (+9.6%)  <-- DISAGREE
+  2-for-1 RB15 + WR25 for RB6
+     give Chase Brown (RB15) + Carnell Tate (WR25, Out, inj0.95)
+     recv Jonathan Taylor (RB6)
+     model 5308 vs 4326 -> LOSE (-18.5%) | FC sum 4394 vs 5883 -> WIN (+25.3%) | FC+waiver 4394 vs 6633 -> WIN (+33.8%)  <-- DISAGREE
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Rashee Rice (WR20) + Jalen Coker (WR30)
+     recv Amon-Ra St. Brown (WR4) + Chase Brown (RB15)
+     model 10539 vs 9213 -> LOSE (-12.6%) | FC sum 9778 vs 10290 -> FAIR (+5.0%) | FC+waiver 9778 vs 11040 -> WIN (+11.4%)  <-- DISAGREE
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Tee Higgins (WR8, form0.95) + Josh Jacobs (RB18, Out, inj0.95) + Travis Kelce (TE8)
+     recv Bucky Irving (RB7, form0.95) + Zay Flowers (WR14)
+     model 7265 vs 7150 -> FAIR (-1.6%) | FC sum 9241 vs 8362 -> FAIR (-9.5%) | FC+waiver 9241 vs 9112 -> FAIR (-1.4%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Drake London (WR12) + Jameson Williams (WR22) + Cam Skattebo (RB25, Out, inj0.95)
+     recv Jahmyr Gibbs (RB1)
+     model 6128 vs 9686 -> WIN (+36.7%) | FC sum 7533 vs 10258 -> WIN (+26.6%) | FC+waiver 7533 vs 11758 -> WIN (+35.9%)
+  SF: QB4 for RB3
+     give Drake Maye (QB4)
+     recv Kenneth Walker III (RB3)
+     model 4585 vs 7397 -> WIN (+38.0%) | FC sum 6143 vs 8695 -> WIN (+29.4%) | FC+waiver 6143 vs 8695 -> WIN (+29.4%)
+  SF: QB8 + WR12 for QB2
+     give Jayden Daniels (QB8) + Drake London (WR12)
+     recv Joe Burrow (QB2, form0.95)
+     model 8447 vs 6285 -> LOSE (-25.6%) | FC sum 9412 vs 9148 -> FAIR (-2.8%) | FC+waiver 9412 vs 9898 -> FAIR (+4.9%)  <-- DISAGREE
+  SF: QB12 for WR6
+     give Dak Prescott (QB12)
+     recv Malik Nabers (WR6)
+     model 2839 vs 4556 -> WIN (+37.7%) | FC sum 3748 vs 5682 -> WIN (+34.0%) | FC+waiver 3748 vs 5682 -> WIN (+34.0%)
+  SF: QB16 for RB12
+     give Bryce Young (QB16)
+     recv D'Andre Swift (RB12)
+     model 3585 vs 3599 -> FAIR (+0.4%) | FC sum 2703 vs 3814 -> WIN (+29.1%) | FC+waiver 2703 vs 3814 -> WIN (+29.1%)  <-- DISAGREE
+  SF: QB20 + QB24 for QB10
+     give Geno Smith (QB20) + Baker Mayfield (QB24)
+     recv C.J. Stroud (QB10, form0.95)
+     model 2780 vs 3525 -> WIN (+21.1%) | FC sum 2674 vs 4099 -> WIN (+34.8%) | FC+waiver 2674 vs 4849 -> WIN (+44.9%)
+  agreement model vs FC-sum 11/25; vs FC+waiver 11/25
+
+=== dyn ===
+  1-for-1 WR3 for RB4
+     give Puka Nacua (WR3, Questionable, inj0.98)
+     recv Jonathan Taylor (RB4)
+     model 3251 vs 4357 -> WIN (+25.4%) | FC sum 7233 vs 5401 -> LOSE (-25.3%) | FC+waiver 7233 vs 5401 -> LOSE (-25.3%)  <-- DISAGREE
+  1-for-1 RB8 for WR8
+     give Bucky Irving (RB8, form0.97)
+     recv Drake London (WR8)
+     model 4337 vs 4046 -> FAIR (-6.7%) | FC sum 4695 vs 5064 -> FAIR (+7.3%) | FC+waiver 4695 vs 5064 -> FAIR (+7.3%)
+  1-for-1 TE1 for WR6
+     give Brock Bowers (TE1, form0.97)
+     recv Malik Nabers (WR6)
+     model 5236 vs 5404 -> FAIR (+3.1%) | FC sum 7075 vs 6624 -> FAIR (-6.4%) | FC+waiver 7075 vs 6624 -> FAIR (-6.4%)
+  1-for-1 QB3 for WR10
+     give Joe Burrow (QB3, form0.97)
+     recv Chris Olave (WR10)
+     model 3168 vs 4325 -> WIN (+26.8%) | FC sum 3961 vs 4594 -> WIN (+13.8%) | FC+waiver 3961 vs 4594 -> WIN (+13.8%)
+  1-for-1 QB1 for RB3
+     give Josh Allen (QB1)
+     recv Kenneth Walker III (RB3)
+     model 5777 vs 6969 -> WIN (+17.1%) | FC sum 5631 vs 7185 -> WIN (+21.6%) | FC+waiver 5631 vs 7185 -> WIN (+21.6%)
+  1-for-1 QB12 for WR24
+     give Jaxson Dart (QB12, IR, inj0.95)
+     recv DeVonta Smith (WR24, Out, inj0.98)
+     model 946 vs 1928 -> WIN (+50.9%) | FC sum 2145 vs 2774 -> WIN (+22.7%) | FC+waiver 2145 vs 2774 -> WIN (+22.7%)
+  1-for-1 WR12 for RB14
+     give Tetairoa McMillan (WR12)
+     recv Breece Hall (RB14)
+     model 3779 vs 1593 -> LOSE (-57.8%) | FC sum 4351 vs 3478 -> LOSE (-20.1%) | FC+waiver 4351 vs 3478 -> LOSE (-20.1%)
+  1-for-1 WR30 for RB30 (tail)
+     give A.J. Brown (WR30, Out, inj0.98)
+     recv Tony Pollard (RB30, form0.97)
+     model 1652 vs 1848 -> WIN (+10.6%) | FC sum 2387 vs 2085 -> LOSE (-12.7%) | FC+waiver 2387 vs 2085 -> LOSE (-12.7%)  <-- DISAGREE
+  skip 1-for-1 Etienne (IR) for RB-rank-23 'Travis Etienne'
+  1-for-1 Rashee Rice (Out) for WR26
+     give Rashee Rice (WR22)
+     recv Denzel Boston (WR26, form0.97)
+     model 3238 vs 1178 -> LOSE (-63.6%) | FC sum 2928 vs 2616 -> LOSE (-10.7%) | FC+waiver 2928 vs 2616 -> LOSE (-10.7%)
+  1-for-1 Davante Adams (IR) for WR25
+     give Davante Adams (WR42, IR, inj0.95)
+     recv Jameson Williams (WR25)
+     model 1290 vs 2157 -> WIN (+40.2%) | FC sum 1773 vs 2671 -> WIN (+33.6%) | FC+waiver 1773 vs 2671 -> WIN (+33.6%)
+  1-for-1 Nabers for WR7
+     give Malik Nabers (WR6)
+     recv Justin Jefferson (WR7)
+     model 5404 vs 5290 -> FAIR (-2.1%) | FC sum 6624 vs 5738 -> LOSE (-13.4%) | FC+waiver 6624 vs 5738 -> LOSE (-13.4%)  <-- DISAGREE
+  1-for-1 Pickens for WR16
+     give George Pickens (WR19, Out, inj0.98)
+     recv Parker Washington (WR16)
+     model 2275 vs 3803 -> WIN (+40.2%) | FC sum 3527 vs 3830 -> FAIR (+7.9%) | FC+waiver 3527 vs 3830 -> FAIR (+7.9%)  <-- DISAGREE
+  1-for-1 Evans (Out) for WR21
+     give Mike Evans (WR37, Out, inj0.98)
+     recv Jordyn Tyson (WR21)
+     model 2491 vs 1673 -> LOSE (-32.8%) | FC sum 1955 vs 3030 -> WIN (+35.5%) | FC+waiver 1955 vs 3030 -> WIN (+35.5%)  <-- DISAGREE
+  2-for-1 RB9 + WR15 for RB2
+     give Christian McCaffrey (RB9) + Zay Flowers (WR15)
+     recv Bijan Robinson (RB2)
+     model 8066 vs 7446 -> FAIR (-7.7%) | FC sum 8580 vs 9791 -> WIN (+12.4%) | FC+waiver 8580 vs 10541 -> WIN (+18.6%)  <-- DISAGREE
+  2-for-1 WR7 + RB12 for WR1
+     give Justin Jefferson (WR7) + Javonte Williams (RB12)
+     recv Jaxon Smith-Njigba (WR1)
+     model 8819 vs 8583 -> FAIR (-2.7%) | FC sum 9650 vs 10243 -> FAIR (+5.8%) | FC+waiver 9650 vs 10993 -> WIN (+12.2%)
+  2-for-1 WR10 + WR20 for WR4
+     give Chris Olave (WR10) + Carnell Tate (WR20, Out, inj0.98)
+     recv CeeDee Lamb (WR4)
+     model 7363 vs 5630 -> LOSE (-23.5%) | FC sum 8004 vs 7141 -> LOSE (-10.8%) | FC+waiver 8004 vs 7891 -> FAIR (-1.4%)
+  2-for-1 RB15 + WR25 for RB6
+     give D'Andre Swift (RB15) + Jameson Williams (WR25)
+     recv Jeremiyah Love (RB6, IR, inj0.95)
+     model 5438 vs 2327 -> LOSE (-57.2%) | FC sum 6005 vs 5209 -> LOSE (-13.3%) | FC+waiver 6005 vs 5959 -> FAIR (-0.8%)
+  3-for-2 RB5 + WR20 + WR30 for WR4 + RB15
+     give James Cook III (RB5) + Carnell Tate (WR20, Out, inj0.98) + A.J. Brown (WR30, Out, inj0.98)
+     recv CeeDee Lamb (WR4) + D'Andre Swift (RB15)
+     model 9225 vs 8911 -> FAIR (-3.4%) | FC sum 11108 vs 10475 -> FAIR (-5.7%) | FC+waiver 11108 vs 11225 -> FAIR (+1.0%)
+  3-for-2 WR8 + RB18 + TE8 for RB7 + WR14
+     give Drake London (WR8) + Chuba Hubbard (RB18) + Isaiah Likely (TE8)
+     recv Ashton Jeanty (RB7) + Tee Higgins (WR14, form0.97)
+     model 9454 vs 7275 -> LOSE (-23.0%) | FC sum 10944 vs 8986 -> LOSE (-17.9%) | FC+waiver 10944 vs 9736 -> LOSE (-11.0%)
+  3-for-1 WR12 + WR22 + RB25 for RB1
+     give Tetairoa McMillan (WR12) + Rashee Rice (WR22) + Josh Jacobs (RB25, Out, inj0.98)
+     recv Jahmyr Gibbs (RB1)
+     model 8895 vs 10369 -> WIN (+14.2%) | FC sum 9882 vs 10826 -> FAIR (+8.7%) | FC+waiver 9882 vs 12326 -> WIN (+19.8%)  <-- DISAGREE
+  DYN: Evans (33) for WR-rank-30
+     give Mike Evans (WR37, Out, inj0.98)
+     recv A.J. Brown (WR30, Out, inj0.98)
+     model 2491 vs 1652 -> LOSE (-33.7%) | FC sum 1955 vs 2387 -> WIN (+18.1%) | FC+waiver 1955 vs 2387 -> WIN (+18.1%)  <-- DISAGREE
+  DYN: RB rank 10 for WR rank 10
+     give Kyren Williams (RB10)
+     recv Chris Olave (WR10)
+     model 3482 vs 4325 -> WIN (+19.5%) | FC sum 4096 vs 4594 -> WIN (+10.8%) | FC+waiver 4096 vs 4594 -> WIN (+10.8%)
+  DYN: Henry (32) for RB12
+     give Derrick Henry (RB21)
+     recv Javonte Williams (RB12)
+     model 2238 vs 3529 -> WIN (+36.6%) | FC sum 2926 vs 3912 -> WIN (+25.2%) | FC+waiver 2926 vs 3912 -> WIN (+25.2%)
+  DYN: Diggs (32) for WR40
+     give Stefon Diggs (WR53)
+     recv Germie Bernard (WR40)
+     model 1408 vs 846 -> LOSE (-39.9%) | FC sum 1395 vs 1823 -> WIN (+23.5%) | FC+waiver 1395 vs 1823 -> WIN (+23.5%)  <-- DISAGREE
+  agreement model vs FC-sum 15/24; vs FC+waiver 13/24
