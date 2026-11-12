@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-12T18:28:04.020Z",
+  "fetched_at": "2026-11-12T23:45:19.445Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -49,13 +49,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Alvin Kamara",
-      "position": "RB",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Back"
     },
     {
       "name": "Amon-Ra St. Brown",
@@ -126,13 +119,6 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Bo Melton",
-      "position": "WR",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Head"
     },
     {
       "name": "Brandon Aiyuk",
@@ -947,11 +933,11 @@
       "body_part": "Foot"
     },
     {
-      "name": "Jared Goff",
-      "position": "QB",
-      "team": "DET",
+      "name": "Jared Wayne",
+      "position": "WR",
+      "team": "MIA",
       "status": "Questionable",
-      "body_part": "Chest"
+      "body_part": "Quadriceps"
     },
     {
       "name": "Jaren Kanak",
@@ -994,6 +980,13 @@
       "team": "GB",
       "status": "IR",
       "body_part": "Neck"
+    },
+    {
+      "name": "Jaydn Ott",
+      "position": "RB",
+      "team": "KC",
+      "status": "Questionable",
+      "body_part": "Hamstring"
     },
     {
       "name": "Jaylen Waddle",
@@ -1162,13 +1155,6 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Justin Herbert",
-      "position": "QB",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Finger"
     },
     {
       "name": "Kadarius Calloway",
@@ -1472,13 +1458,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Noah Fant",
-      "position": "TE",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Noah Whittington",
       "position": "RB",
       "team": "HOU",
@@ -1566,7 +1545,7 @@
       "name": "Rhamondre Stevenson",
       "position": "RB",
       "team": "NE",
-      "status": "Doubtful",
+      "status": "Questionable",
       "body_part": "Knee"
     },
     {
@@ -1731,13 +1710,6 @@
       "body_part": "Abdomen"
     },
     {
-      "name": "Tank Dell",
-      "position": "WR",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Hand"
-    },
-    {
       "name": "Tanner Hudson",
       "position": "TE",
       "team": "CIN",
@@ -1808,6 +1780,13 @@
       "body_part": "Knee - MCL"
     },
     {
+      "name": "Tony Pollard",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Questionable",
+      "body_part": "Finger"
+    },
+    {
       "name": "Tra Barnett",
       "position": "RB",
       "team": null,
@@ -1848,13 +1827,6 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Trey Smack",
-      "position": "K",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Calf"
     },
     {
       "name": "Treyvhon Saunders",
