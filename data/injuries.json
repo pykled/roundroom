@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-12T23:45:19.445Z",
+  "fetched_at": "2026-11-13T06:59:16.839Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -98,6 +98,13 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Athan Kaliakmanis",
+      "position": "QB",
+      "team": "WAS",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "BenJarvus Green-Ellis",
@@ -266,6 +273,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Chig Okonkwo",
+      "position": "TE",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Chris Bell",
@@ -1178,6 +1192,13 @@
       "body_part": "Ribs"
     },
     {
+      "name": "Keaton Mitchell",
+      "position": "RB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Hip"
+    },
+    {
       "name": "Kejon Owens",
       "position": "RB",
       "team": null,
@@ -1503,7 +1524,7 @@
       "name": "Puka Nacua",
       "position": "WR",
       "team": "LAR",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Knee - MCL"
     },
     {
@@ -1519,6 +1540,13 @@
       "team": "CLE",
       "status": "IR",
       "body_part": "Hip"
+    },
+    {
+      "name": "Rashod Bateman",
+      "position": "WR",
+      "team": "BAL",
+      "status": "Questionable",
+      "body_part": "Calf"
     },
     {
       "name": "Ray-Ray McCloud",
@@ -1752,6 +1780,13 @@
       "body_part": "Knee"
     },
     {
+      "name": "Thomas Fidone II",
+      "position": "TE",
+      "team": "NYG",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Thomas Yassmin",
       "position": "TE",
       "team": "GB",
@@ -1799,6 +1834,13 @@
       "team": "NO",
       "status": "IR",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Tre' Harris",
+      "position": "WR",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "TreVeyon Henderson",
@@ -1862,6 +1904,13 @@
       "team": "DAL",
       "status": "Out",
       "body_part": "Knee"
+    },
+    {
+      "name": "Tyler Higbee",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Tyler Huntley",
