@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-14T15:14:06.398Z",
+  "fetched_at": "2026-11-14T20:49:33.382Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -446,7 +446,7 @@
       "name": "David Montgomery",
       "position": "RB",
       "team": "HOU",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -1167,7 +1167,7 @@
       "name": "Kenneth Walker III",
       "position": "RB",
       "team": "KC",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -1391,7 +1391,7 @@
       "name": "Mo Alie-Cox",
       "position": "TE",
       "team": "IND",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Groin"
     },
     {
@@ -1442,6 +1442,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Pat Freiermuth",
+      "position": "TE",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Patrick Taylor",
@@ -1818,8 +1825,8 @@
       "name": "Tyler Goodson",
       "position": "RB",
       "team": "DAL",
-      "status": "Out",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Knee - ACL + MCL"
     },
     {
       "name": "Tyler Huntley",
@@ -1902,7 +1909,7 @@
       "name": "Will Mallory",
       "position": "TE",
       "team": "IND",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -1916,7 +1923,7 @@
       "name": "Xavier Legette",
       "position": "WR",
       "team": "CAR",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Knee"
     },
     {
