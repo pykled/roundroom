@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-11-15T09:39:18.293Z",
+  "fetched_at": "2026-11-15T17:17:42.747Z",
   "players": [
     {
       "name": "A.J. Brown",
       "position": "WR",
       "team": "NE",
       "status": "Questionable",
-      "body_part": "Knee"
+      "body_part": "Hamstring"
     },
     {
       "name": "A.J. Hines",
@@ -37,11 +37,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Adonai Mitchell",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Knee"
+      "name": "AJ Dillon",
+      "position": "RB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Alec Pierce",
@@ -58,13 +58,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Amon-Ra St. Brown",
-      "position": "WR",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Ribs"
-    },
-    {
       "name": "Andre Baccellia",
       "position": "WR",
       "team": null,
@@ -77,6 +70,13 @@
       "team": "CIN",
       "status": "IR",
       "body_part": "Thumb"
+    },
+    {
+      "name": "Andy Dalton",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Anthony Firkser",
@@ -110,6 +110,27 @@
       "name": "Athan Kaliakmanis",
       "position": "QB",
       "team": "WAS",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Baker Mayfield",
+      "position": "QB",
+      "team": "TB",
+      "status": "Questionable",
+      "body_part": "Lower Leg"
+    },
+    {
+      "name": "Behren Morton",
+      "position": "QB",
+      "team": "NE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Ben VanSumeren",
+      "position": "RB",
+      "team": "KC",
       "status": "Out",
       "body_part": "Coach's Decision"
     },
@@ -212,13 +233,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Cameron Latu",
-      "position": "TE",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Back"
-    },
-    {
       "name": "Carnell Tate",
       "position": "WR",
       "team": "TEN",
@@ -278,7 +292,7 @@
       "name": "Chris Bell",
       "position": "WR",
       "team": "MIA",
-      "status": "Doubtful",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -287,13 +301,6 @@
       "team": "CAR",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Chris Brooks",
-      "position": "RB",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Chris Collier",
@@ -329,6 +336,13 @@
       "team": "NO",
       "status": "Out",
       "body_part": "Shoulder"
+    },
+    {
+      "name": "CJ Williams",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Cole Burgess",
@@ -499,13 +513,6 @@
       "body_part": "Groin"
     },
     {
-      "name": "Denzel Boston",
-      "position": "WR",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Toe"
-    },
-    {
       "name": "Derek Carr",
       "position": "QB",
       "team": null,
@@ -532,6 +539,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Dillon Gabriel",
+      "position": "QB",
+      "team": "CLE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "DJ Turner",
@@ -565,6 +579,13 @@
       "name": "Dontayvion Wicks",
       "position": "WR",
       "team": "PHI",
+      "status": "Out",
+      "body_part": "Ankle"
+    },
+    {
+      "name": "Drake Maye",
+      "position": "QB",
+      "team": "NE",
       "status": "Out",
       "body_part": "Ankle"
     },
@@ -667,11 +688,11 @@
       "body_part": "Elbow"
     },
     {
-      "name": "Garrett Wilson",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Concussion"
+      "name": "Garrett Nussmeier",
+      "position": "QB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Gee Scott",
@@ -728,6 +749,13 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Haynes King",
+      "position": "QB",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Hunter Long",
@@ -793,11 +821,25 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Ja'Tavion Sanders",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Jacardia Wright",
       "position": "RB",
       "team": "SEA",
       "status": "Out",
       "body_part": "Foot"
+    },
+    {
+      "name": "Jack Strand",
+      "position": "QB",
+      "team": "ATL",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jacory Croskey-Merritt",
@@ -929,7 +971,7 @@
       "name": "Jaydn Ott",
       "position": "RB",
       "team": "KC",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Hamstring"
     },
     {
@@ -959,6 +1001,13 @@
       "team": "KC",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Jelani Woods",
+      "position": "TE",
+      "team": "NYJ",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Jeremiah Webb",
@@ -1055,7 +1104,7 @@
       "name": "Jordan Addison",
       "position": "WR",
       "team": "MIN",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Thumb"
     },
     {
@@ -1106,6 +1155,13 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Justin Joly",
+      "position": "TE",
+      "team": "MIA",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Kadarius Calloway",
@@ -1332,6 +1388,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Max Brosmer",
+      "position": "QB",
+      "team": "MIN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Max Hurleman",
       "position": "WR",
       "team": "PIT",
@@ -1409,6 +1472,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Nicholas Singleton",
+      "position": "RB",
+      "team": "TEN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Nikola Kalinic",
       "position": "TE",
       "team": "CHI",
@@ -1421,13 +1491,6 @@
       "team": "HOU",
       "status": "Out",
       "body_part": "Quadriceps"
-    },
-    {
-      "name": "Omar Cooper Jr.",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Parris Campbell",
@@ -1456,6 +1519,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Pierre Strong Jr.",
+      "position": "RB",
+      "team": "GB",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Princeton Fant",
@@ -1500,25 +1570,18 @@
       "body_part": null
     },
     {
-      "name": "Reggie Gilliam",
-      "position": "RB",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Rhamondre Stevenson",
-      "position": "RB",
-      "team": "NE",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Ricky Pearsall",
       "position": "WR",
       "team": "SF",
       "status": "IR",
       "body_part": "Knee - PCL"
+    },
+    {
+      "name": "Riley Leonard",
+      "position": "QB",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "RJ Harvey",
@@ -1591,6 +1654,13 @@
       "body_part": null
     },
     {
+      "name": "Shane Buechele",
+      "position": "QB",
+      "team": "BUF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Shane Zylstra",
       "position": "TE",
       "team": null,
@@ -1612,13 +1682,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Sione Vaki",
-      "position": "RB",
-      "team": "DET",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Sirgeo Hoffman",
       "position": "RB",
       "team": null,
@@ -1631,13 +1694,6 @@
       "team": "BAL",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Skyy Moore",
-      "position": "WR",
-      "team": "GB",
-      "status": "Questionable",
-      "body_part": "Ankle"
     },
     {
       "name": "Squirrel White",
@@ -1689,6 +1745,13 @@
       "body_part": null
     },
     {
+      "name": "Taylen Green",
+      "position": "QB",
+      "team": "CLE",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Teddy Bridgewater",
       "position": "QB",
       "team": null,
@@ -1724,6 +1787,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Tim Patrick",
+      "position": "WR",
+      "team": "NYJ",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Tip Reiman",
       "position": "TE",
       "team": "ARI",
@@ -1750,13 +1820,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Travis Etienne Jr.",
-      "position": "RB",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "TreVeyon Henderson",
@@ -1798,13 +1861,6 @@
       "position": "RB",
       "team": "NO",
       "status": "IR",
-      "body_part": "Knee"
-    },
-    {
-      "name": "Tyjae Spears",
-      "position": "RB",
-      "team": "TEN",
-      "status": "Questionable",
       "body_part": "Knee"
     },
     {
@@ -1913,18 +1969,18 @@
       "body_part": "Foot"
     },
     {
-      "name": "Xavier Legette",
-      "position": "WR",
-      "team": "CAR",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Xavier Weaver",
       "position": "WR",
       "team": null,
       "status": "Questionable",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Zach Wilson",
+      "position": "QB",
+      "team": "NO",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Zachariah Branch",
