@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-14T20:49:33.382Z",
+  "fetched_at": "2026-11-15T02:00:08.284Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -152,8 +152,8 @@
       "name": "Brenen Thompson",
       "position": "WR",
       "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Quadriceps"
+      "status": "Doubtful",
+      "body_part": "Hamstring"
     },
     {
       "name": "Brevin Jordan",
@@ -292,7 +292,7 @@
       "name": "Chris Brooks",
       "position": "RB",
       "team": "GB",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -740,7 +740,7 @@
       "name": "Hunter Long",
       "position": "TE",
       "team": "ARI",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Knee"
     },
     {
@@ -1097,7 +1097,7 @@
       "name": "Josh Whyle",
       "position": "TE",
       "team": "GB",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Concussion"
     },
     {
@@ -1127,13 +1127,6 @@
       "team": null,
       "status": "NA",
       "body_part": null
-    },
-    {
-      "name": "Keaton Mitchell",
-      "position": "RB",
-      "team": "LAC",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Kejon Owens",
@@ -1346,6 +1339,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Max Hurleman",
+      "position": "WR",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Undisclosed"
+    },
+    {
       "name": "McCallan Castles",
       "position": "TE",
       "team": null,
@@ -1510,8 +1510,8 @@
       "name": "Reggie Gilliam",
       "position": "RB",
       "team": "NE",
-      "status": "IR",
-      "body_part": "Ankle"
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Rhamondre Stevenson",
@@ -1643,7 +1643,7 @@
       "name": "Skyy Moore",
       "position": "WR",
       "team": "GB",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Ankle"
     },
     {
@@ -1762,14 +1762,14 @@
       "name": "Travis Etienne Jr.",
       "position": "RB",
       "team": "NO",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Hamstring"
     },
     {
       "name": "TreVeyon Henderson",
       "position": "RB",
       "team": "NE",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Illness"
     },
     {
