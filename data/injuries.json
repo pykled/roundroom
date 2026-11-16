@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-15T23:01:27.350Z",
+  "fetched_at": "2026-11-16T06:54:51.086Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -611,6 +611,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Drew Allar",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -644,6 +651,13 @@
       "team": "WAS",
       "status": "IR",
       "body_part": "Calf"
+    },
+    {
+      "name": "Eli Heidenreich",
+      "position": "RB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Elijah Arroyo",
@@ -740,7 +754,7 @@
       "name": "George Holani",
       "position": "RB",
       "team": "SEA",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Knee"
     },
     {
@@ -1577,13 +1591,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Pat Freiermuth",
-      "position": "TE",
-      "team": "PIT",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Patrick Taylor",
       "position": "RB",
       "team": null,
@@ -2058,6 +2065,13 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Will Howard",
+      "position": "QB",
+      "team": "PIT",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Will Mallory",
