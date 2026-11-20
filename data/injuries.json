@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-20T13:19:02.782Z",
+  "fetched_at": "2026-11-20T21:53:31.755Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -107,13 +107,6 @@
       "body_part": null
     },
     {
-      "name": "Bhayshul Tuten",
-      "position": "RB",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Blake Grupe",
       "position": "K",
       "team": "LAR",
@@ -152,7 +145,7 @@
       "name": "Brenen Thompson",
       "position": "WR",
       "team": "LAC",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Hamstring"
     },
     {
@@ -203,13 +196,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Caleb Douglas",
-      "position": "WR",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Shoulder"
     },
     {
       "name": "Caleb Lohner",
@@ -282,13 +268,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Chris Bell",
-      "position": "WR",
-      "team": "MIA",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "Chris Brazzell II",
       "position": "WR",
       "team": "CAR",
@@ -308,13 +287,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Chris Rodriguez Jr.",
-      "position": "RB",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Hand"
     },
     {
       "name": "Chris Thompson",
@@ -390,7 +362,7 @@
       "name": "Dalton Kincaid",
       "position": "TE",
       "team": "BUF",
-      "status": "Questionable",
+      "status": "Doubtful",
       "body_part": "Thumb"
     },
     {
@@ -530,7 +502,7 @@
       "name": "Dontayvion Wicks",
       "position": "WR",
       "team": "PHI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -660,13 +632,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Geno Smith",
-      "position": "QB",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "George Holani",
       "position": "RB",
       "team": "SEA",
@@ -761,7 +726,7 @@
       "name": "Isaiah Williams",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ribs"
     },
     {
@@ -849,13 +814,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Jakobi Meyers",
-      "position": "WR",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Appendix"
-    },
-    {
       "name": "Jalen Brooks",
       "position": "WR",
       "team": "ARI",
@@ -901,7 +859,7 @@
       "name": "Jared Wayne",
       "position": "WR",
       "team": "MIA",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Quadriceps"
     },
     {
@@ -996,13 +954,6 @@
       "body_part": "Foot"
     },
     {
-      "name": "Jeshaun Jones",
-      "position": "WR",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Shoulder"
-    },
-    {
       "name": "Jimmy Holiday",
       "position": "WR",
       "team": "KC",
@@ -1062,7 +1013,7 @@
       "name": "Jonathan Mingo",
       "position": "WR",
       "team": "DAL",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1092,13 +1043,6 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Back"
-    },
-    {
-      "name": "Jordyn Tyson",
-      "position": "WR",
-      "team": "NO",
-      "status": "Questionable",
-      "body_part": "Chest"
     },
     {
       "name": "Josh Jacobs",
@@ -1195,7 +1139,7 @@
       "name": "Kenneth Walker III",
       "position": "RB",
       "team": "KC",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Groin"
     },
     {
@@ -1260,13 +1204,6 @@
       "team": null,
       "status": "NA",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "LeQuint Allen Jr.",
-      "position": "RB",
-      "team": "JAX",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Levonte Whitfield",
@@ -1468,7 +1405,7 @@
       "name": "Omar Cooper Jr.",
       "position": "WR",
       "team": "NYJ",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Ankle"
     },
     {
@@ -1493,13 +1430,6 @@
       "body_part": null
     },
     {
-      "name": "Pierre Strong Jr.",
-      "position": "RB",
-      "team": "GB",
-      "status": "Out",
-      "body_part": "Coach's Decision"
-    },
-    {
       "name": "Princeton Fant",
       "position": "TE",
       "team": "DAL",
@@ -1514,6 +1444,13 @@
       "body_part": "Knee - MCL"
     },
     {
+      "name": "Rachaad White",
+      "position": "RB",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Heel"
+    },
+    {
       "name": "Raheem Blackshear",
       "position": "RB",
       "team": null,
@@ -1526,13 +1463,6 @@
       "team": "CLE",
       "status": "IR",
       "body_part": "Hip"
-    },
-    {
-      "name": "Ray Davis",
-      "position": "RB",
-      "team": "BUF",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Ray-Ray McCloud",
@@ -1696,13 +1626,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "T.J. Hockenson",
-      "position": "TE",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Wrist"
-    },
-    {
       "name": "Tank Bigsby",
       "position": "RB",
       "team": "PHI",
@@ -1827,6 +1750,13 @@
       "team": "ATL",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Treylon Burks",
+      "position": "WR",
+      "team": "WAS",
+      "status": "Questionable",
+      "body_part": "Foot"
     },
     {
       "name": "Treyvhon Saunders",
@@ -1995,6 +1925,13 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Wrist"
+    },
+    {
+      "name": "Zavion Thomas",
+      "position": "WR",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Ankle"
     }
   ]
 }
