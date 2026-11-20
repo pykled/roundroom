@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-19T20:51:00.714Z",
+  "fetched_at": "2026-11-20T03:35:47.660Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -70,13 +70,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Anthony Gould",
-      "position": "WR",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Toe"
     },
     {
       "name": "Anthony Torres",
@@ -240,6 +233,13 @@
       "body_part": "Shoulder"
     },
     {
+      "name": "Carson Beck",
+      "position": "QB",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Back"
+    },
+    {
       "name": "Carson Steele",
       "position": "RB",
       "team": null,
@@ -350,13 +350,6 @@
       "team": "MIA",
       "status": "IR",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Colson Yankoff",
-      "position": "TE",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Knee"
     },
     {
       "name": "Connor Hulstein",
@@ -497,13 +490,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "DeVonta Smith",
-      "position": "WR",
-      "team": "PHI",
-      "status": "Questionable",
-      "body_part": "Hamstring"
     },
     {
       "name": "Dez Fitzpatrick",
@@ -1087,6 +1073,13 @@
       "body_part": "Thumb"
     },
     {
+      "name": "Jordan James",
+      "position": "RB",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Calf"
+    },
+    {
       "name": "Jordan Whittington",
       "position": "WR",
       "team": "LAR",
@@ -1295,6 +1288,13 @@
       "team": "GB",
       "status": "PUP",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Luke Schoonmaker",
+      "position": "TE",
+      "team": "DAL",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Mac Jones",
@@ -1542,6 +1542,13 @@
       "body_part": "Knee - PCL"
     },
     {
+      "name": "Riley Leonard",
+      "position": "QB",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "RJ Harvey",
       "position": "RB",
       "team": "DEN",
@@ -1603,6 +1610,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Seth McGowan",
+      "position": "RB",
+      "team": "IND",
+      "status": "Out",
+      "body_part": "Hamstring"
     },
     {
       "name": "Shane Zylstra",
