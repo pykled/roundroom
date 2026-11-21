@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-21T12:51:53.421Z",
+  "fetched_at": "2026-11-21T20:36:46.576Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -215,7 +215,7 @@
       "name": "Carson Beck",
       "position": "QB",
       "team": "ARI",
-      "status": "Questionable",
+      "status": "Out",
       "body_part": "Back"
     },
     {
@@ -683,7 +683,7 @@
     {
       "name": "Ihmir Smith-Marsette",
       "position": "WR",
-      "team": "CAR",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1503,8 +1503,8 @@
       "name": "Roman Wilson",
       "position": "WR",
       "team": "PIT",
-      "status": "IR",
-      "body_part": "Finger"
+      "status": "Questionable",
+      "body_part": "Hand"
     },
     {
       "name": "Romeo Doubs",
@@ -1762,7 +1762,7 @@
       "name": "Tyjae Spears",
       "position": "RB",
       "team": "TEN",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
