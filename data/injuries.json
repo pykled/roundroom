@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-21T20:36:46.576Z",
+  "fetched_at": "2026-11-22T02:24:02.189Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -495,7 +495,7 @@
       "name": "Dontayvion Wicks",
       "position": "WR",
       "team": "PHI",
-      "status": "Out",
+      "status": "IR",
       "body_part": "Ankle"
     },
     {
@@ -1143,6 +1143,13 @@
       "body_part": "Hamstring"
     },
     {
+      "name": "Kyren Williams",
+      "position": "RB",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Toe"
+    },
+    {
       "name": "Kyron Hudson",
       "position": "WR",
       "team": null,
@@ -1731,13 +1738,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Treylon Burks",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Foot"
-    },
-    {
       "name": "Treyvhon Saunders",
       "position": "WR",
       "team": null,
@@ -1867,7 +1867,7 @@
       "name": "Will Shipley",
       "position": "RB",
       "team": "PHI",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Foot"
     },
     {
