@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-22T23:41:34.507Z",
+  "fetched_at": "2026-11-23T07:56:31.963Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -476,6 +476,13 @@
       "team": "LAR",
       "status": "IR",
       "body_part": "Hand"
+    },
+    {
+      "name": "Demarcus Robinson",
+      "position": "WR",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Demond Claiborne",
@@ -1143,13 +1150,6 @@
       "body_part": "Thumb"
     },
     {
-      "name": "Jordan James",
-      "position": "RB",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Calf"
-    },
-    {
       "name": "Jordan Whittington",
       "position": "WR",
       "team": "LAR",
@@ -1197,6 +1197,13 @@
       "team": "NE",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Justin Herbert",
+      "position": "QB",
+      "team": "LAC",
+      "status": "Questionable",
+      "body_part": "Concussion"
     },
     {
       "name": "Justin Joly",
@@ -1304,6 +1311,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Kurtis Rourke",
+      "position": "QB",
+      "team": "SF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Kye Robichaux",
       "position": "RB",
       "team": null,
@@ -1402,13 +1416,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Mac Jones",
-      "position": "QB",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Illness"
-    },
-    {
       "name": "Malik Benson",
       "position": "WR",
       "team": "LV",
@@ -1472,6 +1479,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Max Brosmer",
+      "position": "QB",
+      "team": "MIN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "McCallan Castles",
       "position": "TE",
       "team": null,
@@ -1505,13 +1519,6 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
-    },
-    {
-      "name": "Mike Evans",
-      "position": "WR",
-      "team": "SF",
-      "status": "Questionable",
-      "body_part": "Achilles"
     },
     {
       "name": "Mo Alie-Cox",
