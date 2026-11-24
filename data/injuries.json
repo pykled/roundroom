@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-24T04:52:20.506Z",
+  "fetched_at": "2026-11-24T17:59:41.000Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -158,7 +158,7 @@
     {
       "name": "Brandon Aiyuk",
       "position": "WR",
-      "team": "SF",
+      "team": null,
       "status": "DNR",
       "body_part": "Knee - ACL + MCL"
     },
@@ -319,7 +319,7 @@
     {
       "name": "Chris Collier",
       "position": "RB",
-      "team": "LV",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1194,7 +1194,7 @@
     {
       "name": "Josh Kattus",
       "position": "TE",
-      "team": "CIN",
+      "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
     },
@@ -1288,13 +1288,6 @@
       "team": "LAC",
       "status": "Questionable",
       "body_part": "Back"
-    },
-    {
-      "name": "Kedon Slovis",
-      "position": "QB",
-      "team": "BAL",
-      "status": "Out",
-      "body_part": "Coach's Decision"
     },
     {
       "name": "Kejon Owens",
