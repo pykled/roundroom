@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-23T20:24:29.329Z",
+  "fetched_at": "2026-11-24T04:52:20.506Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -98,6 +98,13 @@
       "team": "NYJ",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Athan Kaliakmanis",
+      "position": "QB",
+      "team": "WAS",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Audric Estime",
@@ -231,6 +238,13 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Knee"
+    },
+    {
+      "name": "Cam Grandy",
+      "position": "TE",
+      "team": "CIN",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Cam Little",
@@ -399,6 +413,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Leg"
+    },
+    {
+      "name": "Dallas Goedert",
+      "position": "TE",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Shin"
     },
     {
       "name": "Dallen Bentley",
@@ -754,8 +775,8 @@
       "name": "George Holani",
       "position": "RB",
       "team": "SEA",
-      "status": "Out",
-      "body_part": "Knee"
+      "status": "IR",
+      "body_part": "Knee - MCL"
     },
     {
       "name": "Graham Gano",
@@ -903,13 +924,6 @@
       "team": "ATL",
       "status": "Out",
       "body_part": "Coach's Decision"
-    },
-    {
-      "name": "Jacory Croskey-Merritt",
-      "position": "RB",
-      "team": "WAS",
-      "status": "IR",
-      "body_part": "Groin"
     },
     {
       "name": "Jake Bentley",
@@ -1181,7 +1195,7 @@
       "name": "Josh Kattus",
       "position": "TE",
       "team": "CIN",
-      "status": "Out",
+      "status": "Questionable",
       "body_part": "Undisclosed"
     },
     {
@@ -1633,13 +1647,6 @@
       "body_part": "Knee - MCL"
     },
     {
-      "name": "Rachaad White",
-      "position": "RB",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Heel"
-    },
-    {
       "name": "Raheem Blackshear",
       "position": "RB",
       "team": null,
@@ -1703,6 +1710,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Robert Henry Jr.",
+      "position": "RB",
+      "team": "WAS",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Robert Woods",
       "position": "WR",
       "team": null,
@@ -1736,6 +1750,13 @@
       "team": "DEN",
       "status": "Out",
       "body_part": "Coach's Decision"
+    },
+    {
+      "name": "Sam LaPorta",
+      "position": "TE",
+      "team": "DET",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Saquon Barkley",
@@ -1841,6 +1862,13 @@
       "team": "CIN",
       "status": "IR",
       "body_part": "Pectoral"
+    },
+    {
+      "name": "Tanner McKee",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Ribs"
     },
     {
       "name": "Tanner McLachlan",
@@ -2086,6 +2114,13 @@
       "team": "IND",
       "status": "Out",
       "body_part": "Hamstring"
+    },
+    {
+      "name": "Will Shipley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Illness"
     },
     {
       "name": "Woody Marks",
