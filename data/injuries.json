@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-24T17:59:41.000Z",
+  "fetched_at": "2026-11-25T02:38:45.513Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -121,10 +121,17 @@
       "body_part": "Coach's Decision"
     },
     {
+      "name": "Ben Skowronek",
+      "position": "WR",
+      "team": "PIT",
+      "status": "Questionable",
+      "body_part": "Calf"
+    },
+    {
       "name": "Ben VanSumeren",
       "position": "RB",
       "team": "KC",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Knee"
     },
     {
@@ -534,6 +541,13 @@
       "body_part": "Groin"
     },
     {
+      "name": "Denzel Boston",
+      "position": "WR",
+      "team": "CLE",
+      "status": "Questionable",
+      "body_part": "Toe"
+    },
+    {
       "name": "Derek Carr",
       "position": "QB",
       "team": null,
@@ -882,6 +896,13 @@
       "team": "DET",
       "status": "IR",
       "body_part": "Back"
+    },
+    {
+      "name": "J.K. Dobbins",
+      "position": "RB",
+      "team": "DEN",
+      "status": "Out",
+      "body_part": "Personal"
     },
     {
       "name": "J'Mon Moore",
@@ -1757,13 +1778,6 @@
       "team": "PHI",
       "status": "Questionable",
       "body_part": "Arm"
-    },
-    {
-      "name": "Sean McKeon",
-      "position": "TE",
-      "team": null,
-      "status": "Questionable",
-      "body_part": "Undisclosed"
     },
     {
       "name": "Sergio Bailey II",
