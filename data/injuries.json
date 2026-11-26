@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-26T00:33:09.382Z",
+  "fetched_at": "2026-11-26T11:11:47.105Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -282,6 +282,13 @@
       "body_part": "Knee - Meniscus"
     },
     {
+      "name": "Christian Watson",
+      "position": "WR",
+      "team": "GB",
+      "status": "Out",
+      "body_part": "Concussion"
+    },
+    {
       "name": "Cole Burgess",
       "position": "WR",
       "team": null,
@@ -394,6 +401,13 @@
       "body_part": "Shoulder"
     },
     {
+      "name": "Davis Allen",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "De'Von Achane",
       "position": "RB",
       "team": "MIA",
@@ -497,6 +511,13 @@
       "team": "NE",
       "status": "Out",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Drew Lock",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Elbow"
     },
     {
       "name": "Drew Ogletree",
@@ -821,6 +842,13 @@
       "body_part": "Knee - PCL"
     },
     {
+      "name": "Jalen Milroe",
+      "position": "QB",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Illness"
+    },
+    {
       "name": "Jalen Virgil",
       "position": "WR",
       "team": null,
@@ -1015,6 +1043,13 @@
       "team": "MIN",
       "status": "Doubtful",
       "body_part": "Thumb"
+    },
+    {
+      "name": "Jordan Watkins",
+      "position": "WR",
+      "team": "SF",
+      "status": "Questionable",
+      "body_part": "Groin"
     },
     {
       "name": "Jordan Whittington",
@@ -1365,6 +1400,13 @@
       "team": "MIN",
       "status": "Questionable",
       "body_part": "Knee"
+    },
+    {
+      "name": "Nick Kallerup",
+      "position": "TE",
+      "team": "SEA",
+      "status": "Questionable",
+      "body_part": "Ankle"
     },
     {
       "name": "Nikola Kalinic",
@@ -1764,6 +1806,13 @@
       "team": "DAL",
       "status": "IR",
       "body_part": "Knee - ACL + MCL"
+    },
+    {
+      "name": "Tyler Higbee",
+      "position": "TE",
+      "team": "LAR",
+      "status": "Out",
+      "body_part": "Chest"
     },
     {
       "name": "Tyler Huntley",
