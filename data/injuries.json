@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-26T11:11:47.105Z",
+  "fetched_at": "2026-11-26T21:46:03.427Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -82,7 +82,7 @@
       "name": "Ben Skowronek",
       "position": "WR",
       "team": "PIT",
-      "status": "Questionable",
+      "status": "IR",
       "body_part": "Calf"
     },
     {
@@ -226,6 +226,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Case Keenum",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Caullin Lacy",
       "position": "WR",
       "team": null,
@@ -303,11 +310,25 @@
       "body_part": "Knee"
     },
     {
+      "name": "Cole Payton",
+      "position": "QB",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Cole Turner",
       "position": "TE",
       "team": "MIA",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Colston Loveland",
+      "position": "TE",
+      "team": "CHI",
+      "status": "Out",
+      "body_part": "Knee"
     },
     {
       "name": "Connor Hulstein",
@@ -520,13 +541,6 @@
       "body_part": "Elbow"
     },
     {
-      "name": "Drew Ogletree",
-      "position": "TE",
-      "team": "IND",
-      "status": "Questionable",
-      "body_part": "Knee"
-    },
-    {
       "name": "DT Sheffield",
       "position": "WR",
       "team": null,
@@ -653,6 +667,13 @@
       "body_part": "Knee - ACL"
     },
     {
+      "name": "Grant Calcaterra",
+      "position": "TE",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Coach's Decision"
+    },
+    {
       "name": "Grant DuBose",
       "position": "WR",
       "team": null,
@@ -695,6 +716,13 @@
       "body_part": "Undisclosed"
     },
     {
+      "name": "Hunter Long",
+      "position": "TE",
+      "team": "ARI",
+      "status": "Questionable",
+      "body_part": "Ankle"
+    },
+    {
       "name": "Ihmir Smith-Marsette",
       "position": "WR",
       "team": null,
@@ -728,13 +756,6 @@
       "team": "NYG",
       "status": "Questionable",
       "body_part": "Groin"
-    },
-    {
-      "name": "Isaiah Williams",
-      "position": "WR",
-      "team": "NYJ",
-      "status": "Questionable",
-      "body_part": "Ribs"
     },
     {
       "name": "Isiah Pacheco",
@@ -1339,13 +1360,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Michael Pittman Jr.",
-      "position": "WR",
-      "team": "PIT",
-      "status": "IR",
-      "body_part": "Foot"
-    },
-    {
       "name": "Michael Wilson",
       "position": "WR",
       "team": "ARI",
@@ -1435,6 +1449,13 @@
       "team": "NYJ",
       "status": "Questionable",
       "body_part": "Ankle"
+    },
+    {
+      "name": "Parker Washington",
+      "position": "WR",
+      "team": "JAX",
+      "status": "Questionable",
+      "body_part": "Shoulder"
     },
     {
       "name": "Parris Campbell",
@@ -1619,25 +1640,11 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Stefon Diggs",
-      "position": "WR",
-      "team": "WAS",
-      "status": "Questionable",
-      "body_part": "Personal"
-    },
-    {
       "name": "Stone Smartt",
       "position": "TE",
       "team": "NO",
       "status": "Out",
       "body_part": "Undisclosed"
-    },
-    {
-      "name": "Tai Felton",
-      "position": "WR",
-      "team": "MIN",
-      "status": "Questionable",
-      "body_part": "Hip"
     },
     {
       "name": "Tank Bigsby",
