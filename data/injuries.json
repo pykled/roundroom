@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-26T21:46:03.427Z",
+  "fetched_at": "2026-11-27T04:21:18.670Z",
   "players": [
     {
       "name": "A.J. Brown",
@@ -114,13 +114,6 @@
       "body_part": "Knee"
     },
     {
-      "name": "Blake Whiteheart",
-      "position": "TE",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Hip"
-    },
-    {
       "name": "Brashard Smith",
       "position": "RB",
       "team": "KC",
@@ -196,6 +189,13 @@
       "team": "DEN",
       "status": "IR",
       "body_part": "Lower Body"
+    },
+    {
+      "name": "Caleb Williams",
+      "position": "QB",
+      "team": "CHI",
+      "status": "Questionable",
+      "body_part": "Undisclosed"
     },
     {
       "name": "Calvin Austin III",
@@ -366,11 +366,18 @@
       "body_part": "Leg"
     },
     {
-      "name": "Dalton Kincaid",
+      "name": "Dallas Goedert",
       "position": "TE",
-      "team": "BUF",
+      "team": "PHI",
+      "status": "Out",
+      "body_part": "Shoulder"
+    },
+    {
+      "name": "Dalton Schultz",
+      "position": "TE",
+      "team": "HOU",
       "status": "Questionable",
-      "body_part": "Thumb"
+      "body_part": "Illness"
     },
     {
       "name": "Dameon Pierce",
@@ -406,6 +413,13 @@
       "team": null,
       "status": "NA",
       "body_part": null
+    },
+    {
+      "name": "Darren Waller",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Knee"
     },
     {
       "name": "Davante Adams",
@@ -490,6 +504,13 @@
       "team": null,
       "status": "Questionable",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "DeVonta Smith",
+      "position": "WR",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Back"
     },
     {
       "name": "Dez Fitzpatrick",
@@ -604,6 +625,13 @@
       "body_part": null
     },
     {
+      "name": "Feleipe Franks",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Wrist"
+    },
+    {
       "name": "Francis Owusu",
       "position": "WR",
       "team": null,
@@ -637,6 +665,13 @@
       "team": "ARI",
       "status": "IR",
       "body_part": "Elbow"
+    },
+    {
+      "name": "Garrett Nussmeier",
+      "position": "QB",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Gee Scott",
@@ -693,13 +728,6 @@
       "team": "NYG",
       "status": "IR",
       "body_part": "Achilles"
-    },
-    {
-      "name": "Harold Fannin Jr.",
-      "position": "TE",
-      "team": "CLE",
-      "status": "Questionable",
-      "body_part": "Groin"
     },
     {
       "name": "Hasise Dubois",
@@ -868,6 +896,13 @@
       "team": "SEA",
       "status": "Questionable",
       "body_part": "Illness"
+    },
+    {
+      "name": "Jalen Royals",
+      "position": "WR",
+      "team": "KC",
+      "status": "Out",
+      "body_part": "Ankle"
     },
     {
       "name": "Jalen Virgil",
@@ -1311,13 +1346,6 @@
       "body_part": "Undisclosed"
     },
     {
-      "name": "Marvin Harrison Jr.",
-      "position": "WR",
-      "team": "HOU",
-      "status": "Questionable",
-      "body_part": "Hamstring"
-    },
-    {
       "name": "Marvin Jones",
       "position": "WR",
       "team": null,
@@ -1381,6 +1409,13 @@
       "body_part": "Achilles"
     },
     {
+      "name": "Mitchell Evans",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Achilles"
+    },
+    {
       "name": "Mo Alie-Cox",
       "position": "TE",
       "team": "IND",
@@ -1416,25 +1451,11 @@
       "body_part": "Knee"
     },
     {
-      "name": "Nick Kallerup",
-      "position": "TE",
-      "team": "SEA",
-      "status": "Questionable",
-      "body_part": "Ankle"
-    },
-    {
       "name": "Nikola Kalinic",
       "position": "TE",
       "team": "CHI",
       "status": "IR",
       "body_part": "Knee"
-    },
-    {
-      "name": "Noah Gray",
-      "position": "TE",
-      "team": "KC",
-      "status": "Questionable",
-      "body_part": "Ribs"
     },
     {
       "name": "Noah Whittington",
@@ -1507,13 +1528,6 @@
       "body_part": "Hip"
     },
     {
-      "name": "Rashod Bateman",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Groin"
-    },
-    {
       "name": "Ray-Ray McCloud",
       "position": "WR",
       "team": null,
@@ -1584,6 +1598,13 @@
       "body_part": "Ankle"
     },
     {
+      "name": "Saquon Barkley",
+      "position": "RB",
+      "team": "PHI",
+      "status": "Questionable",
+      "body_part": "Neck"
+    },
+    {
       "name": "Sergio Bailey II",
       "position": "WR",
       "team": null,
@@ -1631,6 +1652,13 @@
       "team": "BAL",
       "status": "IR",
       "body_part": "Undisclosed"
+    },
+    {
+      "name": "Skyler Bell",
+      "position": "WR",
+      "team": "BUF",
+      "status": "Out",
+      "body_part": "Coach's Decision"
     },
     {
       "name": "Squirrel White",
@@ -1731,6 +1759,13 @@
       "body_part": "Knee - MCL"
     },
     {
+      "name": "Tommy Tremble",
+      "position": "TE",
+      "team": "CAR",
+      "status": "Questionable",
+      "body_part": "Knee"
+    },
+    {
       "name": "Tra Barnett",
       "position": "RB",
       "team": null,
@@ -1804,7 +1839,7 @@
       "name": "Tyler Badie",
       "position": "RB",
       "team": "DEN",
-      "status": "IR",
+      "status": "Questionable",
       "body_part": "Thumb"
     },
     {
@@ -1939,13 +1974,6 @@
       "team": "CHI",
       "status": "IR",
       "body_part": "Wrist"
-    },
-    {
-      "name": "Zay Flowers",
-      "position": "WR",
-      "team": "BAL",
-      "status": "Questionable",
-      "body_part": "Ankle"
     }
   ]
 }
